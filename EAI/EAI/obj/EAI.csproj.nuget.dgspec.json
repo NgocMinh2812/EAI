@@ -1,24 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "D:\\CDPTUD1\\EAI\\EAI\\EAI.csproj": {}
+    "D:\\CDPTUD1\\EAI\\EAI\\EAI\\EAI.csproj": {}
   },
   "projects": {
-    "D:\\CDPTUD1\\EAI\\EAI\\EAI.csproj": {
+    "D:\\CDPTUD1\\EAI\\EAI\\EAI\\EAI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\CDPTUD1\\EAI\\EAI\\EAI.csproj",
+        "projectUniqueName": "D:\\CDPTUD1\\EAI\\EAI\\EAI\\EAI.csproj",
         "projectName": "EAI",
-        "projectPath": "D:\\CDPTUD1\\EAI\\EAI\\EAI.csproj",
-        "packagesPath": "C:\\Users\\MINH\\.nuget\\packages\\",
-        "outputPath": "D:\\CDPTUD1\\EAI\\EAI\\obj\\",
+        "projectPath": "D:\\CDPTUD1\\EAI\\EAI\\EAI\\EAI.csproj",
+        "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
+        "outputPath": "D:\\CDPTUD1\\EAI\\EAI\\EAI\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\MINH\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -26,7 +22,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -39,13 +34,7 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.300"
+        }
       },
       "frameworks": {
         "net8.0-windows7.0": {
@@ -61,15 +50,7 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "frameworkReferences": {
-            "Microsoft.NETCore.App": {
-              "privateAssets": "all"
-            },
-            "Microsoft.WindowsDesktop.App.WPF": {
-              "privateAssets": "none"
-            }
-          },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.311/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.306\\RuntimeIdentifierGraph.json"
         }
       }
     }
