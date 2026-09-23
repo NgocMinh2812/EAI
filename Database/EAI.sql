@@ -42,6 +42,7 @@ CREATE TABLE NguoiDung (
     SoDienThoai NVARCHAR(20) NULL,
     DuongDanAnhDaiDien NVARCHAR(500) NULL,
     TrangThaiHoatDong BIT NOT NULL DEFAULT 1,
+    LaLanDauDangNhap BIT NOT NULL DEFAULT 1, -- 1: Chưa làm/chưa qua test đầu vào, 0: Đã xong
     NgayTao DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     LanDangNhapCuoi DATETIME2 NULL,
     CONSTRAINT FK_NguoiDung_VaiTro
