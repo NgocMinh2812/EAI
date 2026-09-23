@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\CDPTUD1\\EAI\\EAI\\EAI.csproj": {}
+    "D:\\CDPTUD1\\EAI\\EAI\\EAI\\EAI.csproj": {}
   },
   "projects": {
-    "D:\\CDPTUD1\\EAI\\EAI\\EAI.csproj": {
+    "D:\\CDPTUD1\\EAI\\EAI\\EAI\\EAI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\CDPTUD1\\EAI\\EAI\\EAI.csproj",
+        "projectUniqueName": "D:\\CDPTUD1\\EAI\\EAI\\EAI\\EAI.csproj",
         "projectName": "EAI",
-        "projectPath": "D:\\CDPTUD1\\EAI\\EAI\\EAI.csproj",
+        "projectPath": "D:\\CDPTUD1\\EAI\\EAI\\EAI\\EAI.csproj",
         "packagesPath": "C:\\Users\\MINH\\.nuget\\packages\\",
-        "outputPath": "D:\\CDPTUD1\\EAI\\EAI\\obj\\",
+        "outputPath": "D:\\CDPTUD1\\EAI\\EAI\\EAI\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
