@@ -1,6 +1,10 @@
 {
   "version": 2,
+<<<<<<< HEAD
   "dgSpecHash": "UUWKcAaPPyg=",
+=======
+  "dgSpecHash": "+katqKhpq8+C8ok3qMKIanXmWDmXQKgPcW5kDIIfLZZghYP6nwuHULUksExYw360f4Sfi0B5CJxzdbvRCm3GGA==",
+>>>>>>> b8d9c09beae0d9ced8f6d8fc044ec4d79699998b
   "success": true,
   "projectFilePath": "D:\\CDPTUD1\\EAI\\EAI\\EAI\\EAI.csproj",
   "expectedPackageFiles": [],
