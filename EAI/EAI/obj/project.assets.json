@@ -1,88 +1,26 @@
 {
   "version": 3,
   "targets": {
-    "net8.0-windows7.0": {
-      "BUS/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v8.0",
-        "dependencies": {
-          "DAL": "1.0.0",
-          "DTO": "1.0.0"
-        },
-        "compile": {
-          "bin/placeholder/BUS.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/BUS.dll": {}
-        }
-      },
-      "DAL/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v8.0",
-        "dependencies": {
-          "DTO": "1.0.0"
-        },
-        "compile": {
-          "bin/placeholder/DAL.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/DAL.dll": {}
-        }
-      },
-      "DTO/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v8.0",
-        "compile": {
-          "bin/placeholder/DTO.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/DTO.dll": {}
-        }
-      }
-    }
+    "net8.0-windows7.0": {}
   },
-  "libraries": {
-    "BUS/1.0.0": {
-      "type": "project",
-      "path": "../BUS/BUS.csproj",
-      "msbuildProject": "../BUS/BUS.csproj"
-    },
-    "DAL/1.0.0": {
-      "type": "project",
-      "path": "../DAL/DAL.csproj",
-      "msbuildProject": "../DAL/DAL.csproj"
-    },
-    "DTO/1.0.0": {
-      "type": "project",
-      "path": "../DTO/DTO.csproj",
-      "msbuildProject": "../DTO/DTO.csproj"
-    }
-  },
+  "libraries": {},
   "projectFileDependencyGroups": {
-    "net8.0-windows7.0": [
-      "BUS >= 1.0.0",
-      "DTO >= 1.0.0"
-    ]
+    "net8.0-windows7.0": []
   },
   "packageFolders": {
-    "C:\\Users\\MINH\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\Administrator\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\CDPTUD1\\EAI\\EAI\\EAI\\GUI.csproj",
-      "projectName": "GUI",
-      "projectPath": "D:\\CDPTUD1\\EAI\\EAI\\EAI\\GUI.csproj",
-      "packagesPath": "C:\\Users\\MINH\\.nuget\\packages\\",
-      "outputPath": "D:\\CDPTUD1\\EAI\\EAI\\EAI\\obj\\",
+      "projectUniqueName": "D:\\EAI\\EAI\\EAI\\EAI.csproj",
+      "projectName": "EAI",
+      "projectPath": "D:\\EAI\\EAI\\EAI\\EAI.csproj",
+      "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
+      "outputPath": "D:\\EAI\\EAI\\EAI\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\MINH\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -90,33 +28,19 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net8.0-windows7.0": {
           "targetAlias": "net8.0-windows",
-          "projectReferences": {
-            "D:\\CDPTUD1\\EAI\\EAI\\BUS\\BUS.csproj": {
-              "projectPath": "D:\\CDPTUD1\\EAI\\EAI\\BUS\\BUS.csproj"
-            },
-            "D:\\CDPTUD1\\EAI\\EAI\\DTO\\DTO.csproj": {
-              "projectPath": "D:\\CDPTUD1\\EAI\\EAI\\DTO\\DTO.csproj"
-            }
-          }
+          "projectReferences": {}
         }
       },
       "warningProperties": {
         "warnAsError": [
           "NU1605"
         ]
-      },
-      "restoreAuditProperties": {
-        "enableAudit": "true",
-        "auditLevel": "low",
-        "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "9.0.300"
+      }
     },
     "frameworks": {
       "net8.0-windows7.0": {
@@ -132,15 +56,7 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-        "frameworkReferences": {
-          "Microsoft.NETCore.App": {
-            "privateAssets": "all"
-          },
-          "Microsoft.WindowsDesktop.App.WPF": {
-            "privateAssets": "none"
-          }
-        },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.311/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.306\\RuntimeIdentifierGraph.json"
       }
     }
   }
