@@ -1,12 +1,47 @@
-﻿<Window x:Class="GUI.MainWindow"
+<Window x:Class="GUI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:GUI"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="EnglishAI - Hệ thống học tiếng Anh thông minh" 
+        WindowState="Maximized"
+        WindowStyle="None"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI"
+        Background="#0F766E">
 
+    <Grid>
+        <!-- Nền MainWindow màu xanh ngọc sáng hơn (Brand Teal phối Gradient) -->
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#0F766E" Offset="0"/>
+                <GradientStop Color="#134E4A" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <!-- =================================================================================== -->
+        <!-- CHỈNH THỤT LỀ & BO GÓC CỦA FLOATING PANEL TẠI ĐÂY:                                 -->
+        <!-- - Cú pháp 2 số: Margin="24,15" (24px Trái/Phải, 15px Trên/Dưới)                    -->
+        <!-- - Hoặc 1 số: Margin="15" (15px đều cả 4 phía)                                      -->
+        <!-- Lưu ý: Không được bỏ trống số trước dấu phẩy (như ",15") sẽ gây crash XAML!        -->
+        <!-- =================================================================================== -->
+        <Border Background="#F8FAFC" CornerRadius="20" Margin="24,15" BorderBrush="#14B8A6" BorderThickness="1">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="28" ShadowDepth="6" Opacity="0.3" Color="#042F2E"/>
+            </Border.Effect>
+
+            <Grid>
+                <!-- Mask element để cắt bo góc tròn 100% cho toàn bộ nội dung bên trong -->
+                <Border x:Name="MaskElement" Background="White" CornerRadius="20"/>
+
+                <!-- Container áp dụng OpacityMask bo góc tròn -->
+                <Border CornerRadius="20">
+                    <Border.OpacityMask>
+                        <VisualBrush Visual="{Binding ElementName=MaskElement}"/>
+                    </Border.OpacityMask>
+
+                    <!-- Main Content Frame (Hosts TrangChuView, HocTapView, DanhGiaNangLucView) -->
+                    <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden"/>
+                </Border>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
