@@ -1,0 +1,236 @@
+<Page x:Class="GUI.Views.ThiThuView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Thi thử mô phỏng - EnglishAI"
+      FontFamily="Segoe UI"
+      Background="#F4F7F6">
+
+    <Page.Resources>
+        <SolidColorBrush x:Key="BrandTeal" Color="#0F766E" />
+        <SolidColorBrush x:Key="BrandTealDark" Color="#042F2E" />
+        <SolidColorBrush x:Key="BrandTealLight" Color="#E6F7F3" />
+        <SolidColorBrush x:Key="BrandMint" Color="#10B981" />
+        <SolidColorBrush x:Key="BrandMintSoft" Color="#CCFBF1" />
+        <SolidColorBrush x:Key="TextDark" Color="#0F172A" />
+        <SolidColorBrush x:Key="TextGray" Color="#64748B" />
+        <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0" />
+        <SolidColorBrush x:Key="CardBg" Color="#FFFFFF" />
+
+        <Style x:Key="TestCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBg}"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderLight}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="22"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.05" Color="Black"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="StartTestButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource BrandTeal}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="Padding" Value="18,9"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="0.92"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="QuickTestButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource BrandMint}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="btnBorder" Background="{TemplateBinding Background}" CornerRadius="12" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="#059669"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+
+    <Grid Background="#F4F7F6">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="64"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Header -->
+        <Border Grid.Row="0" Background="{StaticResource CardBg}" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="25,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="EnglishAI / " Foreground="{StaticResource TextGray}" FontSize="13"/>
+                    <TextBlock Text="Phòng thi thử &amp; Đánh giá chuẩn quốc tế" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#F1F5F9" CornerRadius="8" Padding="12,6" Margin="0,0,10,0">
+                        <TextBlock Text="🏆 Đã thi: 4 bài" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}"/>
+                    </Border>
+                    <Border Background="{StaticResource BrandTealLight}" CornerRadius="8" Padding="12,6">
+                        <TextBlock Text="🎯 Điểm cao nhất: 8.5 / 10" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource BrandTeal}"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="25">
+            <StackPanel MaxWidth="1100" HorizontalAlignment="Stretch">
+
+                <!-- Hero Banner -->
+                <Border Background="{StaticResource BrandTealDark}" CornerRadius="16" Padding="26,22" Margin="0,0,0,22">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <Border Background="{StaticResource BrandTeal}" CornerRadius="6" Padding="10,3" HorizontalAlignment="Left" Margin="0,0,0,8">
+                                <TextBlock Text="MÔ PHỎNG PHÒNG THI THỰC TẾ" Foreground="White" FontSize="11" FontWeight="Bold"/>
+                            </Border>
+                            <TextBlock Text="Phòng Thi Thử Chuẩn Format Quốc Tế (IELTS • TOEIC • VSTEP)" Foreground="White" FontSize="20" FontWeight="Bold" Margin="0,0,0,6"/>
+                            <TextBlock Text="Rèn luyện áp lực thời gian, làm quen dạng đề thi thật với hệ thống AI tự động chấm và phân tích lỗi sai chi tiết." 
+                                       Foreground="#CCFBF1" FontSize="13.5"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="1" Content="⚡ Làm bài đánh giá nhanh (10p)" 
+                                Style="{StaticResource QuickTestButtonStyle}" Click="BtnQuickTest_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- Filter Chips -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                    <TextBlock Text="Danh sách đề thi đang mở:" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                </StackPanel>
+
+                <!-- Test Item 1: IELTS -->
+                <Border Style="{StaticResource TestCardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="#FEF2F2" Width="54" Height="54" CornerRadius="12" Margin="0,0,18,0">
+                            <TextBlock Text="🇬🇧" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <Border Background="#FEE2E2" CornerRadius="6" Padding="8,2" Margin="0,0,8,0">
+                                    <TextBlock Text="IELTS ACADEMIC" FontSize="11" FontWeight="Bold" Foreground="#B91C1C"/>
+                                </Border>
+                                <Border Background="#F1F5F9" CornerRadius="6" Padding="8,2">
+                                    <TextBlock Text="Target 6.5 - 7.5+" FontSize="11" FontWeight="Medium" Foreground="{StaticResource TextGray}"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="IELTS Reading &amp; Listening Mini Mock Test #05" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
+                            <TextBlock Text="⏱️ 40 phút • 30 câu hỏi • Bao gồm bài đọc Skimming/Scanning và hội thoại Section 3" FontSize="12.5" Foreground="{StaticResource TextGray}"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="2" Content="Bắt đầu thi" Style="{StaticResource StartTestButton}" VerticalAlignment="Center" Click="BtnStartIeltsTest_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- Test Item 2: TOEIC -->
+                <Border Style="{StaticResource TestCardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="#EFF6FF" Width="54" Height="54" CornerRadius="12" Margin="0,0,18,0">
+                            <TextBlock Text="🏢" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <Border Background="#DBEAFE" CornerRadius="6" Padding="8,2" Margin="0,0,8,0">
+                                    <TextBlock Text="TOEIC FORMAT" FontSize="11" FontWeight="Bold" Foreground="#1D4ED8"/>
+                                </Border>
+                                <Border Background="#F1F5F9" CornerRadius="6" Padding="8,2">
+                                    <TextBlock Text="Target 750+" FontSize="11" FontWeight="Medium" Foreground="{StaticResource TextGray}"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="TOEIC Reading Comprehension Diagnostic Test" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
+                            <TextBlock Text="⏱️ 45 phút • 50 câu hỏi • Part 5 (Hoàn thành câu), Part 6 (Điền đoạn văn) và Part 7 (Đọc hiểu đơn/kép)" FontSize="12.5" Foreground="{StaticResource TextGray}"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="2" Content="Bắt đầu thi" Style="{StaticResource StartTestButton}" VerticalAlignment="Center" Click="BtnStartToeicTest_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- Test Item 3: Grammar Master B2 -->
+                <Border Style="{StaticResource TestCardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="{StaticResource BrandTealLight}" Width="54" Height="54" CornerRadius="12" Margin="0,0,18,0">
+                            <TextBlock Text="📝" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <Border Background="{StaticResource BrandMintSoft}" CornerRadius="6" Padding="8,2" Margin="0,0,8,0">
+                                    <TextBlock Text="NGỮ PHÁP CHUYÊN SÂU" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
+                                </Border>
+                                <Border Background="#F1F5F9" CornerRadius="6" Padding="8,2">
+                                    <TextBlock Text="CEFR B2" FontSize="11" FontWeight="Medium" Foreground="{StaticResource TextGray}"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="Kiểm tra Đột phá Ngữ pháp &amp; Collocations Band B2" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
+                            <TextBlock Text="⏱️ 25 phút • 25 câu hỏi • Câu điều kiện đảo ngữ, mệnh đề quan hệ rút gọn, liên từ nâng cao" FontSize="12.5" Foreground="{StaticResource TextGray}"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="2" Content="Bắt đầu thi" Style="{StaticResource StartTestButton}" VerticalAlignment="Center" Click="BtnStartGrammarTest_Click"/>
+                    </Grid>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

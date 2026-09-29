@@ -77,110 +77,8 @@
         </Style>
     </Page.Resources>
 
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="260"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-
-        <!-- ================= SIDEBAR ================= -->
-        <Border Grid.Column="0" Background="{StaticResource SidebarBg}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,1,0">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- Logo -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="20,30,20,30">
-                    <Border Background="{StaticResource PrimaryGreen}" Width="32" Height="32" CornerRadius="8">
-                        <TextBlock Text="E" Foreground="White" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <TextBlock Text="EnglishAI" FontWeight="Bold" FontSize="20" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                </StackPanel>
-
-                <!-- Menu -->
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
-                        <TextBlock Text="MAIN NAVIGATION" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextGray}" Margin="20,10,20,10"/>
-                        <Button Style="{StaticResource ActiveSidebarItemStyle}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🏠" Margin="0,0,10,0"/>
-                                <TextBlock Text="Trang chủ"/>
-                            </StackPanel>
-                        </Button>
-
-                        <TextBlock Text="HỌC TẬP" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextGray}" Margin="20,20,20,10"/>
-                        <Button Style="{StaticResource SidebarItemStyle}" Click="BtnHocTap_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📚" Margin="0,0,10,0"/>
-                                <TextBlock Text="Học tập"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Style="{StaticResource SidebarItemStyle}" Click="BtnLuyenTap_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="✏️" Margin="0,0,10,0"/>
-                                <TextBlock Text="Luyện tập"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Style="{StaticResource SidebarItemStyle}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="⏱️" Margin="0,0,10,0"/>
-                                <TextBlock Text="Thi thử"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Style="{StaticResource SidebarItemStyle}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="✍️" Margin="0,0,10,0"/>
-                                <TextBlock Text="Bài viết"/>
-                            </StackPanel>
-                        </Button>
-
-                        <TextBlock Text="GROWTH TOOLS" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextGray}" Margin="20,20,20,10"/>
-                        <Button Style="{StaticResource SidebarItemStyle}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📈" Margin="0,0,10,0"/>
-                                <TextBlock Text="Tiến độ"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Style="{StaticResource SidebarItemStyle}" Click="AIChatButton_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🤖" Margin="0,0,10,0"/>
-                                <TextBlock Text="Trợ lý AI"/>
-                            </StackPanel>
-                        </Button>
-
-                        <TextBlock Text="SETTINGS" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextGray}" Margin="20,20,20,10"/>
-                        <Button Style="{StaticResource SidebarItemStyle}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="👤" Margin="0,0,10,0"/>
-                                <TextBlock Text="Hồ sơ"/>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                </ScrollViewer>
-
-                <!-- User Profile and Logout -->
-                <StackPanel Grid.Row="2" Margin="20" Orientation="Vertical">
-                    <StackPanel Orientation="Horizontal">
-                        <Ellipse Width="40" Height="40" Fill="#CBD5E1"/>
-                        <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding HoTen, FallbackValue='Nguyễn Văn A'}" FontWeight="Bold" FontSize="14"/>
-                            <TextBlock Text="{Binding Email, FallbackValue='nguyenvana@gmail.com'}" Foreground="{StaticResource TextGray}" FontSize="12"/>
-                        </StackPanel>
-                    </StackPanel>
-                    <Button Style="{StaticResource SidebarItemStyle}" Margin="-10,15,-10,0" Click="LogoutButton_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Đăng xuất" Foreground="#EF4444" FontWeight="SemiBold"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-            </Grid>
-        </Border>
-
-        <!-- ================= MAIN CONTENT ================= -->
-        <Grid Grid.Column="1" Background="{StaticResource AppBg}">
+    <!-- ================= MAIN CONTENT ================= -->
+    <Grid Background="{StaticResource AppBg}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="70"/>
                 <RowDefinition Height="*"/>
@@ -508,7 +406,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Column="0" Style="{StaticResource CardStyle}" Cursor="Hand" MouseDown="BtnLuyenTap_Click">
+                        <Border Grid.Column="0" Style="{StaticResource CardStyle}" Cursor="Hand" MouseDown="BtnLuyenTap_MouseDown">
                             <StackPanel Orientation="Horizontal">
                                 <Border Background="#E6F7F3" Width="36" Height="36" CornerRadius="8" Margin="0,0,10,0">
                                     <TextBlock Text="✏️" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -520,7 +418,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                        <Border Grid.Column="2" Style="{StaticResource CardStyle}" Cursor="Hand" MouseDown="BtnThiThu_MouseDown">
                             <StackPanel Orientation="Horizontal">
                                 <Border Background="#FFF4E5" Width="36" Height="36" CornerRadius="8" Margin="0,0,10,0">
                                     <TextBlock Text="⏱️" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -532,7 +430,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Column="4" Style="{StaticResource CardStyle}">
+                        <Border Grid.Column="4" Style="{StaticResource CardStyle}" Cursor="Hand" MouseDown="BtnBaiVietAI_MouseDown">
                             <StackPanel Orientation="Horizontal">
                                 <Border Background="#FEF2F2" Width="36" Height="36" CornerRadius="8" Margin="0,0,10,0">
                                     <TextBlock Text="✍️" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -544,7 +442,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Column="6" Style="{StaticResource CardStyle}" Cursor="Hand" MouseDown="AIChatButton_Click">
+                        <Border Grid.Column="6" Style="{StaticResource CardStyle}" Cursor="Hand" MouseDown="BtnAIChat_MouseDown">
                             <StackPanel Orientation="Horizontal">
                                 <Border Background="#F3F4F6" Width="36" Height="36" CornerRadius="8" Margin="0,0,10,0">
                                     <TextBlock Text="🤖" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -560,5 +458,4 @@
                 </StackPanel>
             </ScrollViewer>
         </Grid>
-    </Grid>
 </Page>

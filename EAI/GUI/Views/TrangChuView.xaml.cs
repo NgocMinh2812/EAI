@@ -24,7 +24,27 @@ namespace GUI.Views
 
         private void BtnLuyenTap_Click(object sender, RoutedEventArgs e)
         {
-            this.NavigationService?.Navigate(new HocTapView());
+            this.NavigationService?.Navigate(new LuyenTapView());
+        }
+
+        private void BtnLuyenTap_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            this.NavigationService?.Navigate(new LuyenTapView());
+        }
+
+        private void BtnThiThu_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            this.NavigationService?.Navigate(new ThiThuView());
+        }
+
+        private void BtnBaiVietAI_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            this.NavigationService?.Navigate(new BaiVietAIView());
+        }
+
+        private void BtnAIChat_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            this.NavigationService?.Navigate(new TroLyAIView());
         }
 
         private void ItemBaiHoc1_Click(object sender, MouseButtonEventArgs e)
@@ -39,7 +59,7 @@ namespace GUI.Views
 
         private void AIChatButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Tính năng Trợ lý AI Chat thông minh hỗ trợ giải đáp 24/7 đang sẵn sàng phục vụ bạn!", "EnglishAI Chat", MessageBoxButton.OK, MessageBoxImage.Information);
+            this.NavigationService?.Navigate(new TroLyAIView());
         }
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)

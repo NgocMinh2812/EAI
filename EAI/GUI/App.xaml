@@ -4,6 +4,16 @@
              xmlns:local="clr-namespace:GUI"
              StartupUri="Views/DangNhapWindow.xaml">
     <Application.Resources>
-         
+        <SolidColorBrush x:Key="BrandTeal" Color="#0F766E" />
+        <SolidColorBrush x:Key="BrandTealDark" Color="#042F2E" />
+        <SolidColorBrush x:Key="BrandTealLight" Color="#E6F7F3" />
+        <SolidColorBrush x:Key="BrandMint" Color="#10B981" />
+        <SolidColorBrush x:Key="BrandMintSoft" Color="#CCFBF1" />
+        <SolidColorBrush x:Key="TextDark" Color="#0F172A" />
+        <SolidColorBrush x:Key="TextGray" Color="#64748B" />
+        <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0" />
+        <SolidColorBrush x:Key="CardBg" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="AppBg" Color="#F4F7F6" />
+        <SolidColorBrush x:Key="SidebarBg" Color="#FFFFFF" />
     </Application.Resources>
 </Application>

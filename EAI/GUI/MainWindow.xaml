@@ -8,6 +8,47 @@
         FontFamily="Segoe UI"
         Background="#0F766E">
 
+    <Window.Resources>
+        <SolidColorBrush x:Key="BrandTeal" Color="#0F766E" />
+        <SolidColorBrush x:Key="BrandTealDark" Color="#042F2E" />
+        <SolidColorBrush x:Key="BrandTealLight" Color="#E6F7F3" />
+        <SolidColorBrush x:Key="SidebarBg" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="TextDark" Color="#0F172A" />
+        <SolidColorBrush x:Key="TextGray" Color="#64748B" />
+        <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0" />
+
+        <!-- Sidebar item styles -->
+        <Style x:Key="SidebarItemStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextGray}"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="btnBorder" Background="{TemplateBinding Background}" CornerRadius="8" Margin="8,2">
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F1F5F9"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ActiveSidebarItemStyle" TargetType="Button" BasedOn="{StaticResource SidebarItemStyle}">
+            <Setter Property="Background" Value="{StaticResource BrandTealLight}"/>
+            <Setter Property="Foreground" Value="{StaticResource BrandTeal}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <!-- Nền MainWindow màu xanh ngọc sáng hơn (Brand Teal phối Gradient) -->
         <Grid.Background>
@@ -17,12 +58,7 @@
             </LinearGradientBrush>
         </Grid.Background>
 
-        <!-- =================================================================================== -->
-        <!-- CHỈNH THỤT LỀ & BO GÓC CỦA FLOATING PANEL TẠI ĐÂY:                                 -->
-        <!-- - Cú pháp 2 số: Margin="24,15" (24px Trái/Phải, 15px Trên/Dưới)                    -->
-        <!-- - Hoặc 1 số: Margin="15" (15px đều cả 4 phía)                                      -->
-        <!-- Lưu ý: Không được bỏ trống số trước dấu phẩy (như ",15") sẽ gây crash XAML!        -->
-        <!-- =================================================================================== -->
+        <!-- Floating panel -->
         <Border Background="#F8FAFC" CornerRadius="20" Margin="24,15" BorderBrush="#14B8A6" BorderThickness="1">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="28" ShadowDepth="6" Opacity="0.3" Color="#042F2E"/>
@@ -38,8 +74,130 @@
                         <VisualBrush Visual="{Binding ElementName=MaskElement}"/>
                     </Border.OpacityMask>
 
-                    <!-- Main Content Frame (Hosts TrangChuView, HocTapView, DanhGiaNangLucView) -->
-                    <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden"/>
+                    <!-- Khung làm việc chính chia 2 cột: Cột 0 là Menu Trái dùng chung, Cột 1 là Nội dung trang -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="240" x:Name="colSidebar"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- ================= MENU TRÁI DÙNG CHUNG (SHARED SIDEBAR) ================= -->
+                        <Border x:Name="SidebarBorder" Grid.Column="0" Background="{StaticResource SidebarBg}" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,1,0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Logo Thương Hiệu -->
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="20,24,20,20">
+                                    <Border Background="{StaticResource BrandTeal}" Width="34" Height="34" CornerRadius="8">
+                                        <TextBlock Text="E" Foreground="White" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="EnglishAI" FontWeight="Bold" FontSize="18"/>
+                                        <TextBlock Text="Học tập thông minh" FontSize="11" Foreground="{StaticResource TextGray}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Danh sách Chức năng Menu -->
+                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <TextBlock Text="ĐIỀU HƯỚNG CHÍNH" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextGray}" Margin="16,10,16,8"/>
+                                        
+                                        <Button x:Name="btnNavTrangChu" Style="{StaticResource ActiveSidebarItemStyle}" Click="NavTrangChu_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="🏠" Margin="0,0,10,0"/>
+                                                <TextBlock Text="Trang chủ"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button x:Name="btnNavHocTap" Style="{StaticResource SidebarItemStyle}" Click="NavHocTap_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="📚" Margin="0,0,10,0"/>
+                                                <TextBlock Text="Học tập"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button x:Name="btnNavLuyenTap" Style="{StaticResource SidebarItemStyle}" Click="NavLuyenTap_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="✏️" Margin="0,0,10,0"/>
+                                                <TextBlock Text="Luyện tập"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button x:Name="btnNavThiThu" Style="{StaticResource SidebarItemStyle}" Click="NavThiThu_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="⏱️" Margin="0,0,10,0"/>
+                                                <TextBlock Text="Thi thử"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button x:Name="btnNavBaiViet" Style="{StaticResource SidebarItemStyle}" Click="NavBaiViet_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="✍️" Margin="0,0,10,0"/>
+                                                <TextBlock Text="Bài viết AI"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <TextBlock Text="CÔNG CỤ HỖ TRỢ" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextGray}" Margin="16,18,16,8"/>
+
+                                        <Button x:Name="btnNavTienDo" Style="{StaticResource SidebarItemStyle}" Click="NavTienDo_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="📈" Margin="0,0,10,0"/>
+                                                <TextBlock Text="Tiến độ học"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button x:Name="btnNavAIChat" Style="{StaticResource SidebarItemStyle}" Click="NavAIChat_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="🤖" Margin="0,0,10,0"/>
+                                                <TextBlock Text="Trợ lý AI"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button x:Name="btnNavHoSo" Style="{StaticResource SidebarItemStyle}" Click="NavHoSo_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="👤" Margin="0,0,10,0"/>
+                                                <TextBlock Text="Hồ sơ cá nhân"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </ScrollViewer>
+
+                                <!-- Thông tin Học viên & Đăng xuất -->
+                                <Border Grid.Row="2" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0" Padding="14,14">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        
+                                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                            <Border Background="{StaticResource BrandTealLight}" Width="36" Height="36" CornerRadius="18">
+                                                <TextBlock Text="NA" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                                                <TextBlock Text="Nguyễn Văn A" FontWeight="SemiBold" FontSize="13"/>
+                                                <TextBlock Text="IELTS Target 6.5" FontSize="11" Foreground="{StaticResource BrandTeal}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <Button Grid.Row="1" Style="{StaticResource SidebarItemStyle}" Margin="0,10,0,0" Click="LogoutButton_Click" HorizontalAlignment="Stretch">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="🚪" Margin="0,0,8,0"/>
+                                                <TextBlock Text="Đăng xuất" Foreground="#EF4444" FontWeight="Medium" FontSize="12.5"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- ================= NỘI DUNG PHÍA PHẢI (MAIN CONTENT HOST) ================= -->
+                        <Frame x:Name="MainFrame" Grid.Column="1" NavigationUIVisibility="Hidden"/>
+                    </Grid>
                 </Border>
             </Grid>
         </Border>
