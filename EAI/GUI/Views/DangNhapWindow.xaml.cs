@@ -182,13 +182,27 @@ namespace GUI.Views
 
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            // Giả định role: Nếu tài khoản không phải admin thì là role 'user'
             string email = txtEmail.Text.Trim().ToLower();
-            bool isUserRole = !email.Contains("admin");
-            bool isFirstLogin = true; // Lần đầu đăng nhập của role user
+            bool isGiangVien = email.Contains("admin") || email.Contains("giangvien") || email.Contains("tung.hoang");
 
-            MainWindow mainWindow = new MainWindow(isFirstLogin: isUserRole && isFirstLogin);
-            mainWindow.Show();
+            if (isGiangVien)
+            {
+                var gvWindow = new GUI.Views.GiangVien.GiangVienWindow();
+                gvWindow.Show();
+                this.Close();
+            }
+            else
+            {
+                MainWindow mainWindow = new MainWindow(isFirstLogin: false);
+                mainWindow.Show();
+                this.Close();
+            }
+        }
+
+        private void BtnLoginGiangVien_Click(object sender, RoutedEventArgs e)
+        {
+            var gvWindow = new GUI.Views.GiangVien.GiangVienWindow();
+            gvWindow.Show();
             this.Close();
         }
 

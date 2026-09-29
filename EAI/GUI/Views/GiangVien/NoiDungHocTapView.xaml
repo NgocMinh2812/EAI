@@ -1,0 +1,377 @@
+<Page x:Class="GUI.Views.GiangVien.NoiDungHocTapView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Nội dung học tập - Admin Dashboard"
+      FontFamily="Segoe UI"
+      Background="#F8FAFC">
+
+    <Page.Resources>
+        <SolidColorBrush x:Key="AdminDarkGreen" Color="#0F4C3A" />
+        <SolidColorBrush x:Key="AdminMint" Color="#10B981" />
+        <SolidColorBrush x:Key="TextDark" Color="#0F172A" />
+        <SolidColorBrush x:Key="TextGray" Color="#64748B" />
+        <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0" />
+        <SolidColorBrush x:Key="CardBg" Color="#FFFFFF" />
+
+        <Style x:Key="AdminCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBg}"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderLight}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="18"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.03" Color="Black"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Nội dung Học tập &amp; Gói Tài liệu Bài giảng" FontWeight="Bold" FontSize="20" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
+                <TextBlock Text="Mỗi bài học được tổ chức kèm theo file giáo trình PDF, file Word phiếu bài tập và Audio luyện nghe chuẩn IPA" FontSize="12.5" Foreground="{StaticResource TextGray}"/>
+            </StackPanel>
+
+            <Button Grid.Column="1" Content="➕ Thêm bài giảng &amp; đính kèm file" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
+                    FontWeight="SemiBold" FontSize="12.5" Padding="16,9" BorderThickness="0" Cursor="Hand" Click="BtnThemBaiHoc_Click">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </Grid>
+
+        <!-- Main 2-Column Split: Lessons with Files on Left, Interactive In-app Document Viewer on Right -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.1*"/>
+                <ColumnDefinition Width="14"/>
+                <ColumnDefinition Width="1.4*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ================= LEFT COLUMN: LESSON CARDS WITH ATTACHED FILES ================= -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+
+                    <!-- Lesson 1: Present Perfect -->
+                    <Border x:Name="cardLesson1" Style="{StaticResource AdminCardStyle}" Background="#F0FDF4" Cursor="Hand" MouseDown="LessonCard1_Click">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Background="#DCFCE7" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                                        <TextBlock Text="Ngữ pháp cốt lõi" FontSize="11" FontWeight="Bold" Foreground="#15803D"/>
+                                    </Border>
+                                    <Border Background="#F1F5F9" CornerRadius="4" Padding="6,2">
+                                        <TextBlock Text="B1" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextGray}"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="BH-003" FontSize="11" Foreground="{StaticResource TextGray}" HorizontalAlignment="Right"/>
+                            </Grid>
+
+                            <TextBlock Text="Thì Hiện Tại Hoàn Thành — Cấu trúc, Cách dùng &amp; Dấu hiệu" FontWeight="Bold" FontSize="14.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Phân biệt thì Hiện Tại Hoàn Thành với Quá Khứ Đơn, các trạng từ already, yet, ever, never, just, since, for." FontSize="12" Foreground="{StaticResource TextGray}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                            <!-- Attached Files Badges -->
+                            <TextBlock Text="TỆP HỌC LIỆU ĐÍNH KÈM:" FontWeight="Bold" FontSize="10.5" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <Border Background="#FEE2E2" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
+                                    <TextBlock Text="📕 GiaoTrinh_PresentPerfect.pdf" FontSize="11" FontWeight="SemiBold" Foreground="#DC2626"/>
+                                </Border>
+                                <Border Background="#DBEAFE" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
+                                    <TextBlock Text="📝 PhieuBaiTap_B1.docx" FontSize="11" FontWeight="SemiBold" Foreground="#1D4ED8"/>
+                                </Border>
+                            </StackPanel>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="15 câu hỏi trắc nghiệm • 100% hoàn thành" FontSize="11.5" Foreground="#15803D" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,8,0"/>
+                                <Button Grid.Column="1" Content="👁 Xem đề &amp; Đọc tài liệu ▶" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
+                                        FontWeight="SemiBold" FontSize="11.5" Padding="12,6" BorderThickness="0" Cursor="Hand" Click="BtnViewLesson1_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bd" Property="Background" Value="#135E48"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Lesson 2: AWL Academic Words -->
+                    <Border x:Name="cardLesson2" Style="{StaticResource AdminCardStyle}" Background="White" Cursor="Hand" MouseDown="LessonCard2_Click">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Background="#F3E8FF" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                                        <TextBlock Text="Từ vựng học thuật" FontSize="11" FontWeight="Bold" Foreground="#7E22CE"/>
+                                    </Border>
+                                    <Border Background="#F1F5F9" CornerRadius="4" Padding="6,2">
+                                        <TextBlock Text="B2 - C1" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextGray}"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="BH-002" FontSize="11" Foreground="{StaticResource TextGray}" HorizontalAlignment="Right"/>
+                            </Grid>
+
+                            <TextBlock Text="Academic Word List (AWL) — 60 Từ vựng Nhóm 1 &amp; 2" FontWeight="Bold" FontSize="14.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Từ vựng cốt lõi cho bài thi IELTS và nghiên cứu khoa học: approach, benefit, concept, derive, indicate..." FontSize="12" Foreground="{StaticResource TextGray}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                            <!-- Attached Files Badges -->
+                            <TextBlock Text="TỆP HỌC LIỆU ĐÍNH KÈM:" FontWeight="Bold" FontSize="10.5" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <Border Background="#FEE2E2" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
+                                    <TextBlock Text="📕 TuVung_AWL_Handbook.pdf" FontSize="11" FontWeight="SemiBold" Foreground="#DC2626"/>
+                                </Border>
+                                <Border Background="#DCFCE7" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
+                                    <TextBlock Text="📊 Flashcard_IPA_AWL.xlsx" FontSize="11" FontWeight="SemiBold" Foreground="#166534"/>
+                                </Border>
+                                <Border Background="#F3E8FF" CornerRadius="6" Padding="8,4">
+                                    <TextBlock Text="🎧 PhatAm_IPA_60Words.mp3" FontSize="11" FontWeight="SemiBold" Foreground="#7E22CE"/>
+                                </Border>
+                            </StackPanel>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="60 Flashcards • 20 câu hỏi luyện tập" FontSize="11.5" Foreground="{StaticResource TextDark}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,8,0"/>
+                                <Button Grid.Column="1" Content="👁 Xem đề &amp; Đọc tài liệu ▶" Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
+                                        FontWeight="SemiBold" FontSize="11.5" Padding="12,6" BorderThickness="0" Cursor="Hand" Click="BtnViewLesson2_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bd" Property="Background" Value="#E2E8F0"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Lesson 3: Conditionals -->
+                    <Border x:Name="cardLesson3" Style="{StaticResource AdminCardStyle}" Background="White" Cursor="Hand" MouseDown="LessonCard3_Click">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Background="#DBEAFE" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                                        <TextBlock Text="Ngữ pháp nâng cao" FontSize="11" FontWeight="Bold" Foreground="#1D4ED8"/>
+                                    </Border>
+                                    <Border Background="#F1F5F9" CornerRadius="4" Padding="6,2">
+                                        <TextBlock Text="B2" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextGray}"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="BH-001" FontSize="11" Foreground="{StaticResource TextGray}" HorizontalAlignment="Right"/>
+                            </Grid>
+
+                            <TextBlock Text="Câu điều kiện loại 1, 2, 3 và Đảo ngữ câu điều kiện" FontWeight="Bold" FontSize="14.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Cấu trúc câu điều kiện hỗn hợp (Mixed Conditionals) và các dạng đảo ngữ Should, Were, Had." FontSize="12" Foreground="{StaticResource TextGray}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                            <!-- Attached Files Badges -->
+                            <TextBlock Text="TỆP HỌC LIỆU ĐÍNH KÈM:" FontWeight="Bold" FontSize="10.5" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <Border Background="#FEE2E2" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
+                                    <TextBlock Text="📕 LyThuyet_Conditionals_B2.pdf" FontSize="11" FontWeight="SemiBold" Foreground="#DC2626"/>
+                                </Border>
+                                <Border Background="#DBEAFE" CornerRadius="6" Padding="8,4">
+                                    <TextBlock Text="📝 DeOnTap_DaoNgu_Conditionals.docx" FontSize="11" FontWeight="SemiBold" Foreground="#1D4ED8"/>
+                                </Border>
+                            </StackPanel>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="25 câu hỏi trắc nghiệm đảo ngữ" FontSize="11.5" Foreground="{StaticResource TextDark}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,8,0"/>
+                                <Button Grid.Column="1" Content="👁 Xem đề &amp; Đọc tài liệu ▶" Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
+                                        FontWeight="SemiBold" FontSize="11.5" Padding="12,6" BorderThickness="0" Cursor="Hand" Click="BtnViewLesson3_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bd" Property="Background" Value="#E2E8F0"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ================= RIGHT COLUMN: INTERACTIVE IN-APP DOCUMENT READER ================= -->
+            <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="12" Padding="0" ClipToBounds="True">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Document Title Bar -->
+                    <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="16,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                <TextBlock x:Name="txtReaderDocTitle" Text="GiaoTrinh_PresentPerfect.pdf" FontWeight="Bold" FontSize="13.5" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock x:Name="txtReaderDocMeta" Text="Đính kèm bài học BH-003 • 8 trang lý thuyết • File gốc định dạng PDF" FontSize="11" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="📥 Tải file" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
+                                        FontSize="11.5" FontWeight="SemiBold" Padding="10,6" Margin="0,0,6,0" Cursor="Hand" Click="BtnDownloadFile_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="btnB" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="btnB" Property="Background" Value="#F1F5F9"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <Button Content="✏️ Chỉnh sửa" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
+                                        FontSize="11.5" FontWeight="SemiBold" Padding="10,6" Cursor="Hand" Click="BtnEditFile_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="btnB2" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="btnB2" Property="Background" Value="#F1F5F9"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Document Body Content -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20">
+                        <StackPanel x:Name="pnlDocContent">
+
+                            <!-- Document Chapter Heading -->
+                            <TextBlock x:Name="txtChapterHeader" Text="CHƯƠNG 3: THÌ HIỆN TẠI HOÀN THÀNH (THE PRESENT PERFECT TENSE)" 
+                                       FontWeight="Bold" FontSize="15" Foreground="{StaticResource AdminDarkGreen}" Margin="0,0,0,12" TextWrapping="Wrap"/>
+
+                            <!-- Grammar Theory Box -->
+                            <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,0,14">
+                                <StackPanel>
+                                    <TextBlock Text="1. CẤU TRÚC NGỮ PHÁP CHUẨN:" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
+                                    <TextBlock FontFamily="Consolas" FontSize="12" Foreground="#0F766E" Margin="0,0,0,6">
+                                        (+) Khẳng định: S + have / has + V3/ed + (O)...<LineBreak/>
+                                        (-) Phủ định:  S + have / has + NOT + V3/ed...<LineBreak/>
+                                        (?) Nghi vấn:  Have / Has + S + V3/ed...?
+                                    </TextBlock>
+                                    <TextBlock Text="Ví dụ: She has lived in London for five years. (Cô ấy đã sống ở London được 5 năm và hiện tại vẫn đang ở đó)." FontSize="12" FontStyle="Italic" Foreground="{StaticResource TextGray}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Adverbs of Time -->
+                            <Border Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,0,14">
+                                <StackPanel>
+                                    <TextBlock Text="2. CÁC TRẠNG TỪ ĐI KÈM ĐẶC TRƯNG:" FontWeight="Bold" FontSize="12.5" Foreground="#92400E" Margin="0,0,0,6"/>
+                                    <TextBlock FontSize="12" Foreground="{StaticResource TextDark}" LineHeight="18" TextWrapping="Wrap">
+                                        • <Bold>Already</Bold>: Đã làm gì rồi (đặt giữa have/has và V3, hoặc cuối câu).<LineBreak/>
+                                        • <Bold>Yet</Bold>: Chưa (dùng trong câu phủ định và nghi vấn, đứng cuối câu).<LineBreak/>
+                                        • <Bold>Just</Bold>: Vừa mới (chỉ hành động vừa diễn ra cách đây ít phút).<LineBreak/>
+                                        • <Bold>Since + mốc thời gian</Bold> (Since 2010, Since Monday).<LineBreak/>
+                                        • <Bold>For + khoảng thời gian</Bold> (For 3 hours, For a long time).
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Attached Questions from Worksheet -->
+                            <Border Background="#F0FDF4" BorderBrush="#DCFCE7" BorderThickness="1" CornerRadius="8" Padding="14">
+                                <StackPanel>
+                                    <TextBlock Text="3. ĐỀ BÀI TẬP BÓC TÁCH TỪ FILE WORD (Phiếu bài tập củng cố):" FontWeight="Bold" FontSize="12.5" Foreground="#166534" Margin="0,0,0,8"/>
+
+                                    <TextBlock Text="Câu 1: I haven't seen John ______ we graduated from university." FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextDark}"/>
+                                    <TextBlock Text="➔ Đáp án: 'since' (vì 'we graduated' là mốc thời gian trong quá khứ)." FontSize="11.5" Foreground="#15803D" Margin="0,2,0,8"/>
+
+                                    <TextBlock Text="Câu 2: Have you ______ traveled to an English-speaking country?" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextDark}"/>
+                                    <TextBlock Text="➔ Đáp án: 'ever' (dùng trong câu hỏi trải nghiệm)." FontSize="11.5" Foreground="#15803D"/>
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Footer Action -->
+                    <Border Grid.Row="2" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0" Padding="16,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Đã đồng bộ với Ngân hàng đề thi và Flashcard học viên" FontSize="12" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,10,0"/>
+                            <Button Grid.Column="1" Content="🚀 Mở bài giảng mô phỏng học viên" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
+                                    FontWeight="SemiBold" FontSize="12" Padding="14,8" BorderThickness="0" Cursor="Hand" Click="BtnPreviewStudent_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="bd" Property="Background" Value="#135E48"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+
+        </Grid>
+    </Grid>
+</Page>

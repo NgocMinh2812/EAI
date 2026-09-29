@@ -260,11 +260,36 @@
                                                  GotFocus="TxtPassword_GotFocus" LostFocus="TxtPassword_LostFocus" Margin="0,0,0,20"/>
 
                                     <!-- Submit Button -->
-                                    <Button Style="{StaticResource TealButtonStyle}" Content="Đăng nhập" Click="LoginButton_Click" Margin="0,0,0,14"/>
+                                    <Button Style="{StaticResource TealButtonStyle}" Content="Đăng nhập" Click="LoginButton_Click" Margin="0,0,0,10"/>
 
                                     <!-- Forgot Password Link -->
-                                    <TextBlock Text="Quên mật khẩu?" Foreground="{StaticResource BrandTeal}" FontSize="12.5" FontWeight="Medium" 
-                                               HorizontalAlignment="Center" Cursor="Hand"/>
+                                    <TextBlock Text="Quên mật khẩu?" Foreground="{StaticResource BrandTeal}" FontSize="12" FontWeight="Medium" 
+                                               HorizontalAlignment="Center" Cursor="Hand" Margin="0,0,0,10"/>
+
+                                    <!-- Divider & Lecturer Login Button -->
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Rectangle Height="1" Fill="#E2E8F0" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="hoặc phân quyền" Foreground="{StaticResource TextGray}" FontSize="11" Margin="8,0"/>
+                                        <Rectangle Grid.Column="2" Height="1" Fill="#E2E8F0" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <Button x:Name="btnLoginGiangVien" Content="👨‍🏫 Đăng nhập bằng quyền Giảng viên" Background="#F0FDF4" Foreground="#0F766E" 
+                                            BorderBrush="#BBF7D0" BorderThickness="1" FontWeight="SemiBold" FontSize="12" Padding="10,7" Cursor="Hand" 
+                                            Click="BtnLoginGiangVien_Click">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                                        BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
                                 </StackPanel>
 
                                 <!-- ================= PANEL: ĐĂNG KÝ ================= -->
