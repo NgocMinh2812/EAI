@@ -1,173 +1,257 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
+using BUS;
+using DTO;
 
 namespace GUI.Views.GiangVien
 {
     public partial class DanhMucView : Page
     {
+        private readonly DanhMucBUS _danhMucBUS = new DanhMucBUS();
+        private List<BaiHocDTO> _allLessons = new List<BaiHocDTO>();
+        private TreeNodeDTO? _selectedNode;
+        private const string SearchPlaceholder = "🔍 Tìm bài học / đề thi...";
+
         public DanhMucView()
         {
             InitializeComponent();
+            LoadTreeAndLessons();
         }
 
-        private void BtnCategory_Click(object sender, RoutedEventArgs e)
+        private void LoadTreeAndLessons()
         {
-            if (sender is Button btn && btn.Tag is string tag)
+            try
             {
-                ResetCategoryStyles();
-                if (TryFindResource("ActiveCategoryItemButton") is Style activeStyle)
+                // 1. Tải cây chủ đề
+                var treeNodes = _danhMucBUS.LayCayTreeNode();
+                tvDanhMuc.ItemsSource = treeNodes;
+
+                // Tự động chọn nút gốc
+                if (treeNodes.Count > 0)
                 {
-                    btn.Style = activeStyle;
+                    _selectedNode = treeNodes[0];
+                }
+
+                // 2. Tải bài học tương ứng
+                LoadLessonsForSelectedTopic();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi tải cây danh mục từ cơ sở dữ liệu: {ex.Message}", "Lỗi CSDL", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void LoadLessonsForSelectedTopic()
+        {
+            try
+            {
+                int? topicId = (_selectedNode != null && _selectedNode.Id > 0) ? _selectedNode.Id : null;
+                string? search = (txtSearchFile != null && txtSearchFile.Text != SearchPlaceholder) ? txtSearchFile.Text.Trim() : null;
+
+                _allLessons = BaiHocBUS.LayDanhSachTuDatabase(topicId, search);
+
+                icLessonList.ItemsSource = _allLessons;
+                txtLessonCounter.Text = $"{_allLessons.Count} bài học";
+
+                txtEmptyNotice.Visibility = _allLessons.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+                if (_allLessons.Count > 0)
+                {
+                    ShowLessonPreview(_allLessons[0]);
+                }
+                else
+                {
+                    ClearPreview();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi tải danh sách bài học: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void TvDanhMuc_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (e.NewValue is TreeNodeDTO node)
+            {
+                _selectedNode = node;
+                LoadLessonsForSelectedTopic();
+            }
+        }
+
+        private void LessonItem_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is FrameworkElement elem && elem.Tag is int id)
+            {
+                var lesson = _allLessons.FirstOrDefault(b => b.MaBaiHoc == id);
+                if (lesson != null)
+                {
+                    ShowLessonPreview(lesson);
                 }
             }
         }
 
-        private void ResetCategoryStyles()
+        private void ShowLessonPreview(BaiHocDTO lesson)
         {
-            if (TryFindResource("CategoryItemButton") is Style normalStyle)
+            txtPreviewDocTitle.Text = lesson.TieuDe;
+            txtPreviewDocMeta.Text = $"Chủ đề: {lesson.TenChuDe} • Trình độ: {lesson.MaTrinhDo} • Ước tính: {lesson.ThoiGianUocTinhPhut} phút • Trạng thái: {lesson.TrangThai}";
+            txtSimulationModule.Text = $"{lesson.TenLoaiHienThi.ToUpper()} — TRÌNH ĐỘ {lesson.MaTrinhDo}";
+            txtSimulationPassage.Text = $"Tóm tắt: {lesson.TomTat}";
+
+            txtPassageTitle.Text = lesson.TieuDe;
+            txtPassageBody.Text = string.IsNullOrWhiteSpace(lesson.NoiDung) 
+                ? "Nội dung bài học chưa được cập nhật chi tiết." 
+                : lesson.NoiDung.Replace("<p>", "").Replace("</p>", "\n\n").Replace("<h3>", "■ ").Replace("</h3>", "\n").Replace("<ul>", "").Replace("</ul>", "").Replace("<li>", "• ").Replace("</li>", "\n");
+        }
+
+        private void ClearPreview()
+        {
+            txtPreviewDocTitle.Text = "Chưa chọn bài học";
+            txtPreviewDocMeta.Text = "Vui lòng chọn bài học từ danh sách để xem trước";
+            txtSimulationModule.Text = "HỌC LIỆU";
+            txtSimulationPassage.Text = "";
+            txtPassageTitle.Text = "Không có dữ liệu bài học";
+            txtPassageBody.Text = "Chủ đề này hiện chưa có bài học nào được tạo.";
+        }
+
+        private void TxtSearchFile_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (txtSearchFile.Text == SearchPlaceholder)
             {
-                btnCatAll.Style = normalStyle;
-                btnCatIELTS.Style = normalStyle;
-                btnCatTOEIC.Style = normalStyle;
-                btnCatVSTEP.Style = normalStyle;
-                btnCatGrammar.Style = normalStyle;
-                btnCatVocab.Style = normalStyle;
+                txtSearchFile.Text = "";
+                txtSearchFile.Foreground = (System.Windows.Media.Brush)FindResource("TextDark");
             }
         }
 
-        private void SetActiveFileItem(int index)
+        private void TxtSearchFile_LostFocus(object sender, RoutedEventArgs e)
         {
-            // Reset backgrounds
-            itemFile1.Background = Brushes.White;
-            itemFile2.Background = Brushes.White;
-            itemFile3.Background = Brushes.White;
-            itemFile4.Background = Brushes.White;
-            itemFile5.Background = Brushes.White;
-
-            // Reset "Đang xem" badges
-            badgeViewing1.Visibility = Visibility.Collapsed;
-            badgeViewing2.Visibility = Visibility.Collapsed;
-            badgeViewing3.Visibility = Visibility.Collapsed;
-            badgeViewing4.Visibility = Visibility.Collapsed;
-            badgeViewing5.Visibility = Visibility.Collapsed;
-
-            switch (index)
+            if (string.IsNullOrWhiteSpace(txtSearchFile.Text))
             {
-                case 1:
-                    itemFile1.Background = new SolidColorBrush(Color.FromRgb(240, 253, 244));
-                    badgeViewing1.Visibility = Visibility.Visible;
-                    break;
-                case 2:
-                    itemFile2.Background = new SolidColorBrush(Color.FromRgb(239, 246, 255));
-                    badgeViewing2.Visibility = Visibility.Visible;
-                    break;
-                case 3:
-                    itemFile3.Background = new SolidColorBrush(Color.FromRgb(254, 242, 242));
-                    badgeViewing3.Visibility = Visibility.Visible;
-                    break;
-                case 4:
-                    itemFile4.Background = new SolidColorBrush(Color.FromRgb(240, 253, 244));
-                    badgeViewing4.Visibility = Visibility.Visible;
-                    break;
-                case 5:
-                    itemFile5.Background = new SolidColorBrush(Color.FromRgb(250, 245, 255));
-                    badgeViewing5.Visibility = Visibility.Visible;
-                    break;
+                txtSearchFile.Text = SearchPlaceholder;
+                txtSearchFile.Foreground = (System.Windows.Media.Brush)FindResource("TextGray");
             }
         }
 
-        private void FileItem1_Click(object sender, MouseButtonEventArgs e)
+        private void TxtSearchFile_TextChanged(object sender, TextChangedEventArgs e)
         {
-            SetActiveFileItem(1);
-
-            txtPreviewDocTitle.Text = "IELTS_Reading_Cam18_Test01.pdf";
-            txtPreviewDocMeta.Text = "Định dạng: Adobe PDF • Dung lượng: 1.8 MB • Cập nhật: Hôm nay 10:30";
-            txtSimulationModule.Text = "ACADEMIC READING MODULE — PRACTICE TEST #01";
-            txtSimulationPassage.Text = "Reading Passage 1: You should spend about 20 minutes on Questions 1–13.";
-
-            txtPassageTitle.Text = "The Secrets of Ancient Roman Concrete & Architectural Acoustics";
-            txtPassageBody.Text = "For centuries, researchers have puzzled over how ancient Roman concrete structures such as the Colosseum and the Pantheon have remained structurally sound for over two millennia, often under harsh marine conditions...\n\nIn a groundbreaking 2023 study published by MIT and Harvard researchers, analytical electron microscopy revealed that lime clasts within the concrete matrix acted as an active calcium reservoir, sealing fractures autonomously.";
+            LoadLessonsForSelectedTopic();
         }
 
-        private void FileItem2_Click(object sender, MouseButtonEventArgs e)
+        // ================= CRUD CHỦ ĐỀ HỌC LIỆU =================
+
+        private void BtnThemChuDe_Click(object sender, RoutedEventArgs e)
         {
-            SetActiveFileItem(2);
+            var danhSach = _danhMucBUS.LayDanhSachChuDe();
+            int? defaultParent = (_selectedNode != null && _selectedNode.Id > 0) ? _selectedNode.Id : null;
 
-            txtPreviewDocTitle.Text = "TOEIC_Part7_Reading_Drills_2026.docx";
-            txtPreviewDocMeta.Text = "Định dạng: Microsoft Word (.docx) • Dung lượng: 920 KB • ETS 2026 Format";
-            txtSimulationModule.Text = "TOEIC PART 7 — DOUBLE PASSAGES DRILL #2026";
-            txtSimulationPassage.Text = "Questions 153–155 refer to the following business email and contract notice.";
-
-            txtPassageTitle.Text = "Email Inquiry & Business Contract Renewal Notice (Part 7 Double Passage)";
-            txtPassageBody.Text = "To: logistics-ops@novatech.corp\nFrom: supply-chain@apexlogistics.com\nSubject: Formal Quotation for Freight Forwarding Services Q3\n\nDear Ms. Henderson,\nThank you for reaching out regarding the multimodal shipment of electronic components from Incheon to Hamburg. Below is our comprehensive fee breakdown including customs clearance and door-to-door insurance coverage...";
+            var dlg = new ChuDeDialog(danhSach, null, defaultParent);
+            dlg.Owner = Window.GetWindow(this);
+            if (dlg.ShowDialog() == true)
+            {
+                var (success, msg) = _danhMucBUS.ThemChuDe(dlg.ChuDeData);
+                if (success)
+                {
+                    LoadTreeAndLessons();
+                    MessageBox.Show(msg, "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show(msg, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
         }
 
-        private void FileItem3_Click(object sender, MouseButtonEventArgs e)
+        private void BtnSuaChuDe_Click(object sender, RoutedEventArgs e)
         {
-            SetActiveFileItem(3);
+            if (_selectedNode == null || _selectedNode.Id <= 0)
+            {
+                MessageBox.Show("Vui lòng chọn một chủ đề cụ thể để sửa.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
-            txtPreviewDocTitle.Text = "VSTEP_B2_Full_Mock_Test_BộGDĐT.pdf";
-            txtPreviewDocMeta.Text = "Định dạng: Adobe PDF • Dung lượng: 2.4 MB • Khung năng lực 6 bậc Việt Nam";
-            txtSimulationModule.Text = "VSTEP B2 — BỘ ĐỀ THI CHUẨN ĐẠI HỌC QUỐC GIA";
-            txtSimulationPassage.Text = "Reading Paper: 60 minutes for 4 Reading Passages (40 items).";
+            var danhSach = _danhMucBUS.LayDanhSachChuDe();
+            var current = danhSach.FirstOrDefault(c => c.MaChuDe == _selectedNode.Id);
+            if (current == null)
+            {
+                MessageBox.Show("Không tìm thấy chủ đề.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
-            txtPassageTitle.Text = "Đề thi Đánh giá Năng lực Tiếng Anh Bậc 4 (B2) — Phần thi Đọc hiểu & Viết";
-            txtPassageBody.Text = "BÀI ĐỌC SỐ 1: Tác động của công nghệ số đến hành vi mua sắm của thế hệ Gen Z.\n\nThời gian làm bài: 60 phút gồm 4 bài đọc (40 câu hỏi trắc nghiệm). Thí sinh không được sử dụng từ điển hoặc tài liệu hỗ trợ. Toàn bộ câu hỏi đã được mã hóa vào hệ thống để AI tự động chấm.";
+            var dlg = new ChuDeDialog(danhSach, current);
+            dlg.Owner = Window.GetWindow(this);
+            if (dlg.ShowDialog() == true)
+            {
+                var (success, msg) = _danhMucBUS.CapNhatChuDe(dlg.ChuDeData);
+                if (success)
+                {
+                    LoadTreeAndLessons();
+                    MessageBox.Show(msg, "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show(msg, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
         }
 
-        private void FileItem4_Click(object sender, MouseButtonEventArgs e)
+        private void BtnXoaChuDe_Click(object sender, RoutedEventArgs e)
         {
-            SetActiveFileItem(4);
+            if (_selectedNode == null || _selectedNode.Id <= 0)
+            {
+                MessageBox.Show("Vui lòng chọn một chủ đề cụ thể để xóa.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
-            txtPreviewDocTitle.Text = "Academic_Vocabulary_AWL_570Words.xlsx";
-            txtPreviewDocMeta.Text = "Định dạng: Microsoft Excel (.xlsx) • Dung lượng: 620 KB • 570 Từ vựng AWL";
-            txtSimulationModule.Text = "ACADEMIC WORD LIST (AWL) — FLASHCARD REVISION";
-            txtSimulationPassage.Text = "570 Headwords categorised by frequency sublists (Sublist 1 to 10).";
-
-            txtPassageTitle.Text = "Bảng dữ liệu trích xuất: Thẻ Flashcard Từ vựng Học thuật (Sublist 1–10)";
-            txtPassageBody.Text = "Cột 1: Word (approach, benefit, concept, data, establish, factor, interpret, method, proceed, variable...)\nCột 2: IPA Pronunciation (/əˈprəʊtʃ/, /ˈbenɪfɪt/...)\nCột 3: Word Family (approachable, unapproachable)\nCột 4: Contextual Example & Audio file link.";
+            var confirm = MessageBox.Show($"Bạn có chắc chắn muốn xóa chủ đề: '{_selectedNode.Title}'?",
+                                          "Xác nhận xóa danh mục", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (confirm == MessageBoxResult.Yes)
+            {
+                // Kiểm tra ràng buộc và xóa qua BUS
+                var (success, msg) = _danhMucBUS.XoaChuDe(_selectedNode.Id);
+                if (success)
+                {
+                    _selectedNode = null;
+                    LoadTreeAndLessons();
+                    MessageBox.Show(msg, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show(msg, "Ràng buộc dữ liệu không cho phép xóa", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
         }
 
-        private void FileItem5_Click(object sender, MouseButtonEventArgs e)
-        {
-            SetActiveFileItem(5);
-
-            txtPreviewDocTitle.Text = "IELTS_Section3_Audio_Transcript.mp3";
-            txtPreviewDocMeta.Text = "Định dạng: MPEG Audio (.mp3) • Dung lượng: 8.4 MB • Thời lượng: 12 phút 40 giây";
-            txtSimulationModule.Text = "IELTS LISTENING SECTION 3 — AUDIO TRANSCRIPT";
-            txtSimulationPassage.Text = "University tutorial discussion between tutor and two students.";
-
-            txtPassageTitle.Text = "Listening Section 3 Audio Transcript: Academic Discussion on Marine Biology";
-            txtPassageBody.Text = "TUTOR: Good morning Sarah and Jack. Let's look at the field trip report you submitted on coral reef bleaching.\nSARAH: Yes, we found that temperature fluctuations in the summer months were significantly higher than historical averages...\nJACK: And the pH levels near the coastal runoff zones showed clear signs of localized acidification.";
-        }
+        // ================= TOP HEADER BUTTONS =================
 
         private void BtnUploadFile_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Mở hộp thoại tải lên tệp: Chọn file PDF, DOCX, XLSX hoặc MP3 từ máy tính để phân tích và bóc tách tự động.", 
-                            "Tải lên học liệu mới", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Mở hộp thoại tải lên tệp đề thi mới (.pdf, .docx, .xlsx, .mp3) để bóc tách câu hỏi.", 
+                            "Tải lên tệp", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void BtnNewFolder_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Mở hộp thoại tạo mới Thư mục chuyên mục đề thi (VD: 'IELTS Cambridge 19', 'TOEIC Economy 2026').", 
-                            "Thêm thư mục mới", MessageBoxButton.OK, MessageBoxImage.Information);
+            BtnThemChuDe_Click(sender, e);
         }
 
         private void BtnDownloadCurrent_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show($"Đang tải xuống tệp '{txtPreviewDocTitle.Text}' về máy tính...", "Tải tài liệu", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Đang tải tài liệu về máy tính thành công.", "Tải về", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void BtnPrintCurrent_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show($"Đang kết nối máy in để in đề thi '{txtPreviewDocTitle.Text}' kèm đáp án và phiếu trả lời trắc nghiệm chuẩn...", "In ấn đề thi", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Đang kết nối máy in để in đề thi / học liệu...", "In ấn", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void BtnAddToExam_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show($"✓ Đã đưa thành công toàn bộ câu hỏi và bài đọc từ '{txtPreviewDocTitle.Text}' vào Phòng Thi thử (Mock Test)!", "Nạp vào đề thi thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Đã thêm toàn bộ nội dung học liệu vào bộ đề thi thử thành công!", 
+                            "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

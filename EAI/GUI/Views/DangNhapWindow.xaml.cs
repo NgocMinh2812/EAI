@@ -1,11 +1,14 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using BUS;
+using DTO;
 
 namespace GUI.Views
 {
     public partial class DangNhapWindow : Window
     {
+        private readonly NguoiDungBUS _nguoiDungBUS = new NguoiDungBUS();
         private const string EmailPlaceholder = "ten@email.com";
         private const string PasswordPlaceholder = "password";
 
@@ -39,6 +42,9 @@ namespace GUI.Views
             pnlLogin.Visibility = Visibility.Visible;
             pnlRegister.Visibility = Visibility.Collapsed;
 
+            btnLogin.IsDefault = true;
+            btnRegister.IsDefault = false;
+
             tabLoginBorder.Background = Brushes.White;
             tabLoginShadow.Opacity = 0.06;
             tabLoginText.FontWeight = FontWeights.SemiBold;
@@ -57,6 +63,9 @@ namespace GUI.Views
         {
             pnlLogin.Visibility = Visibility.Collapsed;
             pnlRegister.Visibility = Visibility.Visible;
+
+            btnLogin.IsDefault = false;
+            btnRegister.IsDefault = true;
 
             tabRegisterBorder.Background = Brushes.White;
             tabRegisterShadow.Opacity = 0.06;
@@ -182,10 +191,32 @@ namespace GUI.Views
 
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            string email = txtEmail.Text.Trim().ToLower();
-            bool isGiangVien = email.Contains("admin") || email.Contains("giangvien") || email.Contains("tung.hoang");
+            string emailOrUser = txtEmail.Text.Trim();
+            string password = txtPassword.Password;
 
-            if (isGiangVien)
+            if (emailOrUser == EmailPlaceholder || string.IsNullOrEmpty(emailOrUser))
+            {
+                MessageBox.Show("Vui lòng nhập địa chỉ email hoặc tên đăng nhập.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtEmail.Focus();
+                return;
+            }
+
+            if (password == PasswordPlaceholder || string.IsNullOrEmpty(password))
+            {
+                MessageBox.Show("Vui lòng nhập mật khẩu.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtPassword.Focus();
+                return;
+            }
+
+            var (success, msg, user) = _nguoiDungBUS.DangNhap(emailOrUser, password);
+            if (!success || user == null)
+            {
+                MessageBox.Show(msg, "Đăng nhập không thành công", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Phân quyền theo vai trò trong CSDL
+            if (user.TenVaiTro == "GiangVien" || user.TenVaiTro == "QuanTriVien")
             {
                 var gvWindow = new GUI.Views.GiangVien.GiangVienWindow();
                 gvWindow.Show();
@@ -193,17 +224,10 @@ namespace GUI.Views
             }
             else
             {
-                MainWindow mainWindow = new MainWindow(isFirstLogin: false);
+                MainWindow mainWindow = new MainWindow(isFirstLogin: user.LaLanDauDangNhap);
                 mainWindow.Show();
                 this.Close();
             }
-        }
-
-        private void BtnLoginGiangVien_Click(object sender, RoutedEventArgs e)
-        {
-            var gvWindow = new GUI.Views.GiangVien.GiangVienWindow();
-            gvWindow.Show();
-            this.Close();
         }
 
         private void RegisterButton_Click(object sender, RoutedEventArgs e)

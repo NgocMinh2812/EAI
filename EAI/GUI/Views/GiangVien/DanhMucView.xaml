@@ -110,65 +110,49 @@
                 <ColumnDefinition Width="1.5*" MinWidth="340"/>
             </Grid.ColumnDefinitions>
 
-            <!-- ================= CỘT 1: CÂY DANH MỤC ================= -->
-            <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="12" Padding="14">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
-                        <TextBlock Text="CÂY PHÂN CẤP CHỦ ĐỀ" FontWeight="Bold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="4,4,4,10"/>
+            <!-- ================= CỘT 1: CÂY DANH MỤC ĐỘNG ================= -->
+            <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="12" Padding="12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                        <Button x:Name="btnCatAll" Style="{StaticResource ActiveCategoryItemButton}" Click="BtnCategory_Click" Tag="All">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📁" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Tất cả tài liệu (18)" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
+                    <TextBlock Grid.Row="0" Text="CÂY PHÂN CẤP CHỦ ĐỀ" FontWeight="Bold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="4,4,4,8"/>
 
-                        <Button x:Name="btnCatIELTS" Style="{StaticResource CategoryItemButton}" Click="BtnCategory_Click" Tag="IELTS">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🇬🇧" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="IELTS Academic (6)" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
+                    <!-- Toolbar Thêm / Sửa / Xóa Chủ đề -->
+                    <Border Grid.Row="1" Background="#F8FAFC" CornerRadius="8" Padding="4" Margin="0,0,0,10" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
 
-                        <Button x:Name="btnCatTOEIC" Style="{StaticResource CategoryItemButton}" Click="BtnCategory_Click" Tag="TOEIC">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🏢" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="TOEIC Test Bank (4)" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
+                            <Button Grid.Column="0" Content="➕ Thêm" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1"
+                                    FontSize="11" FontWeight="SemiBold" Padding="4,4" Margin="2,0" Cursor="Hand" Click="BtnThemChuDe_Click" ToolTip="Thêm chủ đề mới"/>
+                            <Button Grid.Column="1" Content="✏️ Sửa" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1"
+                                    FontSize="11" FontWeight="SemiBold" Padding="4,4" Margin="2,0" Cursor="Hand" Click="BtnSuaChuDe_Click" ToolTip="Sửa chủ đề đang chọn"/>
+                            <Button Grid.Column="2" Content="🗑️ Xóa" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1"
+                                    FontSize="11" FontWeight="SemiBold" Foreground="#EF4444" Padding="4,4" Margin="2,0" Cursor="Hand" Click="BtnXoaChuDe_Click" ToolTip="Xóa chủ đề đang chọn"/>
+                        </Grid>
+                    </Border>
 
-                        <Button x:Name="btnCatVSTEP" Style="{StaticResource CategoryItemButton}" Click="BtnCategory_Click" Tag="VSTEP">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🎓" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="VSTEP B1 - B2 (3)" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-
-                        <Button x:Name="btnCatGrammar" Style="{StaticResource CategoryItemButton}" Click="BtnCategory_Click" Tag="Grammar">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📘" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Ngữ pháp cốt lõi (3)" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-
-                        <Button x:Name="btnCatVocab" Style="{StaticResource CategoryItemButton}" Click="BtnCategory_Click" Tag="Vocab">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📙" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Từ vựng chuyên ngành (2)" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-
-                        <Rectangle Height="1" Fill="{StaticResource BorderLight}" Margin="4,16,4,14"/>
-
-                        <TextBlock Text="ĐỊNH DẠNG TỆP" FontWeight="Bold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="4,0,4,8"/>
-                        <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="📕 PDF Document: 8 tệp" FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
-                            <TextBlock Text="📝 Word (.docx): 5 tệp" FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
-                            <TextBlock Text="📊 Excel (.xlsx): 3 tệp" FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
-                            <TextBlock Text="🎧 Audio (.mp3): 2 tệp" FontSize="12" Foreground="{StaticResource TextGray}"/>
-                        </StackPanel>
-                    </StackPanel>
-                </ScrollViewer>
+                    <!-- WPF TreeView Động liên kết CSDL -->
+                    <TreeView x:Name="tvDanhMuc" Grid.Row="2" BorderThickness="0" Background="Transparent" 
+                              SelectedItemChanged="TvDanhMuc_SelectedItemChanged">
+                        <TreeView.ItemTemplate>
+                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                <StackPanel Orientation="Horizontal" Margin="0,3">
+                                    <TextBlock Text="{Binding Icon}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Title}" FontSize="12.5" FontWeight="Medium" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding BadgeText}" FontSize="11" Foreground="{StaticResource TextGray}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                </Grid>
             </Border>
 
             <!-- ================= CỘT 2: DANH SÁCH FILE ĐỀ THI ================= -->
@@ -186,137 +170,50 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox x:Name="txtSearchFile" Text="🔍 Tìm file đề thi..." BorderThickness="0" Background="Transparent" 
-                                     FontSize="12.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="Đã chọn: 1 file" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
+                            <TextBox x:Name="txtSearchFile" Text="🔍 Tìm bài học / đề thi..." BorderThickness="0" Background="Transparent" 
+                                     FontSize="12.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"
+                                     GotFocus="TxtSearchFile_GotFocus" LostFocus="TxtSearchFile_LostFocus" TextChanged="TxtSearchFile_TextChanged"/>
+                            <TextBlock x:Name="txtLessonCounter" Grid.Column="1" Text="4 bài học" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
                         </Grid>
                     </Border>
 
-                    <!-- Files Items -->
+                    <!-- Lessons / Materials Items from Database -->
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                        <StackPanel x:Name="pnlFileList">
+                        <StackPanel>
+                            <!-- Empty State Notice -->
+                            <TextBlock x:Name="txtEmptyNotice" Text="Chưa có bài học nào trong chủ đề này." 
+                                       FontStyle="Italic" Foreground="{StaticResource TextGray}" Margin="20" HorizontalAlignment="Center" Visibility="Collapsed"/>
 
-                            <!-- File 1: PDF IELTS -->
-                            <Border x:Name="itemFile1" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="14,12" Background="#F0FDF4" Cursor="Hand" MouseDown="FileItem1_Click">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
+                            <!-- Real Lessons List -->
+                            <ItemsControl x:Name="icLessonList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="14,12" Background="White" Cursor="Hand" MouseDown="LessonItem_Click" Tag="{Binding MaBaiHoc}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
 
-                                    <!-- PDF Icon -->
-                                    <Border Grid.Column="0" Background="#FEE2E2" Width="36" Height="36" CornerRadius="8" Margin="0,0,10,0">
-                                        <TextBlock Text="PDF" FontWeight="Bold" FontSize="11" Foreground="#DC2626" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
+                                                <!-- Skill Icon Badge -->
+                                                <Border Grid.Column="0" Background="{Binding BadgeBackground}" Width="36" Height="36" CornerRadius="8" Margin="0,0,10,0">
+                                                    <TextBlock Text="{Binding IconSkill}" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
 
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
-                                        <TextBlock Text="IELTS_Reading_Cam18_Test01.pdf" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Text="1.8 MB • 3 bài đọc • 40 câu hỏi • IELTS 6.5+" FontSize="11" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
-                                    </StackPanel>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                    <TextBlock Text="{Binding TieuDe}" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding TomTat}" FontSize="11" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                                </StackPanel>
 
-                                    <Border x:Name="badgeViewing1" Grid.Column="2" Background="#DCFCE7" CornerRadius="6" Padding="7,3" VerticalAlignment="Center">
-                                        <TextBlock Text="Đang xem" FontSize="10" FontWeight="SemiBold" Foreground="#15803D"/>
-                                    </Border>
-                                </Grid>
-                            </Border>
-
-                            <!-- File 2: DOCX TOEIC -->
-                            <Border x:Name="itemFile2" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="14,12" Background="White" Cursor="Hand" MouseDown="FileItem2_Click">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <Border Grid.Column="0" Background="#DBEAFE" Width="36" Height="36" CornerRadius="8" Margin="0,0,10,0">
-                                        <TextBlock Text="DOC" FontWeight="Bold" FontSize="11" Foreground="#1D4ED8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
-                                        <TextBlock Text="TOEIC_Part7_Reading_Drills_2026.docx" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Text="920 KB • 12 đoạn văn kép • 48 câu hỏi • ETS Format" FontSize="11" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
-                                    </StackPanel>
-
-                                    <Border x:Name="badgeViewing2" Grid.Column="2" Background="#DCFCE7" CornerRadius="6" Padding="7,3" VerticalAlignment="Center" Visibility="Collapsed">
-                                        <TextBlock Text="Đang xem" FontSize="10" FontWeight="SemiBold" Foreground="#15803D"/>
-                                    </Border>
-                                </Grid>
-                            </Border>
-
-                            <!-- File 3: PDF VSTEP -->
-                            <Border x:Name="itemFile3" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="14,12" Background="White" Cursor="Hand" MouseDown="FileItem3_Click">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <Border Grid.Column="0" Background="#FEE2E2" Width="36" Height="36" CornerRadius="8" Margin="0,0,10,0">
-                                        <TextBlock Text="PDF" FontWeight="Bold" FontSize="11" Foreground="#DC2626" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
-                                        <TextBlock Text="VSTEP_B2_Full_Mock_Test_BộGDĐT.pdf" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Text="2.4 MB • 4 kỹ năng Nghe-Đọc-Viết-Nói • Format chuẩn" FontSize="11" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
-                                    </StackPanel>
-
-                                    <Border x:Name="badgeViewing3" Grid.Column="2" Background="#DCFCE7" CornerRadius="6" Padding="7,3" VerticalAlignment="Center" Visibility="Collapsed">
-                                        <TextBlock Text="Đang xem" FontSize="10" FontWeight="SemiBold" Foreground="#15803D"/>
-                                    </Border>
-                                </Grid>
-                            </Border>
-
-                            <!-- File 4: XLSX Flashcard AWL -->
-                            <Border x:Name="itemFile4" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="14,12" Background="White" Cursor="Hand" MouseDown="FileItem4_Click">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <Border Grid.Column="0" Background="#DCFCE7" Width="36" Height="36" CornerRadius="8" Margin="0,0,10,0">
-                                        <TextBlock Text="XLS" FontWeight="Bold" FontSize="11" Foreground="#166534" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
-                                        <TextBlock Text="Academic_Vocabulary_AWL_570Words.xlsx" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Text="620 KB • 570 thẻ Flashcard • Có phiên âm IPA &amp; Ví dụ" FontSize="11" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
-                                    </StackPanel>
-
-                                    <Border x:Name="badgeViewing4" Grid.Column="2" Background="#DCFCE7" CornerRadius="6" Padding="7,3" VerticalAlignment="Center" Visibility="Collapsed">
-                                        <TextBlock Text="Đang xem" FontSize="10" FontWeight="SemiBold" Foreground="#15803D"/>
-                                    </Border>
-                                </Grid>
-                            </Border>
-
-                            <!-- File 5: MP3 Audio -->
-                            <Border x:Name="itemFile5" Padding="14,12" Background="White" Cursor="Hand" MouseDown="FileItem5_Click">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <Border Grid.Column="0" Background="#F3E8FF" Width="36" Height="36" CornerRadius="8" Margin="0,0,10,0">
-                                        <TextBlock Text="MP3" FontWeight="Bold" FontSize="11" Foreground="#7E22CE" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
-                                        <TextBlock Text="IELTS_Section3_Audio_Transcript.mp3" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Text="8.4 MB • 12 phút 40 giây • Giọng đọc bản ngữ Anh - Úc" FontSize="11" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
-                                    </StackPanel>
-
-                                    <Border x:Name="badgeViewing5" Grid.Column="2" Background="#DCFCE7" CornerRadius="6" Padding="7,3" VerticalAlignment="Center" Visibility="Collapsed">
-                                        <TextBlock Text="Đang xem" FontSize="10" FontWeight="SemiBold" Foreground="#15803D"/>
-                                    </Border>
-                                </Grid>
-                            </Border>
-
+                                                <Border Grid.Column="2" Background="{Binding StatusBackground}" CornerRadius="6" Padding="7,3" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding TrangThai}" FontSize="10" FontWeight="SemiBold" Foreground="{Binding StatusColor}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>
