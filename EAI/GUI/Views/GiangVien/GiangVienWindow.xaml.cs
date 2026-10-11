@@ -11,9 +11,32 @@ namespace GUI.Views.GiangVien
         public GiangVienWindow()
         {
             InitializeComponent();
+            ApplyRolePermissions();
             AdminMainFrame.Navigated += AdminMainFrame_Navigated;
             // Mở mặc định trang Tổng quan
             AdminMainFrame.Navigate(new TongQuanView());
+        }
+
+        private void ApplyRolePermissions()
+        {
+            var user = SessionHelper.CurrentUser;
+            bool isAdmin = user != null && string.Equals(user.TenVaiTro, "QuanTriVien", StringComparison.OrdinalIgnoreCase);
+
+            if (!isAdmin)
+            {
+                // Giảng viên -> Ẩn mục Giám sát hệ thống
+                headerHeThong.Visibility = Visibility.Collapsed;
+                btnNavGiamSat.Visibility = Visibility.Collapsed;
+            }
+
+            if (user != null)
+            {
+                txtCurrentUserName.Text = user.HoTen;
+                txtCurrentUserRole.Text = user.RoleText;
+                txtAvatarInitials.Text = user.Initials;
+                txtTopAvatar.Text = user.Initials;
+                txtBrandSubtitle.Text = isAdmin ? "Admin Dashboard" : "Cổng Giảng Viên";
+            }
         }
 
         private void AdminMainFrame_Navigated(object sender, NavigationEventArgs e)
@@ -141,6 +164,14 @@ namespace GUI.Views.GiangVien
 
         private void NavGiamSat_Click(object sender, RoutedEventArgs e)
         {
+            var user = SessionHelper.CurrentUser;
+            bool isAdmin = user != null && string.Equals(user.TenVaiTro, "QuanTriVien", StringComparison.OrdinalIgnoreCase);
+            if (!isAdmin)
+            {
+                MessageBox.Show("Chức năng 'Giám sát hệ thống' chỉ dành cho Quản trị viên hệ thống!", "Không có quyền truy cập", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             if (AdminMainFrame.Content is not GiamSatHeThongView)
                 AdminMainFrame.Navigate(new GiamSatHeThongView());
         }

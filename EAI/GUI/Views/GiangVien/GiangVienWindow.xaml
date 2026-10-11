@@ -103,7 +103,7 @@
 
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock Text="TiếngAnhAI" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}"/>
-                            <TextBlock Text="Admin Dashboard" FontSize="10.5" Foreground="{StaticResource TextGray}"/>
+                            <TextBlock x:Name="txtBrandSubtitle" Text="Admin Dashboard" FontSize="10.5" Foreground="{StaticResource TextGray}"/>
                         </StackPanel>
 
                         <Button Grid.Column="2" Content="«" Background="Transparent" Foreground="{StaticResource TextGray}" 
@@ -191,7 +191,7 @@
                         </Button>
 
                         <!-- HỆ THỐNG -->
-                        <TextBlock Text="HỆ THỐNG" Style="{StaticResource NavSectionHeader}"/>
+                        <TextBlock x:Name="headerHeThong" Text="HỆ THỐNG" Style="{StaticResource NavSectionHeader}"/>
                         <Button x:Name="btnNavGiamSat" Style="{StaticResource AdminNavItemStyle}" Click="NavGiamSat_Click">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="💻" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center"/>
@@ -221,12 +221,12 @@
 
                         <!-- Avatar Circle -->
                         <Border Grid.Column="0" Background="{StaticResource AdminDarkGreen}" Width="36" Height="36" CornerRadius="18" Margin="0,0,10,0">
-                            <TextBlock Text="HT" FontWeight="Bold" FontSize="13" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="txtAvatarInitials" Text="HT" FontWeight="Bold" FontSize="13" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
 
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="Hoàng Văn Tùng" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}"/>
-                            <TextBlock Text="Quản trị viên" FontSize="11" Foreground="{StaticResource TextGray}"/>
+                            <TextBlock x:Name="txtCurrentUserName" Text="Hoàng Văn Tùng" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}"/>
+                            <TextBlock x:Name="txtCurrentUserRole" Text="Quản trị viên" FontSize="11" Foreground="{StaticResource TextGray}"/>
                         </StackPanel>
 
                         <!-- Logout Button -->
@@ -339,7 +339,7 @@
 
                         <!-- Avatar Badge -->
                         <Border Background="{StaticResource AdminDarkGreen}" Width="34" Height="34" CornerRadius="17" Margin="0,0,14,0">
-                            <TextBlock Text="HT" FontWeight="Bold" FontSize="12" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="txtTopAvatar" Text="HT" FontWeight="Bold" FontSize="12" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
 
                         <!-- Custom Window Controls (Minimize & Close) -->
