@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
+using BUS;
 
 namespace GUI.Views.GiangVien
 {
@@ -149,8 +150,16 @@ namespace GUI.Views.GiangVien
             NavAISinhDe_Click(sender, e);
         }
 
+        private void NavToStudentHome_Click(object sender, RoutedEventArgs e)
+        {
+            var mainWindow = new MainWindow();
+            mainWindow.Show();
+            this.Close();
+        }
+
         private void BtnLogout_Click(object sender, RoutedEventArgs e)
         {
+            SessionHelper.Logout();
             var dangNhapWindow = new DangNhapWindow();
             dangNhapWindow.Show();
             this.Close();

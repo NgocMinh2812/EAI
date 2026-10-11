@@ -191,7 +191,7 @@
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Background="{StaticResource BrandTealLight}" CornerRadius="8" Padding="12,6">
-                        <TextBlock Text="ID Học Viên: EAI-2026-9812" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource BrandTeal}"/>
+                        <TextBlock x:Name="txtStudentId" Text="ID Học Viên: EAI-2026-0001" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource BrandTeal}"/>
                     </Border>
                 </StackPanel>
             </Grid>
@@ -212,18 +212,18 @@
 
                         <!-- Avatar Circle -->
                         <Border Grid.Column="0" Background="{StaticResource BrandTealLight}" Width="75" Height="75" CornerRadius="37.5" Margin="0,0,20,0">
-                            <TextBlock Text="NA" FontWeight="Bold" FontSize="26" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="txtAvatarInitials" Text="NA" FontWeight="Bold" FontSize="26" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
 
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock x:Name="txtDisplayName" Text="Nguyễn Văn A" FontWeight="Bold" FontSize="20" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                            <TextBlock Text="nguyenvana@gmail.com • Thành viên tích cực từ Tháng 01/2026" FontSize="13" Foreground="{StaticResource TextGray}" Margin="0,0,0,8"/>
+                            <TextBlock x:Name="txtSubtitleInfo" Text="nguyenvana@gmail.com • Thành viên học viên EnglishAI" FontSize="13" Foreground="{StaticResource TextGray}" Margin="0,0,0,8"/>
                             <StackPanel Orientation="Horizontal">
                                 <Border Background="#FEF3C7" CornerRadius="6" Padding="8,3" Margin="0,0,8,0">
-                                    <TextBlock Text="IELTS Target 6.5" FontSize="11" FontWeight="Bold" Foreground="#B45309"/>
+                                    <TextBlock x:Name="txtBannerTarget" Text="IELTS Target 6.5" FontSize="11" FontWeight="Bold" Foreground="#B45309"/>
                                 </Border>
                                 <Border Background="{StaticResource BrandTealLight}" CornerRadius="6" Padding="8,3">
-                                    <TextBlock Text="Trình độ CEFR: B2" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
+                                    <TextBlock x:Name="txtBannerLevel" Text="Trình độ CEFR: B2" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
                                 </Border>
                             </StackPanel>
                         </StackPanel>
@@ -231,6 +231,76 @@
                         <Button Grid.Column="2" Content="📷 Đổi ảnh đại diện" Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
                                 FontWeight="Medium" Padding="14,8" BorderThickness="0" Cursor="Hand" VerticalAlignment="Center" Click="BtnChangeAvatar_Click"/>
                     </Grid>
+                </Border>
+
+                <!-- ================= KẾT QUẢ ĐÁNH GIÁ NĂNG LỰC ĐÃ LƯU TRONG HỒ SƠ ================= -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,14">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#ECFDF5" Width="36" Height="36" CornerRadius="8" Margin="0,0,12,0">
+                                    <TextBlock Text="🎯" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Kết quả Đánh giá Năng lực Ban đầu (Lưu trong Hồ sơ)" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextDark}"/>
+                                    <TextBlock Text="Điểm số bài kiểm tra đầu vào và lộ trình thích ứng do AI phân loại" FontSize="12" Foreground="{StaticResource TextGray}"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Button x:Name="btnRetakeAssessment" Content="🔄 Làm lại khảo sát" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Background="#F1F5F9" Foreground="{StaticResource BrandTeal}" FontWeight="SemiBold"
+                                    Padding="14,7" BorderThickness="0" Cursor="Hand" Click="BtnRetakeAssessment_Click"/>
+                        </Grid>
+
+                        <!-- Score Metric Cards Grid -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Metric 1: Điểm số -->
+                            <Border Grid.Column="0" Background="#F8FAFC" CornerRadius="10" Padding="16,14" BorderBrush="#E2E8F0" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="ĐIỂM ĐÁNH GIÁ ĐẦU VÀO" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextGray}" Margin="0,0,0,4"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock x:Name="txtProfileScore" Text="8.5 / 10" FontSize="22" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="txtProfileCorrectCount" Text="Đúng 13 / 15 câu (87%)" FontSize="11.5" Foreground="{StaticResource TextGray}" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Metric 2: Trình độ CEFR -->
+                            <Border Grid.Column="2" Background="#F0FDF4" CornerRadius="10" Padding="16,14" BorderBrush="#BBF7D0" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="TRÌNH ĐỘ CEFR" FontSize="11" FontWeight="Bold" Foreground="#15803D" Margin="0,0,0,4"/>
+                                    <TextBlock x:Name="txtProfileLevel" Text="CEFR B2" FontSize="22" FontWeight="Bold" Foreground="#16A34A"/>
+                                    <TextBlock x:Name="txtProfileLevelName" Text="Upper-Intermediate (Trên trung cấp)" FontSize="11.5" Foreground="#15803D" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Metric 3: Quy đổi chứng chỉ -->
+                            <Border Grid.Column="4" Background="#FFFBEB" CornerRadius="10" Padding="16,14" BorderBrush="#FDE68A" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="QUY ĐỔI TƯƠNG ĐƯƠNG" FontSize="11" FontWeight="Bold" Foreground="#B45309" Margin="0,0,0,4"/>
+                                    <TextBlock x:Name="txtProfileEquivalent" Text="IELTS 6.0 - 7.0 • TOEIC 700+" FontSize="14" FontWeight="Bold" Foreground="#D97706" Margin="0,4,0,0"/>
+                                    <TextBlock Text="Quy chuẩn quốc tế" FontSize="11.5" Foreground="#B45309" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- AI Note banner -->
+                        <Border Background="#F8FAFC" CornerRadius="8" Padding="14,10" BorderBrush="#E2E8F0" BorderThickness="1">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="💡" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Top"/>
+                                <TextBlock x:Name="txtProfileAiNote" Text="Hệ thống đã lưu kết quả bài test vào hồ sơ của bạn để cá nhân hóa đề xuất bài học." 
+                                           FontSize="12" Foreground="{StaticResource TextGray}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
                 </Border>
 
                 <!-- Personal Information Form -->

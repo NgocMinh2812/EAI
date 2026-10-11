@@ -113,6 +113,13 @@
                                             </StackPanel>
                                         </Button>
 
+                                        <Button x:Name="btnNavDanhGia" Style="{StaticResource SidebarItemStyle}" Click="NavDanhGia_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="🎯" Margin="0,0,10,0"/>
+                                                <TextBlock Text="Đánh giá năng lực"/>
+                                            </StackPanel>
+                                        </Button>
+
                                         <Button x:Name="btnNavHocTap" Style="{StaticResource SidebarItemStyle}" Click="NavHocTap_Click">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="📚" Margin="0,0,10,0"/>
@@ -176,15 +183,22 @@
                                         
                                         <StackPanel Grid.Row="0" Orientation="Horizontal">
                                             <Border Background="{StaticResource BrandTealLight}" Width="36" Height="36" CornerRadius="18">
-                                                <TextBlock Text="NA" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <TextBlock x:Name="txtUserAvatar" Text="NA" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
                                             <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
-                                                <TextBlock Text="Nguyễn Văn A" FontWeight="SemiBold" FontSize="13"/>
-                                                <TextBlock Text="IELTS Target 6.5" FontSize="11" Foreground="{StaticResource BrandTeal}"/>
+                                                <TextBlock x:Name="txtUserName" Text="Nguyễn Văn A" FontWeight="SemiBold" FontSize="13"/>
+                                                <TextBlock x:Name="txtUserTarget" Text="IELTS Target 6.5" FontSize="11" Foreground="{StaticResource BrandTeal}"/>
                                             </StackPanel>
                                         </StackPanel>
 
-                                        <Button Grid.Row="1" Style="{StaticResource SidebarItemStyle}" Margin="0,10,0,0" Click="LogoutButton_Click" HorizontalAlignment="Stretch">
+                                        <Button x:Name="btnSwitchToAdmin" Visibility="Collapsed" Style="{StaticResource SidebarItemStyle}" Margin="0,8,0,0" Click="BtnSwitchToAdmin_Click" HorizontalAlignment="Stretch">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="👨‍🏫" Margin="0,0,8,0"/>
+                                                <TextBlock Text="Quản trị giảng viên" Foreground="{StaticResource BrandTeal}" FontWeight="SemiBold" FontSize="12"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button Grid.Row="1" Style="{StaticResource SidebarItemStyle}" Margin="0,8,0,0" Click="LogoutButton_Click" HorizontalAlignment="Stretch">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="🚪" Margin="0,0,8,0"/>
                                                 <TextBlock Text="Đăng xuất" Foreground="#EF4444" FontWeight="Medium" FontSize="12.5"/>
@@ -196,7 +210,14 @@
                         </Border>
 
                         <!-- ================= NỘI DUNG PHÍA PHẢI (MAIN CONTENT HOST) ================= -->
-                        <Frame x:Name="MainFrame" Grid.Column="1" NavigationUIVisibility="Hidden"/>
+                        <Grid Grid.Column="1">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,16,0" Panel.ZIndex="100">
+                                <Button Content="—" Width="30" Height="30" Background="Transparent" Foreground="#64748B" BorderThickness="0" Cursor="Hand" Click="BtnMinimize_Click" FontWeight="Bold" Margin="0,0,4,0"/>
+                                <Button Content="✕" Width="30" Height="30" Background="Transparent" Foreground="#64748B" BorderThickness="0" Cursor="Hand" Click="BtnClose_Click" FontWeight="Bold"/>
+                            </StackPanel>
+
+                            <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden"/>
+                        </Grid>
                     </Grid>
                 </Border>
             </Grid>

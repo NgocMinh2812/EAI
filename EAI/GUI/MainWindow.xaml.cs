@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
+using BUS;
+using DTO;
 using GUI.Views;
 
 namespace GUI
@@ -15,64 +17,111 @@ namespace GUI
             Instance = this;
             this.WindowState = WindowState.Maximized;
 
+            CapNhatThongTinHocVien();
+
             MainFrame.Navigated += MainFrame_Navigated;
 
             if (isFirstLogin)
             {
-                MainFrame.Navigate(new DanhGiaNangLucView());
+                // Cơ chế kiểm soát Lần đầu đăng nhập: tự động ẩn Sidebar và điều hướng vào làm bài test đầu vào
+                HideSidebar();
+                MainFrame.Navigate(new DanhGiaNangLucView(isFirstTime: true));
             }
             else
             {
+                // Thành viên đã đăng ký: Vào thẳng Trang chủ, hiển thị Sidebar bình thường
+                ShowSidebar();
                 MainFrame.Navigate(new TrangChuView());
+            }
+        }
+
+        public void HideSidebar()
+        {
+            SidebarBorder.Visibility = Visibility.Collapsed;
+            colSidebar.Width = new GridLength(0);
+        }
+
+        public void ShowSidebar()
+        {
+            SidebarBorder.Visibility = Visibility.Visible;
+            colSidebar.Width = new GridLength(240);
+        }
+
+        public void CapNhatThongTinHocVien()
+        {
+            if (SessionHelper.CurrentUser != null)
+            {
+                txtUserName.Text = SessionHelper.CurrentUser.HoTen;
+                txtUserAvatar.Text = SessionHelper.CurrentUser.AvatarInitials;
+            }
+
+            if (SessionHelper.CurrentHoSo != null)
+            {
+                txtUserTarget.Text = SessionHelper.CurrentHoSo.HienThiMucTieu;
+            }
+            else
+            {
+                txtUserTarget.Text = "Học viên mới";
+            }
+
+            if (SessionHelper.IsGiangVien)
+            {
+                btnSwitchToAdmin.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                btnSwitchToAdmin.Visibility = Visibility.Collapsed;
             }
         }
 
         private void MainFrame_Navigated(object sender, NavigationEventArgs e)
         {
-            if (e.Content is DanhGiaNangLucView)
+            if (e.Content is DanhGiaNangLucView { IsFirstTime: true })
             {
-                // Khi làm bài kiểm tra đánh giá năng lực, ẩn thanh menu trái để làm bài tập trung
-                SidebarBorder.Visibility = Visibility.Collapsed;
-                colSidebar.Width = new GridLength(0);
+                // Tài khoản mới đang làm test đầu vào: ẩn Sidebar
+                HideSidebar();
             }
             else
             {
-                // Hiện menu trái dùng chung
-                SidebarBorder.Visibility = Visibility.Visible;
-                colSidebar.Width = new GridLength(240);
+                // Các màn hình khác hoặc khảo sát tự nguyện: hiển thị Sidebar
+                ShowSidebar();
+            }
 
-                if (e.Content is TrangChuView)
-                {
-                    SetActiveMenu("TrangChu");
-                }
-                else if (e.Content is HocTapView)
-                {
-                    SetActiveMenu("HocTap");
-                }
-                else if (e.Content is LuyenTapView)
-                {
-                    SetActiveMenu("LuyenTap");
-                }
-                else if (e.Content is ThiThuView)
-                {
-                    SetActiveMenu("ThiThu");
-                }
-                else if (e.Content is BaiVietAIView)
-                {
-                    SetActiveMenu("BaiViet");
-                }
-                else if (e.Content is TienDoHocView)
-                {
-                    SetActiveMenu("TienDo");
-                }
-                else if (e.Content is TroLyAIView)
-                {
-                    SetActiveMenu("AIChat");
-                }
-                else if (e.Content is HoSoCaNhanView)
-                {
-                    SetActiveMenu("HoSo");
-                }
+            if (e.Content is TrangChuView)
+            {
+                SetActiveMenu("TrangChu");
+            }
+            else if (e.Content is DanhGiaNangLucView)
+            {
+                SetActiveMenu("DanhGia");
+            }
+            else if (e.Content is HocTapView)
+            {
+                SetActiveMenu("HocTap");
+            }
+            else if (e.Content is LuyenTapView)
+            {
+                SetActiveMenu("LuyenTap");
+            }
+            else if (e.Content is ThiThuView)
+            {
+                SetActiveMenu("ThiThu");
+            }
+            else if (e.Content is BaiVietAIView)
+            {
+                SetActiveMenu("BaiViet");
+            }
+            else if (e.Content is TienDoHocView)
+            {
+                SetActiveMenu("TienDo");
+            }
+            else if (e.Content is TroLyAIView)
+            {
+                SetActiveMenu("AIChat");
+            }
+            else if (e.Content is HoSoCaNhanView)
+            {
+                SetActiveMenu("HoSo");
             }
         }
 
@@ -82,6 +131,7 @@ namespace GUI
             var normalStyle = (Style)FindResource("SidebarItemStyle");
 
             btnNavTrangChu.Style = (menuKey == "TrangChu") ? activeStyle : normalStyle;
+            btnNavDanhGia.Style = (menuKey == "DanhGia") ? activeStyle : normalStyle;
             btnNavHocTap.Style = (menuKey == "HocTap") ? activeStyle : normalStyle;
             btnNavLuyenTap.Style = (menuKey == "LuyenTap") ? activeStyle : normalStyle;
             btnNavThiThu.Style = (menuKey == "ThiThu") ? activeStyle : normalStyle;
@@ -97,6 +147,21 @@ namespace GUI
             {
                 MainFrame.Navigate(new TrangChuView());
             }
+        }
+
+        private void NavDanhGia_Click(object sender, RoutedEventArgs e)
+        {
+            if (MainFrame.Content is not DanhGiaNangLucView)
+            {
+                MainFrame.Navigate(new DanhGiaNangLucView());
+            }
+        }
+
+        private void BtnSwitchToAdmin_Click(object sender, RoutedEventArgs e)
+        {
+            var gvWindow = new GUI.Views.GiangVien.GiangVienWindow();
+            gvWindow.Show();
+            this.Close();
         }
 
         private void NavHocTap_Click(object sender, RoutedEventArgs e)
@@ -157,9 +222,20 @@ namespace GUI
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
         {
+            SessionHelper.Logout();
             var dangNhapWindow = new DangNhapWindow();
             dangNhapWindow.Show();
             this.Close();
+        }
+
+        private void BtnMinimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void BtnClose_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
         }
     }
 }
