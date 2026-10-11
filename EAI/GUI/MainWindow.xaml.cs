@@ -55,18 +55,21 @@ namespace GUI
                 txtUserAvatar.Text = SessionHelper.CurrentUser.AvatarInitials;
             }
 
-            if (SessionHelper.CurrentHoSo != null)
+            if (SessionHelper.CurrentHoSo != null && !string.IsNullOrEmpty(SessionHelper.CurrentHoSo.TrinhDoMucTieu) && SessionHelper.CurrentHoSo.TrinhDoMucTieu != "—")
             {
                 txtUserTarget.Text = SessionHelper.CurrentHoSo.HienThiMucTieu;
             }
             else
             {
-                txtUserTarget.Text = "Học viên mới";
+                txtUserTarget.Text = SessionHelper.IsGiangVien ? (SessionHelper.CurrentUser?.RoleText ?? "Quản lý") : "Học viên mới";
             }
 
             if (SessionHelper.IsGiangVien)
             {
                 btnSwitchToAdmin.Visibility = Visibility.Visible;
+                bool isAdmin = SessionHelper.CurrentUser != null && 
+                               string.Equals(SessionHelper.CurrentUser.TenVaiTro, "QuanTriVien", StringComparison.OrdinalIgnoreCase);
+                txtSwitchToAdmin.Text = isAdmin ? "Về trang Quản trị" : "Về trang Giảng viên";
             }
             else
             {

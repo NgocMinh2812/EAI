@@ -175,13 +175,9 @@
 
                                 <!-- Thông tin Học viên & Đăng xuất -->
                                 <Border Grid.Row="2" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0" Padding="14,14">
-                                    <Grid>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        
-                                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                    <StackPanel>
+                                        <!-- Thông tin tài khoản -->
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                             <Border Background="{StaticResource BrandTealLight}" Width="36" Height="36" CornerRadius="18">
                                                 <TextBlock x:Name="txtUserAvatar" Text="NA" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
@@ -191,20 +187,22 @@
                                             </StackPanel>
                                         </StackPanel>
 
-                                        <Button x:Name="btnSwitchToAdmin" Visibility="Collapsed" Style="{StaticResource SidebarItemStyle}" Margin="0,8,0,0" Click="BtnSwitchToAdmin_Click" HorizontalAlignment="Stretch">
+                                        <!-- Nút quay lại trang Quản trị / Giảng viên (chỉ hiện khi có quyền) -->
+                                        <Button x:Name="btnSwitchToAdmin" Visibility="Collapsed" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0" Click="BtnSwitchToAdmin_Click" HorizontalAlignment="Stretch">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="👨‍🏫" Margin="0,0,8,0"/>
-                                                <TextBlock Text="Quản trị giảng viên" Foreground="{StaticResource BrandTeal}" FontWeight="SemiBold" FontSize="12"/>
+                                                <TextBlock x:Name="txtSwitchToAdmin" Text="Về trang Quản lý" Foreground="{StaticResource BrandTeal}" FontWeight="SemiBold" FontSize="12"/>
                                             </StackPanel>
                                         </Button>
 
-                                        <Button Grid.Row="1" Style="{StaticResource SidebarItemStyle}" Margin="0,8,0,0" Click="LogoutButton_Click" HorizontalAlignment="Stretch">
+                                        <!-- Nút Đăng xuất -->
+                                        <Button Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0" Click="LogoutButton_Click" HorizontalAlignment="Stretch">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="🚪" Margin="0,0,8,0"/>
                                                 <TextBlock Text="Đăng xuất" Foreground="#EF4444" FontWeight="Medium" FontSize="12.5"/>
                                             </StackPanel>
                                         </Button>
-                                    </Grid>
+                                    </StackPanel>
                                 </Border>
                             </Grid>
                         </Border>
