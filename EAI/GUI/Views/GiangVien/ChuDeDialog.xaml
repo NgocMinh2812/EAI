@@ -1,0 +1,51 @@
+<Window x:Class="GUI.Views.GiangVien.ChuDeDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Quản lý Chủ đề Học liệu" 
+        Height="420" Width="440"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        WindowStyle="SingleBorderWindow"
+        FontFamily="Segoe UI"
+        Background="#F8FAFC">
+
+    <Grid Margin="22">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock x:Name="txtTitle" Text="Thêm Chủ đề Mới" FontWeight="Bold" FontSize="17" Foreground="#0F172A"/>
+            <TextBlock Text="Cấu trúc cây danh mục phục vụ phân loại bài học và đề thi" FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
+        </StackPanel>
+
+        <!-- Form -->
+        <StackPanel Grid.Row="1">
+            <!-- Tên chủ đề -->
+            <TextBlock Text="Tên chủ đề *" FontWeight="SemiBold" FontSize="12.5" Foreground="#0F172A" Margin="0,0,0,5"/>
+            <TextBox x:Name="txtTenChuDe" Height="36" Padding="8,6" FontSize="13" Margin="0,0,0,14" BorderBrush="#CBD5E1"/>
+
+            <!-- Chủ đề cha -->
+            <TextBlock Text="Chủ đề cha (Để trống nếu là Danh mục gốc)" FontWeight="SemiBold" FontSize="12.5" Foreground="#0F172A" Margin="0,0,0,5"/>
+            <ComboBox x:Name="cboChuDeCha" Height="36" Margin="0,0,0,14" DisplayMemberPath="TenChuDe" SelectedValuePath="MaChuDe"/>
+
+            <!-- Mô tả -->
+            <TextBlock Text="Mô tả tóm tắt" FontWeight="SemiBold" FontSize="12.5" Foreground="#0F172A" Margin="0,0,0,5"/>
+            <TextBox x:Name="txtMoTa" Height="65" Padding="8,6" FontSize="12.5" TextWrapping="Wrap" AcceptsReturn="True" 
+                     VerticalScrollBarVisibility="Auto" BorderBrush="#CBD5E1" Margin="0,0,0,10"/>
+        </StackPanel>
+
+        <!-- Action Buttons -->
+        <Border Grid.Row="2" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0" Padding="0,14,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Hủy" Background="White" BorderBrush="#CBD5E1" BorderThickness="1" 
+                        FontSize="13" FontWeight="Medium" Padding="16,8" Margin="0,0,10,0" Cursor="Hand" Click="BtnCancel_Click"/>
+                <Button Content="Lưu chủ đề" Background="#0F4C3A" Foreground="White" BorderThickness="0" 
+                        FontSize="13" FontWeight="SemiBold" Padding="20,8" Cursor="Hand" Click="BtnSave_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

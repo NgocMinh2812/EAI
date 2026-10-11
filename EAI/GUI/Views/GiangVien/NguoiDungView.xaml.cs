@@ -1,100 +1,38 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using DAL;
+using BUS;
+using DTO;
 
 namespace GUI.Views.GiangVien
 {
-    public class UserViewModel
-    {
-        public int Id { get; set; }
-        public string FullName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Initials { get; set; } = string.Empty;
-        public string AvatarBg { get; set; } = "#DCFCE7";
-        public string AvatarFg { get; set; } = "#15803D";
-        public string RoleText { get; set; } = "Học viên";
-        public string RoleBg { get; set; } = "#EFF6FF";
-        public string RoleFg { get; set; } = "#1D4ED8";
-        public string LevelText { get; set; } = "B2";
-        public string LastLogin { get; set; } = "Hôm nay, 08:42";
-        public string StatusText { get; set; } = "Hoạt động";
-        public string StatusBg { get; set; } = "#DCFCE7";
-        public string StatusFg { get; set; } = "#15803D";
-        public string LockIcon { get; set; } = "🔒";
-    }
-
     public partial class NguoiDungView : Page
     {
         private const string SearchPlaceholder = "Tìm theo tên hoặc email...";
-        private List<UserViewModel> _allUsers = new List<UserViewModel>();
+        private readonly NguoiDungBUS _bus = new NguoiDungBUS();
+        private List<NguoiDungDTO> _allUsers = new List<NguoiDungDTO>();
         private string _statusFilter = "All";
 
         public NguoiDungView()
         {
             InitializeComponent();
-            LoadDataFromDatabase();
+            LoadUsersFromDatabase();
             ApplyFilter();
         }
 
-        private void LoadDataFromDatabase()
+        private void LoadUsersFromDatabase()
         {
-            _allUsers = new List<UserViewModel>();
             try
             {
-                DataTable dt = NguoiDungDAL.Instance.LayDanhSachNguoiDung();
-                foreach (DataRow row in dt.Rows)
-                {
-                    int id = Convert.ToInt32(row["MaNguoiDung"]);
-                    string fullName = row["HoTen"]?.ToString() ?? "";
-                    string email = row["Email"]?.ToString() ?? "";
-                    string role = row["TenVaiTro"]?.ToString() ?? "HocVien";
-                    bool isActive = Convert.ToBoolean(row["TrangThaiHoatDong"]);
-                    string trinhDo = row["TrinhDoMucTieu"] == DBNull.Value || string.IsNullOrEmpty(row["TrinhDoMucTieu"]?.ToString()) ? "—" : row["TrinhDoMucTieu"].ToString()!;
-                    
-                    string lastLoginStr = "Chưa đăng nhập";
-                    if (row["LanDangNhapCuoi"] != DBNull.Value)
-                    {
-                        var lastLogin = Convert.ToDateTime(row["LanDangNhapCuoi"]);
-                        lastLoginStr = lastLogin.Date == DateTime.Today ? $"Hôm nay, {lastLogin:HH:mm}" : lastLogin.ToString("dd/MM/yyyy HH:mm");
-                    }
-
-                    string initials = "U";
-                    if (!string.IsNullOrWhiteSpace(fullName))
-                    {
-                        var parts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                        initials = parts.Length > 1 ? $"{parts[0][0]}{parts[^1][0]}".ToUpper() : parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpper();
-                    }
-
-                    bool isAdmin = string.Equals(role, "QuanTriVien", StringComparison.OrdinalIgnoreCase) || 
-                                   string.Equals(role, "GiangVien", StringComparison.OrdinalIgnoreCase);
-
-                    _allUsers.Add(new UserViewModel
-                    {
-                        Id = id,
-                        FullName = fullName,
-                        Email = email,
-                        Initials = initials,
-                        AvatarBg = isAdmin ? "#F3E8FF" : "#DCFCE7",
-                        AvatarFg = isAdmin ? "#7E22CE" : "#15803D",
-                        RoleText = isAdmin ? "Quản trị viên" : "Học viên",
-                        RoleBg = isAdmin ? "#F3E8FF" : "#EFF6FF",
-                        RoleFg = isAdmin ? "#6B21A8" : "#1D4ED8",
-                        LevelText = trinhDo,
-                        LastLogin = lastLoginStr,
-                        StatusText = isActive ? "Hoạt động" : "Đã khóa",
-                        StatusBg = isActive ? "#DCFCE7" : "#FEE2E2",
-                        StatusFg = isActive ? "#15803D" : "#B91C1C",
-                        LockIcon = isActive ? "🔒" : "🔓"
-                    });
-                }
+                _allUsers = _bus.LayDanhSach();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Lỗi tải người dùng: {ex.Message}");
+                MessageBox.Show($"Không thể kết nối cơ sở dữ liệu để tải danh sách người dùng:\n{ex.Message}", 
+                                "Lỗi kết nối CSDL", MessageBoxButton.OK, MessageBoxImage.Error);
+                _allUsers = new List<NguoiDungDTO>();
             }
         }
 
@@ -104,34 +42,36 @@ namespace GUI.Views.GiangVien
 
             var query = _allUsers.AsEnumerable();
 
-            // Search by name/email
+            // Tìm kiếm theo tên / email / tên đăng nhập
             if (txtSearchUser != null)
             {
                 string search = txtSearchUser.Text.Trim();
                 if (!string.IsNullOrEmpty(search) && search != SearchPlaceholder)
                 {
                     query = query.Where(u => u.FullName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                                             u.Email.Contains(search, StringComparison.OrdinalIgnoreCase));
+                                             u.Email.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                                             u.TenDangNhap.Contains(search, StringComparison.OrdinalIgnoreCase));
                 }
             }
 
-            // Role Filter
+            // Lọc theo Vai trò
             if (cboRoleFilter != null && cboRoleFilter.SelectedItem is ComboBoxItem item)
             {
                 string role = item.Content?.ToString() ?? "Tất cả";
                 if (role == "Học viên") query = query.Where(u => u.RoleText == "Học viên");
-                else if (role == "Quản trị viên") query = query.Where(u => u.RoleText == "Quản trị viên");
+                else if (role == "Quản trị viên" || role == "Giảng viên") 
+                    query = query.Where(u => u.RoleText == "Quản trị viên" || u.RoleText == "Giảng viên");
             }
 
-            // Status Filter
-            if (_statusFilter == "Active") query = query.Where(u => u.StatusText == "Hoạt động");
-            else if (_statusFilter == "Locked") query = query.Where(u => u.StatusText == "Đã khóa");
+            // Lọc theo Trạng thái hoạt động
+            if (_statusFilter == "Active") query = query.Where(u => u.TrangThaiHoatDong);
+            else if (_statusFilter == "Locked") query = query.Where(u => !u.TrangThaiHoatDong);
 
             var list = query.ToList();
             icUserList.ItemsSource = list;
 
             int total = _allUsers.Count;
-            int active = _allUsers.Count(u => u.StatusText == "Hoạt động");
+            int active = _allUsers.Count(u => u.TrangThaiHoatDong);
             txtStatsSummary.Text = $"{total} tài khoản • {active} đang hoạt động";
             txtCounter.Text = $"Hiển thị {list.Count} / {total} tài khoản";
         }
@@ -184,8 +124,22 @@ namespace GUI.Views.GiangVien
 
         private void BtnTaoTaiKhoan_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Mở biểu mẫu tạo mới tài khoản học viên / giảng viên kèm phân quyền hệ thống.", 
-                            "Tạo tài khoản mới", MessageBoxButton.OK, MessageBoxImage.Information);
+            var dlg = new NguoiDungDialog();
+            dlg.Owner = Window.GetWindow(this);
+            if (dlg.ShowDialog() == true)
+            {
+                var (success, msg) = _bus.TaoTaiKhoan(dlg.UserData);
+                if (success)
+                {
+                    LoadUsersFromDatabase();
+                    ApplyFilter();
+                    MessageBox.Show(msg, "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show(msg, "Lỗi tạo tài khoản", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
         }
 
         private void BtnEditUser_Click(object sender, RoutedEventArgs e)
@@ -195,8 +149,22 @@ namespace GUI.Views.GiangVien
                 var user = _allUsers.FirstOrDefault(u => u.Id == id);
                 if (user != null)
                 {
-                    MessageBox.Show($"Chỉnh sửa thông tin hồ sơ cho: {user.FullName} ({user.Email})", 
-                                    "Chỉnh sửa tài khoản", MessageBoxButton.OK, MessageBoxImage.Information);
+                    var dlg = new NguoiDungDialog(user);
+                    dlg.Owner = Window.GetWindow(this);
+                    if (dlg.ShowDialog() == true)
+                    {
+                        var (success, msg) = _bus.CapNhatTaiKhoan(dlg.UserData);
+                        if (success)
+                        {
+                            LoadUsersFromDatabase();
+                            ApplyFilter();
+                            MessageBox.Show(msg, "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show(msg, "Lỗi cập nhật", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
+                    }
                 }
             }
         }
@@ -208,26 +176,34 @@ namespace GUI.Views.GiangVien
                 var user = _allUsers.FirstOrDefault(u => u.Id == id);
                 if (user != null)
                 {
-                    bool isCurrentlyActive = (user.StatusText == "Hoạt động");
-                    bool newStatus = !isCurrentlyActive;
+                    bool newStatus = !user.TrangThaiHoatDong;
+                    string actionName = newStatus ? "mở khóa" : "khóa";
 
-                    NguoiDungDAL.Instance.DoiTrangThaiKhoa(id, newStatus);
-
-                    if (isCurrentlyActive)
+                    var confirm = MessageBox.Show($"Bạn có chắc chắn muốn {actionName} tài khoản của {user.FullName} ({user.Email})?",
+                                                  "Xác nhận trạng thái tài khoản", 
+                                                  MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (confirm == MessageBoxResult.Yes)
                     {
-                        user.StatusText = "Đã khóa";
-                        user.StatusBg = "#FEE2E2";
-                        user.StatusFg = "#B91C1C";
-                        user.LockIcon = "🔓";
+                        try
+                        {
+                            bool ok = _bus.KhoaHoacMoTaiKhoan(id, newStatus);
+                            if (ok)
+                            {
+                                LoadUsersFromDatabase();
+                                ApplyFilter();
+                                MessageBox.Show($"Đã {actionName} tài khoản {user.FullName} thành công trên cơ sở dữ liệu!", 
+                                                "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                            }
+                            else
+                            {
+                                MessageBox.Show($"Không thể cập nhật trạng thái.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show(ex.Message, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
                     }
-                    else
-                    {
-                        user.StatusText = "Hoạt động";
-                        user.StatusBg = "#DCFCE7";
-                        user.StatusFg = "#15803D";
-                        user.LockIcon = "🔒";
-                    }
-                    ApplyFilter();
                 }
             }
         }
@@ -239,12 +215,21 @@ namespace GUI.Views.GiangVien
                 var user = _allUsers.FirstOrDefault(u => u.Id == id);
                 if (user != null)
                 {
-                    var result = MessageBox.Show($"Bạn có chắc chắn muốn xóa tài khoản của {user.FullName}?", 
-                                                 "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    var result = MessageBox.Show($"Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản của {user.FullName}?", 
+                                                 "Xác nhận xóa tài khoản", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                     if (result == MessageBoxResult.Yes)
                     {
-                        _allUsers.Remove(user);
-                        ApplyFilter();
+                        var (success, msg) = _bus.XoaTaiKhoan(id);
+                        if (success)
+                        {
+                            LoadUsersFromDatabase();
+                            ApplyFilter();
+                            MessageBox.Show(msg, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show(msg, "Lỗi khi xóa", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
                     }
                 }
             }

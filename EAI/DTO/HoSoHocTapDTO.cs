@@ -6,11 +6,11 @@ namespace DTO
     {
         public int MaHoSo { get; set; }
         public int MaNguoiDung { get; set; }
-        public decimal? DiemMucTieu { get; set; } = 6.5m;
-        public string? KhungNangLucMucTieu { get; set; } = "IELTS";
-        public string? TrinhDoMucTieu { get; set; } = "B2";
+        public decimal? DiemMucTieu { get; set; }
+        public string? KhungNangLucMucTieu { get; set; } // IELTS / TOEIC / CEFR...
+        public string? TrinhDoMucTieu { get; set; }     // A1-C1...
         public decimal? DiemDanhGiaDauVao { get; set; }
-        public int SoPhutHocTichLuy { get; set; } = 0;
+        public int SoPhutHocTichLuy { get; set; }
         public string? GhiChuCaNhan { get; set; }
         public DateTime NgayCapNhat { get; set; } = DateTime.Now;
 

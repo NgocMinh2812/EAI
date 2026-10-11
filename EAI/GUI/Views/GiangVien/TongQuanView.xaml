@@ -338,37 +338,49 @@
                             <TextBlock Text="Hôm nay ▼" HorizontalAlignment="Right" FontSize="11.5" Foreground="{StaticResource TextGray}" Cursor="Hand"/>
                         </Grid>
 
-                        <!-- 3 Stat Blocks -->
+                        <!-- 4 THẺ KPI TỔNG QUAN HỆ THỐNG -->
                         <Grid Margin="0,0,0,14">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <!-- Stat 1: 94 Học viên -->
-                            <Border Grid.Column="0" Background="#F8FAFC" CornerRadius="8" Padding="6,10" Margin="0,0,4,0">
+                            <!-- Thẻ KPI 1: Học viên -->
+                            <Border Grid.Row="0" Grid.Column="0" Background="#F8FAFC" CornerRadius="8" Padding="6,10" Margin="0,0,3,6" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
                                 <StackPanel HorizontalAlignment="Center">
                                     <TextBlock Text="👥" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                    <TextBlock Text="94" FontWeight="Bold" FontSize="18" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="txtKpiHocVien" Text="0" FontWeight="Bold" FontSize="18" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Học viên" FontSize="10.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
 
-                            <!-- Stat 2: 127 Bài học -->
-                            <Border Grid.Column="1" Background="#F8FAFC" CornerRadius="8" Padding="6,10" Margin="2,0,2,0">
+                            <!-- Thẻ KPI 2: Bài học -->
+                            <Border Grid.Row="0" Grid.Column="1" Background="#F8FAFC" CornerRadius="8" Padding="6,10" Margin="3,0,0,6" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
                                 <StackPanel HorizontalAlignment="Center">
                                     <TextBlock Text="📖" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                    <TextBlock Text="127" FontWeight="Bold" FontSize="18" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="txtKpiBaiHoc" Text="0" FontWeight="Bold" FontSize="18" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Bài học" FontSize="10.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
 
-                            <!-- Stat 3: 4 Chờ duyệt -->
-                            <Border Grid.Column="2" Background="#F8FAFC" CornerRadius="8" Padding="6,10" Margin="4,0,0,0">
+                            <!-- Thẻ KPI 3: Đề thi & Luyện tập -->
+                            <Border Grid.Row="1" Grid.Column="0" Background="#F8FAFC" CornerRadius="8" Padding="6,10" Margin="0,3,3,0" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
                                 <StackPanel HorizontalAlignment="Center">
-                                    <TextBlock Text="⏱" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                    <TextBlock Text="4" FontWeight="Bold" FontSize="18" Foreground="#EA580C" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="⏱️" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                                    <TextBlock x:Name="txtKpiDeThi" Text="0" FontWeight="Bold" FontSize="18" Foreground="#2563EB" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Đề thi" FontSize="10.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Thẻ KPI 4: Chờ duyệt AI -->
+                            <Border Grid.Row="1" Grid.Column="1" Background="#F8FAFC" CornerRadius="8" Padding="6,10" Margin="3,3,0,0" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="⭐" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                                    <TextBlock x:Name="txtKpiChoDuyet" Text="0" FontWeight="Bold" FontSize="18" Foreground="#EA580C" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Chờ duyệt" FontSize="10.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Border>

@@ -9,6 +9,24 @@ namespace BUS
     public class BaiHocBUS
     {
         private static List<BaiHocDTO>? _cacheBaiHoc;
+        private static readonly DAL.BaiHocDAL _baiHocDAL = new DAL.BaiHocDAL();
+
+        public static List<BaiHocDTO> LayDanhSachTuDatabase(int? maChuDe = null, string? search = null)
+        {
+            try
+            {
+                var list = _baiHocDAL.GetAll(maChuDe, search);
+                if (list != null && list.Count > 0)
+                {
+                    return list;
+                }
+            }
+            catch
+            {
+                // Fallback nếu có sự cố
+            }
+            return LayDanhSachBaiHoc();
+        }
 
         public static List<BaiHocDTO> LayDanhSachBaiHoc()
         {

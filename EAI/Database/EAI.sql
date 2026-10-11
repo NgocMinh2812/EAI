@@ -20,6 +20,11 @@ GO
 USE TiengAnhAI;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 /* =========================================================
    1. PHÂN QUYỀN - TÀI KHOẢN - HỒ SƠ HỌC TẬP
    ========================================================= */
@@ -53,7 +58,7 @@ GO
 CREATE TABLE HoSoHocTap (
     MaHoSo INT IDENTITY(1,1) PRIMARY KEY,
     MaNguoiDung INT NOT NULL UNIQUE,
-    DiemMucTieu DECIMAL(3,1) NULL,
+    DiemMucTieu DECIMAL(5,1) NULL,
     KhungNangLucMucTieu NVARCHAR(30) NULL, -- IELTS / TOEIC / CEFR...
     TrinhDoMucTieu NVARCHAR(10) NULL,     -- A1-C1...
     DiemDanhGiaDauVao DECIMAL(5,2) NULL,  -- Điểm bài khảo sát / đánh giá năng lực đầu vào
