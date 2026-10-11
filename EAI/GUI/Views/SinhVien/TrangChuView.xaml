@@ -124,7 +124,7 @@
                 <StackPanel>
                     
                     <!-- Welcome Section -->
-                    <Grid Margin="0,0,0,20">
+                    <Grid Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
@@ -133,19 +133,43 @@
                             <TextBlock Text="Tổng quan học tập của bạn" FontSize="24" FontWeight="Bold"/>
                             <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                                 <TextBlock Text="Xin chào, " Foreground="{StaticResource TextGray}"/>
-                                <TextBlock Text="{Binding HoTen, FallbackValue='Nguyễn Văn A'}" Foreground="{StaticResource PrimaryGreen}" FontWeight="Bold"/>
-                                <TextBlock Text=" - Hãy học tập để đạt trình độ " Foreground="{StaticResource TextGray}"/>
-                                <TextBlock Text="{Binding TrinhDoMucTieu, FallbackValue='IELTS 6.5'}" Foreground="{StaticResource PrimaryGreen}" FontWeight="Bold"/>
-                                <TextBlock Text=" nhé!" Foreground="{StaticResource TextGray}"/>
+                                <TextBlock x:Name="txtWelcomeUser" Text="Học viên" Foreground="{StaticResource PrimaryGreen}" FontWeight="Bold"/>
+                                <TextBlock Text=" - Mục tiêu: " Foreground="{StaticResource TextGray}"/>
+                                <TextBlock x:Name="txtTargetLevel" Text="IELTS 6.5 (CEFR B2)" Foreground="{StaticResource PrimaryGreen}" FontWeight="Bold"/>
+                                <TextBlock Text=" ✨" Foreground="{StaticResource PrimaryGreen}"/>
                             </StackPanel>
                         </StackPanel>
                         <Button Grid.Column="1" Style="{StaticResource RoundedButtonStyle}" Background="{StaticResource PrimaryGreen}" Foreground="White" BorderThickness="0" Padding="15,8" VerticalAlignment="Top" Cursor="Hand" Click="BtnHocTap_Click">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="+ "/>
-                                <TextBlock Text="Xem thêm KQ"/>
+                                <TextBlock Text="📚 "/>
+                                <TextBlock Text="Vào học ngay"/>
                             </StackPanel>
                         </Button>
                     </Grid>
+
+                    <!-- Placement Test Announcement Banner -->
+                    <Border x:Name="bannerAssessment" Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1" CornerRadius="12" Padding="18,14" Margin="0,0,0,20">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <Border x:Name="iconBannerBadge" Grid.Column="0" Background="#DCFCE7" Width="42" Height="42" CornerRadius="10" Margin="0,0,15,0" VerticalAlignment="Center">
+                                <TextBlock x:Name="txtBannerEmoji" Text="🎯" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock x:Name="txtBannerTitle" Text="Khảo sát Đánh giá Năng lực Đầu vào (Placement Test)" FontWeight="Bold" FontSize="14" Foreground="#166534"/>
+                                <TextBlock x:Name="txtBannerDesc" Text="Làm bài kiểm tra ngắn để AI xác định cấp độ CEFR và đề xuất bài học phù hợp với mức độ của bạn." FontSize="12" Foreground="#15803D" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <Button x:Name="btnAssessmentAction" Grid.Column="2" Style="{StaticResource RoundedButtonStyle}" Background="#16A34A" Foreground="White" BorderThickness="0" Padding="16,9" FontWeight="SemiBold" FontSize="12.5" Cursor="Hand" Click="AssessmentButton_Click">
+                                <TextBlock x:Name="txtBannerBtnText" Text="Làm bài kiểm tra ngay ➔"/>
+                            </Button>
+                        </Grid>
+                    </Border>
 
                     <!-- Stats Cards -->
                     <Grid Margin="0,0,0,20">

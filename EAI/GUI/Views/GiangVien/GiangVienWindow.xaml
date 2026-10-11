@@ -199,6 +199,14 @@
                             </StackPanel>
                         </Button>
 
+                        <!-- ĐIỀU HƯỚNG HỌC VIÊN -->
+                        <TextBlock Text="CHUYỂN ĐỔI GIAO DIỆN" Style="{StaticResource NavSectionHeader}"/>
+                        <Button x:Name="btnNavToStudentHome" Style="{StaticResource AdminNavItemStyle}" Click="NavToStudentHome_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🏠" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Trang chủ Học viên" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="{StaticResource AdminDarkGreen}"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </ScrollViewer>
 

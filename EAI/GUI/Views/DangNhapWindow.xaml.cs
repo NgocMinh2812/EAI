@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using BUS;
+using DTO;
 
 namespace GUI.Views
 {
@@ -128,6 +130,7 @@ namespace GUI.Views
 
         private void TxtRegEmail_GotFocus(object sender, RoutedEventArgs e)
         {
+            txtRegEmailError.Visibility = Visibility.Collapsed;
             if (txtRegEmail.Text == EmailPlaceholder)
             {
                 txtRegEmail.Text = "";
@@ -141,6 +144,20 @@ namespace GUI.Views
             {
                 txtRegEmail.Text = EmailPlaceholder;
                 txtRegEmail.Foreground = (Brush)FindResource("TextMuted");
+                txtRegEmailError.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                string email = txtRegEmail.Text.Trim();
+                if (email != EmailPlaceholder && NguoiDungBUS.Instance.KiemTraEmailTonTai(email))
+                {
+                    txtRegEmailError.Text = "⚠️ Email này đã được đăng ký. Vui lòng chuyển sang Đăng nhập!";
+                    txtRegEmailError.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    txtRegEmailError.Visibility = Visibility.Collapsed;
+                }
             }
         }
 
@@ -182,10 +199,25 @@ namespace GUI.Views
 
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            string email = txtEmail.Text.Trim().ToLower();
-            bool isGiangVien = email.Contains("admin") || email.Contains("giangvien") || email.Contains("tung.hoang");
+            string emailOrUsername = txtEmail.Text.Trim();
+            if (emailOrUsername == EmailPlaceholder) emailOrUsername = "";
+            string password = txtPassword.Password;
+            if (password == PasswordPlaceholder) password = "";
 
-            if (isGiangVien)
+            if (string.IsNullOrWhiteSpace(emailOrUsername) || string.IsNullOrWhiteSpace(password))
+            {
+                MessageBox.Show("Vui lòng nhập đầy đủ Email/Tên đăng nhập và Mật khẩu!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            bool success = NguoiDungBUS.Instance.DangNhap(emailOrUsername, password, out string errorMessage, out NguoiDungDTO? user);
+            if (!success || user == null)
+            {
+                MessageBox.Show(errorMessage, "Đăng nhập thất bại", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (SessionHelper.IsGiangVien)
             {
                 var gvWindow = new GUI.Views.GiangVien.GiangVienWindow();
                 gvWindow.Show();
@@ -193,49 +225,95 @@ namespace GUI.Views
             }
             else
             {
-                MainWindow mainWindow = new MainWindow(isFirstLogin: false);
+                // Học viên: Thành viên đã đăng ký thì không cần làm khảo sát (vào thẳng Trang chủ).
+                // Chỉ người dùng chưa từng làm khảo sát mới được dẫn vào làm khảo sát.
+                bool isFirstTime = user.LaLanDauDangNhap;
+                MainWindow mainWindow = new MainWindow(isFirstLogin: isFirstTime);
                 mainWindow.Show();
                 this.Close();
             }
         }
 
+        private void BtnLoginHocVien_Click(object sender, RoutedEventArgs e)
+        {
+            // Điền thông tin tài khoản học viên mẫu để đăng nhập nhanh
+            txtEmail.Text = "hocvien01@tienganhai.local";
+            txtEmail.Foreground = (Brush)FindResource("TextDark");
+            txtPassword.Password = "123456";
+            txtPassword.Foreground = (Brush)FindResource("TextDark");
+
+            LoginButton_Click(sender, e);
+        }
+
         private void BtnLoginGiangVien_Click(object sender, RoutedEventArgs e)
         {
-            var gvWindow = new GUI.Views.GiangVien.GiangVienWindow();
-            gvWindow.Show();
-            this.Close();
+            // Điền thông tin tài khoản giảng viên mặc định để đăng nhập nhanh
+            txtEmail.Text = "admin@tienganhai.local";
+            txtEmail.Foreground = (Brush)FindResource("TextDark");
+            txtPassword.Password = "123456";
+            txtPassword.Foreground = (Brush)FindResource("TextDark");
+
+            LoginButton_Click(sender, e);
         }
 
         private void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
             string name = txtRegName.Text.Trim();
+            if (name == NamePlaceholder) name = "";
             string email = txtRegEmail.Text.Trim();
+            if (email == EmailPlaceholder) email = "";
             string password = txtRegPassword.Password;
+            if (password == PasswordPlaceholder) password = "";
             string confirmPassword = txtRegConfirmPassword.Password;
+            if (confirmPassword == PasswordPlaceholder) confirmPassword = "";
 
-            if (name == NamePlaceholder || string.IsNullOrEmpty(name))
+            if (!string.IsNullOrEmpty(email) && NguoiDungBUS.Instance.KiemTraEmailTonTai(email))
             {
-                MessageBox.Show("Vui lòng nhập họ và tên của bạn.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtRegEmailError.Text = "⚠️ Email này đã được đăng ký trên hệ thống!";
+                txtRegEmailError.Visibility = Visibility.Visible;
+                var res = MessageBox.Show($"Email '{email}' đã được đăng ký trên hệ thống!\n\nBạn có muốn chuyển sang màn hình Đăng nhập ngay bây giờ không?", 
+                                          "Email đã được đăng ký", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (res == MessageBoxResult.Yes)
+                {
+                    SwitchToLoginTab();
+                    txtEmail.Text = email;
+                    txtEmail.Foreground = (Brush)FindResource("TextDark");
+                    txtPassword.Password = "";
+                    txtPassword.Focus();
+                }
                 return;
             }
 
-            if (email == EmailPlaceholder || string.IsNullOrEmpty(email))
+            bool success = NguoiDungBUS.Instance.DangKy(name, email, password, confirmPassword, out string errorMessage, out NguoiDungDTO? newUser);
+            if (!success || newUser == null)
             {
-                MessageBox.Show("Vui lòng nhập địa chỉ email.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(errorMessage, "Đăng ký thất bại", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            if (password != confirmPassword)
-            {
-                MessageBox.Show("Mật khẩu xác nhận không khớp!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            txtRegEmailError.Visibility = Visibility.Collapsed;
+            MessageBox.Show($"Chúc mừng {newUser.HoTen} đã đăng ký tài khoản thành công! Hệ thống sẽ tiến hành đánh giá năng lực ban đầu để đề xuất lộ trình và bài học phù hợp cho bạn.", "Đăng ký thành công", MessageBoxButton.OK, MessageBoxImage.Information);
 
-            MessageBox.Show($"Chúc mừng {name} đã đăng ký tài khoản thành công! Hãy bắt đầu với bài kiểm tra đánh giá năng lực.", "Đăng ký thành công", MessageBoxButton.OK, MessageBoxImage.Information);
-
+            // Học viên mới đăng ký: Chuyển ngay vào luồng khảo sát đánh giá năng lực (Hỏi mức độ -> Làm khảo sát -> Đề xuất bài học)
             MainWindow mainWindow = new MainWindow(isFirstLogin: true);
             mainWindow.Show();
             this.Close();
+        }
+
+        private void TxtPassword_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                LoginButton_Click(sender, e);
+            }
+        }
+
+        private void TxtRegConfirmPassword_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                RegisterButton_Click(sender, e);
+            }
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
