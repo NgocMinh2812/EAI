@@ -90,16 +90,34 @@ namespace DTO
         public string LockIcon => TrangThaiHoatDong ? "🔒" : "🔓";
         public string LockTooltip => TrangThaiHoatDong ? "Khóa tài khoản" : "Mở khóa tài khoản";
 
+        public string LastLoginColor => LanDangNhapCuoi.HasValue ? "#334155" : "#94A3B8";
+        public string LastLoginFontStyle => LanDangNhapCuoi.HasValue ? "Normal" : "Italic";
+
         public string LastLoginDisplay
         {
             get
             {
                 if (!LanDangNhapCuoi.HasValue) return "Chưa đăng nhập";
-                var diff = DateTime.Now - LanDangNhapCuoi.Value;
-                if (diff.TotalMinutes < 60) return $"Vừa xong ({diff.Minutes}p trước)";
-                if (diff.TotalHours < 24) return $"Hôm nay, {LanDangNhapCuoi.Value:HH:mm}";
-                if (diff.TotalDays < 2) return $"Hôm qua, {LanDangNhapCuoi.Value:HH:mm}";
-                return LanDangNhapCuoi.Value.ToString("dd/MM/yyyy HH:mm");
+                var now = DateTime.Now;
+                var login = LanDangNhapCuoi.Value;
+
+                // Đăng nhập trong ngày hôm nay
+                if (login.Date == now.Date)
+                {
+                    var diff = now - login;
+                    if (diff.TotalMinutes < 2) return "Vừa xong";
+                    if (diff.TotalMinutes < 60) return $"{Math.Max(1, (int)diff.TotalMinutes)} phút trước";
+                    return $"Hôm nay, {login:HH:mm}";
+                }
+
+                // Đăng nhập ngày hôm qua
+                if (login.Date == now.Date.AddDays(-1))
+                {
+                    return $"Hôm qua, {login:HH:mm}";
+                }
+
+                // Các ngày trước đó: hiển thị chuẩn dd/MM/yyyy HH:mm
+                return login.ToString("dd/MM/yyyy HH:mm");
             }
         }
     }

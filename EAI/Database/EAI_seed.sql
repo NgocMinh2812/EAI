@@ -65,19 +65,19 @@ DECLARE @idQTV INT = (SELECT MaVaiTro FROM VaiTro WHERE TenVaiTro=N'QuanTriVien'
 
 INSERT INTO NguoiDung(MaVaiTro, TenDangNhap, MatKhauMaHoa, Email, HoTen, SoDienThoai, TrangThaiHoatDong, LaLanDauDangNhap, NgayTao, LanDangNhapCuoi)
 VALUES
-(@idGV, N'tung.hoang', N'123456', N'tung.hoang@edu.vn', N'Hoàng Văn Tùng', N'0912345678', 1, 0, DATEADD(day, -60, SYSDATETIME()), SYSDATETIME()),
-(@idGV, N'maianh.tran', N'123456', N'maianh.tran@tienganhai.vn', N'Trần Mai Anh', N'0987654321', 1, 0, DATEADD(day, -45, SYSDATETIME()), DATEADD(hour, -5, SYSDATETIME())),
-(@idHV, N'lan.nguyen', N'123456', N'lan.nguyen@gmail.com', N'Nguyễn Thị Lan', N'0901234561', 1, 0, DATEADD(day, -30, SYSDATETIME()), DATEADD(minute, -30, SYSDATETIME())),
-(@idHV, N'khoa.tran', N'123456', N'khoa.tran@outlook.com', N'Trần Minh Khoa', N'0901234562', 1, 0, DATEADD(day, -25, SYSDATETIME()), DATEADD(hour, -2, SYSDATETIME())),
-(@idHV, N'ducanh.pham', N'123456', N'ducanh.pham@gmail.com', N'Phạm Đức Anh', N'0901234563', 0, 0, DATEADD(day, -50, SYSDATETIME()), DATEADD(day, -10, SYSDATETIME())),
-(@idHV, N'huong.le', N'123456', N'huong.le@yahoo.com', N'Lê Thu Hương', N'0901234564', 1, 0, DATEADD(day, -20, SYSDATETIME()), DATEADD(hour, -12, SYSDATETIME())),
-(@idHV, N'nam.vu', N'123456', N'nam.vu@company.vn', N'Vũ Hoàng Nam', N'0901234565', 1, 0, DATEADD(day, -15, SYSDATETIME()), DATEADD(hour, -1, SYSDATETIME())),
-(@idHV, N'mai.dang', N'123456', N'mai.dang@gmail.com', N'Đặng Thị Mai', N'0901234566', 0, 0, DATEADD(day, -40, SYSDATETIME()), DATEADD(day, -5, SYSDATETIME())),
-(@idHV, N'chau.ngo', N'123456', N'chau.ngo@student.edu.vn', N'Ngô Bảo Châu', N'0901234567', 1, 0, DATEADD(day, -10, SYSDATETIME()), DATEADD(minute, -15, SYSDATETIME())),
-(@idHV, N'bao.do', N'123456', N'bao.do@gmail.com', N'Đỗ Quốc Bảo', N'0901234568', 1, 0, DATEADD(day, -5, SYSDATETIME()), DATEADD(minute, -50, SYSDATETIME())),
+(@idGV, N'tung.hoang', N'123456', N'tung.hoang@edu.vn', N'Hoàng Văn Tùng', N'0912345678', 1, 0, DATEADD(day, -60, SYSDATETIME()), DATEADD(hour, -2, SYSDATETIME())),
+(@idGV, N'maianh.tran', N'123456', N'maianh.tran@tienganhai.vn', N'Trần Mai Anh', N'0987654321', 1, 0, DATEADD(day, -45, SYSDATETIME()), DATEADD(day, -1, SYSDATETIME())),
+(@idHV, N'lan.nguyen', N'123456', N'lan.nguyen@gmail.com', N'Nguyễn Thị Lan', N'0901234561', 1, 0, DATEADD(day, -30, SYSDATETIME()), DATEADD(hour, -5, SYSDATETIME())),
+(@idHV, N'khoa.tran', N'123456', N'khoa.tran@outlook.com', N'Trần Minh Khoa', N'0901234562', 1, 0, DATEADD(day, -25, SYSDATETIME()), DATEADD(day, -2, SYSDATETIME())),
+(@idHV, N'ducanh.pham', N'123456', N'ducanh.pham@gmail.com', N'Phạm Đức Anh', N'0901234563', 0, 0, DATEADD(day, -50, SYSDATETIME()), NULL),
+(@idHV, N'huong.le', N'123456', N'huong.le@yahoo.com', N'Lê Thu Hương', N'0901234564', 1, 0, DATEADD(day, -20, SYSDATETIME()), DATEADD(day, -4, SYSDATETIME())),
+(@idHV, N'nam.vu', N'123456', N'nam.vu@company.vn', N'Vũ Hoàng Nam', N'0901234565', 1, 0, DATEADD(day, -15, SYSDATETIME()), DATEADD(day, -9, SYSDATETIME())),
+(@idHV, N'mai.dang', N'123456', N'mai.dang@gmail.com', N'Đặng Thị Mai', N'0901234566', 0, 0, DATEADD(day, -40, SYSDATETIME()), NULL),
+(@idHV, N'chau.ngo', N'123456', N'chau.ngo@student.edu.vn', N'Ngô Bảo Châu', N'0901234567', 1, 0, DATEADD(day, -10, SYSDATETIME()), DATEADD(day, -15, SYSDATETIME())),
+(@idHV, N'bao.do', N'123456', N'bao.do@gmail.com', N'Đỗ Quốc Bảo', N'0901234568', 1, 0, DATEADD(day, -5, SYSDATETIME()), DATEADD(day, -22, SYSDATETIME())),
 (@idQTV, N'admin', N'123456', N'admin@gmail.com', N'Quản trị viên Hệ thống', N'0999888777', 1, 0, DATEADD(day, -100, SYSDATETIME()), SYSDATETIME()),
-(@idGV, N'giangvien', N'123456', N'giangvien@gmail.com', N'Giảng viên Nguyễn Văn An', N'0988777666', 1, 0, DATEADD(day, -90, SYSDATETIME()), SYSDATETIME()),
-(@idHV, N'hocvien', N'123456', N'hocvien@gmail.com', N'Học viên Trần Thị Mai', N'0977666555', 1, 0, DATEADD(day, -80, SYSDATETIME()), SYSDATETIME());
+(@idGV, N'giangvien', N'123456', N'giangvien@gmail.com', N'Giảng viên Nguyễn Văn An', N'0988777666', 1, 0, DATEADD(day, -90, SYSDATETIME()), DATEADD(minute, -12, SYSDATETIME())),
+(@idHV, N'hocvien', N'123456', N'hocvien@gmail.com', N'Học viên Trần Thị Mai', N'0977666555', 1, 0, DATEADD(day, -80, SYSDATETIME()), NULL);
 GO
 
 -- 4. Hồ sơ học tập

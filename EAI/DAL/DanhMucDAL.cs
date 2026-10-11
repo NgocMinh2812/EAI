@@ -66,22 +66,26 @@ namespace DAL
         public List<ChuDeDTO> GetChuDeTree()
         {
             var all = GetAllChuDe();
-            var roots = all.Where(x => !x.MaChuDeCha.HasValue).ToList();
+            var roots = all.Where(x => !x.MaChuDeCha.HasValue || x.MaChuDeCha <= 0).ToList();
+            var visited = new HashSet<int>();
 
             foreach (var root in roots)
             {
-                BuildChildrenRecursive(root, all);
+                BuildChildrenRecursive(root, all, visited);
             }
 
             return roots;
         }
 
-        private void BuildChildrenRecursive(ChuDeDTO parent, List<ChuDeDTO> all)
+        private void BuildChildrenRecursive(ChuDeDTO parent, List<ChuDeDTO> all, HashSet<int> visited)
         {
-            parent.DanhSachCon = all.Where(x => x.MaChuDeCha == parent.MaChuDe).ToList();
+            if (visited.Contains(parent.MaChuDe)) return;
+            visited.Add(parent.MaChuDe);
+
+            parent.DanhSachCon = all.Where(x => x.MaChuDeCha == parent.MaChuDe && x.MaChuDe != parent.MaChuDe && !visited.Contains(x.MaChuDe)).ToList();
             foreach (var child in parent.DanhSachCon)
             {
-                BuildChildrenRecursive(child, all);
+                BuildChildrenRecursive(child, all, visited);
             }
         }
 

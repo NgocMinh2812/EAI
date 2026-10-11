@@ -16,16 +16,13 @@ namespace BUS
             try
             {
                 var list = _baiHocDAL.GetAll(maChuDe, search);
-                if (list != null && list.Count > 0)
-                {
-                    return list;
-                }
+                return list ?? new List<BaiHocDTO>();
             }
-            catch
+            catch (Exception ex)
             {
-                // Fallback nếu có sự cố
+                System.Diagnostics.Debug.WriteLine($"[BaiHocBUS] Lỗi đọc bài học từ DB: {ex.Message}");
+                return new List<BaiHocDTO>();
             }
-            return LayDanhSachBaiHoc();
         }
 
         public static List<BaiHocDTO> LayDanhSachBaiHoc()
@@ -79,6 +76,34 @@ namespace BUS
                     baiHoc.ButtonActionText = "Học tiếp";
                 }
             }
+        }
+
+        public static (bool Success, string Message, int NewId) ThemBaiHoc(BaiHocDTO bh)
+        {
+            if (string.IsNullOrWhiteSpace(bh.TieuDe))
+                return (false, "Tiêu đề học liệu không được để trống.", 0);
+
+            if (bh.MaChuDe <= 0)
+                return (false, "Vui lòng chọn danh mục chủ đề hợp lệ cho tài liệu.", 0);
+
+            bool ok = _baiHocDAL.InsertBaiHoc(bh);
+            if (ok)
+            {
+                _cacheBaiHoc = null; // Invalidate cache
+                return (true, "Đã lưu học liệu thành công vào cơ sở dữ liệu!", bh.MaBaiHoc);
+            }
+            return (false, "Lỗi khi lưu học liệu vào cơ sở dữ liệu.", 0);
+        }
+
+        public static (bool Success, string Message) TaoDeThiThuTuBaiHoc(int maBaiHoc, string tenDeThi, int? nguoiTao = null)
+        {
+            if (maBaiHoc <= 0)
+                return (false, "Mã bài học không hợp lệ.");
+
+            bool ok = _baiHocDAL.TaoDeThiThuTuBaiHoc(maBaiHoc, tenDeThi, nguoiTao);
+            if (ok)
+                return (true, $"Đã tạo bộ đề thi thử '{tenDeThi}' và lưu vào hệ thống thành công!");
+            return (false, "Lỗi khi tạo bộ đề thi thử trong cơ sở dữ liệu.");
         }
     }
 }

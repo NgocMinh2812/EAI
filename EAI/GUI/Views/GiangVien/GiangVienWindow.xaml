@@ -73,10 +73,12 @@
     </Window.Resources>
 
     <Grid Background="#F8FAFC">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="240" MinWidth="200" MaxWidth="280"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+        <!-- Main Application Shell Container -->
+        <Grid x:Name="MainContentContainer">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="colSidebar" Width="240" MinWidth="70" MaxWidth="280"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
         <!-- ================= LEFT SIDEBAR ================= -->
         <Border Grid.Column="0" Background="{StaticResource CardBg}" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,1,0">
@@ -84,38 +86,59 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="64"/>
                     <RowDefinition Height="*"/>
-                    <RowDefinition Height="64"/>
+                    <RowDefinition Height="Auto" MinHeight="64"/>
                 </Grid.RowDefinitions>
 
                 <!-- Brand Header -->
-                <Border Grid.Row="0" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="18,0">
+                <Border Grid.Row="0" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="14,0">
                     <Grid VerticalAlignment="Center" Height="64">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+                        <!-- Full Header (khi mở rộng) -->
+                        <Grid x:Name="pnlBrandFull">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-                        <!-- Star Logo Icon -->
-                        <Border Grid.Column="0" Background="{StaticResource AdminDarkGreen}" Width="32" Height="32" CornerRadius="8" Margin="0,0,10,0">
-                            <TextBlock Text="★" Foreground="White" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                            <!-- Star Logo Icon -->
+                            <Border Grid.Column="0" Background="{StaticResource AdminDarkGreen}" Width="32" Height="32" CornerRadius="8" Margin="0,0,10,0">
+                                <TextBlock Text="★" Foreground="White" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
 
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="TiếngAnhAI" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}"/>
-                            <TextBlock x:Name="txtBrandSubtitle" Text="Admin Dashboard" FontSize="10.5" Foreground="{StaticResource TextGray}"/>
-                        </StackPanel>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="TiếngAnhAI" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}"/>
+                                <TextBlock x:Name="txtBrandSubtitle" Text="Admin Dashboard" FontSize="10.5" Foreground="{StaticResource TextGray}"/>
+                            </StackPanel>
 
-                        <Button Grid.Column="2" Content="«" Background="Transparent" Foreground="{StaticResource TextGray}" 
-                                BorderThickness="0" FontSize="14" Cursor="Hand" Padding="4" ToolTip="Thu gọn menu">
+                            <Button x:Name="btnToggleSidebarFull" Grid.Column="2" Content="«" Background="Transparent" Foreground="{StaticResource TextGray}" 
+                                    BorderThickness="0" FontSize="16" Cursor="Hand" Padding="6,4" ToolTip="Thu gọn menu" Click="BtnToggleSidebar_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="b" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="b" Property="Background" Value="#F1F5F9"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+
+                        <!-- Mini Header (khi thu gọn) -->
+                        <Button x:Name="btnToggleSidebarMini" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Content="»" Background="#E6F4EA" Foreground="{StaticResource AdminDarkGreen}" FontWeight="Bold"
+                                BorderThickness="0" FontSize="16" Cursor="Hand" Width="36" Height="36" ToolTip="Mở rộng menu" Click="BtnToggleSidebar_Click">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border x:Name="b" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                    <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="8">
                                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="b" Property="Background" Value="#F1F5F9"/>
+                                            <Setter TargetName="b" Property="Background" Value="#D1E7DD"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -129,109 +152,123 @@
                     <StackPanel Margin="0,10">
 
                         <!-- CHÍNH -->
-                        <TextBlock Text="CHÍNH" Style="{StaticResource NavSectionHeader}"/>
-                        <Button x:Name="btnNavTongQuan" Style="{StaticResource AdminActiveNavItemStyle}" Click="NavTongQuan_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="⊞" FontSize="14" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Tổng quan" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="headerChinh" Text="CHÍNH" Style="{StaticResource NavSectionHeader}"/>
+                        <Separator x:Name="sep1" Visibility="Collapsed" Margin="14,6" Background="{StaticResource BorderLight}"/>
+                        <Button x:Name="btnNavTongQuan" Style="{StaticResource AdminActiveNavItemStyle}" Click="NavTongQuan_Click" ToolTip="Tổng quan">
+                            <StackPanel x:Name="spNavTongQuan" Orientation="Horizontal">
+                                <TextBlock x:Name="icoNavTongQuan" Text="⊞" FontSize="15" Margin="0,0,10,0" VerticalAlignment="Center" Width="20" TextAlignment="Center"/>
+                                <TextBlock x:Name="lblNavTongQuan" Text="Tổng quan" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
                         <!-- QUẢN LÝ -->
-                        <TextBlock Text="QUẢN LÝ" Style="{StaticResource NavSectionHeader}"/>
-                        <Button x:Name="btnNavNguoiDung" Style="{StaticResource AdminNavItemStyle}" Click="NavNguoiDung_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="👥" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Người dùng" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="headerQuanLy" Text="QUẢN LÝ" Style="{StaticResource NavSectionHeader}"/>
+                        <Separator x:Name="sep2" Visibility="Collapsed" Margin="14,6" Background="{StaticResource BorderLight}"/>
+                        <Button x:Name="btnNavNguoiDung" Style="{StaticResource AdminNavItemStyle}" Click="NavNguoiDung_Click" ToolTip="Người dùng">
+                            <StackPanel x:Name="spNavNguoiDung" Orientation="Horizontal">
+                                <TextBlock x:Name="icoNavNguoiDung" Text="👥" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center" Width="20" TextAlignment="Center"/>
+                                <TextBlock x:Name="lblNavNguoiDung" Text="Người dùng" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button x:Name="btnNavDanhMuc" Style="{StaticResource AdminNavItemStyle}" Click="NavDanhMuc_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📁" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Danh mục &amp; Cấu trúc" VerticalAlignment="Center"/>
+                        <Button x:Name="btnNavDanhMuc" Style="{StaticResource AdminNavItemStyle}" Click="NavDanhMuc_Click" ToolTip="Danh mục &amp; Cấu trúc">
+                            <StackPanel x:Name="spNavDanhMuc" Orientation="Horizontal">
+                                <TextBlock x:Name="icoNavDanhMuc" Text="📁" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center" Width="20" TextAlignment="Center"/>
+                                <TextBlock x:Name="lblNavDanhMuc" Text="Danh mục &amp; Cấu trúc" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button x:Name="btnNavNoiDung" Style="{StaticResource AdminNavItemStyle}" Click="NavNoiDung_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📖" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Nội dung học tập" VerticalAlignment="Center"/>
+                        <Button x:Name="btnNavNoiDung" Style="{StaticResource AdminNavItemStyle}" Click="NavNoiDung_Click" ToolTip="Nội dung học tập">
+                            <StackPanel x:Name="spNavNoiDung" Orientation="Horizontal">
+                                <TextBlock x:Name="icoNavNoiDung" Text="📖" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center" Width="20" TextAlignment="Center"/>
+                                <TextBlock x:Name="lblNavNoiDung" Text="Nội dung học tập" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button x:Name="btnNavNganHang" Style="{StaticResource AdminNavItemStyle}" Click="NavNganHang_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="❓" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Ngân hàng câu hỏi" VerticalAlignment="Center"/>
+                        <Button x:Name="btnNavNganHang" Style="{StaticResource AdminNavItemStyle}" Click="NavNganHang_Click" ToolTip="Ngân hàng câu hỏi">
+                            <StackPanel x:Name="spNavNganHang" Orientation="Horizontal">
+                                <TextBlock x:Name="icoNavNganHang" Text="❓" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center" Width="20" TextAlignment="Center"/>
+                                <TextBlock x:Name="lblNavNganHang" Text="Ngân hàng câu hỏi" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button x:Name="btnNavDeThi" Style="{StaticResource AdminNavItemStyle}" Click="NavDeThi_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="⏱️" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Đề thi &amp; Luyện tập" VerticalAlignment="Center"/>
+                        <Button x:Name="btnNavDeThi" Style="{StaticResource AdminNavItemStyle}" Click="NavDeThi_Click" ToolTip="Đề thi &amp; Luyện tập">
+                            <StackPanel x:Name="spNavDeThi" Orientation="Horizontal">
+                                <TextBlock x:Name="icoNavDeThi" Text="⏱️" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center" Width="20" TextAlignment="Center"/>
+                                <TextBlock x:Name="lblNavDeThi" Text="Đề thi &amp; Luyện tập" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button x:Name="btnNavKhaoSat" Style="{StaticResource AdminNavItemStyle}" Click="NavKhaoSat_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📝" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Khảo sát đầu vào" VerticalAlignment="Center"/>
+                        <Button x:Name="btnNavKhaoSat" Style="{StaticResource AdminNavItemStyle}" Click="NavKhaoSat_Click" ToolTip="Khảo sát đầu vào">
+                            <StackPanel x:Name="spNavKhaoSat" Orientation="Horizontal">
+                                <TextBlock x:Name="icoNavKhaoSat" Text="📝" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center" Width="20" TextAlignment="Center"/>
+                                <TextBlock x:Name="lblNavKhaoSat" Text="Khảo sát đầu vào" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
                         <!-- TRÍ TUỆ AI -->
-                        <TextBlock Text="TRÍ TUỆ AI" Style="{StaticResource NavSectionHeader}"/>
-                        <Button x:Name="btnNavAISinhDe" Style="{StaticResource AdminNavItemStyle}" Click="NavAISinhDe_Click">
-                            <Grid Width="180">
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                    <TextBlock Text="⭐" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="AI sinh đề" VerticalAlignment="Center"/>
-                                </StackPanel>
-                                <Border HorizontalAlignment="Right" Background="#EA580C" CornerRadius="8" Padding="5,1">
+                        <TextBlock x:Name="headerTriTueAI" Text="TRÍ TUỆ AI" Style="{StaticResource NavSectionHeader}"/>
+                        <Separator x:Name="sep3" Visibility="Collapsed" Margin="14,6" Background="{StaticResource BorderLight}"/>
+                        <Button x:Name="btnNavAISinhDe" Style="{StaticResource AdminNavItemStyle}" Click="NavAISinhDe_Click" ToolTip="AI sinh đề">
+                            <StackPanel x:Name="spNavAISinhDe" Orientation="Horizontal">
+                                <TextBlock x:Name="icoNavAISinhDe" Text="⭐" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center" Width="20" TextAlignment="Center"/>
+                                <TextBlock x:Name="lblNavAISinhDe" Text="AI sinh đề" VerticalAlignment="Center"/>
+                                <Border x:Name="badgeNavAISinhDe" Margin="14,0,0,0" Background="#EA580C" CornerRadius="8" Padding="5,1" VerticalAlignment="Center">
                                     <TextBlock Text="AI" Foreground="White" FontSize="10" FontWeight="Bold"/>
                                 </Border>
-                            </Grid>
+                            </StackPanel>
                         </Button>
 
                         <!-- HỆ THỐNG -->
                         <TextBlock x:Name="headerHeThong" Text="HỆ THỐNG" Style="{StaticResource NavSectionHeader}"/>
-                        <Button x:Name="btnNavGiamSat" Style="{StaticResource AdminNavItemStyle}" Click="NavGiamSat_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="💻" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Giám sát hệ thống" VerticalAlignment="Center"/>
+                        <Separator x:Name="sep4" Visibility="Collapsed" Margin="14,6" Background="{StaticResource BorderLight}"/>
+                        <Button x:Name="btnNavGiamSat" Style="{StaticResource AdminNavItemStyle}" Click="NavGiamSat_Click" ToolTip="Giám sát hệ thống">
+                            <StackPanel x:Name="spNavGiamSat" Orientation="Horizontal">
+                                <TextBlock x:Name="icoNavGiamSat" Text="💻" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center" Width="20" TextAlignment="Center"/>
+                                <TextBlock x:Name="lblNavGiamSat" Text="Giám sát hệ thống" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
                         <!-- ĐIỀU HƯỚNG HỌC VIÊN -->
-                        <TextBlock Text="CHUYỂN ĐỔI GIAO DIỆN" Style="{StaticResource NavSectionHeader}"/>
-                        <Button x:Name="btnNavToStudentHome" Style="{StaticResource AdminNavItemStyle}" Click="NavToStudentHome_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🏠" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Trang chủ Học viên" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="{StaticResource AdminDarkGreen}"/>
+                        <TextBlock x:Name="headerChuyenDoi" Text="CHUYỂN ĐỔI GIAO DIỆN" Style="{StaticResource NavSectionHeader}"/>
+                        <Separator x:Name="sep5" Visibility="Collapsed" Margin="14,6" Background="{StaticResource BorderLight}"/>
+                        <Button x:Name="btnNavToStudentHome" Style="{StaticResource AdminNavItemStyle}" Click="NavToStudentHome_Click" ToolTip="Trang chủ Học viên">
+                            <StackPanel x:Name="spNavToStudentHome" Orientation="Horizontal">
+                                <TextBlock x:Name="icoNavToStudentHome" Text="🏠" FontSize="13" Margin="0,0,10,0" VerticalAlignment="Center" Width="20" TextAlignment="Center"/>
+                                <TextBlock x:Name="lblNavToStudentHome" Text="Trang chủ Học viên" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="{StaticResource AdminDarkGreen}"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>
                 </ScrollViewer>
 
                 <!-- Footer User Profile -->
-                <Border Grid.Row="2" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0" Padding="16,10">
+                <Border Grid.Row="2" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0" Padding="14,10">
                     <Grid VerticalAlignment="Center">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+                        <!-- Full User Profile -->
+                        <Grid x:Name="pnlUserFull">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-                        <!-- Avatar Circle -->
-                        <Border Grid.Column="0" Background="{StaticResource AdminDarkGreen}" Width="36" Height="36" CornerRadius="18" Margin="0,0,10,0">
-                            <TextBlock x:Name="txtAvatarInitials" Text="HT" FontWeight="Bold" FontSize="13" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                            <!-- Avatar Circle -->
+                            <Border Grid.Column="0" Background="{StaticResource AdminDarkGreen}" Width="36" Height="36" CornerRadius="18" Margin="0,0,10,0">
+                                <TextBlock x:Name="txtAvatarInitials" Text="HT" FontWeight="Bold" FontSize="13" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
 
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock x:Name="txtCurrentUserName" Text="Hoàng Văn Tùng" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}"/>
-                            <TextBlock x:Name="txtCurrentUserRole" Text="Quản trị viên" FontSize="11" Foreground="{StaticResource TextGray}"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock x:Name="txtCurrentUserName" Text="Hoàng Văn Tùng" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}"/>
+                                <TextBlock x:Name="txtCurrentUserRole" Text="Quản trị viên" FontSize="11" Foreground="{StaticResource TextGray}"/>
+                            </StackPanel>
+
+                            <!-- Logout Button -->
+                            <Button Grid.Column="2" Content="🚪" Background="Transparent" Foreground="#EF4444" 
+                                    BorderThickness="0" FontSize="14" Cursor="Hand" ToolTip="Đăng xuất" Click="BtnLogout_Click"/>
+                        </Grid>
+
+                        <!-- Mini User Profile (khi sidebar thu gọn) -->
+                        <StackPanel x:Name="pnlUserCollapsed" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Border x:Name="pnlUserCollapsedAvatar" Background="{StaticResource AdminDarkGreen}" Width="36" Height="36" CornerRadius="18" ToolTip="Tài khoản cá nhân" Cursor="Hand" Margin="0,0,0,4">
+                                <TextBlock x:Name="txtAvatarInitialsMini" Text="HT" FontWeight="Bold" FontSize="13" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <Button Content="🚪" Background="Transparent" Foreground="#EF4444" BorderThickness="0" FontSize="14" Cursor="Hand" ToolTip="Đăng xuất" Click="BtnLogout_Click" HorizontalAlignment="Center"/>
                         </StackPanel>
-
-                        <!-- Logout Button -->
-                        <Button Grid.Column="2" Content="🚪" Background="Transparent" Foreground="#EF4444" 
-                                BorderThickness="0" FontSize="14" Cursor="Hand" ToolTip="Đăng xuất" Click="BtnLogout_Click"/>
                     </Grid>
                 </Border>
             </Grid>
@@ -381,5 +418,9 @@
             <!-- Main Content Frame -->
             <Frame x:Name="AdminMainFrame" Grid.Row="1" NavigationUIVisibility="Hidden"/>
         </Grid>
+        </Grid>
+
+        <!-- Dim & Blur Overlay Layer (Phủ mờ và làm tối nền khi mở popup dialog) -->
+        <Grid x:Name="OverlayDimLayer" Background="#550F172A" Visibility="Collapsed" IsHitTestVisible="True"/>
     </Grid>
 </Window>

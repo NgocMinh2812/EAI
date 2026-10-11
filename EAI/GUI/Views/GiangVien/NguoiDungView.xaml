@@ -166,7 +166,9 @@
                                         <TextBlock Grid.Column="2" Text="{Binding LevelText}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
 
                                         <!-- Đăng nhập cuối -->
-                                        <TextBlock Grid.Column="3" Text="{Binding LastLogin}" FontSize="12.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding LastLogin}" FontSize="12.5" 
+                                                   Foreground="{Binding LastLoginColor}" FontStyle="{Binding LastLoginFontStyle}"
+                                                   VerticalAlignment="Center"/>
 
                                         <!-- Trạng thái -->
                                         <Border Grid.Column="4" Background="{Binding StatusBg}" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">

@@ -17,6 +17,9 @@ namespace DTO
     public class BaiHocDTO
     {
         public int MaBaiHoc { get; set; }
+        public int MaChuDe { get; set; }
+        public int MaTrinhDoId { get; set; } = 3;
+        public int? NguoiTao { get; set; }
         public string TieuDe { get; set; } = string.Empty;
         public string LoaiBaiHoc { get; set; } = string.Empty; // TuVung, NguPhap, DocHieu, NgheHieu, VietLuan
         public string TenLoaiHienThi { get; set; } = string.Empty;
@@ -25,6 +28,7 @@ namespace DTO
         public string TomTat { get; set; } = string.Empty;
         public string NoiDung { get; set; } = string.Empty;
         public int ThoiGianUocTinhPhut { get; set; } = 15;
+        public bool DaXuatBan { get; set; } = true;
         public double PhanTramTienDo { get; set; } = 0;
         public string TrangThai { get; set; } = "Chưa học"; // Chưa học, Đang học, Hoàn thành
         public string DiemSo { get; set; } = "--";

@@ -69,7 +69,7 @@ namespace GUI.Views.GiangVien
             string ten = txtTenChuDe.Text.Trim();
             if (string.IsNullOrWhiteSpace(ten))
             {
-                MessageBox.Show("Vui lòng nhập tên chủ đề.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Views.Common.ThongBaoDialog.CanhBao(this, "Vui lòng nhập tên chủ đề học liệu.", "Thiếu thông tin");
                 txtTenChuDe.Focus();
                 return;
             }
@@ -94,6 +94,14 @@ namespace GUI.Views.GiangVien
         {
             DialogResult = false;
             Close();
+        }
+
+        private void Window_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == System.Windows.Input.MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
         }
     }
 }

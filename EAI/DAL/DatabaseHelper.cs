@@ -10,13 +10,18 @@ namespace DAL
 
         public static string ConnectionString
         {
-            get => _connectionString;
+            get
+            {
+                if (!string.IsNullOrEmpty(SqlDataProvider.Instance.ConnectionString))
+                    return SqlDataProvider.Instance.ConnectionString;
+                return _connectionString;
+            }
             set => _connectionString = value;
         }
 
         public static SqlConnection GetConnection()
         {
-            return new SqlConnection(_connectionString);
+            return new SqlConnection(ConnectionString);
         }
 
         /// <summary>

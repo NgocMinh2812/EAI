@@ -58,21 +58,21 @@ namespace GUI.Views.GiangVien
 
             if (string.IsNullOrWhiteSpace(hoTen))
             {
-                MessageBox.Show("Vui lòng nhập họ và tên.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Views.Common.ThongBaoDialog.CanhBao(this, "Vui lòng nhập họ và tên người dùng.", "Thiếu thông tin");
                 txtHoTen.Focus();
                 return;
             }
 
             if (!_isEditMode && (string.IsNullOrWhiteSpace(tenDangNhap) || tenDangNhap.Length < 3))
             {
-                MessageBox.Show("Tên đăng nhập phải có ít nhất 3 ký tự.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Views.Common.ThongBaoDialog.CanhBao(this, "Tên đăng nhập phải có ít nhất 3 ký tự.", "Tên đăng nhập không hợp lệ");
                 txtTenDangNhap.Focus();
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
             {
-                MessageBox.Show("Vui lòng nhập địa chỉ email hợp lệ.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Views.Common.ThongBaoDialog.CanhBao(this, "Vui lòng nhập địa chỉ email hợp lệ (vd: user@domain.com).", "Email không hợp lệ");
                 txtEmail.Focus();
                 return;
             }
@@ -109,6 +109,14 @@ namespace GUI.Views.GiangVien
         {
             DialogResult = false;
             Close();
+        }
+
+        private void Window_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == System.Windows.Input.MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
         }
     }
 }

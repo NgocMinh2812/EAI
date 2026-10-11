@@ -8,13 +8,145 @@ namespace GUI.Views.GiangVien
 {
     public partial class GiangVienWindow : Window
     {
+        private bool _isSidebarCollapsed = false;
+        private TextBlock[] _navIcons = Array.Empty<TextBlock>();
+        private TextBlock[] _navLabels = Array.Empty<TextBlock>();
+        private StackPanel[] _navPanels = Array.Empty<StackPanel>();
+
         public GiangVienWindow()
         {
             InitializeComponent();
+            InitSidebarElements();
             ApplyRolePermissions();
             AdminMainFrame.Navigated += AdminMainFrame_Navigated;
             // Mở mặc định trang Tổng quan
             AdminMainFrame.Navigate(new TongQuanView());
+        }
+
+        private void InitSidebarElements()
+        {
+            _navIcons = new TextBlock[] {
+                icoNavTongQuan, icoNavNguoiDung, icoNavDanhMuc, icoNavNoiDung,
+                icoNavNganHang, icoNavDeThi, icoNavKhaoSat, icoNavAISinhDe,
+                icoNavGiamSat, icoNavToStudentHome
+            };
+            _navLabels = new TextBlock[] {
+                lblNavTongQuan, lblNavNguoiDung, lblNavDanhMuc, lblNavNoiDung,
+                lblNavNganHang, lblNavDeThi, lblNavKhaoSat, lblNavAISinhDe,
+                lblNavGiamSat, lblNavToStudentHome
+            };
+            _navPanels = new StackPanel[] {
+                spNavTongQuan, spNavNguoiDung, spNavDanhMuc, spNavNoiDung,
+                spNavNganHang, spNavDeThi, spNavKhaoSat, spNavAISinhDe,
+                spNavGiamSat, spNavToStudentHome
+            };
+        }
+
+        private void BtnToggleSidebar_Click(object sender, RoutedEventArgs e)
+        {
+            SetSidebarCollapsed(!_isSidebarCollapsed);
+        }
+
+        private void SetSidebarCollapsed(bool collapsed)
+        {
+            _isSidebarCollapsed = collapsed;
+            var user = SessionHelper.CurrentUser;
+            bool isAdmin = user != null && string.Equals(user.TenVaiTro, "QuanTriVien", StringComparison.OrdinalIgnoreCase);
+
+            if (collapsed)
+            {
+                // Thu gọn về 68px
+                colSidebar.Width = new GridLength(68);
+                colSidebar.MinWidth = 68;
+                colSidebar.MaxWidth = 68;
+
+                // Header
+                pnlBrandFull.Visibility = Visibility.Collapsed;
+                btnToggleSidebarMini.Visibility = Visibility.Visible;
+
+                // Section Headers
+                headerChinh.Visibility = Visibility.Collapsed;
+                headerQuanLy.Visibility = Visibility.Collapsed;
+                headerTriTueAI.Visibility = Visibility.Collapsed;
+                headerHeThong.Visibility = Visibility.Collapsed;
+                headerChuyenDoi.Visibility = Visibility.Collapsed;
+
+                // Separators phân cách giữa các nhóm
+                sep1.Visibility = Visibility.Visible;
+                sep2.Visibility = Visibility.Visible;
+                sep3.Visibility = Visibility.Visible;
+                sep4.Visibility = isAdmin ? Visibility.Visible : Visibility.Collapsed;
+                sep5.Visibility = Visibility.Visible;
+
+                // Ẩn chữ nhãn, căn giữa icon
+                if (_navLabels != null)
+                {
+                    foreach (var lbl in _navLabels)
+                        lbl.Visibility = Visibility.Collapsed;
+                }
+                if (_navIcons != null)
+                {
+                    foreach (var ico in _navIcons)
+                        ico.Margin = new Thickness(0);
+                }
+                if (_navPanels != null)
+                {
+                    foreach (var pnl in _navPanels)
+                        pnl.HorizontalAlignment = HorizontalAlignment.Center;
+                }
+                badgeNavAISinhDe.Visibility = Visibility.Collapsed;
+
+                // Footer User Profile
+                pnlUserFull.Visibility = Visibility.Collapsed;
+                pnlUserCollapsed.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                // Mở rộng về 240px
+                colSidebar.Width = new GridLength(240);
+                colSidebar.MinWidth = 200;
+                colSidebar.MaxWidth = 280;
+
+                // Header
+                pnlBrandFull.Visibility = Visibility.Visible;
+                btnToggleSidebarMini.Visibility = Visibility.Collapsed;
+
+                // Section Headers
+                headerChinh.Visibility = Visibility.Visible;
+                headerQuanLy.Visibility = Visibility.Visible;
+                headerTriTueAI.Visibility = Visibility.Visible;
+                headerHeThong.Visibility = isAdmin ? Visibility.Visible : Visibility.Collapsed;
+                headerChuyenDoi.Visibility = Visibility.Visible;
+
+                // Separators
+                sep1.Visibility = Visibility.Collapsed;
+                sep2.Visibility = Visibility.Collapsed;
+                sep3.Visibility = Visibility.Collapsed;
+                sep4.Visibility = Visibility.Collapsed;
+                sep5.Visibility = Visibility.Collapsed;
+
+                // Hiện lại chữ nhãn, căn trái icon
+                if (_navLabels != null)
+                {
+                    foreach (var lbl in _navLabels)
+                        lbl.Visibility = Visibility.Visible;
+                }
+                if (_navIcons != null)
+                {
+                    foreach (var ico in _navIcons)
+                        ico.Margin = new Thickness(0, 0, 10, 0);
+                }
+                if (_navPanels != null)
+                {
+                    foreach (var pnl in _navPanels)
+                        pnl.HorizontalAlignment = HorizontalAlignment.Left;
+                }
+                badgeNavAISinhDe.Visibility = Visibility.Visible;
+
+                // Footer User Profile
+                pnlUserFull.Visibility = Visibility.Visible;
+                pnlUserCollapsed.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void ApplyRolePermissions()
@@ -34,9 +166,27 @@ namespace GUI.Views.GiangVien
                 txtCurrentUserName.Text = user.HoTen;
                 txtCurrentUserRole.Text = user.RoleText;
                 txtAvatarInitials.Text = user.Initials;
+                txtAvatarInitialsMini.Text = user.Initials;
+                pnlUserCollapsedAvatar.ToolTip = $"{user.HoTen} ({user.RoleText})";
                 txtTopAvatar.Text = user.Initials;
                 txtBrandSubtitle.Text = isAdmin ? "Admin Dashboard" : "Cổng Giảng Viên";
             }
+        }
+
+        public void ShowModalOverlay()
+        {
+            OverlayDimLayer.Visibility = Visibility.Visible;
+            MainContentContainer.Effect = new System.Windows.Media.Effects.BlurEffect 
+            { 
+                Radius = 8, 
+                RenderingBias = System.Windows.Media.Effects.RenderingBias.Performance 
+            };
+        }
+
+        public void HideModalOverlay()
+        {
+            OverlayDimLayer.Visibility = Visibility.Collapsed;
+            MainContentContainer.Effect = null;
         }
 
         private void AdminMainFrame_Navigated(object sender, NavigationEventArgs e)

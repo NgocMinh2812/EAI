@@ -11,7 +11,7 @@ namespace DTO
         public string Subtitle { get; set; } = string.Empty;
         public string Icon { get; set; } = "📁";
         public int ItemCount { get; set; } = 0;
-        public string BadgeText => ItemCount > 0 ? $"({ItemCount})" : "";
+        public string BadgeText => $"({ItemCount})";
         public bool IsExpanded { get; set; } = true;
         public bool IsSelected { get; set; } = false;
         public object? Tag { get; set; }

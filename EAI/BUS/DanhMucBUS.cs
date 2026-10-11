@@ -34,8 +34,31 @@ namespace BUS
             var tree = new ObservableCollection<TreeNodeDTO>();
             var allChuDe = _dal.GetAllChuDe();
 
-            // Nút gốc ảo: "Tất cả học liệu & chủ đề"
-            int totalLessons = allChuDe.Sum(x => x.SoLuongBaiHoc);
+            var visited = new HashSet<int>();
+            var rootChuDes = allChuDe.Where(x => !x.MaChuDeCha.HasValue || x.MaChuDeCha <= 0).ToList();
+            var rootChildren = new ObservableCollection<TreeNodeDTO>();
+
+            foreach (var r in rootChuDes)
+            {
+                var node = ConvertChuDeToTreeNode(r, allChuDe, visited);
+                rootChildren.Add(node);
+            }
+
+            // Nút gốc ảo: "Tất cả tài liệu"
+            int totalLessons = 0;
+            try
+            {
+                var cnt = DatabaseHelper.ExecuteScalar("SELECT COUNT(*) FROM BaiHoc");
+                if (cnt != null && cnt != DBNull.Value) 
+                    totalLessons = Convert.ToInt32(cnt);
+                else 
+                    totalLessons = rootChildren.Sum(x => x.ItemCount);
+            }
+            catch
+            {
+                totalLessons = rootChildren.Sum(x => x.ItemCount);
+            }
+
             var rootNode = new TreeNodeDTO
             {
                 Id = 0,
@@ -43,21 +66,15 @@ namespace BUS
                 Subtitle = "Thư viện học liệu trung tâm",
                 Icon = "📚",
                 ItemCount = totalLessons,
-                IsExpanded = true
+                IsExpanded = true,
+                Children = rootChildren
             };
-
-            var rootChuDes = allChuDe.Where(x => !x.MaChuDeCha.HasValue).ToList();
-            foreach (var r in rootChuDes)
-            {
-                var node = ConvertChuDeToTreeNode(r, allChuDe);
-                rootNode.Children.Add(node);
-            }
 
             tree.Add(rootNode);
             return tree;
         }
 
-        private TreeNodeDTO ConvertChuDeToTreeNode(ChuDeDTO item, List<ChuDeDTO> all)
+        private TreeNodeDTO ConvertChuDeToTreeNode(ChuDeDTO item, List<ChuDeDTO> all, HashSet<int> visited)
         {
             var node = new TreeNodeDTO
             {
@@ -65,17 +82,26 @@ namespace BUS
                 ParentId = item.MaChuDeCha,
                 Title = item.TenChuDe,
                 Subtitle = item.MoTa ?? "",
-                Icon = item.MaChuDeCha.HasValue ? "📄" : "📁",
+                Icon = (item.MaChuDeCha.HasValue && item.MaChuDeCha > 0) ? "📄" : "📁",
                 ItemCount = item.SoLuongBaiHoc,
                 Tag = item,
                 IsExpanded = true
             };
 
-            var children = all.Where(x => x.MaChuDeCha == item.MaChuDe).ToList();
+            if (visited.Contains(item.MaChuDe))
+            {
+                return node;
+            }
+            visited.Add(item.MaChuDe);
+
+            var children = all.Where(x => x.MaChuDeCha == item.MaChuDe && x.MaChuDe != item.MaChuDe && !visited.Contains(x.MaChuDe)).ToList();
             foreach (var c in children)
             {
-                node.Children.Add(ConvertChuDeToTreeNode(c, all));
+                node.Children.Add(ConvertChuDeToTreeNode(c, all, visited));
             }
+
+            // Tính tổng số lượng bài học: bài học trực tiếp + tổng bài học của tất cả các nhánh con cháu
+            node.ItemCount = item.SoLuongBaiHoc + node.Children.Sum(c => c.ItemCount);
 
             return node;
         }

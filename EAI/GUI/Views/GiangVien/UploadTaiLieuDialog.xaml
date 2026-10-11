@@ -1,0 +1,286 @@
+<Window x:Class="GUI.Views.GiangVien.UploadTaiLieuDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Tải lên Học liệu &amp; Đề thi" 
+        Height="680" Width="580"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        FontFamily="Segoe UI"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
+
+    <Window.Resources>
+        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#0F766E"/>
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#0F766E"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="1.6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CancelBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#475569"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="18,9"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#F8FAFC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SaveBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="#0F766E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="24,9"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#0B5B55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border CornerRadius="18" BorderBrush="#5EEAD4" BorderThickness="1.5" Margin="14" ClipToBounds="True">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="28" ShadowDepth="6" Opacity="0.25" Color="#042F2E"/>
+        </Border.Effect>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Emerald Teal Header Banner -->
+            <Border Grid.Row="0" CornerRadius="16,16,0,0" Padding="22,16,20,16">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#042F2E" Offset="0.0"/>
+                        <GradientStop Color="#0F4C3A" Offset="0.45"/>
+                        <GradientStop Color="#0F766E" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Width="44" Height="44" CornerRadius="22" Background="#26FFFFFF" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Text="📥" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="Tải lên Tệp Đề thi &amp; Học liệu Mới" FontWeight="Bold" FontSize="17" Foreground="White"/>
+                        <TextBlock Text="Hỗ trợ tự động bóc tách nội dung từ tệp .pdf, .docx, .txt để lưu vào CSDL" FontSize="12" Foreground="#CCFBF1" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2" Width="30" Height="30" Background="Transparent" BorderThickness="0" 
+                            Cursor="Hand" VerticalAlignment="Top" Click="BtnCancel_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="b" Background="Transparent" CornerRadius="15">
+                                    <TextBlock Text="✕" FontSize="13.5" Foreground="#E6F7F3" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="b" Property="Background" Value="#33FFFFFF"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Soft Mint Form Body -->
+            <Border Grid.Row="1" Background="#F2F9F7" CornerRadius="0,0,16,16" Padding="22,14,22,18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Scrollable Form Inputs -->
+                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="0,0,4,0">
+                        <StackPanel>
+                            <!-- VÙNG CHỌN TỆP HỌC LIỆU -->
+                            <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="10" Padding="14,10" Margin="0,0,0,12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Grid.Column="0" x:Name="pnlFileIconBadge" Width="38" Height="38" CornerRadius="8" Background="#E0F2FE" Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <TextBlock x:Name="txtFileIcon" Text="📄" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock x:Name="txtFileNameDisplay" Text="Chưa chọn tệp (.pdf, .docx, .txt)" FontWeight="SemiBold" FontSize="13" Foreground="#0F172A" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock x:Name="txtFileSizeDisplay" Text="Nhấn nút bên phải để chọn tệp từ máy tính của bạn" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
+                                    </StackPanel>
+
+                                    <Button Grid.Column="2" Content="📁 Chọn tệp..." Background="#0F766E" Foreground="White" 
+                                            FontWeight="SemiBold" FontSize="12" Padding="14,7" BorderThickness="0" Cursor="Hand" Click="BtnBrowseFile_Click">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </Grid>
+                            </Border>
+
+                            <!-- Tiêu đề học liệu -->
+                            <TextBlock Text="Tiêu đề bài học / Đề thi *" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
+                            <TextBox x:Name="txtTieuDe" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,10"/>
+
+                            <!-- Danh mục chủ đề -->
+                            <TextBlock Text="Thuộc Danh mục &amp; Chủ đề *" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
+                            <ComboBox x:Name="cboChuDe" Height="36" Margin="0,0,0,10" DisplayMemberPath="TenChuDe" SelectedValuePath="MaChuDe"/>
+
+                            <!-- Trình độ & Kỹ năng (2 cột song song) -->
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="90"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Trình độ -->
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Trình độ mục tiêu" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
+                                    <ComboBox x:Name="cboTrinhDo" Height="36" SelectedIndex="2">
+                                        <ComboBoxItem Content="A1 — Beginner"/>
+                                        <ComboBoxItem Content="A2 — Elementary"/>
+                                        <ComboBoxItem Content="B1 — Intermediate"/>
+                                        <ComboBoxItem Content="B2 — Upper-Inter"/>
+                                        <ComboBoxItem Content="C1 — Advanced"/>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <!-- Phân loại kỹ năng -->
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Kỹ năng phân loại" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
+                                    <ComboBox x:Name="cboLoaiBaiHoc" Height="36" SelectedIndex="0">
+                                        <ComboBoxItem Content="Đọc hiểu (Reading)" Tag="Doc"/>
+                                        <ComboBoxItem Content="Ngữ pháp (Grammar)" Tag="NguPhap"/>
+                                        <ComboBoxItem Content="Từ vựng (Vocabulary)" Tag="TuVung"/>
+                                        <ComboBoxItem Content="Luyện nghe (Listening)" Tag="Nghe"/>
+                                        <ComboBoxItem Content="Viết luận (Writing)" Tag="Viet"/>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <!-- Thời gian ước tính -->
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="Ước tính (p)" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="txtThoiGian" Text="25" Style="{StaticResource ModernTextBoxStyle}"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Tóm tắt ngắn -->
+                            <TextBlock Text="Tóm tắt nội dung bài học" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
+                            <TextBox x:Name="txtTomTat" Height="48" Padding="10,6" FontSize="12.5" TextWrapping="Wrap" AcceptsReturn="True" 
+                                     VerticalScrollBarVisibility="Auto" BorderBrush="#CBD5E1" Margin="0,0,0,10">
+                                <TextBox.Template>
+                                    <ControlTemplate TargetType="TextBox">
+                                        <Border x:Name="bd" Background="White" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8">
+                                            <ScrollViewer x:Name="PART_ContentHost" Margin="0"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </TextBox.Template>
+                            </TextBox>
+
+                            <!-- Nội dung bài học bóc tách từ file -->
+                            <TextBlock Text="Nội dung bóc tách từ tài liệu (Xem trước &amp; Chỉnh sửa)" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
+                            <TextBox x:Name="txtNoiDung" Height="100" Padding="10,8" FontSize="12" TextWrapping="Wrap" AcceptsReturn="True" 
+                                     VerticalScrollBarVisibility="Auto" BorderBrush="#CBD5E1" Margin="0,0,0,4">
+                                <TextBox.Template>
+                                    <ControlTemplate TargetType="TextBox">
+                                        <Border x:Name="bd" Background="White" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8">
+                                            <ScrollViewer x:Name="PART_ContentHost" Margin="0"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </TextBox.Template>
+                            </TextBox>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Bottom Action Buttons -->
+                    <Border Grid.Row="1" BorderBrush="#D1E7DD" BorderThickness="0,1,0,0" Padding="0,12,0,0" Margin="0,8,0,0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="Hủy bỏ" Style="{StaticResource CancelBtnStyle}" Margin="0,0,10,0" Click="BtnCancel_Click"/>
+                            <Button Content="💾 Lưu vào CSDL &amp; Kho học liệu" Style="{StaticResource SaveBtnStyle}" Click="BtnSave_Click"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

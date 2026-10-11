@@ -53,6 +53,7 @@ namespace DAL
                     new SqlParameter("@NewHash", matKhauMaHoa)
                 });
 
+                user.LanDangNhapCuoi = DateTime.Now;
                 return user;
             }
             return null;

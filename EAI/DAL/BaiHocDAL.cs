@@ -375,33 +375,59 @@ namespace DAL
         public List<BaiHocDTO> GetAll(int? maChuDe = null, string? search = null)
         {
             var list = new List<BaiHocDTO>();
-            var query = @"
-                SELECT 
-                    bh.MaBaiHoc,
-                    bh.MaChuDe,
-                    cd.TenChuDe,
-                    bh.MaTrinhDo,
-                    td.MaCapDo AS TenTrinhDo,
-                    bh.NguoiTao,
-                    bh.TieuDe,
-                    bh.LoaiBaiHoc,
-                    bh.TomTat,
-                    bh.NoiDung,
-                    bh.ThoiGianUocTinhPhut,
-                    bh.DaXuatBan,
-                    bh.NgayTao
-                FROM BaiHoc bh
-                INNER JOIN ChuDe cd ON bh.MaChuDe = cd.MaChuDe
-                INNER JOIN TrinhDo td ON bh.MaTrinhDo = td.MaTrinhDo
-                WHERE 1 = 1";
-
+            string query;
             var parameters = new List<SqlParameter>();
 
             if (maChuDe.HasValue && maChuDe.Value > 0)
             {
-                // Bao gồm cả chủ đề con
-                query += @" AND (bh.MaChuDe = @maChuDe OR bh.MaChuDe IN (SELECT MaChuDe FROM ChuDe WHERE MaChuDeCha = @maChuDe))";
+                // Sử dụng CTE đệ quy ở đầu câu lệnh để lấy cả chủ đề hiện tại và tất cả chủ đề con/cháu
+                query = @"
+                    ;WITH ChuDeHierarchy AS (
+                        SELECT MaChuDe FROM ChuDe WHERE MaChuDe = @maChuDe
+                        UNION ALL
+                        SELECT c.MaChuDe FROM ChuDe c INNER JOIN ChuDeHierarchy h ON c.MaChuDeCha = h.MaChuDe
+                    )
+                    SELECT 
+                        bh.MaBaiHoc,
+                        bh.MaChuDe,
+                        cd.TenChuDe,
+                        bh.MaTrinhDo,
+                        td.MaCapDo AS TenTrinhDo,
+                        bh.NguoiTao,
+                        bh.TieuDe,
+                        bh.LoaiBaiHoc,
+                        bh.TomTat,
+                        bh.NoiDung,
+                        bh.ThoiGianUocTinhPhut,
+                        bh.DaXuatBan,
+                        bh.NgayTao
+                    FROM BaiHoc bh
+                    INNER JOIN ChuDe cd ON bh.MaChuDe = cd.MaChuDe
+                    INNER JOIN TrinhDo td ON bh.MaTrinhDo = td.MaTrinhDo
+                    WHERE bh.MaChuDe IN (SELECT MaChuDe FROM ChuDeHierarchy)";
                 parameters.Add(new SqlParameter("@maChuDe", maChuDe.Value));
+            }
+            else
+            {
+                query = @"
+                    SELECT 
+                        bh.MaBaiHoc,
+                        bh.MaChuDe,
+                        cd.TenChuDe,
+                        bh.MaTrinhDo,
+                        td.MaCapDo AS TenTrinhDo,
+                        bh.NguoiTao,
+                        bh.TieuDe,
+                        bh.LoaiBaiHoc,
+                        bh.TomTat,
+                        bh.NoiDung,
+                        bh.ThoiGianUocTinhPhut,
+                        bh.DaXuatBan,
+                        bh.NgayTao
+                    FROM BaiHoc bh
+                    INNER JOIN ChuDe cd ON bh.MaChuDe = cd.MaChuDe
+                    INNER JOIN TrinhDo td ON bh.MaTrinhDo = td.MaTrinhDo
+                    WHERE 1 = 1";
             }
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -434,6 +460,23 @@ namespace DAL
                     _ => "📙"
                 };
 
+                var badgeBg = loai switch
+                {
+                    "NguPhap" => "#E0E7FF",
+                    "Doc" or "DocHieu" => "#FEE2E2",
+                    "Nghe" or "NgheHieu" => "#FEF3C7",
+                    "Viet" or "VietLuan" => "#F3E8FF",
+                    _ => "#DCFCE7"
+                };
+                var badgeFg = loai switch
+                {
+                    "NguPhap" => "#4338CA",
+                    "Doc" or "DocHieu" => "#B91C1C",
+                    "Nghe" or "NgheHieu" => "#B45309",
+                    "Viet" or "VietLuan" => "#7E22CE",
+                    _ => "#15803D"
+                };
+
                 bool daXuatBan = Convert.ToBoolean(row["DaXuatBan"]);
 
                 list.Add(new BaiHocDTO
@@ -449,12 +492,83 @@ namespace DAL
                     ThoiGianUocTinhPhut = Convert.ToInt32(row["ThoiGianUocTinhPhut"]),
                     TrangThai = daXuatBan ? "Đã xuất bản" : "Bản nháp",
                     IconSkill = icon,
+                    BadgeBackground = badgeBg,
+                    BadgeForeground = badgeFg,
                     StatusBackground = daXuatBan ? "#DCFCE7" : "#F1F5F9",
                     StatusColor = daXuatBan ? "#15803D" : "#64748B"
                 });
             }
 
             return list;
+        }
+
+        public bool InsertBaiHoc(BaiHocDTO bh)
+        {
+            var query = @"
+                INSERT INTO BaiHoc (MaChuDe, MaTrinhDo, NguoiTao, TieuDe, LoaiBaiHoc, TomTat, NoiDung, ThoiGianUocTinhPhut, DaXuatBan)
+                VALUES (@MaChuDe, @MaTrinhDo, @NguoiTao, @TieuDe, @LoaiBaiHoc, @TomTat, @NoiDung, @ThoiGianUocTinhPhut, @DaXuatBan);
+                SELECT SCOPE_IDENTITY();";
+
+            int maTrinhDo = bh.MaTrinhDoId > 0 ? bh.MaTrinhDoId : 3;
+            if (!string.IsNullOrEmpty(bh.MaTrinhDo))
+            {
+                var trinhDoRow = DatabaseHelper.ExecuteScalar(
+                    "SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = @capDo", 
+                    new[] { new SqlParameter("@capDo", bh.MaTrinhDo) });
+                if (trinhDoRow != null && trinhDoRow != DBNull.Value)
+                {
+                    maTrinhDo = Convert.ToInt32(trinhDoRow);
+                }
+            }
+
+            var parameters = new[]
+            {
+                new SqlParameter("@MaChuDe", bh.MaChuDe),
+                new SqlParameter("@MaTrinhDo", maTrinhDo),
+                new SqlParameter("@NguoiTao", (object?)bh.NguoiTao ?? DBNull.Value),
+                new SqlParameter("@TieuDe", bh.TieuDe),
+                new SqlParameter("@LoaiBaiHoc", string.IsNullOrEmpty(bh.LoaiBaiHoc) ? "Doc" : bh.LoaiBaiHoc),
+                new SqlParameter("@TomTat", (object?)bh.TomTat ?? DBNull.Value),
+                new SqlParameter("@NoiDung", (object?)bh.NoiDung ?? DBNull.Value),
+                new SqlParameter("@ThoiGianUocTinhPhut", bh.ThoiGianUocTinhPhut > 0 ? bh.ThoiGianUocTinhPhut : 20),
+                new SqlParameter("@DaXuatBan", bh.DaXuatBan)
+            };
+
+            var idObj = DatabaseHelper.ExecuteScalar(query, parameters);
+            if (idObj != null && idObj != DBNull.Value)
+            {
+                bh.MaBaiHoc = Convert.ToInt32(idObj);
+                return true;
+            }
+            return false;
+        }
+
+        public bool TaoDeThiThuTuBaiHoc(int maBaiHoc, string tenDeThi, int? nguoiTao = null)
+        {
+            var query = @"
+                INSERT INTO BaiTapDeThi(MaChuDe, MaTrinhDo, TenBaiTapDeThi, LoaiHinh, MoTa, ThoiGianLamBaiPhut, DaPhatHanh, NguoiTao)
+                SELECT 
+                    bh.MaChuDe, 
+                    bh.MaTrinhDo, 
+                    @TenDeThi, 
+                    N'ThiThu', 
+                    N'Đề thi thử học thuật trích xuất từ tài liệu: ' + bh.TieuDe, 
+                    ISNULL(bh.ThoiGianUocTinhPhut, 60), 
+                    1, 
+                    @NguoiTao
+                FROM BaiHoc bh
+                WHERE bh.MaBaiHoc = @MaBaiHoc;
+                SELECT SCOPE_IDENTITY();";
+
+            var parameters = new[]
+            {
+                new SqlParameter("@MaBaiHoc", maBaiHoc),
+                new SqlParameter("@TenDeThi", tenDeThi),
+                new SqlParameter("@NguoiTao", (object?)nguoiTao ?? DBNull.Value)
+            };
+
+            var id = DatabaseHelper.ExecuteScalar(query, parameters);
+            return id != null && id != DBNull.Value;
         }
     }
 }

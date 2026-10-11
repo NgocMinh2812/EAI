@@ -100,18 +100,20 @@
         <!-- ================= 3-COLUMN EXPLORER & PREVIEWER ================= -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <!-- Column 1: Tree / Folder list (220px) -->
-                <ColumnDefinition Width="220"/>
-                <ColumnDefinition Width="14"/>
-                <!-- Column 2: File Grid / List (Flexible) -->
-                <ColumnDefinition Width="1.1*" MinWidth="260"/>
-                <ColumnDefinition Width="14"/>
-                <!-- Column 3: Live Document Preview Pane (Flexible) -->
-                <ColumnDefinition Width="1.5*" MinWidth="340"/>
+                <!-- Cột 1: Cây thư mục (Default 270px, Min 180, Max 450) -->
+                <ColumnDefinition Width="270" MinWidth="180" MaxWidth="450"/>
+                <!-- Splitter 1 -->
+                <ColumnDefinition Width="10"/>
+                <!-- Cột 2: Danh sách file / bài học (Flexible, Min 220) -->
+                <ColumnDefinition Width="330" MinWidth="220"/>
+                <!-- Splitter 2 -->
+                <ColumnDefinition Width="10"/>
+                <!-- Cột 3: Live Document Preview Pane (Flexible, Min 300) -->
+                <ColumnDefinition Width="*" MinWidth="300"/>
             </Grid.ColumnDefinitions>
 
             <!-- ================= CỘT 1: CÂY DANH MỤC ĐỘNG ================= -->
-            <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="12" Padding="12">
+            <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="12" Padding="10,12">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -141,19 +143,54 @@
 
                     <!-- WPF TreeView Động liên kết CSDL -->
                     <TreeView x:Name="tvDanhMuc" Grid.Row="2" BorderThickness="0" Background="Transparent" 
-                              SelectedItemChanged="TvDanhMuc_SelectedItemChanged">
+                              SelectedItemChanged="TvDanhMuc_SelectedItemChanged"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="{x:Type TreeViewItem}">
+                                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                                <Setter Property="Padding" Value="2,3"/>
+                                <Setter Property="Margin" Value="0,1"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+                            </Style>
+                        </TreeView.ItemContainerStyle>
                         <TreeView.ItemTemplate>
                             <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                <StackPanel Orientation="Horizontal" Margin="0,3">
-                                    <TextBlock Text="{Binding Icon}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding Title}" FontSize="12.5" FontWeight="Medium" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding BadgeText}" FontSize="11" Foreground="{StaticResource TextGray}" Margin="6,0,0,0" VerticalAlignment="Center"/>
-                                </StackPanel>
+                                <Grid Margin="0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Icon}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Title}" FontSize="12.5" FontWeight="Medium" Foreground="{StaticResource TextDark}" 
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding Title}"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding BadgeText}" FontSize="11" Foreground="{StaticResource TextGray}" 
+                                               Margin="6,0,4,0" VerticalAlignment="Center" FontWeight="Normal"/>
+                                </Grid>
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
                     </TreeView>
                 </Grid>
             </Border>
+
+            <!-- ================= THANH KÉO GIÃN 1 (GIỮA CỘT 1 VÀ 2) ================= -->
+            <GridSplitter Grid.Column="1" Width="10" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                          Background="Transparent" Cursor="SizeWE" ShowsPreview="False">
+                <GridSplitter.Template>
+                    <ControlTemplate TargetType="GridSplitter">
+                        <Border Background="Transparent" Width="10">
+                            <Border x:Name="splBorder" Width="2" HorizontalAlignment="Center" Background="#CBD5E1" CornerRadius="1"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="splBorder" Property="Background" Value="{StaticResource AdminDarkGreen}"/>
+                                <Setter TargetName="splBorder" Property="Width" Value="4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </GridSplitter.Template>
+            </GridSplitter>
 
             <!-- ================= CỘT 2: DANH SÁCH FILE ĐỀ THI ================= -->
             <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="12" Padding="0" ClipToBounds="True">
@@ -218,6 +255,24 @@
                     </ScrollViewer>
                 </Grid>
             </Border>
+
+            <!-- ================= THANH KÉO GIÃN 2 (GIỮA CỘT 2 VÀ 3) ================= -->
+            <GridSplitter Grid.Column="3" Width="10" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                          Background="Transparent" Cursor="SizeWE" ShowsPreview="False">
+                <GridSplitter.Template>
+                    <ControlTemplate TargetType="GridSplitter">
+                        <Border Background="Transparent" Width="10">
+                            <Border x:Name="splBorder" Width="2" HorizontalAlignment="Center" Background="#CBD5E1" CornerRadius="1"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="splBorder" Property="Background" Value="{StaticResource AdminDarkGreen}"/>
+                                <Setter TargetName="splBorder" Property="Width" Value="4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </GridSplitter.Template>
+            </GridSplitter>
 
             <!-- ================= CỘT 3: TRÌNH XEM TRƯỚC ĐỀ THI / TÀI LIỆU (PREVIEW PANE) ================= -->
             <Border Grid.Column="4" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="12" Padding="0" ClipToBounds="True">
@@ -320,22 +375,28 @@
                     </ScrollViewer>
 
                     <!-- Preview Footer Action -->
-                    <Border Grid.Row="2" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0" Padding="16,12">
+                    <Border Grid.Row="2" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0" Padding="14,10">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
-                                <Border Background="#DCFCE7" Width="18" Height="18" CornerRadius="9" Margin="0,0,6,0" VerticalAlignment="Center">
-                                    <TextBlock Text="✓" Foreground="#166534" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <!-- Dynamic Status Badge & Info -->
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,8,0">
+                                <Border x:Name="bdPreviewStatusIcon" Background="#DCFCE7" Width="20" Height="20" CornerRadius="10" Margin="0,0,6,0" VerticalAlignment="Center">
+                                    <TextBlock x:Name="txtPreviewStatusIcon" Text="✓" Foreground="#15803D" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                <TextBlock Text="Trạng thái: Đã kiểm duyệt và sẵn sàng sử dụng" FontSize="12" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <Border x:Name="bdPreviewStatusPill" Background="#DCFCE7" CornerRadius="6" Padding="7,2" Margin="0,0,6,0" VerticalAlignment="Center">
+                                    <TextBlock x:Name="txtPreviewStatusPill" Text="Đã xuất bản" FontSize="11.5" FontWeight="SemiBold" Foreground="#15803D"/>
+                                </Border>
+                                <TextBlock x:Name="txtPreviewStatusSub" Text="Sẵn sàng giảng dạy" FontSize="11" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                             </StackPanel>
 
-                            <Button Grid.Column="1" Content="➕ Đưa toàn bộ vào Đề thi thử (Mock Test)" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
-                                    FontWeight="SemiBold" FontSize="12" Padding="14,8" BorderThickness="0" Cursor="Hand" Click="BtnAddToExam_Click">
+                            <!-- Quick Action Button -->
+                            <Button Grid.Column="1" Content="➕ Đưa vào Đề thi thử" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
+                                    FontWeight="SemiBold" FontSize="12" Padding="12,7" BorderThickness="0" Cursor="Hand" Click="BtnAddToExam_Click"
+                                    ToolTip="Tạo đề thi thử tự động từ bài học này">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Border x:Name="btnBd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">

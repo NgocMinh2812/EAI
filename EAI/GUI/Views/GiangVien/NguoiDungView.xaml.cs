@@ -125,19 +125,18 @@ namespace GUI.Views.GiangVien
         private void BtnTaoTaiKhoan_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new NguoiDungDialog();
-            dlg.Owner = Window.GetWindow(this);
-            if (dlg.ShowDialog() == true)
+            if (Views.Common.ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this)) == true)
             {
                 var (success, msg) = _bus.TaoTaiKhoan(dlg.UserData);
                 if (success)
                 {
                     LoadUsersFromDatabase();
                     ApplyFilter();
-                    MessageBox.Show(msg, "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                    Views.Common.ThongBaoDialog.ThanhCong(Window.GetWindow(this), msg, "Tạo tài khoản thành công");
                 }
                 else
                 {
-                    MessageBox.Show(msg, "Lỗi tạo tài khoản", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    Views.Common.ThongBaoDialog.CanhBao(Window.GetWindow(this), msg, "Lỗi tạo tài khoản");
                 }
             }
         }
@@ -150,19 +149,18 @@ namespace GUI.Views.GiangVien
                 if (user != null)
                 {
                     var dlg = new NguoiDungDialog(user);
-                    dlg.Owner = Window.GetWindow(this);
-                    if (dlg.ShowDialog() == true)
+                    if (Views.Common.ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this)) == true)
                     {
                         var (success, msg) = _bus.CapNhatTaiKhoan(dlg.UserData);
                         if (success)
                         {
                             LoadUsersFromDatabase();
                             ApplyFilter();
-                            MessageBox.Show(msg, "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                            Views.Common.ThongBaoDialog.ThanhCong(Window.GetWindow(this), msg, "Cập nhật thành công");
                         }
                         else
                         {
-                            MessageBox.Show(msg, "Lỗi cập nhật", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            Views.Common.ThongBaoDialog.CanhBao(Window.GetWindow(this), msg, "Lỗi cập nhật");
                         }
                     }
                 }
@@ -179,10 +177,14 @@ namespace GUI.Views.GiangVien
                     bool newStatus = !user.TrangThaiHoatDong;
                     string actionName = newStatus ? "mở khóa" : "khóa";
 
-                    var confirm = MessageBox.Show($"Bạn có chắc chắn muốn {actionName} tài khoản của {user.FullName} ({user.Email})?",
-                                                  "Xác nhận trạng thái tài khoản", 
-                                                  MessageBoxButton.YesNo, MessageBoxImage.Question);
-                    if (confirm == MessageBoxResult.Yes)
+                    bool confirm = Views.Common.ThongBaoDialog.XacNhan(
+                        Window.GetWindow(this), 
+                        $"Bạn có chắc chắn muốn {actionName} tài khoản của {user.FullName} ({user.Email})?",
+                        "Xác nhận trạng thái tài khoản",
+                        confirmText: $"Đồng ý {actionName}",
+                        cancelText: "Hủy bỏ");
+
+                    if (confirm)
                     {
                         try
                         {
@@ -191,17 +193,19 @@ namespace GUI.Views.GiangVien
                             {
                                 LoadUsersFromDatabase();
                                 ApplyFilter();
-                                MessageBox.Show($"Đã {actionName} tài khoản {user.FullName} thành công trên cơ sở dữ liệu!", 
-                                                "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                                Views.Common.ThongBaoDialog.ThanhCong(
+                                    Window.GetWindow(this),
+                                    $"Đã {actionName} tài khoản {user.FullName} thành công trên cơ sở dữ liệu!", 
+                                    "Cập nhật trạng thái");
                             }
                             else
                             {
-                                MessageBox.Show($"Không thể cập nhật trạng thái.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                                Views.Common.ThongBaoDialog.Loi(Window.GetWindow(this), "Không thể cập nhật trạng thái tài khoản.", "Lỗi");
                             }
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show(ex.Message, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            Views.Common.ThongBaoDialog.CanhBao(Window.GetWindow(this), ex.Message, "Cảnh báo");
                         }
                     }
                 }
@@ -215,20 +219,23 @@ namespace GUI.Views.GiangVien
                 var user = _allUsers.FirstOrDefault(u => u.Id == id);
                 if (user != null)
                 {
-                    var result = MessageBox.Show($"Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản của {user.FullName}?", 
-                                                 "Xác nhận xóa tài khoản", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                    if (result == MessageBoxResult.Yes)
+                    bool result = Views.Common.ThongBaoDialog.XacNhanXoa(
+                        Window.GetWindow(this),
+                        $"Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản của {user.FullName}?\nThao tác này sẽ xóa hồ sơ và không thể hoàn tác.", 
+                        "Xác nhận xóa tài khoản");
+
+                    if (result)
                     {
                         var (success, msg) = _bus.XoaTaiKhoan(id);
                         if (success)
                         {
                             LoadUsersFromDatabase();
                             ApplyFilter();
-                            MessageBox.Show(msg, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                            Views.Common.ThongBaoDialog.ThanhCong(Window.GetWindow(this), msg, "Đã xóa tài khoản");
                         }
                         else
                         {
-                            MessageBox.Show(msg, "Lỗi khi xóa", MessageBoxButton.OK, MessageBoxImage.Error);
+                            Views.Common.ThongBaoDialog.Loi(Window.GetWindow(this), msg, "Lỗi khi xóa");
                         }
                     }
                 }
