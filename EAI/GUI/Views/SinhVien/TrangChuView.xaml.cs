@@ -42,7 +42,8 @@ namespace GUI.Views
                 bannerAssessment.BorderBrush = (Brush)new BrushConverter().ConvertFromString("#BAE6FD")!;
                 txtBannerTitle.Text = "Lộ trình năng lực cá nhân hóa của bạn";
                 txtBannerTitle.Foreground = (Brush)new BrushConverter().ConvertFromString("#0369A1")!;
-                txtBannerDesc.Text = $"Bạn đã hoàn thành đánh giá năng lực ({SessionHelper.CurrentHoSo?.HienThiMucTieu ?? "CEFR B1"}). Các bài học và đề xuất đã được cá nhân hóa sẵn sàng cho bạn!";
+                string currentLevelDisplay = SessionHelper.CurrentHoSo?.HienThiTrinhDoDauVao ?? SessionHelper.CurrentHoSo?.HienThiMucTieu ?? "CEFR B1";
+                txtBannerDesc.Text = $"Bạn đã hoàn thành đánh giá năng lực ({currentLevelDisplay}). Các bài học và đề xuất đã được cá nhân hóa sẵn sàng cho bạn!";
                 txtBannerDesc.Foreground = (Brush)new BrushConverter().ConvertFromString("#0284C7")!;
                 btnAssessmentAction.Background = (Brush)new BrushConverter().ConvertFromString("#0284C7")!;
                 txtBannerBtnText.Text = "Kiểm tra lại trình độ 🔄";

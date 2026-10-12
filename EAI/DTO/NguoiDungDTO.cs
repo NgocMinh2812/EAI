@@ -26,8 +26,11 @@ namespace DTO
         // Bổ sung thông tin từ các bảng liên kết (VaiTro, HoSoHocTap)
         public string TenVaiTro { get; set; } = "HocVien";
         public string TrinhDoMucTieu { get; set; } = "—";
+        public string? TrinhDoDauVao { get; set; }
         public decimal? DiemMucTieu { get; set; }
         public string? KhungNangLucMucTieu { get; set; }
+
+        public string EntryLevelText => string.IsNullOrWhiteSpace(TrinhDoDauVao) ? "—" : TrinhDoDauVao;
 
         // Tiện ích hiển thị giao diện (WPF Binding Helpers)
         public string AvatarInitials => Initials;
@@ -82,7 +85,9 @@ namespace DTO
             _ => "#1D4ED8"
         };
 
-        public string LevelText => string.IsNullOrWhiteSpace(TrinhDoMucTieu) ? "—" : TrinhDoMucTieu;
+        public string LevelText => !string.IsNullOrWhiteSpace(TrinhDoDauVao) && TrinhDoDauVao != "—"
+            ? TrinhDoDauVao
+            : (string.IsNullOrWhiteSpace(TrinhDoMucTieu) ? "—" : TrinhDoMucTieu);
 
         public string StatusText => TrangThaiHoatDong ? "Hoạt động" : "Đã khóa";
         public string StatusBg => TrangThaiHoatDong ? "#DCFCE7" : "#FEE2E2";

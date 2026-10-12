@@ -37,7 +37,8 @@ namespace GUI.Views
             {
                 SessionHelper.CurrentHoSo = hoSo;
                 txtBannerTarget.Text = $"{hoSo.KhungNangLucMucTieu ?? "IELTS"} Target {hoSo.DiemMucTieu:F1}";
-                txtBannerLevel.Text = $"Trình độ CEFR: {hoSo.TrinhDoMucTieu ?? "Chưa rõ"}";
+                string bannerLevel = !string.IsNullOrEmpty(hoSo.TrinhDoDauVao) ? hoSo.TrinhDoDauVao : (hoSo.TrinhDoMucTieu ?? "Chưa rõ");
+                txtBannerLevel.Text = $"Trình độ đầu vào: CEFR {bannerLevel}";
             }
             else
             {
@@ -48,37 +49,46 @@ namespace GUI.Views
             // 3. Hiển thị Điểm đánh giá năng lực đầu vào đã lưu trong hồ sơ
             var ketQuaGanNhat = KhaoSatBUS.Instance.LayKetQuaKhaoSatGanNhat(user.MaNguoiDung);
             decimal? diemDanhGia = hoSo?.DiemDanhGiaDauVao ?? ketQuaGanNhat?.DiemSo;
+            string trinhDo = hoSo?.TrinhDoDauVao ?? ketQuaGanNhat?.TrinhDoPhuHop ?? hoSo?.TrinhDoMucTieu ?? "B1";
 
-            if (diemDanhGia.HasValue || ketQuaGanNhat != null)
+            // Chỉ hiển thị điểm đã đánh giá khi thực sự có điểm khảo sát hoặc có lượt kiểm tra
+            bool daLamKhaoSat = diemDanhGia.HasValue || ketQuaGanNhat != null;
+
+            if (daLamKhaoSat)
             {
                 decimal diem = diemDanhGia ?? (ketQuaGanNhat?.DiemSo ?? 0);
-                string trinhDo = hoSo?.TrinhDoMucTieu ?? ketQuaGanNhat?.TrinhDoPhuHop ?? "B1";
-                string tenTrinhDo = ketQuaGanNhat?.TenTrinhDoPhuHop ?? "Intermediate (Trung cấp)";
-                string ielts = ketQuaGanNhat?.UocTinhIelts ?? "IELTS 5.0 - 5.5";
-                string toeic = ketQuaGanNhat?.UocTinhToeic ?? "TOEIC 550+";
+                var thongTinTrinhDo = KhaoSatBUS.LayThongTinTrinhDo(trinhDo);
+                string tenTrinhDo = ketQuaGanNhat?.TenTrinhDoPhuHop ?? thongTinTrinhDo.Ten;
+                string ielts = ketQuaGanNhat?.UocTinhIelts ?? thongTinTrinhDo.Ielts;
+                string toeic = ketQuaGanNhat?.UocTinhToeic ?? thongTinTrinhDo.Toeic;
                 int soCauDung = ketQuaGanNhat?.SoCauDung ?? (int)Math.Round((double)diem * 1.5);
                 int tongCau = ketQuaGanNhat?.TongSoCau ?? 15;
                 int phanTram = (int)Math.Round(((double)soCauDung / Math.Max(1, tongCau)) * 100);
 
                 txtProfileScore.Text = $"{diem:F1} / 10";
-                txtProfileCorrectCount.Text = $"Đúng {soCauDung} / {tongCau} câu ({phanTram}%)";
+                txtProfileCorrectCount.Text = ketQuaGanNhat != null 
+                    ? $"Đúng {soCauDung} / {tongCau} câu ({phanTram}%)" 
+                    : $"Đánh giá đầu vào chuẩn CEFR {trinhDo}";
                 txtProfileLevel.Text = $"CEFR {trinhDo}";
                 txtProfileLevelName.Text = tenTrinhDo;
                 txtProfileEquivalent.Text = $"{ielts} • {toeic}";
                 txtProfileAiNote.Text = !string.IsNullOrWhiteSpace(hoSo?.GhiChuCaNhan) 
                     ? hoSo.GhiChuCaNhan 
-                    : $"Hệ thống AI đã lưu điểm khảo sát ({diem:F1}/10) và phân loại trình độ {trinhDo} vào hồ sơ cá nhân của bạn.";
+                    : $"Hệ thống AI đã lưu trình độ đầu vào ({trinhDo}) và điểm khảo sát ({diem:F1}/10) vào hồ sơ cá nhân của bạn.";
                 
+                txtDisplaySavedScore.Text = $"{diem:F1} / 10 (Đã hoàn thành khảo sát)";
                 btnRetakeAssessment.Content = "🔄 Làm lại khảo sát";
             }
             else
             {
                 txtProfileScore.Text = "Chưa có điểm";
                 txtProfileCorrectCount.Text = "Chưa làm bài test";
-                txtProfileLevel.Text = "Chưa đánh giá";
-                txtProfileLevelName.Text = "Hãy làm bài test 15 câu";
-                txtProfileEquivalent.Text = "IELTS -- • TOEIC --";
-                txtProfileAiNote.Text = "Bạn chưa hoàn thành bài kiểm tra đánh giá năng lực. Hãy bấm 'Làm bài khảo sát ngay' để kiểm tra trình độ và lưu điểm số vào hồ sơ cá nhân!";
+                txtProfileLevel.Text = $"CEFR {trinhDo}";
+                var thongTinDefault = KhaoSatBUS.LayThongTinTrinhDo(trinhDo);
+                txtProfileLevelName.Text = $"{thongTinDefault.Ten} (Chưa qua khảo sát)";
+                txtProfileEquivalent.Text = $"{thongTinDefault.Ielts} • {thongTinDefault.Toeic}";
+                txtProfileAiNote.Text = "Bạn chưa hoàn thành bài kiểm tra đánh giá năng lực. Hãy bấm 'Làm khảo sát ngay' để kiểm tra trình độ và lưu điểm số vào hồ sơ cá nhân!";
+                txtDisplaySavedScore.Text = "Chưa có điểm bài test";
                 btnRetakeAssessment.Content = "📝 Làm khảo sát ngay";
             }
 
@@ -89,6 +99,17 @@ namespace GUI.Views
                 else if (hoSo.KhungNangLucMucTieu.Contains("VSTEP")) cboTargetGoal.SelectedIndex = 3;
                 else if (hoSo.DiemMucTieu >= 7.0m) cboTargetGoal.SelectedIndex = 1;
                 else cboTargetGoal.SelectedIndex = 0;
+            }
+
+            // Đồng bộ lựa chọn Trình độ đầu vào trên ComboBox
+            string entryLvl = hoSo?.TrinhDoDauVao ?? ketQuaGanNhat?.TrinhDoPhuHop ?? "B1";
+            for (int i = 0; i < cboEntryLevel.Items.Count; i++)
+            {
+                if (cboEntryLevel.Items[i] is ComboBoxItem item && item.Content.ToString()!.StartsWith(entryLvl))
+                {
+                    cboEntryLevel.SelectedIndex = i;
+                    break;
+                }
             }
         }
 
@@ -124,13 +145,21 @@ namespace GUI.Views
             else if (cboTargetGoal.SelectedIndex == 3) { khungMoi = "VSTEP"; diemMoi = 6.0m; }
             else if (cboTargetGoal.SelectedIndex == 4) { khungMoi = "GiaoTiếp"; diemMoi = 7.0m; }
 
-            HoSoHocTapDAL.Instance.CapNhatThongTinMucTieu(user.MaNguoiDung, khungMoi, diemMoi);
+            // Lấy trình độ đầu vào đã chọn
+            string trinhDoDauVaoMoi = "B1";
+            if (cboEntryLevel.SelectedItem is ComboBoxItem entryItem)
+            {
+                string content = entryItem.Content.ToString() ?? "B1";
+                trinhDoDauVaoMoi = content.Substring(0, 2);
+            }
+
+            HoSoHocTapDAL.Instance.CapNhatHoSoHocTap(user.MaNguoiDung, trinhDoDauVaoMoi, khungMoi, diemMoi);
 
             // Làm mới giao diện và thông tin học viên trên Sidebar MainWindow
             TaiThongTinHoSo();
             MainWindow.Instance?.CapNhatThongTinHocVien();
 
-            MessageBox.Show("✅ Thông tin hồ sơ cá nhân và mục tiêu học tập đã được lưu thành công vào CSDL!", 
+            MessageBox.Show($"✅ Thông tin hồ sơ cá nhân, trình độ đầu vào (CEFR {trinhDoDauVaoMoi}) và mục tiêu học tập đã được lưu thành công vào CSDL!", 
                             "Cập nhật thành công", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 

@@ -21,9 +21,14 @@ namespace DAL
                            WHEN nd.LaLanDauDangNhap = 0 THEN CAST(0 AS BIT)
                            WHEN NOT EXISTS (SELECT 1 FROM LuotKhaoSat WHERE MaNguoiDung = nd.MaNguoiDung) THEN CAST(1 AS BIT)
                            ELSE CAST(0 AS BIT)
-                       END AS LaLanDauDangNhap
+                       END AS LaLanDauDangNhap,
+                       hs.TrinhDoMucTieu,
+                       hs.TrinhDoDauVao,
+                       hs.DiemMucTieu,
+                       hs.KhungNangLucMucTieu
                 FROM NguoiDung nd
                 INNER JOIN VaiTro vt ON nd.MaVaiTro = vt.MaVaiTro
+                LEFT JOIN HoSoHocTap hs ON nd.MaNguoiDung = hs.MaNguoiDung
                 WHERE (nd.TenDangNhap = @Identifier OR nd.Email = @Identifier)
                   AND (nd.MatKhauMaHoa = @Password 
                        OR nd.MatKhauMaHoa = @RawPassword 
@@ -80,8 +85,8 @@ namespace DAL
                 DECLARE @MaVT INT = (SELECT TOP 1 MaVaiTro FROM VaiTro WHERE TenVaiTro = N'HocVien');
                 IF @MaVT IS NULL SET @MaVT = 2;
 
-                INSERT INTO NguoiDung(MaVaiTro, TenDangNhap, MatKhauMaHoa, Email, HoTen, TrangThaiHoatDong, NgayTao)
-                VALUES (@MaVT, @TenDangNhap, @MatKhauMaHoa, @Email, @HoTen, 1, SYSDATETIME());
+                INSERT INTO NguoiDung(MaVaiTro, TenDangNhap, MatKhauMaHoa, Email, HoTen, TrangThaiHoatDong, LaLanDauDangNhap, NgayTao)
+                VALUES (@MaVT, @TenDangNhap, @MatKhauMaHoa, @Email, @HoTen, 1, 1, SYSDATETIME());
                 
                 SELECT SCOPE_IDENTITY();";
 
@@ -123,9 +128,14 @@ namespace DAL
                            WHEN nd.LaLanDauDangNhap = 0 THEN CAST(0 AS BIT)
                            WHEN NOT EXISTS (SELECT 1 FROM LuotKhaoSat WHERE MaNguoiDung = nd.MaNguoiDung) THEN CAST(1 AS BIT)
                            ELSE CAST(0 AS BIT)
-                       END AS LaLanDauDangNhap
+                       END AS LaLanDauDangNhap,
+                       hs.TrinhDoMucTieu,
+                       hs.TrinhDoDauVao,
+                       hs.DiemMucTieu,
+                       hs.KhungNangLucMucTieu
                 FROM NguoiDung nd
                 INNER JOIN VaiTro vt ON nd.MaVaiTro = vt.MaVaiTro
+                LEFT JOIN HoSoHocTap hs ON nd.MaNguoiDung = hs.MaNguoiDung
                 WHERE nd.MaNguoiDung = @MaND";
 
             DataTable table = SqlDataProvider.Instance.ExecuteQuery(query, new[] { new SqlParameter("@MaND", maNguoiDung) });
@@ -193,6 +203,7 @@ namespace DAL
                     nd.NgayTao,
                     nd.LanDangNhapCuoi,
                     hs.TrinhDoMucTieu,
+                    hs.TrinhDoDauVao,
                     hs.DiemMucTieu,
                     hs.KhungNangLucMucTieu
                 FROM NguoiDung nd
@@ -294,6 +305,7 @@ namespace DAL
                     nd.NgayTao,
                     nd.LanDangNhapCuoi,
                     hs.TrinhDoMucTieu,
+                    hs.TrinhDoDauVao,
                     hs.DiemMucTieu,
                     hs.KhungNangLucMucTieu
                 FROM NguoiDung nd
@@ -341,6 +353,7 @@ namespace DAL
                     nd.NgayTao,
                     nd.LanDangNhapCuoi,
                     hs.TrinhDoMucTieu,
+                    hs.TrinhDoDauVao,
                     hs.DiemMucTieu,
                     hs.KhungNangLucMucTieu
                 FROM NguoiDung nd
@@ -458,47 +471,21 @@ namespace DAL
 
         public NguoiDungDTO? GetByCredentials(string emailOrUsername, string password)
         {
-            var query = @"
-                SELECT 
-                    nd.MaNguoiDung,
-                    nd.MaVaiTro,
-                    vt.TenVaiTro,
-                    nd.TenDangNhap,
-                    nd.MatKhauMaHoa,
-                    nd.Email,
-                    nd.HoTen,
-                    nd.NgaySinh,
-                    nd.SoDienThoai,
-                    nd.DuongDanAnhDaiDien,
-                    nd.TrangThaiHoatDong,
-                    nd.LaLanDauDangNhap,
-                    nd.NgayTao,
-                    nd.LanDangNhapCuoi,
-                    hs.TrinhDoMucTieu,
-                    hs.DiemMucTieu,
-                    hs.KhungNangLucMucTieu
-                FROM NguoiDung nd
-                INNER JOIN VaiTro vt ON nd.MaVaiTro = vt.MaVaiTro
-                LEFT JOIN HoSoHocTap hs ON nd.MaNguoiDung = hs.MaNguoiDung
-                WHERE (nd.Email = @input OR nd.TenDangNhap = @input)
-                  AND (nd.MatKhauMaHoa = @pass OR @pass = '123456')";
+            if (string.IsNullOrWhiteSpace(emailOrUsername) || string.IsNullOrWhiteSpace(password))
+                return null;
 
-            var dt = DatabaseHelper.ExecuteQuery(query, new[]
+            string passwordHash = "";
+            try
             {
-                new SqlParameter("@input", emailOrUsername.Trim()),
-                new SqlParameter("@pass", password)
-            });
-
-            if (dt.Rows.Count > 0)
-            {
-                // Cập nhật LanDangNhapCuoi
-                int id = Convert.ToInt32(dt.Rows[0]["MaNguoiDung"]);
-                DatabaseHelper.ExecuteNonQuery("UPDATE NguoiDung SET LanDangNhapCuoi = SYSDATETIME() WHERE MaNguoiDung = @id",
-                    new[] { new SqlParameter("@id", id) });
-
-                return MapDataRowToDTO(dt.Rows[0]);
+                using var sha256 = System.Security.Cryptography.SHA256.Create();
+                byte[] bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                var sb = new System.Text.StringBuilder();
+                foreach (byte b in bytes) sb.Append(b.ToString("X2"));
+                passwordHash = sb.ToString();
             }
-            return null;
+            catch { }
+
+            return DangNhap(emailOrUsername.Trim(), passwordHash, password.Trim());
         }
 
         private static NguoiDungDTO MapDataRowToDTO(DataRow row)
@@ -519,9 +506,18 @@ namespace DAL
                 LaLanDauDangNhap = Convert.ToBoolean(row["LaLanDauDangNhap"]),
                 NgayTao = Convert.ToDateTime(row["NgayTao"]),
                 LanDangNhapCuoi = row["LanDangNhapCuoi"] == DBNull.Value ? null : Convert.ToDateTime(row["LanDangNhapCuoi"]),
-                TrinhDoMucTieu = row["TrinhDoMucTieu"] == DBNull.Value ? "—" : (row["TrinhDoMucTieu"]?.ToString() ?? "—"),
-                DiemMucTieu = row["DiemMucTieu"] == DBNull.Value ? null : Convert.ToDecimal(row["DiemMucTieu"]),
-                KhungNangLucMucTieu = row["KhungNangLucMucTieu"] == DBNull.Value ? null : row["KhungNangLucMucTieu"]?.ToString()
+                TrinhDoMucTieu = row.Table.Columns.Contains("TrinhDoMucTieu") && row["TrinhDoMucTieu"] != DBNull.Value 
+                    ? row["TrinhDoMucTieu"].ToString()! 
+                    : "—",
+                TrinhDoDauVao = row.Table.Columns.Contains("TrinhDoDauVao") && row["TrinhDoDauVao"] != DBNull.Value 
+                    ? row["TrinhDoDauVao"].ToString() 
+                    : null,
+                DiemMucTieu = row.Table.Columns.Contains("DiemMucTieu") && row["DiemMucTieu"] != DBNull.Value 
+                    ? Convert.ToDecimal(row["DiemMucTieu"]) 
+                    : null,
+                KhungNangLucMucTieu = row.Table.Columns.Contains("KhungNangLucMucTieu") && row["KhungNangLucMucTieu"] != DBNull.Value 
+                    ? row["KhungNangLucMucTieu"].ToString() 
+                    : null
             };
         }
     }

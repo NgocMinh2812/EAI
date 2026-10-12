@@ -81,36 +81,36 @@ VALUES
 GO
 
 -- 4. Hồ sơ học tập
-INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, SoPhutHocTichLuy, GhiChuCaNhan)
-SELECT nd.MaNguoiDung, 7.0, N'IELTS', N'B2', 420, N'Tập trung luyện Reading và Writing task 2'
+INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, TrinhDoDauVao, DiemDanhGiaDauVao, SoPhutHocTichLuy, GhiChuCaNhan)
+SELECT nd.MaNguoiDung, 7.0, N'IELTS', N'B2', N'B1', 6.5, 420, N'Tập trung luyện Reading và Writing task 2'
 FROM NguoiDung nd WHERE nd.TenDangNhap = N'lan.nguyen';
 
-INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, SoPhutHocTichLuy, GhiChuCaNhan)
-SELECT nd.MaNguoiDung, 650.0, N'TOEIC', N'B1', 280, N'Cải thiện kỹ năng nghe part 3-4'
+INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, TrinhDoDauVao, DiemDanhGiaDauVao, SoPhutHocTichLuy, GhiChuCaNhan)
+SELECT nd.MaNguoiDung, 650.0, N'TOEIC', N'B1', N'A2', 5.0, 280, N'Cải thiện kỹ năng nghe part 3-4'
 FROM NguoiDung nd WHERE nd.TenDangNhap = N'khoa.tran';
 
-INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, SoPhutHocTichLuy, GhiChuCaNhan)
-SELECT nd.MaNguoiDung, 5.0, N'IELTS', N'A2', 90, N'Củng cố lại ngữ pháp cơ bản'
+INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, TrinhDoDauVao, DiemDanhGiaDauVao, SoPhutHocTichLuy, GhiChuCaNhan)
+SELECT nd.MaNguoiDung, 5.0, N'IELTS', N'A2', N'A1', 4.0, 90, N'Củng cố lại ngữ pháp cơ bản'
 FROM NguoiDung nd WHERE nd.TenDangNhap = N'ducanh.pham';
 
-INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, SoPhutHocTichLuy, GhiChuCaNhan)
-SELECT nd.MaNguoiDung, 8.0, N'IELTS', N'C1', 650, N'Mục tiêu du học thạc sĩ'
+INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, TrinhDoDauVao, DiemDanhGiaDauVao, SoPhutHocTichLuy, GhiChuCaNhan)
+SELECT nd.MaNguoiDung, 8.0, N'IELTS', N'C1', N'B2', 8.5, 650, N'Mục tiêu du học thạc sĩ'
 FROM NguoiDung nd WHERE nd.TenDangNhap = N'huong.le';
 
-INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, SoPhutHocTichLuy, GhiChuCaNhan)
-SELECT nd.MaNguoiDung, 750.0, N'TOEIC', N'B1', 310, N'Phục vụ công việc công ty'
+INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, TrinhDoDauVao, DiemDanhGiaDauVao, SoPhutHocTichLuy, GhiChuCaNhan)
+SELECT nd.MaNguoiDung, 750.0, N'TOEIC', N'B1', N'A2', 5.5, 310, N'Phục vụ công việc công ty'
 FROM NguoiDung nd WHERE nd.TenDangNhap = N'nam.vu';
 
-INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, SoPhutHocTichLuy, GhiChuCaNhan)
-SELECT nd.MaNguoiDung, 6.5, N'IELTS', N'B2', 180, N'Đang bảo lưu tài khoản'
+INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, TrinhDoDauVao, DiemDanhGiaDauVao, SoPhutHocTichLuy, GhiChuCaNhan)
+SELECT nd.MaNguoiDung, 6.5, N'IELTS', N'B2', N'B1', 6.0, 180, N'Đang bảo lưu tài khoản'
 FROM NguoiDung nd WHERE nd.TenDangNhap = N'mai.dang';
 
-INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, SoPhutHocTichLuy, GhiChuCaNhan)
-SELECT nd.MaNguoiDung, 7.5, N'IELTS', N'B2', 510, N'Chuẩn bị thi tháng 11'
+INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, TrinhDoDauVao, DiemDanhGiaDauVao, SoPhutHocTichLuy, GhiChuCaNhan)
+SELECT nd.MaNguoiDung, 7.5, N'IELTS', N'B2', N'B1', 6.5, 510, N'Chuẩn bị thi tháng 11'
 FROM NguoiDung nd WHERE nd.TenDangNhap = N'chau.ngo';
 
-INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, SoPhutHocTichLuy, GhiChuCaNhan)
-SELECT nd.MaNguoiDung, 800.0, N'TOEIC', N'B2', 390, N'Học thêm từ vựng chuyên ngành'
+INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, TrinhDoDauVao, DiemDanhGiaDauVao, SoPhutHocTichLuy, GhiChuCaNhan)
+SELECT nd.MaNguoiDung, 800.0, N'TOEIC', N'B2', N'B1', 7.0, 390, N'Học thêm từ vựng chuyên ngành'
 FROM NguoiDung nd WHERE nd.TenDangNhap = N'bao.do';
 GO
 

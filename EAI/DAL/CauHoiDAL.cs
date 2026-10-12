@@ -144,10 +144,22 @@ namespace DAL
         public int LuuLuotKhaoSat(int maNguoiDung, int maBaiKhaoSat, int tongSoCau, int soCauDung, decimal diem, string trinhDo)
         {
             string query = @"
+                DECLARE @MaBaiActual INT = (SELECT TOP 1 MaBaiKhaoSat FROM BaiKhaoSatDauVao WHERE MaBaiKhaoSat = @MaBai);
+                IF @MaBaiActual IS NULL
+                BEGIN
+                    SET @MaBaiActual = (SELECT TOP 1 MaBaiKhaoSat FROM BaiKhaoSatDauVao);
+                END
+                IF @MaBaiActual IS NULL
+                BEGIN
+                    INSERT INTO BaiKhaoSatDauVao (TenBaiKhaoSat, MoTa, TongSoCauHoi, DangHoatDong, NgayTao)
+                    VALUES (N'Khảo sát đánh giá năng lực đầu vào CEFR', N'Bài khảo sát phân loại trình độ từ A1 đến C1', 15, 1, SYSDATETIME());
+                    SET @MaBaiActual = SCOPE_IDENTITY();
+                END
+
                 DECLARE @MaTD INT = (SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = @TrinhDo);
                 
                 INSERT INTO LuotKhaoSat (MaNguoiDung, MaBaiKhaoSat, ThoiDiemBatDau, ThoiDiemNopBai, TongSoCau, SoCauDung, DiemDatDuoc, MaTrinhDoKetQua, KhungDanhGiaKetQua)
-                VALUES (@MaND, @MaBai, DATEADD(MINUTE, -15, SYSDATETIME()), SYSDATETIME(), @TongSo, @SoDung, @Diem, @MaTD, N'CEFR');
+                VALUES (@MaND, @MaBaiActual, DATEADD(MINUTE, -15, SYSDATETIME()), SYSDATETIME(), @TongSo, @SoDung, @Diem, @MaTD, N'CEFR');
                 
                 SELECT SCOPE_IDENTITY();";
 
@@ -168,8 +180,15 @@ namespace DAL
         public void LuuChiTietCauTraLoi(int maLuotKhaoSat, int maCauHoi, int? maLuaChon, bool laDung)
         {
             string query = @"
-                INSERT INTO CauTraLoiKhaoSat (MaLuotKhaoSat, MaCauHoi, MaLuaChonDaChon, KetQuaDungSai, ThoiDiemTraLoi)
-                VALUES (@MaLuot, @MaCauHoi, @MaLuaChon, @KetQua, SYSDATETIME());";
+                IF EXISTS (SELECT 1 FROM CauHoi WHERE MaCauHoi = @MaCauHoi)
+                BEGIN
+                    DECLARE @MaLC INT = @MaLuaChon;
+                    IF @MaLC IS NOT NULL AND NOT EXISTS (SELECT 1 FROM LuaChonDapAn WHERE MaLuaChon = @MaLC)
+                        SET @MaLC = NULL;
+
+                    INSERT INTO CauTraLoiKhaoSat (MaLuotKhaoSat, MaCauHoi, MaLuaChonDaChon, KetQuaDungSai, ThoiDiemTraLoi)
+                    VALUES (@MaLuot, @MaCauHoi, @MaLC, @KetQua, SYSDATETIME());
+                END";
 
             SqlParameter[] parameters = new[]
             {

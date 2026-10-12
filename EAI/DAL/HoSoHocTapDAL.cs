@@ -14,7 +14,7 @@ namespace DAL
         {
             string query = @"
                 SELECT MaHoSo, MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, 
-                       TrinhDoMucTieu, DiemDanhGiaDauVao, SoPhutHocTichLuy, GhiChuCaNhan, NgayCapNhat
+                       TrinhDoMucTieu, TrinhDoDauVao, DiemDanhGiaDauVao, SoPhutHocTichLuy, GhiChuCaNhan, NgayCapNhat
                 FROM HoSoHocTap
                 WHERE MaNguoiDung = @MaND";
 
@@ -29,6 +29,7 @@ namespace DAL
                     DiemMucTieu = row["DiemMucTieu"] == DBNull.Value ? null : Convert.ToDecimal(row["DiemMucTieu"]),
                     KhungNangLucMucTieu = row["KhungNangLucMucTieu"]?.ToString(),
                     TrinhDoMucTieu = row["TrinhDoMucTieu"]?.ToString(),
+                    TrinhDoDauVao = row.Table.Columns.Contains("TrinhDoDauVao") && row["TrinhDoDauVao"] != DBNull.Value ? row["TrinhDoDauVao"]?.ToString() : null,
                     DiemDanhGiaDauVao = row["DiemDanhGiaDauVao"] == DBNull.Value ? null : Convert.ToDecimal(row["DiemDanhGiaDauVao"]),
                     SoPhutHocTichLuy = Convert.ToInt32(row["SoPhutHocTichLuy"]),
                     GhiChuCaNhan = row["GhiChuCaNhan"]?.ToString(),
@@ -38,7 +39,7 @@ namespace DAL
             return null;
         }
 
-        public bool LuuKetQuaDanhGiaBanDau(int maNguoiDung, string trinhDo, string khungNangLuc, decimal? diemMucTieu, decimal? diemDanhGiaDauVao = null, string? ghiChu = null)
+        public bool LuuKetQuaDanhGiaBanDau(int maNguoiDung, string trinhDo, string khungNangLuc, decimal? diemMucTieu, decimal? diemDanhGiaDauVao = null, string? ghiChu = null, string? trinhDoDauVao = null)
         {
             string query = @"
                 IF EXISTS (SELECT 1 FROM HoSoHocTap WHERE MaNguoiDung = @MaND)
@@ -47,6 +48,7 @@ namespace DAL
                     SET TrinhDoMucTieu = @TrinhDo,
                         KhungNangLucMucTieu = @Khung,
                         DiemMucTieu = @Diem,
+                        TrinhDoDauVao = ISNULL(@TrinhDoDauVao, TrinhDoDauVao),
                         DiemDanhGiaDauVao = ISNULL(@DiemDanhGia, DiemDanhGiaDauVao),
                         GhiChuCaNhan = ISNULL(@GhiChu, GhiChuCaNhan),
                         NgayCapNhat = SYSDATETIME()
@@ -54,8 +56,8 @@ namespace DAL
                 END
                 ELSE
                 BEGIN
-                    INSERT INTO HoSoHocTap (MaNguoiDung, TrinhDoMucTieu, KhungNangLucMucTieu, DiemMucTieu, DiemDanhGiaDauVao, GhiChuCaNhan, SoPhutHocTichLuy, NgayCapNhat)
-                    VALUES (@MaND, @TrinhDo, @Khung, @Diem, @DiemDanhGia, @GhiChu, 0, SYSDATETIME());
+                    INSERT INTO HoSoHocTap (MaNguoiDung, TrinhDoMucTieu, KhungNangLucMucTieu, DiemMucTieu, TrinhDoDauVao, DiemDanhGiaDauVao, GhiChuCaNhan, SoPhutHocTichLuy, NgayCapNhat)
+                    VALUES (@MaND, @TrinhDo, @Khung, @Diem, @TrinhDoDauVao, @DiemDanhGia, @GhiChu, 0, SYSDATETIME());
                 END";
 
             SqlParameter[] parameters = new[]
@@ -64,6 +66,7 @@ namespace DAL
                 new SqlParameter("@TrinhDo", (object?)trinhDo ?? DBNull.Value),
                 new SqlParameter("@Khung", (object?)khungNangLuc ?? DBNull.Value),
                 new SqlParameter("@Diem", (object?)diemMucTieu ?? DBNull.Value),
+                new SqlParameter("@TrinhDoDauVao", (object?)trinhDoDauVao ?? DBNull.Value),
                 new SqlParameter("@DiemDanhGia", (object?)diemDanhGiaDauVao ?? DBNull.Value),
                 new SqlParameter("@GhiChu", (object?)ghiChu ?? DBNull.Value)
             };
@@ -83,6 +86,60 @@ namespace DAL
             SqlParameter[] parameters = new[]
             {
                 new SqlParameter("@MaND", maNguoiDung),
+                new SqlParameter("@Khung", (object?)khungNangLuc ?? DBNull.Value),
+                new SqlParameter("@Diem", (object?)diemMucTieu ?? DBNull.Value)
+            };
+
+            return SqlDataProvider.Instance.ExecuteNonQuery(query, parameters) > 0;
+        }
+
+        public bool CapNhatTrinhDoDauVao(int maNguoiDung, string trinhDoDauVao)
+        {
+            string query = @"
+                IF EXISTS (SELECT 1 FROM HoSoHocTap WHERE MaNguoiDung = @MaND)
+                BEGIN
+                    UPDATE HoSoHocTap
+                    SET TrinhDoDauVao = @TrinhDoDauVao,
+                        NgayCapNhat = SYSDATETIME()
+                    WHERE MaNguoiDung = @MaND;
+                END
+                ELSE
+                BEGIN
+                    INSERT INTO HoSoHocTap (MaNguoiDung, TrinhDoDauVao, SoPhutHocTichLuy, NgayCapNhat)
+                    VALUES (@MaND, @TrinhDoDauVao, 0, SYSDATETIME());
+                END";
+
+            SqlParameter[] parameters = new[]
+            {
+                new SqlParameter("@MaND", maNguoiDung),
+                new SqlParameter("@TrinhDoDauVao", (object?)trinhDoDauVao ?? DBNull.Value)
+            };
+
+            return SqlDataProvider.Instance.ExecuteNonQuery(query, parameters) > 0;
+        }
+
+        public bool CapNhatHoSoHocTap(int maNguoiDung, string? trinhDoDauVao, string khungNangLuc, decimal? diemMucTieu)
+        {
+            string query = @"
+                IF EXISTS (SELECT 1 FROM HoSoHocTap WHERE MaNguoiDung = @MaND)
+                BEGIN
+                    UPDATE HoSoHocTap
+                    SET TrinhDoDauVao = ISNULL(@TrinhDoDauVao, TrinhDoDauVao),
+                        KhungNangLucMucTieu = @Khung,
+                        DiemMucTieu = @Diem,
+                        NgayCapNhat = SYSDATETIME()
+                    WHERE MaNguoiDung = @MaND;
+                END
+                ELSE
+                BEGIN
+                    INSERT INTO HoSoHocTap (MaNguoiDung, TrinhDoDauVao, KhungNangLucMucTieu, DiemMucTieu, SoPhutHocTichLuy, NgayCapNhat)
+                    VALUES (@MaND, @TrinhDoDauVao, @Khung, @Diem, 0, SYSDATETIME());
+                END";
+
+            SqlParameter[] parameters = new[]
+            {
+                new SqlParameter("@MaND", maNguoiDung),
+                new SqlParameter("@TrinhDoDauVao", (object?)trinhDoDauVao ?? DBNull.Value),
                 new SqlParameter("@Khung", (object?)khungNangLuc ?? DBNull.Value),
                 new SqlParameter("@Diem", (object?)diemMucTieu ?? DBNull.Value)
             };

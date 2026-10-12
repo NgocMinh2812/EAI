@@ -92,6 +92,22 @@ namespace DAL
                         BEGIN
                             ALTER TABLE HoSoHocTap ADD DiemDanhGiaDauVao DECIMAL(5,2) NULL;
                         END
+
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'TrinhDoDauVao' AND Object_ID = Object_ID('HoSoHocTap'))
+                        BEGIN
+                            ALTER TABLE HoSoHocTap ADD TrinhDoDauVao NVARCHAR(10) NULL;
+                        END
+                    END;
+
+                    IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'BaiKhaoSatDauVao')
+                    BEGIN
+                        IF NOT EXISTS (SELECT 1 FROM BaiKhaoSatDauVao WHERE MaBaiKhaoSat = 1)
+                        BEGIN
+                            SET IDENTITY_INSERT BaiKhaoSatDauVao ON;
+                            INSERT INTO BaiKhaoSatDauVao (MaBaiKhaoSat, TenBaiKhaoSat, MoTa, TongSoCauHoi, DangHoatDong, NgayTao)
+                            VALUES (1, N'Khảo sát đánh giá năng lực đầu vào CEFR', N'Bài khảo sát phân loại trình độ từ A1 đến C1', 15, 1, SYSDATETIME());
+                            SET IDENTITY_INSERT BaiKhaoSatDauVao OFF;
+                        END
                     END;
 
                     IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'LuotLamBai')

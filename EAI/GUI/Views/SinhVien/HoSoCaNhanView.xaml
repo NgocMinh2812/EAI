@@ -273,10 +273,10 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Metric 2: Trình độ CEFR -->
+                            <!-- Metric 2: Trình độ đầu vào CEFR -->
                             <Border Grid.Column="2" Background="#F0FDF4" CornerRadius="10" Padding="16,14" BorderBrush="#BBF7D0" BorderThickness="1">
                                 <StackPanel>
-                                    <TextBlock Text="TRÌNH ĐỘ CEFR" FontSize="11" FontWeight="Bold" Foreground="#15803D" Margin="0,0,0,4"/>
+                                    <TextBlock Text="TRÌNH ĐỘ ĐẦU VÀO (CEFR)" FontSize="11" FontWeight="Bold" Foreground="#15803D" Margin="0,0,0,4"/>
                                     <TextBlock x:Name="txtProfileLevel" Text="CEFR B2" FontSize="22" FontWeight="Bold" Foreground="#16A34A"/>
                                     <TextBlock x:Name="txtProfileLevelName" Text="Upper-Intermediate (Trên trung cấp)" FontSize="11.5" Foreground="#15803D" Margin="0,3,0,0"/>
                                 </StackPanel>
@@ -357,6 +357,39 @@
                                     <ComboBoxItem Content="VSTEP B1 - B2 Chuẩn đầu ra"/>
                                     <ComboBoxItem Content="Tiếng Anh Giao tiếp &amp; Công sở"/>
                                 </ComboBox>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Entry Level Field (Trình độ đầu vào) -->
+                            <StackPanel Grid.Column="0">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <TextBlock Text="Trình độ đầu vào (CEFR)" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextGray}"/>
+                                    <TextBlock Text=" • Đã xác thực trong hồ sơ" FontSize="11.5" Foreground="#10B981" FontWeight="SemiBold" Margin="4,1,0,0"/>
+                                </StackPanel>
+                                <ComboBox x:Name="cboEntryLevel" Style="{StaticResource ModernComboBox}" SelectedIndex="2">
+                                    <ComboBoxItem Content="A1 - Căn bản / Mới bắt đầu (Beginner)"/>
+                                    <ComboBoxItem Content="A2 - Sơ cấp (Elementary)"/>
+                                    <ComboBoxItem Content="B1 - Trung cấp (Intermediate)"/>
+                                    <ComboBoxItem Content="B2 - Trên trung cấp (Upper-Intermediate)"/>
+                                    <ComboBoxItem Content="C1 - Cao cấp / Thành thạo (Advanced)"/>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <!-- Saved Assessment Score Display -->
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Điểm đánh giá đầu vào đã lưu" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
+                                <Border Background="#F8FAFC" CornerRadius="8" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Height="38" Padding="12,0">
+                                    <Grid VerticalAlignment="Center">
+                                        <TextBlock x:Name="txtDisplaySavedScore" Text="8.5 / 10 (Đã hoàn thành khảo sát)" FontSize="13.5" FontWeight="SemiBold" Foreground="{StaticResource BrandTeal}"/>
+                                    </Grid>
+                                </Border>
                             </StackPanel>
                         </Grid>
                     </StackPanel>

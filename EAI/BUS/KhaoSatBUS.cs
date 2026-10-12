@@ -107,32 +107,44 @@ namespace BUS
             }
 
             // Lưu vào CSDL
+            // Lưu vào CSDL
             try
             {
                 if (maNguoiDung > 0)
                 {
-                    int maLuot = CauHoiDAL.Instance.LuuLuotKhaoSat(maNguoiDung, 1, tongSoCau, soCauDung, diem10, trinhDoPhuHop);
-
-                    foreach (var q in danhSachCauHoi)
-                    {
-                        var dapAnDung = q.DanhSachLuaChon.FirstOrDefault(l => l.LaDapAnDung);
-                        bool laDung = dapAnDung != null && q.MaLuaChonDaChon.HasValue && q.MaLuaChonDaChon.Value == dapAnDung.MaLuaChon;
-                        CauHoiDAL.Instance.LuuChiTietCauTraLoi(maLuot, q.MaCauHoi, q.MaLuaChonDaChon, laDung);
-                    }
-
-                    // Cập nhật Hồ sơ học tập (Lưu điểm đánh giá năng lực, trình độ và ghi chú vào hồ sơ cá nhân)
+                    // 1. Cập nhật Hồ sơ học tập TRƯỚC TIÊN (Lưu điểm đánh giá năng lực đầu vào và trình độ vào hồ sơ cá nhân)
                     string ghiChu = $"Đánh giá năng lực: {diem10}/10 ({soCauDung}/{tongSoCau} câu đúng) • Xếp loại {trinhDoPhuHop} ({thongTin.Ten}) • {thongTin.Ielts} • {thongTin.Toeic}";
-                    HoSoHocTapDAL.Instance.LuuKetQuaDanhGiaBanDau(maNguoiDung, trinhDoPhuHop, "CEFR", thongTin.TargetIelts, diem10, ghiChu);
+                    HoSoHocTapDAL.Instance.LuuKetQuaDanhGiaBanDau(maNguoiDung, trinhDoPhuHop, "CEFR", thongTin.TargetIelts, diem10, ghiChu, trinhDoDauVao: trinhDoPhuHop);
 
-                    // Cập nhật cờ lần đầu đăng nhập
+                    // 2. Cập nhật cờ lần đầu đăng nhập
                     NguoiDungDAL.Instance.CapNhatTrangThaiLanDauDangNhap(maNguoiDung, false);
 
-                    // Cập nhật Session
+                    // 3. Cập nhật Session
                     if (SessionHelper.CurrentUser != null)
                     {
                         SessionHelper.CurrentUser.LaLanDauDangNhap = false;
+                        SessionHelper.CurrentUser.TrinhDoDauVao = trinhDoPhuHop;
                     }
                     SessionHelper.CurrentHoSo = HoSoHocTapDAL.Instance.LayTheoMaNguoiDung(maNguoiDung);
+
+                    // 4. Lưu lượt khảo sát lịch sử
+                    try
+                    {
+                        int maLuot = CauHoiDAL.Instance.LuuLuotKhaoSat(maNguoiDung, 1, tongSoCau, soCauDung, diem10, trinhDoPhuHop);
+                        if (maLuot > 0)
+                        {
+                            foreach (var q in danhSachCauHoi)
+                            {
+                                var dapAnDung = q.DanhSachLuaChon.FirstOrDefault(l => l.LaDapAnDung);
+                                bool laDung = dapAnDung != null && q.MaLuaChonDaChon.HasValue && q.MaLuaChonDaChon.Value == dapAnDung.MaLuaChon;
+                                CauHoiDAL.Instance.LuuChiTietCauTraLoi(maLuot, q.MaCauHoi, q.MaLuaChonDaChon, laDung);
+                            }
+                        }
+                    }
+                    catch (Exception exLks)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Lỗi lưu chi tiết lượt khảo sát: {exLks.Message}");
+                    }
                 }
             }
             catch (Exception ex)
@@ -190,7 +202,7 @@ namespace BUS
             };
         }
 
-        private static (string Ten, string Ielts, string Toeic, string NhanXet, decimal TargetIelts) LayThongTinTrinhDo(string capDo)
+        public static (string Ten, string Ielts, string Toeic, string NhanXet, decimal TargetIelts) LayThongTinTrinhDo(string capDo)
         {
             return capDo.ToUpper() switch
             {

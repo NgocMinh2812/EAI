@@ -137,13 +137,18 @@ namespace BUS
             dto.TenVaiTro = "HocVien";
 
             // Khởi tạo hồ sơ học tập ban đầu
-            HoSoHocTapDAL.Instance.LuuKetQuaDanhGiaBanDau(newId, "A1", "IELTS", 5.0m);
+            HoSoHocTapDAL.Instance.LuuKetQuaDanhGiaBanDau(newId, "A1", "IELTS", 5.0m, trinhDoDauVao: "A1");
 
-            // Thiết lập Session
-            SessionHelper.CurrentUser = dto;
+            // Tải lại thông tin đầy đủ từ CSDL và thiết lập Session đăng nhập
+            var fullUser = NguoiDungDAL.Instance.LayTheoId(newId) ?? dto;
+            fullUser.MaNguoiDung = newId;
+            fullUser.TenVaiTro = "HocVien";
+            fullUser.TrinhDoDauVao = "A1";
+
+            SessionHelper.CurrentUser = fullUser;
             SessionHelper.CurrentHoSo = HoSoHocTapDAL.Instance.LayTheoMaNguoiDung(newId);
 
-            newUser = dto;
+            newUser = fullUser;
             return true;
         }
 
@@ -285,23 +290,11 @@ namespace BUS
             if (string.IsNullOrWhiteSpace(password))
                 return (false, "Vui lòng nhập mật khẩu.", null);
 
-            var user = _dal.GetByCredentials(emailOrUsername, password);
-            if (user == null)
+            bool ok = DangNhap(emailOrUsername, password, out string errorMessage, out NguoiDungDTO? user);
+            if (!ok || user == null)
             {
-                return (false, "Email/tên đăng nhập hoặc mật khẩu không chính xác.", null);
+                return (false, string.IsNullOrEmpty(errorMessage) ? "Email/tên đăng nhập hoặc mật khẩu không chính xác." : errorMessage, null);
             }
-
-            if (!user.TrangThaiHoatDong)
-            {
-                return (false, "Tài khoản của bạn hiện đang bị khóa. Vui lòng liên hệ quản trị viên để được hỗ trợ.", null);
-            }
-
-            SessionHelper.CurrentUser = user;
-            try
-            {
-                SessionHelper.CurrentHoSo = HoSoHocTapDAL.Instance.LayTheoMaNguoiDung(user.MaNguoiDung);
-            }
-            catch { }
 
             return (true, "Đăng nhập thành công.", user);
         }
