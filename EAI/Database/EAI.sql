@@ -631,8 +631,9 @@ GO
 
 INSERT INTO VaiTro(TenVaiTro, MoTa)
 VALUES
-(N'QuanTriVien', N'Quản trị viên quản lý nội dung, câu hỏi và hệ thống'),
-(N'HocVien', N'Người học tiếng Anh ôn luyện và thi thử');
+(N'GiangVien', N'Giảng viên quản lý học liệu, đề thi, câu hỏi và phân tích học viên'),
+(N'HocVien', N'Người học tiếng Anh ôn luyện và thi thử'),
+(N'QuanTriVien', N'Quản trị viên quản lý nội dung, câu hỏi và hệ thống');
 GO
 
 INSERT INTO TrinhDo(MaCapDo, TenTrinhDo, MoTa)

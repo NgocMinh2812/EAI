@@ -1,0 +1,70 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1433 >>
+stream
+BT
+/F1 16 Tf
+50 780 Td
+(Academic Summary: The Transformer Architecture \(Vaswani et al.\)) Tj
+0 -26 Td
+/F1 11 Tf
+(Paper Overview) Tj
+0 -16 Td
+(Title: Attention Is All You Need \(Google Research, 2017\)) Tj
+0 -14 Td
+(Significance: Introduced the Transformer architecture, eliminating recurrent and convolutional layers in sequence transduction models.) Tj
+0 -14 Td
+0 -8 Td
+(Key Architectural Contributions) Tj
+0 -16 Td
+(1. Multi-Head Scaled Dot-Product Attention: Allows the model to jointly attend to information from different representation subspaces.) Tj
+0 -14 Td
+(2. Positional Encoding: Injects order information since transformers process tokens without recurrence.) Tj
+0 -14 Td
+(3. Residual Connections & Layer Normalization: Accelerates training convergence across deep network layers.) Tj
+0 -14 Td
+0 -8 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001726 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1796
+%%EOF

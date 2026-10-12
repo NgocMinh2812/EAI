@@ -113,7 +113,14 @@ namespace BUS
 
             bool ok = _dal.InsertChuDe(cd);
             if (ok)
+            {
+                // Đồng bộ thư mục vật lý trong KhoHocLieu
+                var all = _dal.GetAllChuDe();
+                var inserted = all.FirstOrDefault(x => x.TenChuDe == cd.TenChuDe) ?? cd;
+                KhoHocLieuSyncHelper.TaoThuMucChuDe(inserted, all);
+
                 return (true, "Thêm chủ đề thành công.");
+            }
             return (false, "Lỗi thêm chủ đề vào cơ sở dữ liệu.");
         }
 
@@ -128,9 +135,19 @@ namespace BUS
             if (cd.MaChuDeCha.HasValue && cd.MaChuDeCha.Value == cd.MaChuDe)
                 return (false, "Chủ đề cha không thể là chính chủ đề này.");
 
+            var allOld = _dal.GetAllChuDe();
+            var oldItem = allOld.FirstOrDefault(x => x.MaChuDe == cd.MaChuDe);
+            string oldName = oldItem?.TenChuDe ?? cd.TenChuDe;
+
             bool ok = _dal.UpdateChuDe(cd);
             if (ok)
+            {
+                // Đồng bộ đổi tên thư mục vật lý trong KhoHocLieu
+                var allNew = _dal.GetAllChuDe();
+                KhoHocLieuSyncHelper.DoiTenThuMucChuDe(oldName, cd, allNew);
+
                 return (true, "Cập nhật chủ đề thành công.");
+            }
             return (false, "Lỗi cập nhật chủ đề.");
         }
 
@@ -156,13 +173,31 @@ namespace BUS
                 return (false, $"Không thể xóa chủ đề này vì đang có {soBaiHoc} bài học liên kết trực tiếp. Vui lòng di dời hoặc xóa các bài học trước khi xóa danh mục!");
             }
 
+            var all = _dal.GetAllChuDe();
+            var target = all.FirstOrDefault(x => x.MaChuDe == maChuDe);
+
             // 3. Tiến hành xóa an toàn
             bool ok = _dal.DeleteChuDe(maChuDe);
             if (ok)
             {
+                // Đồng bộ xóa thư mục vật lý trong KhoHocLieu
+                if (target != null)
+                {
+                    KhoHocLieuSyncHelper.XoaThuMucChuDe(target, all);
+                }
+
                 return (true, "Xóa chủ đề thành công.");
             }
             return (false, "Xảy ra lỗi khi xóa chủ đề trong cơ sở dữ liệu.");
+        }
+
+        /// <summary>
+        /// Đồng bộ toàn bộ cây danh mục CSDL ra cây thư mục đĩa KhoHocLieu
+        /// </summary>
+        public (int FoldersCreated, int TotalTopics) DongBoKhoHocLieu()
+        {
+            var all = _dal.GetAllChuDe();
+            return KhoHocLieuSyncHelper.DongBoToanBoKhoHocLieu(all);
         }
     }
 }

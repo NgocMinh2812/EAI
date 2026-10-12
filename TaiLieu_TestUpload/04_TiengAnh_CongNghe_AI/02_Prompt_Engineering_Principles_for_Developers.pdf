@@ -1,0 +1,71 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1445 >>
+stream
+BT
+/F1 16 Tf
+50 780 Td
+(Prompt Engineering Best Practices for Developers and Educators) Tj
+0 -26 Td
+/F1 11 Tf
+(1. Principle of Specificity) Tj
+0 -16 Td
+(Avoid ambiguous instructions. Provide clear constraints, role definitions, and output formatting guidelines \(such as JSON schema or markdown tables\).) Tj
+0 -14 Td
+0 -8 Td
+(2. Few-Shot Prompting Technique) Tj
+0 -16 Td
+(Providing 2-3 concrete input-output demonstrations drastically increases reasoning accuracy in complex assessment scoring tasks.) Tj
+0 -14 Td
+0 -8 Td
+(3. Chain-of-Thought \(CoT\) Prompting) Tj
+0 -16 Td
+(Instruct the model: 'Think step by step and explain grammatical reasoning before outputting the final CEFR score.' This prevents logical hallucinations.) Tj
+0 -14 Td
+0 -8 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+(Note: Study this document thoroughly for upcoming evaluations.) Tj
+0 -14 Td
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001738 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1808
+%%EOF

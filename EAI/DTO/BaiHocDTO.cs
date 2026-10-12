@@ -42,6 +42,15 @@ namespace DTO
         public string StatusBackground { get; set; } = "#F1F5F9";
         public string ButtonActionText { get; set; } = "Vào học ngay ▶";
 
+        // Thông tin tệp vật lý & Badge định dạng (DOCX, PDF, AUDIO)
+        public string DinhDangTep { get; set; } = "DOCX";
+        public string TenTepVatLy { get; set; } = string.Empty;
+        public string DuongDanTepVatLy { get; set; } = string.Empty;
+        public string DungLuongHienThi { get; set; } = "15 KB";
+        public string BadgeDinhDangBg { get; set; } = "#EFF6FF";
+        public string BadgeDinhDangFg { get; set; } = "#1D4ED8";
+        public string BadgeDinhDangBorder { get; set; } = "#BFDBFE";
+
         public List<CauHoiDTO> DanhSachCauHoi { get; set; } = new List<CauHoiDTO>();
     }
 }

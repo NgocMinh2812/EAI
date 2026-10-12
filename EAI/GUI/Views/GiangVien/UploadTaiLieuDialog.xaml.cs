@@ -48,6 +48,26 @@ namespace GUI.Views.GiangVien
                 Multiselect = false
             };
 
+            // Ưu tiên mở ngay vào thư mục TaiLieu_TestUpload hoặc KhoHocLieu của dự án
+            try
+            {
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string candTest1 = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\TaiLieu_TestUpload"));
+                string candTest2 = @"d:\CDPTUD1\EAI\TaiLieu_TestUpload";
+                string candKho1 = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\KhoHocLieu"));
+                string candKho2 = @"d:\CDPTUD1\EAI\KhoHocLieu";
+
+                if (Directory.Exists(candTest1))
+                    openDlg.InitialDirectory = candTest1;
+                else if (Directory.Exists(candTest2))
+                    openDlg.InitialDirectory = candTest2;
+                else if (Directory.Exists(candKho1))
+                    openDlg.InitialDirectory = candKho1;
+                else if (Directory.Exists(candKho2))
+                    openDlg.InitialDirectory = candKho2;
+            }
+            catch { }
+
             if (openDlg.ShowDialog() == true)
             {
                 _selectedFilePath = openDlg.FileName;
@@ -221,6 +241,15 @@ namespace GUI.Views.GiangVien
             if (success)
             {
                 BaiHocData.MaBaiHoc = newId;
+
+                // Tự động sao chép tệp nguồn vào thư mục KhoHocLieu theo chủ đề đã chọn
+                if (!string.IsNullOrEmpty(_selectedFilePath) && File.Exists(_selectedFilePath))
+                {
+                    var danhMucBUS = new BUS.DanhMucBUS();
+                    var allChuDe = danhMucBUS.LayDanhSachChuDe();
+                    BUS.KhoHocLieuSyncHelper.SaoChepTepKhiUpload(_selectedFilePath, BaiHocData.MaChuDe, BaiHocData.TieuDe, allChuDe);
+                }
+
                 DialogResult = true;
                 Close();
             }

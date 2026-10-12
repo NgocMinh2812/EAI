@@ -52,6 +52,154 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Style Nút Vàng Cam Rực Rỡ - Mở Thư Mục (Amber/Orange) -->
+        <Style x:Key="AmberHeaderBtn" TargetType="Button">
+            <Setter Property="Background" Value="#EA580C"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#C2410C"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Padding" Value="13,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,2,8,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.25" Color="#EA580C"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#C2410C"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#9A3412"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#9A3412"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style Nút Tím Xanh Hoàng Gia - Đồng Bộ Kho (Royal Indigo) -->
+        <Style x:Key="IndigoHeaderBtn" TargetType="Button">
+            <Setter Property="Background" Value="#4F46E5"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#4338CA"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Padding" Value="13,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,2,8,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.25" Color="#4F46E5"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#4338CA"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#3730A3"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#3730A3"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style Nút Xanh Dương Đại Dương - Tải Lên Tệp (Sky/Ocean Blue) -->
+        <Style x:Key="TealHeaderBtn" TargetType="Button">
+            <Setter Property="Background" Value="#0284C7"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#0369A1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Padding" Value="13,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,2,8,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.25" Color="#0284C7"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#0369A1"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#075985"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#075985"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style Nút Ngọc Lục Bảo Tươi - Thư Mục Mới (Fresh Emerald Green) -->
+        <Style x:Key="EmeraldHeaderBtn" TargetType="Button">
+            <Setter Property="Background" Value="#059669"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#047857"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,2,0,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="8" ShadowDepth="1.5" Opacity="0.3" Color="#059669"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#047857"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#065F46"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#065F46"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Page.Resources>
 
     <Grid Margin="20">
@@ -60,41 +208,33 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- ================= TOP HEADER ================= -->
+        <!-- ================= TOP HEADER (KHÔNG BỊ CHE - RESPONSIVE CHỐNG ĐÈ CHỮ) ================= -->
         <Grid Grid.Row="0" Margin="0,0,0,16">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" MaxWidth="440"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0">
-                <TextBlock Text="Cấu trúc Thư mục Đề thi &amp; Kho Tệp Học liệu" FontWeight="Bold" FontSize="20" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                <TextBlock Text="Quản lý tập trung các tệp đề thi (.pdf, .docx, .xlsx, .mp3), phân cấp chuyên mục và xem trước nội dung trực tiếp" FontSize="12.5" Foreground="{StaticResource TextGray}"/>
+            <!-- Tiêu đề trang gọn gàng & thanh lịch -->
+            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="8" Width="36" Height="36" Margin="0,0,10,0">
+                        <TextBlock Text="📁" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Kho Học Liệu &amp; Đề Thi" FontWeight="Bold" FontSize="19" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="Cấu trúc thư mục &amp; kho tệp (.docx, .pdf) theo chuyên mục" FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </StackPanel>
             </StackPanel>
 
-            <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <Button Content="📥 Tải lên tệp mới (.pdf, .docx)" Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
-                        FontWeight="SemiBold" FontSize="12.5" Padding="14,9" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" Click="BtnUploadFile_Click">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-
-                <Button Content="➕ Thư mục mới" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
-                        FontWeight="SemiBold" FontSize="12.5" Padding="16,9" BorderThickness="0" Cursor="Hand" Click="BtnNewFolder_Click">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-            </StackPanel>
+            <!-- Cụm nút bấm màu sắc sinh động, tự rớt dòng mềm mại nếu màn hình hẹp -->
+            <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button Content="📂 Mở Thư Mục" Style="{StaticResource AmberHeaderBtn}" Click="BtnOpenFolderExplorer_Click" ToolTip="Mở thư mục KhoHocLieu trên Windows Explorer"/>
+                <Button Content="🔄 Đồng Bộ Kho" Style="{StaticResource IndigoHeaderBtn}" Click="BtnSyncKhoHocLieu_Click" ToolTip="Tự động đồng bộ toàn bộ cây danh mục CSDL ra thư mục trên đĩa"/>
+                <Button Content="📥 Tải Lên Tệp" Style="{StaticResource TealHeaderBtn}" Click="BtnUploadFile_Click" ToolTip="Tải lên tệp đề thi hoặc tài liệu học liệu mới (.docx, .pdf)"/>
+                <Button Content="➕ Thư Mục Mới" Style="{StaticResource EmeraldHeaderBtn}" Click="BtnNewFolder_Click" ToolTip="Tạo danh mục chủ đề mới"/>
+            </WrapPanel>
         </Grid>
 
         <!-- ================= 3-COLUMN EXPLORER & PREVIEWER ================= -->
@@ -123,7 +263,7 @@
 
                     <TextBlock Grid.Row="0" Text="CÂY PHÂN CẤP CHỦ ĐỀ" FontWeight="Bold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="4,4,4,8"/>
 
-                    <!-- Toolbar Thêm / Sửa / Xóa Chủ đề -->
+                    <!-- Toolbar Thêm / Sửa / Xóa Chủ đề với màu sắc phân biệt -->
                     <Border Grid.Row="1" Background="#F8FAFC" CornerRadius="8" Padding="4" Margin="0,0,0,10" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -132,12 +272,56 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Button Grid.Column="0" Content="➕ Thêm" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1"
-                                    FontSize="11" FontWeight="SemiBold" Padding="4,4" Margin="2,0" Cursor="Hand" Click="BtnThemChuDe_Click" ToolTip="Thêm chủ đề mới"/>
-                            <Button Grid.Column="1" Content="✏️ Sửa" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1"
-                                    FontSize="11" FontWeight="SemiBold" Padding="4,4" Margin="2,0" Cursor="Hand" Click="BtnSuaChuDe_Click" ToolTip="Sửa chủ đề đang chọn"/>
-                            <Button Grid.Column="2" Content="🗑️ Xóa" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1"
-                                    FontSize="11" FontWeight="SemiBold" Foreground="#EF4444" Padding="4,4" Margin="2,0" Cursor="Hand" Click="BtnXoaChuDe_Click" ToolTip="Xóa chủ đề đang chọn"/>
+                            <Button Grid.Column="0" Content="➕ Thêm" Background="#ECFDF5" Foreground="#047857" BorderBrush="#10B981" BorderThickness="1.5"
+                                    FontSize="11.5" FontWeight="SemiBold" Padding="4,6" Margin="2,0" Cursor="Hand" Click="BtnThemChuDe_Click" ToolTip="Thêm chủ đề mới">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="tb1" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="tb1" Property="Background" Value="#A7F3D0"/>
+                                                <Setter TargetName="tb1" Property="BorderBrush" Value="#059669"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <Button Grid.Column="1" Content="✏️ Sửa" Background="#EFF6FF" Foreground="#1D4ED8" BorderBrush="#3B82F6" BorderThickness="1.5"
+                                    FontSize="11.5" FontWeight="SemiBold" Padding="4,6" Margin="2,0" Cursor="Hand" Click="BtnSuaChuDe_Click" ToolTip="Sửa chủ đề đang chọn">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="tb2" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="tb2" Property="Background" Value="#BFDBFE"/>
+                                                <Setter TargetName="tb2" Property="BorderBrush" Value="#2563EB"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <Button Grid.Column="2" Content="🗑️ Xóa" Background="#FEF2F2" Foreground="#DC2626" BorderBrush="#EF4444" BorderThickness="1.5"
+                                    FontSize="11.5" FontWeight="SemiBold" Padding="4,6" Margin="2,0" Cursor="Hand" Click="BtnXoaChuDe_Click" ToolTip="Xóa chủ đề đang chọn">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="tb3" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="tb3" Property="Background" Value="#FECACA"/>
+                                                <Setter TargetName="tb3" Property="BorderBrush" Value="#B91C1C"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
                         </Grid>
                     </Border>
 
@@ -234,13 +418,23 @@
                                                 </Grid.ColumnDefinitions>
 
                                                 <!-- Skill Icon Badge -->
-                                                <Border Grid.Column="0" Background="{Binding BadgeBackground}" Width="36" Height="36" CornerRadius="8" Margin="0,0,10,0">
-                                                    <TextBlock Text="{Binding IconSkill}" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <Border Grid.Column="0" Background="{Binding BadgeBackground}" Width="38" Height="38" CornerRadius="8" Margin="0,0,10,0">
+                                                    <TextBlock Text="{Binding IconSkill}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Border>
 
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
                                                     <TextBlock Text="{Binding TieuDe}" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
-                                                    <TextBlock Text="{Binding TomTat}" FontSize="11" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                                    <TextBlock Text="{Binding TomTat}" FontSize="11" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" Margin="0,2,0,3"/>
+                                                    
+                                                    <!-- Meta Info: Format Badge (.docx, .pdf) & Size -->
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Border Background="{Binding BadgeDinhDangBg}" BorderBrush="{Binding BadgeDinhDangBorder}" BorderThickness="1" CornerRadius="4" Padding="5,1" Margin="0,0,6,0">
+                                                            <TextBlock Text="{Binding DinhDangTep}" Foreground="{Binding BadgeDinhDangFg}" FontSize="9.5" FontWeight="Bold"/>
+                                                        </Border>
+                                                        <TextBlock Text="{Binding DungLuongHienThi}" FontSize="10.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
+                                                        <TextBlock Text=" • " FontSize="10" Foreground="#CBD5E1" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding ThoiGianUocTinhPhut, StringFormat='{}{0} phút'}" FontSize="10.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
+                                                    </StackPanel>
                                                 </StackPanel>
 
                                                 <Border Grid.Column="2" Background="{Binding StatusBackground}" CornerRadius="6" Padding="7,3" VerticalAlignment="Center">
@@ -297,32 +491,34 @@
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button Content="📥 Tải về" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
-                                        FontSize="11.5" FontWeight="SemiBold" Padding="10,6" Margin="0,0,6,0" Cursor="Hand" Click="BtnDownloadCurrent_Click">
+                                <Button Content="📥 Tải về" Background="#EFF6FF" BorderBrush="#3B82F6" Foreground="#1D4ED8" BorderThickness="1.5" 
+                                        FontSize="11.5" FontWeight="SemiBold" Padding="12,6" Margin="0,0,8,0" Cursor="Hand" Click="BtnDownloadCurrent_Click" ToolTip="Tải xuống tệp học liệu">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border x:Name="btnB" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                            <Border x:Name="btnB" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7" Padding="{TemplateBinding Padding}">
                                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="btnB" Property="Background" Value="#F1F5F9"/>
+                                                    <Setter TargetName="btnB" Property="Background" Value="#DBEAFE"/>
+                                                    <Setter TargetName="btnB" Property="BorderBrush" Value="#2563EB"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Button.Template>
                                 </Button>
 
-                                <Button Content="🖨️ In ấn" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
-                                        FontSize="11.5" FontWeight="SemiBold" Padding="10,6" Cursor="Hand" Click="BtnPrintCurrent_Click">
+                                <Button Content="🖨️ In ấn" Background="#FAF5FF" BorderBrush="#A855F7" Foreground="#7E22CE" BorderThickness="1.5" 
+                                        FontSize="11.5" FontWeight="SemiBold" Padding="12,6" Cursor="Hand" Click="BtnPrintCurrent_Click" ToolTip="In đề thi / học liệu">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border x:Name="btnB2" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                            <Border x:Name="btnB2" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7" Padding="{TemplateBinding Padding}">
                                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="btnB2" Property="Background" Value="#F1F5F9"/>
+                                                    <Setter TargetName="btnB2" Property="Background" Value="#EDE9FE"/>
+                                                    <Setter TargetName="btnB2" Property="BorderBrush" Value="#9333EA"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
@@ -355,19 +551,62 @@
                                 In a groundbreaking 2023 study published by MIT and Harvard researchers, analytical electron microscopy revealed that lime clasts within the concrete matrix acted as an active calcium reservoir. When microcracks formed and rainwater infiltrated, the calcium dissolved and recrystallized as calcite, sealing the fractures autonomously.
                             </TextBlock>
 
-                            <!-- Questions Extracted from Document -->
-                            <Border Background="#F0FDF4" BorderBrush="#DCFCE7" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,0,14">
+                            <!-- Questions Extracted from Document via Gemini AI -->
+                            <Border Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1.5" CornerRadius="10" Padding="16,14" Margin="0,0,0,16">
                                 <StackPanel>
-                                    <TextBlock Text="📋 Câu hỏi trắc nghiệm đã bóc tách từ tài liệu:" FontWeight="Bold" FontSize="13" Foreground="#166534" Margin="0,0,0,10"/>
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="🤖" FontSize="16" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Câu hỏi trắc nghiệm đã bóc tách từ tài liệu" FontWeight="Bold" FontSize="13" Foreground="#15803D" VerticalAlignment="Center"/>
+                                        </StackPanel>
 
-                                    <TextBlock Text="Question 1 (True / False / Not Given):" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextDark}"/>
-                                    <TextBlock Text="Roman concrete degrades at the same rate as 20th-century Portland cement." FontSize="12" Margin="0,2,0,6" TextWrapping="Wrap"/>
-                                    <TextBlock Text="➔ Đáp án chuẩn: FALSE. (Dẫn chứng: 'While modern concrete degrades within decades, Roman concrete demonstrated self-healing properties...')" FontSize="11" Foreground="#15803D" FontWeight="SemiBold" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                        <!-- Nút Bóc tách lại bằng Gemini 3.8 Flash -->
+                                        <Button x:Name="btnReExtractAI" Grid.Column="1" Content="✨ Bóc tách lại bằng AI" Background="#DCFCE7" Foreground="#166534" BorderBrush="#86EFAC" BorderThickness="1"
+                                                FontSize="11" FontWeight="SemiBold" Padding="10,4" Cursor="Hand" Click="BtnReExtractAI_Click" ToolTip="Kích hoạt Gemini AI (User Secret) phân tích văn bản và sinh câu hỏi mới">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="bdBtn" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="bdBtn" Property="Background" Value="#BBF7D0"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </Grid>
 
-                                    <TextBlock Text="Question 2 (Multiple Choice):" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextDark}"/>
-                                    <TextBlock Text="What chemical element triggers the self-healing process when water enters microcracks?" FontSize="12" Margin="0,2,0,4" TextWrapping="Wrap"/>
-                                    <TextBlock Text="A. Silica  •  B. Calcium (Đúng ✓)  •  C. Magnesium  •  D. Sodium" FontSize="11.5" Foreground="{StaticResource TextDark}" FontWeight="Medium" Margin="0,0,0,4"/>
-                                    <TextBlock Text="➔ Giải thích AI: Canxi trong lime clasts hòa tan và kết tinh lại thành canxit (calcite) lấp đầy các vết nứt." FontSize="11" Foreground="#15803D" TextWrapping="Wrap"/>
+                                    <!-- Loading Progress Bar -->
+                                    <ProgressBar x:Name="pbAILoading" Height="3" IsIndeterminate="True" Margin="0,0,0,8" Visibility="Collapsed" Foreground="#10B981" Background="#DCFCE7"/>
+
+                                    <!-- Dynamic Questions List -->
+                                    <ItemsControl x:Name="icExtractedQuestions">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="White" BorderBrush="#DCFCE7" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding NoiDungCauHoi}" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}" TextWrapping="Wrap"/>
+                                                        <ItemsControl ItemsSource="{Binding DanhSachLuaChon}" Margin="0,6,0,6">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBlock Text="{Binding}" FontSize="12" Foreground="#334155" Margin="4,2,0,2" TextWrapping="Wrap"/>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                        <Border Background="#F0FDF4" CornerRadius="6" Padding="8,5" Margin="0,4,0,0">
+                                                            <TextBlock Text="{Binding GiaiThichChiTiet}" FontSize="11" Foreground="#15803D" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
                                 </StackPanel>
                             </Border>
 
@@ -394,17 +633,23 @@
                             </StackPanel>
 
                             <!-- Quick Action Button -->
-                            <Button Grid.Column="1" Content="➕ Đưa vào Đề thi thử" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
-                                    FontWeight="SemiBold" FontSize="12" Padding="12,7" BorderThickness="0" Cursor="Hand" Click="BtnAddToExam_Click"
+                            <Button Grid.Column="1" Content="➕ Đưa vào Đề thi thử" Background="#059669" Foreground="White" 
+                                    FontWeight="Bold" FontSize="12" Padding="14,8" BorderThickness="0" Cursor="Hand" Click="BtnAddToExam_Click"
                                     ToolTip="Tạo đề thi thử tự động từ bài học này">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Border x:Name="btnBd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                            <Border.Effect>
+                                                <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.25" Color="#059669"/>
+                                            </Border.Effect>
                                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="btnBd" Property="Background" Value="#135E48"/>
+                                                <Setter TargetName="btnBd" Property="Background" Value="#047857"/>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter TargetName="btnBd" Property="Background" Value="#065F46"/>
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>

@@ -15,8 +15,9 @@ namespace BUS
         {
             try
             {
-                var list = _baiHocDAL.GetAll(maChuDe, search);
-                return list ?? new List<BaiHocDTO>();
+                var list = _baiHocDAL.GetAll(maChuDe, search) ?? new List<BaiHocDTO>();
+                KhoHocLieuSyncHelper.EnrichBaiHocFileInfo(list);
+                return list;
             }
             catch (Exception ex)
             {

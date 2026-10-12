@@ -6,9 +6,10 @@ GO
 SET QUOTED_IDENTIFIER ON;
 GO
 
--- Xóa dữ liệu cũ nếu có theo thứ tự khóa ngoại
+-- Xóa dữ liệu cũ nếu có theo đúng thứ tự ràng buộc khóa ngoại (Foreign Keys)
 DELETE FROM CauHoiDoAISinh;
 DELETE FROM YeuCauSinhDeAI;
+DELETE FROM KetQuaPhanTichAI;
 DELETE FROM NhatKyGoiAPI;
 DELETE FROM TinNhanAI;
 DELETE FROM PhienHoiThoaiAI;
@@ -31,12 +32,28 @@ DELETE FROM Flashcard;
 DELETE FROM TuVung;
 DELETE FROM TienDoBaiHoc;
 DELETE FROM BaiHoc;
+
+-- Gỡ bỏ tham chiếu cha-con trước khi xóa bảng danh mục tự tham chiếu ChuDe
+UPDATE ChuDe SET MaChuDeCha = NULL;
 DELETE FROM ChuDe;
-DELETE FROM TrinhDo;
+
 DELETE FROM HoSoHocTap;
-DELETE FROM ThongBao;
+DELETE FROM TepTinNhapLieu;
 DELETE FROM NguoiDung;
 DELETE FROM VaiTro;
+DELETE FROM TrinhDo;
+GO
+
+-- Reset giá trị tự tăng IDENTITY về 0 để các bản ghi mẫu nhận đúng ID từ 1 trở đi
+DBCC CHECKIDENT ('VaiTro', RESEED, 0) WITH NO_INFOMSGS;
+DBCC CHECKIDENT ('TrinhDo', RESEED, 0) WITH NO_INFOMSGS;
+DBCC CHECKIDENT ('ChuDe', RESEED, 0) WITH NO_INFOMSGS;
+DBCC CHECKIDENT ('NguoiDung', RESEED, 0) WITH NO_INFOMSGS;
+DBCC CHECKIDENT ('HoSoHocTap', RESEED, 0) WITH NO_INFOMSGS;
+DBCC CHECKIDENT ('BaiHoc', RESEED, 0) WITH NO_INFOMSGS;
+DBCC CHECKIDENT ('BaiTapDeThi', RESEED, 0) WITH NO_INFOMSGS;
+DBCC CHECKIDENT ('YeuCauSinhDeAI', RESEED, 0) WITH NO_INFOMSGS;
+DBCC CHECKIDENT ('CauHoiDoAISinh', RESEED, 0) WITH NO_INFOMSGS;
 GO
 
 -- 1. Vai trò
@@ -160,16 +177,18 @@ VALUES
 GO
 
 -- 6. Bài học mẫu liên kết chủ đề và trình độ
-DECLARE @cdTenses INT = (SELECT TOP 1 MaChuDe FROM ChuDe WHERE TenChuDe = N'Các thì trong tiếng Anh (Tenses)');
-DECLARE @cdWriting INT = (SELECT TOP 1 MaChuDe FROM ChuDe WHERE TenChuDe = N'IELTS Writing Task 2 — Luận xã hội');
-DECLARE @cdBusiness INT = (SELECT TOP 1 MaChuDe FROM ChuDe WHERE TenChuDe = N'Viết Email & Thư tín Thương mại');
-DECLARE @cdChaoHoi INT = (SELECT TOP 1 MaChuDe FROM ChuDe WHERE TenChuDe = N'Chào hỏi & Giới thiệu bản thân');
+DECLARE @cdTenses INT = (SELECT TOP 1 MaChuDe FROM ChuDe WHERE TenChuDe LIKE N'%Các thì%');
+DECLARE @cdWriting INT = (SELECT TOP 1 MaChuDe FROM ChuDe WHERE TenChuDe LIKE N'%IELTS Writing Task 2%');
+DECLARE @cdBusiness INT = (SELECT TOP 1 MaChuDe FROM ChuDe WHERE TenChuDe LIKE N'%Viết Email%');
+DECLARE @cdChaoHoi INT = (SELECT TOP 1 MaChuDe FROM ChuDe WHERE TenChuDe LIKE N'%Chào hỏi%');
 
 DECLARE @tdA1 INT = (SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = N'A1');
 DECLARE @tdB1 INT = (SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = N'B1');
 DECLARE @tdB2 INT = (SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = N'B2');
 
 DECLARE @gvId INT = (SELECT TOP 1 MaNguoiDung FROM NguoiDung WHERE TenDangNhap = N'tung.hoang');
+IF @gvId IS NULL SET @gvId = (SELECT TOP 1 MaNguoiDung FROM NguoiDung WHERE MaVaiTro = (SELECT TOP 1 MaVaiTro FROM VaiTro WHERE TenVaiTro = N'GiangVien'));
+IF @gvId IS NULL SET @gvId = (SELECT TOP 1 MaNguoiDung FROM NguoiDung);
 
 INSERT INTO BaiHoc(MaChuDe, MaTrinhDo, NguoiTao, TieuDe, LoaiBaiHoc, TomTat, NoiDung, ThoiGianUocTinhPhut, DaXuatBan)
 VALUES
@@ -192,8 +211,10 @@ GO
 
 -- 7. Đề thi / Luyện tập
 DECLARE @tdB2 INT = (SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = N'B2');
-DECLARE @cdWriting INT = (SELECT TOP 1 MaChuDe FROM ChuDe WHERE TenChuDe = N'IELTS Writing Task 2 — Luận xã hội');
+DECLARE @cdWriting INT = (SELECT TOP 1 MaChuDe FROM ChuDe WHERE TenChuDe LIKE N'%IELTS Writing Task 2%');
 DECLARE @gvId INT = (SELECT TOP 1 MaNguoiDung FROM NguoiDung WHERE TenDangNhap = N'tung.hoang');
+IF @gvId IS NULL SET @gvId = (SELECT TOP 1 MaNguoiDung FROM NguoiDung WHERE MaVaiTro = (SELECT TOP 1 MaVaiTro FROM VaiTro WHERE TenVaiTro = N'GiangVien'));
+IF @gvId IS NULL SET @gvId = (SELECT TOP 1 MaNguoiDung FROM NguoiDung);
 
 INSERT INTO BaiTapDeThi(MaChuDe, MaTrinhDo, TenBaiTapDeThi, LoaiHinh, MoTa, ThoiGianLamBaiPhut, DaPhatHanh, NguoiTao)
 VALUES
@@ -203,19 +224,28 @@ GO
 
 -- 8. Yêu cầu sinh đề AI và Câu hỏi sinh bởi AI (để test KPI "Chờ duyệt")
 DECLARE @gvId INT = (SELECT TOP 1 MaNguoiDung FROM NguoiDung WHERE TenDangNhap = N'tung.hoang');
+IF @gvId IS NULL SET @gvId = (SELECT TOP 1 MaNguoiDung FROM NguoiDung WHERE MaVaiTro = (SELECT TOP 1 MaVaiTro FROM VaiTro WHERE TenVaiTro = N'GiangVien'));
+IF @gvId IS NULL SET @gvId = (SELECT TOP 1 MaNguoiDung FROM NguoiDung);
+
 DECLARE @tdB2 INT = (SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = N'B2');
 
-INSERT INTO YeuCauSinhDeAI(NguoiYeuCau, LoaiDauVao, NoiDungDauVao, MaTrinhDoMongMuon, SoLuongCauHoi, TrangThai, MoHinhAI)
-VALUES
-(@gvId, N'VanBan', N'Bài đọc về biến đổi khí hậu và năng lượng tái tạo', @tdB2, 4, N'DangXuLy', N'Gemini-Pro-1.5');
-DECLARE @ycId BIGINT = SCOPE_IDENTITY();
+IF @gvId IS NOT NULL AND @tdB2 IS NOT NULL
+BEGIN
+    INSERT INTO YeuCauSinhDeAI(NguoiYeuCau, LoaiDauVao, NoiDungDauVao, MaTrinhDoMongMuon, SoLuongCauHoi, TrangThai, MoHinhAI)
+    VALUES
+    (@gvId, N'VanBan', N'Bài đọc về biến đổi khí hậu và năng lượng tái tạo', @tdB2, 4, N'DangXuLy', N'Gemini-Pro-1.5');
+    DECLARE @ycId BIGINT = SCOPE_IDENTITY();
 
-INSERT INTO CauHoiDoAISinh(MaYeuCauSinhDe, NoiDungCauHoiSinhRa, TrangThaiDuyet)
-VALUES
-(@ycId, N'What is the main topic of the passage regarding renewable energy?', N'DangCho'),
-(@ycId, N'According to paragraph 2, why are solar cells becoming more efficient?', N'DangCho'),
-(@ycId, N'The word "resilience" in line 14 is closest in meaning to...', N'DangCho'),
-(@ycId, N'Which of the following statements is NOT mentioned in the text?', N'DangCho');
+    IF @ycId IS NOT NULL
+    BEGIN
+        INSERT INTO CauHoiDoAISinh(MaYeuCauSinhDe, NoiDungCauHoiSinhRa, TrangThaiDuyet)
+        VALUES
+        (@ycId, N'What is the main topic of the passage regarding renewable energy?', N'DangCho'),
+        (@ycId, N'According to paragraph 2, why are solar cells becoming more efficient?', N'DangCho'),
+        (@ycId, N'The word "resilience" in line 14 is closest in meaning to...', N'DangCho'),
+        (@ycId, N'Which of the following statements is NOT mentioned in the text?', N'DangCho');
+    END
+END
 GO
 
 PRINT N'Nạp dữ liệu mẫu Sprint 1 thành công!';
