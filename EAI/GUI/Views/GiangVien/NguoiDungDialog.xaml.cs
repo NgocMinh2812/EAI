@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using BUS;
 using DTO;
 
 namespace GUI.Views.GiangVien
@@ -56,12 +57,14 @@ namespace GUI.Views.GiangVien
             string email = txtEmail.Text.Trim();
             string sdt = txtSoDienThoai.Text.Trim();
 
-            if (string.IsNullOrWhiteSpace(hoTen))
+            if (!NguoiDungBUS.KiemTraDinhDangHoTen(hoTen, out string nameErr, out string normalizedHoTen))
             {
-                Views.Common.ThongBaoDialog.CanhBao(this, "Vui lòng nhập họ và tên người dùng.", "Thiếu thông tin");
+                Views.Common.ThongBaoDialog.CanhBao(this, nameErr, "Họ và tên không hợp lệ");
                 txtHoTen.Focus();
                 return;
             }
+            hoTen = normalizedHoTen;
+            txtHoTen.Text = normalizedHoTen;
 
             if (!_isEditMode && (string.IsNullOrWhiteSpace(tenDangNhap) || tenDangNhap.Length < 3))
             {

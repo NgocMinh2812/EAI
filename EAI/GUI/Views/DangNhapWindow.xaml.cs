@@ -57,6 +57,9 @@ namespace GUI.Views
 
             footerLogin.Visibility = Visibility.Visible;
             footerRegister.Visibility = Visibility.Collapsed;
+
+            txtRegNameError.Visibility = Visibility.Collapsed;
+            txtRegEmailError.Visibility = Visibility.Collapsed;
         }
 
         private void SwitchToRegisterTab()
@@ -119,6 +122,7 @@ namespace GUI.Views
 
         private void TxtRegName_GotFocus(object sender, RoutedEventArgs e)
         {
+            txtRegNameError.Visibility = Visibility.Collapsed;
             if (txtRegName.Text == NamePlaceholder)
             {
                 txtRegName.Text = "";
@@ -132,6 +136,24 @@ namespace GUI.Views
             {
                 txtRegName.Text = NamePlaceholder;
                 txtRegName.Foreground = (Brush)FindResource("TextMuted");
+                txtRegNameError.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                string name = txtRegName.Text.Trim();
+                if (name != NamePlaceholder)
+                {
+                    if (!NguoiDungBUS.KiemTraDinhDangHoTen(name, out string error, out string normalizedName))
+                    {
+                        txtRegNameError.Text = $"⚠️ {error}";
+                        txtRegNameError.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        txtRegName.Text = normalizedName;
+                        txtRegNameError.Visibility = Visibility.Collapsed;
+                    }
+                }
             }
         }
 
@@ -254,6 +276,18 @@ namespace GUI.Views
             if (password == PasswordPlaceholder) password = "";
             string confirmPassword = txtRegConfirmPassword.Password;
             if (confirmPassword == PasswordPlaceholder) confirmPassword = "";
+
+            if (!NguoiDungBUS.KiemTraDinhDangHoTen(name, out string nameError, out string normalizedName))
+            {
+                txtRegNameError.Text = $"⚠️ {nameError}";
+                txtRegNameError.Visibility = Visibility.Visible;
+                MessageBox.Show(nameError, "Họ và tên không hợp lệ", MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtRegName.Focus();
+                return;
+            }
+            name = normalizedName;
+            txtRegName.Text = normalizedName;
+            txtRegNameError.Visibility = Visibility.Collapsed;
 
             if (!string.IsNullOrEmpty(email) && NguoiDungBUS.Instance.KiemTraEmailTonTai(email))
             {

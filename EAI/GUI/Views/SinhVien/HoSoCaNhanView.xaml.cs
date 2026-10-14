@@ -128,11 +128,14 @@ namespace GUI.Views
             string hoTen = txtName.Text.Trim();
             string soDienThoai = txtPhone.Text.Trim();
 
-            if (string.IsNullOrWhiteSpace(hoTen))
+            if (!NguoiDungBUS.KiemTraDinhDangHoTen(hoTen, out string nameError, out string normalizedHoTen))
             {
-                MessageBox.Show("Vui lòng không để trống họ và tên!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(nameError, "Họ và tên không hợp lệ", MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtName.Focus();
                 return;
             }
+            hoTen = normalizedHoTen;
+            txtName.Text = normalizedHoTen;
 
             // Cập nhật thông tin cá nhân
             bool okUser = NguoiDungBUS.Instance.CapNhatThongTinCaNhan(user.MaNguoiDung, hoTen, soDienThoai);
