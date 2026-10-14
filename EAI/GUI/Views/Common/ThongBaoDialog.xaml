@@ -1,6 +1,7 @@
 <Window x:Class="GUI.Views.Common.ThongBaoDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:GUI"
         Title="Thông báo"
         Width="448" SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
@@ -42,7 +43,7 @@
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="b" Background="Transparent" CornerRadius="14">
-                            <TextBlock Text="✕" FontSize="13" Foreground="#64748B" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <local:LucideIcon Kind="X" Size="14" Foreground="#64748B" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -56,7 +57,7 @@
             <!-- Icon Header + Badge -->
             <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,2,0,14">
                 <Border x:Name="borderIconBadge" Width="64" Height="64" CornerRadius="32" Background="#FEF3C7" HorizontalAlignment="Center">
-                    <TextBlock x:Name="txtIconSymbol" Text="⚠️" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <local:LucideIcon x:Name="icoSymbol" Kind="AlertTriangle" Size="30" Foreground="#D97706" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
             </StackPanel>
 

@@ -9,7 +9,7 @@ namespace GUI.Views.GiangVien
     public partial class GiangVienWindow : Window
     {
         private bool _isSidebarCollapsed = false;
-        private TextBlock[] _navIcons = Array.Empty<TextBlock>();
+        private FrameworkElement[] _navIcons = Array.Empty<FrameworkElement>();
         private TextBlock[] _navLabels = Array.Empty<TextBlock>();
         private StackPanel[] _navPanels = Array.Empty<StackPanel>();
 
@@ -25,7 +25,7 @@ namespace GUI.Views.GiangVien
 
         private void InitSidebarElements()
         {
-            _navIcons = new TextBlock[] {
+            _navIcons = new FrameworkElement[] {
                 icoNavTongQuan, icoNavNguoiDung, icoNavDanhMuc, icoNavNoiDung,
                 icoNavNganHang, icoNavDeThi, icoNavKhaoSat, icoNavAISinhDe,
                 icoNavGiamSat, icoNavToStudentHome

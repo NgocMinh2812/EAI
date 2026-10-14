@@ -36,7 +36,8 @@ namespace GUI.Views.Common
             switch (type)
             {
                 case ThongBaoType.DangerConfirm:
-                    txtIconSymbol.Text = "🗑️";
+                    icoSymbol.Kind = LucideIconKind.Trash2;
+                    icoSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#DC2626")!;
                     borderIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#FEE2E2")!;
                     btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#DC2626")!;
                     btnConfirm.Content = string.IsNullOrEmpty(btnConfirm.Content?.ToString()) ? "Xóa vĩnh viễn" : btnConfirm.Content;
@@ -46,7 +47,8 @@ namespace GUI.Views.Common
                     break;
 
                 case ThongBaoType.Confirm:
-                    txtIconSymbol.Text = "❓";
+                    icoSymbol.Kind = LucideIconKind.HelpCircle;
+                    icoSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#D97706")!;
                     borderIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#FEF3C7")!;
                     btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#0F766E")!;
                     btnCancel.Visibility = Visibility.Visible;
@@ -55,9 +57,9 @@ namespace GUI.Views.Common
                     break;
 
                 case ThongBaoType.Success:
-                    txtIconSymbol.Text = "✓";
+                    icoSymbol.Kind = LucideIconKind.CheckCircle2;
                     borderIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#DCFCE7")!;
-                    txtIconSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#15803D")!;
+                    icoSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#15803D")!;
                     btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#10B981")!;
                     btnConfirm.Content = "Đã hiểu";
                     btnCancel.Visibility = Visibility.Collapsed;
@@ -66,7 +68,8 @@ namespace GUI.Views.Common
                     break;
 
                 case ThongBaoType.Warning:
-                    txtIconSymbol.Text = "⚠️";
+                    icoSymbol.Kind = LucideIconKind.AlertTriangle;
+                    icoSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#D97706")!;
                     borderIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#FEF3C7")!;
                     btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#D97706")!;
                     btnConfirm.Content = "Đóng";
@@ -76,9 +79,9 @@ namespace GUI.Views.Common
                     break;
 
                 case ThongBaoType.Error:
-                    txtIconSymbol.Text = "✕";
+                    icoSymbol.Kind = LucideIconKind.XCircle;
                     borderIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#FEE2E2")!;
-                    txtIconSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#DC2626")!;
+                    icoSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#DC2626")!;
                     btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#EF4444")!;
                     btnConfirm.Content = "Đóng";
                     btnCancel.Visibility = Visibility.Collapsed;
@@ -88,7 +91,8 @@ namespace GUI.Views.Common
 
                 case ThongBaoType.Info:
                 default:
-                    txtIconSymbol.Text = "ℹ️";
+                    icoSymbol.Kind = LucideIconKind.Info;
+                    icoSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#0284C7")!;
                     borderIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#E0F2FE")!;
                     btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#0F766E")!;
                     btnConfirm.Content = "Đồng ý";
