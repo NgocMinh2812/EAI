@@ -92,14 +92,14 @@ namespace DAL
         public int DemSoBaiHocTheoChuDe(int maChuDe)
         {
             var query = "SELECT COUNT(*) FROM BaiHoc WHERE MaChuDe = @id";
-            var count = DatabaseHelper.ExecuteScalar(query, new[] { new SqlParameter("@id", idQueryParam(maChuDe)) });
+            var count = DatabaseHelper.ExecuteScalar(query, new[] { new SqlParameter("@id", maChuDe) });
             return Convert.ToInt32(count ?? 0);
         }
 
         public int DemSoChuDeCon(int maChuDe)
         {
             var query = "SELECT COUNT(*) FROM ChuDe WHERE MaChuDeCha = @id";
-            var count = DatabaseHelper.ExecuteScalar(query, new[] { new SqlParameter("@id", idQueryParam(maChuDe)) });
+            var count = DatabaseHelper.ExecuteScalar(query, new[] { new SqlParameter("@id", maChuDe) });
             return Convert.ToInt32(count ?? 0);
         }
 
@@ -156,7 +156,5 @@ namespace DAL
             int rows = DatabaseHelper.ExecuteNonQuery(query, new[] { new SqlParameter("@id", maChuDe) });
             return rows > 0;
         }
-
-        private static object idQueryParam(int id) => id;
     }
 }

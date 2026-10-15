@@ -132,10 +132,9 @@ namespace DAL
                 int thuTu = 1;
                 foreach (DataRow row in dt.Rows)
                 {
-                    int maCH = Convert.ToInt32(row["MaCauHoi"]);
-                    var q = new CauHoiKhaoSatDTO
+                    list.Add(new CauHoiKhaoSatDTO
                     {
-                        MaCauHoi = maCH,
+                        MaCauHoi = Convert.ToInt32(row["MaCauHoi"]),
                         ThuTuCauHoi = thuTu++,
                         KyNang = row["KyNang"]?.ToString() ?? "NguPhap",
                         MaTrinhDo = row["MaTrinhDo"]?.ToString() ?? "B1",
@@ -143,24 +142,11 @@ namespace DAL
                         NoiDungCauHoi = row["NoiDungCauHoi"]?.ToString() ?? "",
                         DoanVanDoc = row["DoanVanDoc"] == DBNull.Value ? null : row["DoanVanDoc"]?.ToString(),
                         GiaiThichDapAn = row["GiaiThichDapAn"] == DBNull.Value ? null : row["GiaiThichDapAn"]?.ToString()
-                    };
-
-                    string queryLC = "SELECT MaLuaChon, MaCauHoi, KyHieuLuaChon, NoiDungLuaChon, LaDapAnDung FROM LuaChonDapAn WHERE MaCauHoi = @MaCauHoi ORDER BY KyHieuLuaChon ASC";
-                    DataTable dtLC = SqlDataProvider.Instance.ExecuteQuery(queryLC, new[] { new SqlParameter("@MaCauHoi", maCH) });
-                    foreach (DataRow rLC in dtLC.Rows)
-                    {
-                        q.DanhSachLuaChon.Add(new LuaChonDapAnDTO
-                        {
-                            MaLuaChon = Convert.ToInt32(rLC["MaLuaChon"]),
-                            MaCauHoi = Convert.ToInt32(rLC["MaCauHoi"]),
-                            KyHieuLuaChon = rLC["KyHieuLuaChon"]?.ToString() ?? "",
-                            NoiDungLuaChon = rLC["NoiDungLuaChon"]?.ToString() ?? "",
-                            LaDapAnDung = Convert.ToBoolean(rLC["LaDapAnDung"])
-                        });
-                    }
-
-                    list.Add(q);
+                    });
                 }
+
+                // Nạp toàn bộ lựa chọn trong 1 truy vấn duy nhất (loại bỏ N+1 query)
+                CauHoiDAL.NapDanhSachLuaChon(list);
             }
             catch (Exception ex)
             {

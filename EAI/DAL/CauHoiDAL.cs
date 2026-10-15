@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using Microsoft.Data.SqlClient;
 using DTO;
 
@@ -10,6 +11,62 @@ namespace DAL
     {
         private static CauHoiDAL? _instance;
         public static CauHoiDAL Instance => _instance ??= new CauHoiDAL();
+
+        /// <summary>
+        /// Nạp toàn bộ các lựa chọn (A, B, C, D) cho danh sách câu hỏi trong 1 truy vấn duy nhất (Tránh lỗi N+1 Query)
+        /// </summary>
+        public static void NapDanhSachLuaChon(List<CauHoiKhaoSatDTO> danhSach)
+        {
+            if (danhSach == null || danhSach.Count == 0) return;
+
+            var ids = danhSach.Select(q => q.MaCauHoi).Where(id => id > 0).Distinct().ToList();
+            if (ids.Count == 0) return;
+
+            try
+            {
+                string idList = string.Join(",", ids);
+                string query = $@"
+                    SELECT MaLuaChon, MaCauHoi, KyHieuLuaChon, NoiDungLuaChon, LaDapAnDung
+                    FROM LuaChonDapAn
+                    WHERE MaCauHoi IN ({idList})
+                    ORDER BY MaCauHoi ASC, KyHieuLuaChon ASC";
+
+                DataTable dt = SqlDataProvider.Instance.ExecuteQuery(query);
+                var lookup = new Dictionary<int, List<LuaChonDapAnDTO>>();
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    int maCauHoi = Convert.ToInt32(row["MaCauHoi"]);
+                    if (!lookup.TryGetValue(maCauHoi, out var list))
+                    {
+                        list = new List<LuaChonDapAnDTO>();
+                        lookup[maCauHoi] = list;
+                    }
+
+                    list.Add(new LuaChonDapAnDTO
+                    {
+                        MaLuaChon = Convert.ToInt32(row["MaLuaChon"]),
+                        MaCauHoi = maCauHoi,
+                        KyHieuLuaChon = row["KyHieuLuaChon"]?.ToString() ?? "",
+                        NoiDungLuaChon = row["NoiDungLuaChon"]?.ToString() ?? "",
+                        LaDapAnDung = Convert.ToBoolean(row["LaDapAnDung"])
+                    });
+                }
+
+                foreach (var q in danhSach)
+                {
+                    if (lookup.TryGetValue(q.MaCauHoi, out var options))
+                    {
+                        q.DanhSachLuaChon.Clear();
+                        q.DanhSachLuaChon.AddRange(options);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CauHoiDAL.NapDanhSachLuaChon] {ex.Message}");
+            }
+        }
 
         public List<CauHoiKhaoSatDTO> LayDanhSachCauHoiKhaoSat(int maBaiKhaoSat = 1)
         {
@@ -42,7 +99,7 @@ namespace DAL
 
             foreach (DataRow row in dtCauHoi.Rows)
             {
-                var q = new CauHoiKhaoSatDTO
+                danhSach.Add(new CauHoiKhaoSatDTO
                 {
                     MaCauHoi = Convert.ToInt32(row["MaCauHoi"]),
                     ThuTuCauHoi = Convert.ToInt32(row["ThuTuCauHoi"]),
@@ -52,30 +109,11 @@ namespace DAL
                     NoiDungCauHoi = row["NoiDungCauHoi"]?.ToString() ?? "",
                     DoanVanDoc = row["DoanVanDoc"] == DBNull.Value ? null : row["DoanVanDoc"]?.ToString(),
                     GiaiThichDapAn = row["GiaiThichDapAn"] == DBNull.Value ? null : row["GiaiThichDapAn"]?.ToString()
-                };
-
-                // Lấy các lựa chọn cho câu hỏi này
-                string queryLuaChon = @"
-                    SELECT MaLuaChon, MaCauHoi, KyHieuLuaChon, NoiDungLuaChon, LaDapAnDung
-                    FROM LuaChonDapAn
-                    WHERE MaCauHoi = @MaCauHoi
-                    ORDER BY KyHieuLuaChon ASC";
-
-                DataTable dtLuaChon = SqlDataProvider.Instance.ExecuteQuery(queryLuaChon, new[] { new SqlParameter("@MaCauHoi", q.MaCauHoi) });
-                foreach (DataRow rLC in dtLuaChon.Rows)
-                {
-                    q.DanhSachLuaChon.Add(new LuaChonDapAnDTO
-                    {
-                        MaLuaChon = Convert.ToInt32(rLC["MaLuaChon"]),
-                        MaCauHoi = Convert.ToInt32(rLC["MaCauHoi"]),
-                        KyHieuLuaChon = rLC["KyHieuLuaChon"]?.ToString() ?? "",
-                        NoiDungLuaChon = rLC["NoiDungLuaChon"]?.ToString() ?? "",
-                        LaDapAnDung = Convert.ToBoolean(rLC["LaDapAnDung"])
-                    });
-                }
-
-                danhSach.Add(q);
+                });
             }
+
+            // Nạp toàn bộ lựa chọn trong 1 truy vấn duy nhất
+            NapDanhSachLuaChon(danhSach);
 
             return danhSach;
         }
@@ -104,7 +142,7 @@ namespace DAL
             int thuTu = 1;
             foreach (DataRow row in dt.Rows)
             {
-                var q = new CauHoiKhaoSatDTO
+                danhSach.Add(new CauHoiKhaoSatDTO
                 {
                     MaCauHoi = Convert.ToInt32(row["MaCauHoi"]),
                     ThuTuCauHoi = thuTu++,
@@ -114,29 +152,11 @@ namespace DAL
                     NoiDungCauHoi = row["NoiDungCauHoi"]?.ToString() ?? "",
                     DoanVanDoc = row["DoanVanDoc"] == DBNull.Value ? null : row["DoanVanDoc"]?.ToString(),
                     GiaiThichDapAn = row["GiaiThichDapAn"] == DBNull.Value ? null : row["GiaiThichDapAn"]?.ToString()
-                };
-
-                string queryLuaChon = @"
-                    SELECT MaLuaChon, MaCauHoi, KyHieuLuaChon, NoiDungLuaChon, LaDapAnDung
-                    FROM LuaChonDapAn
-                    WHERE MaCauHoi = @MaCauHoi
-                    ORDER BY KyHieuLuaChon ASC";
-
-                DataTable dtLuaChon = SqlDataProvider.Instance.ExecuteQuery(queryLuaChon, new[] { new SqlParameter("@MaCauHoi", q.MaCauHoi) });
-                foreach (DataRow rLC in dtLuaChon.Rows)
-                {
-                    q.DanhSachLuaChon.Add(new LuaChonDapAnDTO
-                    {
-                        MaLuaChon = Convert.ToInt32(rLC["MaLuaChon"]),
-                        MaCauHoi = Convert.ToInt32(rLC["MaCauHoi"]),
-                        KyHieuLuaChon = rLC["KyHieuLuaChon"]?.ToString() ?? "",
-                        NoiDungLuaChon = rLC["NoiDungLuaChon"]?.ToString() ?? "",
-                        LaDapAnDung = Convert.ToBoolean(rLC["LaDapAnDung"])
-                    });
-                }
-
-                danhSach.Add(q);
+                });
             }
+
+            // Nạp toàn bộ lựa chọn trong 1 truy vấn duy nhất
+            NapDanhSachLuaChon(danhSach);
 
             return danhSach;
         }

@@ -6,22 +6,15 @@ namespace DAL
 {
     public class DatabaseHelper
     {
-        private static string _connectionString = "Server=.\\SQLEXPRESS;Database=TiengAnhAI;Trusted_Connection=True;TrustServerCertificate=True;";
-
         public static string ConnectionString
-        {   
-            get
-            {
-                if (!string.IsNullOrEmpty(SqlDataProvider.Instance.ConnectionString))
-                    return SqlDataProvider.Instance.ConnectionString;
-                return _connectionString;
-            }
-            set => _connectionString = value;
+        {
+            get => SqlDataProvider.Instance.ConnectionString;
+            set => SqlDataProvider.Instance.ConnectionString = value;
         }
 
         public static SqlConnection GetConnection()
         {
-            return new SqlConnection(ConnectionString);
+            return SqlDataProvider.Instance.GetConnection();
         }
 
         /// <summary>
@@ -29,24 +22,7 @@ namespace DAL
         /// </summary>
         public static DataTable ExecuteQuery(string query, SqlParameter[]? parameters = null)
         {
-            var dataTable = new DataTable();
-            using (var connection = GetConnection())
-            {
-                using (var command = new SqlCommand(query, connection))
-                {
-                    if (parameters != null && parameters.Length > 0)
-                    {
-                        command.Parameters.AddRange(parameters);
-                    }
-
-                    using (var adapter = new SqlDataAdapter(command))
-                    {
-                        connection.Open();
-                        adapter.Fill(dataTable);
-                    }
-                }
-            }
-            return dataTable;
+            return SqlDataProvider.Instance.ExecuteQuery(query, parameters);
         }
 
         /// <summary>
@@ -54,19 +30,7 @@ namespace DAL
         /// </summary>
         public static int ExecuteNonQuery(string query, SqlParameter[]? parameters = null)
         {
-            using (var connection = GetConnection())
-            {
-                using (var command = new SqlCommand(query, connection))
-                {
-                    if (parameters != null && parameters.Length > 0)
-                    {
-                        command.Parameters.AddRange(parameters);
-                    }
-
-                    connection.Open();
-                    return command.ExecuteNonQuery();
-                }
-            }
+            return SqlDataProvider.Instance.ExecuteNonQuery(query, parameters);
         }
 
         /// <summary>
@@ -74,19 +38,7 @@ namespace DAL
         /// </summary>
         public static object? ExecuteScalar(string query, SqlParameter[]? parameters = null)
         {
-            using (var connection = GetConnection())
-            {
-                using (var command = new SqlCommand(query, connection))
-                {
-                    if (parameters != null && parameters.Length > 0)
-                    {
-                        command.Parameters.AddRange(parameters);
-                    }
-
-                    connection.Open();
-                    return command.ExecuteScalar();
-                }
-            }
+            return SqlDataProvider.Instance.ExecuteScalar(query, parameters);
         }
     }
 }
