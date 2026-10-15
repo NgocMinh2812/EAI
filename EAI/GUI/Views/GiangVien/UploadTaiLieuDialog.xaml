@@ -264,7 +264,7 @@
 
                             <!-- Nội dung bài học bóc tách từ file -->
                             <TextBlock Text="Nội dung bóc tách từ tài liệu (Xem trước &amp; Chỉnh sửa)" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
-                            <TextBox x:Name="txtNoiDung" Height="100" Padding="10,8" FontSize="12" TextWrapping="Wrap" AcceptsReturn="True" 
+                            <TextBox x:Name="txtNoiDung" Height="135" Padding="10,8" FontSize="12" TextWrapping="Wrap" AcceptsReturn="True" 
                                      VerticalScrollBarVisibility="Auto" BorderBrush="#CBD5E1" Margin="0,0,0,4">
                                 <TextBox.Template>
                                     <ControlTemplate TargetType="TextBox">

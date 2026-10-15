@@ -82,7 +82,7 @@ namespace BUS
                 ParentId = item.MaChuDeCha,
                 Title = item.TenChuDe,
                 Subtitle = item.MoTa ?? "",
-                Icon = (item.MaChuDeCha.HasValue && item.MaChuDeCha > 0) ? "📄" : "📁",
+                Icon = "📁",
                 ItemCount = item.SoLuongBaiHoc,
                 Tag = item,
                 IsExpanded = true

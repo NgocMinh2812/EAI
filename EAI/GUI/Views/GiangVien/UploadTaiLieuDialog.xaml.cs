@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Xml.Linq;
 using BUS;
 using DTO;
 using Microsoft.Win32;
@@ -109,18 +110,44 @@ namespace GUI.Views.GiangVien
                     pnlFileIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#E0F2FE")!;
                 }
 
-                // Gợi ý tiêu đề bài học từ tên file
-                string titleSuggestion = Path.GetFileNameWithoutExtension(fileName)
-                    .Replace('_', ' ')
-                    .Replace('-', ' ');
-                txtTieuDe.Text = titleSuggestion;
+                // Bóc tách nội dung thực tế từ tệp
+                var (content, title, summary) = ext switch
+                {
+                    ".docx" => ExtractFromDocx(filePath),
+                    ".pdf" => ExtractFromPdf(filePath),
+                    _ => ExtractFromTxt(filePath)
+                };
 
-                // Bóc tách nội dung tệp
-                string extractedContent = ExtractContentFromFile(filePath, ext);
-                txtNoiDung.Text = extractedContent;
+                // 1. Tiêu đề: Ưu tiên dòng tiêu đề thực tế từ tệp nếu có, nếu không lấy tên tệp
+                if (!string.IsNullOrWhiteSpace(title) && title.Length >= 5 && title.Length <= 120)
+                {
+                    txtTieuDe.Text = title;
+                }
+                else
+                {
+                    txtTieuDe.Text = Path.GetFileNameWithoutExtension(fileName)
+                        .Replace('_', ' ')
+                        .Replace('-', ' ');
+                }
 
-                // Gợi ý tóm tắt
-                txtTomTat.Text = $"Tài liệu trích xuất từ tệp {fileName} ({sizeText}), cung cấp học liệu chuyên sâu và bài tập liên quan.";
+                // 2. Nội dung: Đưa toàn bộ nội dung văn bản thực tế bóc tách được vào TextBox
+                txtNoiDung.Text = !string.IsNullOrWhiteSpace(content)
+                    ? content
+                    : "Không thể trích xuất văn bản từ tệp này (có thể tệp rỗng hoặc là hình ảnh scan).";
+
+                // 3. Tóm tắt: Tạo tóm tắt từ chính nội dung thực tế trong tệp thay vì câu mẫu
+                if (!string.IsNullOrWhiteSpace(summary))
+                {
+                    txtTomTat.Text = summary;
+                }
+                else if (!string.IsNullOrWhiteSpace(content))
+                {
+                    txtTomTat.Text = content.Length > 180 ? content.Substring(0, 177) + "..." : content;
+                }
+                else
+                {
+                    txtTomTat.Text = $"Tài liệu {fileName}.";
+                }
             }
             catch (Exception ex)
             {
@@ -128,25 +155,7 @@ namespace GUI.Views.GiangVien
             }
         }
 
-        private string ExtractContentFromFile(string filePath, string ext)
-        {
-            if (ext == ".txt")
-            {
-                return File.ReadAllText(filePath, Encoding.UTF8);
-            }
-            else if (ext == ".docx")
-            {
-                return ExtractFromDocx(filePath);
-            }
-            else if (ext == ".pdf")
-            {
-                return ExtractFromPdf(filePath);
-            }
-
-            return "Nội dung tệp đã được tiếp nhận và xử lý.";
-        }
-
-        private string ExtractFromDocx(string filePath)
+        private (string Content, string Title, string Summary) ExtractFromDocx(string filePath)
         {
             try
             {
@@ -155,58 +164,146 @@ namespace GUI.Views.GiangVien
                 if (docEntry != null)
                 {
                     using var stream = docEntry.Open();
-                    using var reader = new StreamReader(stream, Encoding.UTF8);
-                    string xml = reader.ReadToEnd();
+                    var xdoc = XDocument.Load(stream);
+                    XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+                    var paragraphs = xdoc.Descendants(w + "p")
+                        .Select(p => string.Concat(p.Descendants(w + "t").Select(t => t.Value)).Trim())
+                        .Where(text => !string.IsNullOrWhiteSpace(text))
+                        .ToList();
 
-                    // Chuyển thẻ ngắt đoạn </w:p> thành xuống dòng
-                    xml = Regex.Replace(xml, @"</w:p>", "\n\n");
-                    // Loại bỏ tất cả thẻ XML
-                    string text = Regex.Replace(xml, @"<.*?>", "");
-                    text = WebUtility.HtmlDecode(text).Trim();
-
-                    if (!string.IsNullOrWhiteSpace(text))
+                    if (paragraphs.Count > 0)
                     {
-                        return text;
+                        string content = string.Join("\n\n", paragraphs);
+                        string title = paragraphs[0];
+                        if (title.Length > 100) title = title.Substring(0, 97) + "...";
+
+                        // Tóm tắt từ các đoạn nội dung thực tế trong bài
+                        string summary = "";
+                        var bodyParas = paragraphs.Skip(1).Where(p => p.Length > 15).ToList();
+                        if (bodyParas.Count > 0)
+                        {
+                            summary = string.Join(" ", bodyParas.Take(2));
+                            if (summary.Length > 220) summary = summary.Substring(0, 217) + "...";
+                        }
+                        else
+                        {
+                            summary = paragraphs[0];
+                        }
+
+                        return (content, title, summary);
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Fallback nếu file docx đặc biệt
+                System.Diagnostics.Debug.WriteLine($"[ExtractFromDocx] {ex.Message}");
             }
 
-            return $"=== NỘI DUNG TÀI LIỆU WORD (DOCX) ===\n\nTệp: {Path.GetFileName(filePath)}\n\nNội dung văn bản, cấu trúc ngữ pháp và câu hỏi đọc hiểu đã được hệ thống phân tích thành công.";
+            return ("", "", "");
         }
 
-        private string ExtractFromPdf(string filePath)
+        private (string Content, string Title, string Summary) ExtractFromPdf(string filePath)
         {
             try
             {
-                // Đọc chuỗi text thô từ PDF stream
                 var rawBytes = File.ReadAllBytes(filePath);
                 var rawContent = Encoding.UTF8.GetString(rawBytes);
 
-                // Tìm các khối text trong PDF (giữa các dấu ngoặc hoặc stream)
-                var matches = Regex.Matches(rawContent, @"\(([^()]+)\)\s*Tj", RegexOptions.Singleline);
-                if (matches.Count > 10)
+                var lines = new List<string>();
+                var matches = Regex.Matches(rawContent, @"\((.*?)\)\s*Tj", RegexOptions.Singleline);
+                foreach (Match m in matches)
                 {
-                    var sb = new StringBuilder();
-                    foreach (Match m in matches)
+                    string val = m.Groups[1].Value
+                        .Replace(@"\(", "(")
+                        .Replace(@"\)", ")")
+                        .Replace(@"\\", @"\")
+                        .Trim();
+
+                    if (!string.IsNullOrWhiteSpace(val) && val.Length > 1)
                     {
-                        string val = m.Groups[1].Value.Trim();
-                        if (val.Length > 2) sb.Append(val + " ");
+                        lines.Add(val);
                     }
-                    string result = sb.ToString().Trim();
-                    if (result.Length > 100) return result;
+                }
+
+                if (lines.Count == 0)
+                {
+                    var tjMatches = Regex.Matches(rawContent, @"\[(.*?)\]\s*TJ", RegexOptions.Singleline);
+                    foreach (Match m in tjMatches)
+                    {
+                        var innerMatches = Regex.Matches(m.Groups[1].Value, @"\((.*?)\)");
+                        var lineParts = new List<string>();
+                        foreach (Match im in innerMatches)
+                        {
+                            lineParts.Add(im.Groups[1].Value.Replace(@"\(", "(").Replace(@"\)", ")"));
+                        }
+                        string line = string.Concat(lineParts).Trim();
+                        if (!string.IsNullOrWhiteSpace(line) && line.Length > 1) lines.Add(line);
+                    }
+                }
+
+                if (lines.Count > 0)
+                {
+                    string content = string.Join("\n\n", lines);
+                    string title = lines[0];
+                    if (title.Length > 100) title = title.Substring(0, 97) + "...";
+
+                    string summary = "";
+                    var bodyLines = lines.Skip(1).Where(l => l.Length > 15).ToList();
+                    if (bodyLines.Count > 0)
+                    {
+                        summary = string.Join(" ", bodyLines.Take(2));
+                        if (summary.Length > 220) summary = summary.Substring(0, 217) + "...";
+                    }
+                    else
+                    {
+                        summary = lines[0];
+                    }
+
+                    return (content, title, summary);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Fallback mô phỏng
+                System.Diagnostics.Debug.WriteLine($"[ExtractFromPdf] {ex.Message}");
             }
 
-            // Gợi ý nội dung học thuật cho PDF IELTS / Cambridge
-            return $"=== ACADEMIC READING & PRACTICE TEST (PDF) ===\n\nTệp gốc: {Path.GetFileName(filePath)}\n\nPassage 1: Analytical Reading & Academic Vocabulary\n\nThis academic practice passage has been extracted directly from the uploaded PDF document. Students will examine key linguistic features, structural relationships, and contextual inference.";
+            return ("", "", "");
+        }
+
+        private (string Content, string Title, string Summary) ExtractFromTxt(string filePath)
+        {
+            try
+            {
+                string raw = File.ReadAllText(filePath, Encoding.UTF8).Trim();
+                var lines = raw.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                               .Select(l => l.Trim())
+                               .Where(l => !string.IsNullOrWhiteSpace(l))
+                               .ToList();
+
+                if (lines.Count > 0)
+                {
+                    string content = string.Join("\n\n", lines);
+                    string title = lines[0];
+                    if (title.Length > 100) title = title.Substring(0, 97) + "...";
+
+                    string summary = "";
+                    var body = lines.Skip(1).Where(l => l.Length > 15).ToList();
+                    if (body.Count > 0)
+                    {
+                        summary = string.Join(" ", body.Take(2));
+                        if (summary.Length > 220) summary = summary.Substring(0, 217) + "...";
+                    }
+                    else
+                    {
+                        summary = lines[0];
+                    }
+
+                    return (content, title, summary);
+                }
+            }
+            catch { }
+
+            return ("", "", "");
         }
 
         private void BtnSave_Click(object sender, RoutedEventArgs e)

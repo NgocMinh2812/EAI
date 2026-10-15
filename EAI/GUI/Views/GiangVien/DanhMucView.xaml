@@ -175,7 +175,7 @@
             <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="Padding" Value="15,8"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Margin" Value="0,2,0,2"/>
+            <Setter Property="Margin" Value="0,2,10,2"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -229,9 +229,9 @@
                 </StackPanel>
             </StackPanel>
 
-            <!-- Cụm nút bấm màu sắc sinh động, tự rớt dòng mềm mại nếu màn hình hẹp -->
+            <!-- Cụm nút bấm màu sắc sinh động, có khoảng cách 10px rõ ràng -->
             <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <Button Style="{StaticResource EmeraldHeaderBtn}" Click="BtnNewFolder_Click" ToolTip="Tạo danh mục thư mục bài học mới trong cây phân cấp">
+                <Button Style="{StaticResource EmeraldHeaderBtn}" Click="BtnNewFolder_Click" Margin="0,0,10,0" ToolTip="Tạo danh mục thư mục bài học mới trong cây phân cấp">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <local:LucideIcon Kind="FolderPlus" Size="14" Foreground="White" Margin="0,0,6,0"/>
                         <TextBlock Text="Thư Mục Mới" VerticalAlignment="Center"/>
