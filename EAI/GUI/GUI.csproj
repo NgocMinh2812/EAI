@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <Resource Include="Assets\**\*" />
-    <Content Include="Logo\LogoRemoveBackground.ico" />
+    <Resource Include="Logo\**\*" />
     <None Update="secrets.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
