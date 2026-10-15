@@ -386,7 +386,7 @@
                     </StackPanel>
 
                     <!-- Right: Timer, Re-select Level & Exit -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
                         <!-- Timer Badge -->
                         <Border Background="#F1F5F9" CornerRadius="8" Padding="12,6" Margin="0,0,10,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">

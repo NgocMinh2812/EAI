@@ -50,7 +50,7 @@
                     <TextBlock Text="Báo cáo &amp; Phân tích tiến độ học tập chi tiết" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
                     <Button Content="📥 Xuất báo cáo PDF" Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
                             FontWeight="Medium" Padding="12,6" BorderThickness="0" Cursor="Hand" Click="BtnExportReport_Click"/>
                 </StackPanel>

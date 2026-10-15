@@ -162,7 +162,7 @@
                     <TextBlock x:Name="txtHeaderBreadcrumb" Text="Phòng thi thử &amp; Khảo thí chuẩn hóa" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
                     <Border Background="#F1F5F9" CornerRadius="8" Padding="12,6" Margin="0,0,10,0">
                         <TextBlock x:Name="txtTotalExamsTaken" Text="🏆 Đã thi: 4 bài" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}"/>
                     </Border>
@@ -276,7 +276,7 @@
                     </StackPanel>
 
                     <!-- Countdown Timer, Test Mode & Submit (TASK-206 & TASK-209) -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
                         <Button x:Name="btnTestTimeout" Content="⚡ Test hết giờ (5s)" 
                                 Background="#FEF3C7" Foreground="#B45309" BorderBrush="#FCD34D" BorderThickness="1" 
                                 Padding="10,6" FontWeight="SemiBold" FontSize="12" Margin="0,0,12,0" Cursor="Hand" 

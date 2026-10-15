@@ -106,7 +106,7 @@
                 </StackPanel>
 
                 <!-- Status Badges -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
                     <Border Background="#FEF3C7" CornerRadius="16" Padding="12,6" Margin="0,0,12,0">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🔥" Margin="0,0,6,0"/>

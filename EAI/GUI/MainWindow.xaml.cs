@@ -1,5 +1,9 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Navigation;
 using BUS;
 using DTO;
@@ -16,6 +20,8 @@ namespace GUI
             InitializeComponent();
             Instance = this;
             this.WindowState = WindowState.Maximized;
+            this.StateChanged += (s, e) => UpdateMaximizeRestoreState();
+            UpdateMaximizeRestoreState();
 
             CapNhatThongTinHocVien();
 
@@ -231,9 +237,71 @@ namespace GUI
             this.Close();
         }
 
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.OriginalSource is Visual visual)
+            {
+                DependencyObject current = visual;
+                while (current != null && current != this)
+                {
+                    if (current is Button || current is TextBox || current is ScrollBar)
+                    {
+                        return;
+                    }
+                    current = VisualTreeHelper.GetParent(current);
+                }
+            }
+
+            if (e.ClickCount == 2)
+            {
+                ToggleMaximizeRestore();
+                return;
+            }
+
+            if (e.ButtonState == MouseButtonState.Pressed && this.WindowState != WindowState.Maximized)
+            {
+                this.DragMove();
+            }
+        }
+
         private void BtnMinimize_Click(object sender, RoutedEventArgs e)
         {
             this.WindowState = WindowState.Minimized;
+        }
+
+        private void BtnMaximizeRestore_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleMaximizeRestore();
+        }
+
+        private void ToggleMaximizeRestore()
+        {
+            if (this.WindowState == WindowState.Maximized)
+            {
+                this.WindowState = WindowState.Normal;
+            }
+            else
+            {
+                this.WindowState = WindowState.Maximized;
+            }
+            UpdateMaximizeRestoreState();
+        }
+
+        private void UpdateMaximizeRestoreState()
+        {
+            if (btnMaximizeRestore == null) return;
+
+            bool isMax = (this.WindowState == WindowState.Maximized);
+            btnMaximizeRestore.ToolTip = isMax ? "Thu nhỏ màn hình" : "Phóng to toàn màn hình";
+
+            if (icoSquare != null)
+            {
+                icoSquare.Visibility = isMax ? Visibility.Collapsed : Visibility.Visible;
+            }
+            if (icoRestore != null)
+            {
+                icoRestore.Visibility = isMax ? Visibility.Visible : Visibility.Collapsed;
+            }
         }
 
         private void BtnClose_Click(object sender, RoutedEventArgs e)

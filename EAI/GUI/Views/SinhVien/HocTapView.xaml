@@ -276,7 +276,7 @@
                     </Border>
 
                     <!-- Header Quick Actions -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
                         <Button Background="Transparent" BorderThickness="0" Margin="0,0,12,0" Cursor="Hand" ToolTip="Thông báo">
                             <TextBlock Text="🔔" FontSize="16"/>
                         </Button>

@@ -73,7 +73,7 @@
                     <TextBlock Text="Phòng luyện viết luận &amp; AI chấm chữa chi tiết" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
                     <Button Content="📑 Chọn đề bài mẫu khác" Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
                             FontWeight="Medium" Padding="12,6" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" Click="BtnChangeTopic_Click"/>
                     <Border Background="{StaticResource BrandTealLight}" CornerRadius="8" Padding="12,6">

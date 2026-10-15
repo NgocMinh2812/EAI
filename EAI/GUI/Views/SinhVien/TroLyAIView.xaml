@@ -88,7 +88,7 @@
                     <TextBlock Text="Gia sư Trợ lý AI Thông Minh 24/7" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
                     <Border Background="#DCFCE7" CornerRadius="12" Padding="12,5">
                         <StackPanel Orientation="Horizontal">
                             <Ellipse Width="8" Height="8" Fill="#16A34A" Margin="0,0,6,0"/>

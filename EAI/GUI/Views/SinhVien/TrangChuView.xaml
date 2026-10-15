@@ -105,7 +105,7 @@
                         </StackPanel>
                     </Border>
                     
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
                         <Button Background="Transparent" BorderThickness="0" Margin="0,0,15,0" Cursor="Hand">
                             <TextBlock Text="🔔" FontSize="18"/>
                         </Button>
