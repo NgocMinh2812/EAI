@@ -4,7 +4,7 @@
         xmlns:local="clr-namespace:GUI"
         Title="Thông tin Tài khoản" 
         Icon="/Assets/app_icon.ico"
-        Height="636" Width="516"
+        Height="685" Width="516"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         WindowStyle="None"
@@ -227,6 +227,23 @@
                         <!-- Checkbox Trạng thái -->
                         <CheckBox x:Name="chkHoatDong" Content="Kích hoạt tài khoản ngay (Trạng thái hoạt động)" 
                                   IsChecked="True" FontSize="12.5" FontWeight="Medium" Margin="0,2,0,0" Foreground="#064E3B" Cursor="Hand"/>
+
+                        <!-- Thông báo mật khẩu khởi tạo mặc định (khi thêm mới) -->
+                        <Border x:Name="pnlDefaultPasswordNote" Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="8" Padding="12,9" Margin="0,12,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <local:LucideIcon Kind="Key" Size="17" Foreground="#0F766E" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock FontSize="12.5" FontWeight="SemiBold" Foreground="#064E3B">
+                                        Mật khẩu khởi tạo mặc định: <Run Text="123456" FontWeight="Bold" Foreground="#0F766E"/>
+                                    </TextBlock>
+                                    <TextBlock Text="Người dùng có thể đổi mật khẩu bất kỳ lúc nào sau khi đăng nhập." FontSize="11" Foreground="#047857" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
                     </StackPanel>
 
                     <!-- Action Buttons -->

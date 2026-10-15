@@ -160,7 +160,7 @@
 
                                         <Button x:Name="btnNavTienDo" Style="{StaticResource SidebarItemStyle}" Click="NavTienDo_Click">
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <local:LucideIcon Kind="LineChart" Size="18" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                                <local:LucideIcon Kind="TrendingUp" Size="18" Margin="0,0,12,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="Tiến độ học" FontSize="13" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>

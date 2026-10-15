@@ -42,11 +42,13 @@ namespace GUI.Views.GiangVien
                         break;
                     }
                 }
+                pnlDefaultPasswordNote.Visibility = Visibility.Collapsed;
             }
             else
             {
                 UserData = new NguoiDungDTO();
                 txtDialogTitle.Text = "Tạo mới Tài khoản Người dùng";
+                pnlDefaultPasswordNote.Visibility = Visibility.Visible;
             }
         }
 

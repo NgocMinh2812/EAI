@@ -12,8 +12,9 @@ namespace GUI.Views
 
         private void BtnExportReport_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("📊 Đang tạo và xuất báo cáo tiến độ học tập chi tiết (PDF). Báo cáo đã được lưu vào thư mục Downloads của bạn!", 
-                            "Xuất báo cáo", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThanhCong(
+                "📊 Đang tạo và xuất báo cáo tiến độ học tập chi tiết (PDF). Báo cáo đã được lưu vào thư mục Downloads của bạn!", 
+                "Xuất báo cáo");
         }
     }
 }

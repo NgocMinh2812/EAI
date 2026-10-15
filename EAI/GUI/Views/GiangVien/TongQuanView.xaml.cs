@@ -17,16 +17,16 @@ namespace GUI.Views.GiangVien
             this.Loaded += TongQuanView_Loaded;
         }
 
-        private void TongQuanView_Loaded(object sender, RoutedEventArgs e)
+        private async void TongQuanView_Loaded(object sender, RoutedEventArgs e)
         {
-            LoadRealKpis();
+            await LoadRealKpisAsync();
         }
 
-        private void LoadRealKpis()
+        private async System.Threading.Tasks.Task LoadRealKpisAsync()
         {
             try
             {
-                var kpi = _dashboardBUS.LaySoLieuTongQuan();
+                var kpi = await System.Threading.Tasks.Task.Run(() => _dashboardBUS.LaySoLieuTongQuan());
                 txtKpiHocVien.Text = kpi.TongHocVien.ToString();
                 txtKpiBaiHoc.Text = kpi.TongBaiHoc.ToString();
                 txtKpiDeThi.Text = kpi.TongDeThi.ToString();
@@ -44,8 +44,9 @@ namespace GUI.Views.GiangVien
 
         private void BtnTaoFlashcard_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Mở hộp thoại tạo nhanh Thẻ Flashcard từ vựng mới kèm phiên âm IPA và audio phát âm chuẩn.", 
-                            "Quản lý Flashcard", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin(
+                "Mở hộp thoại tạo nhanh Thẻ Flashcard từ vựng mới kèm phiên âm IPA và audio phát âm chuẩn.", 
+                "Quản lý Flashcard");
         }
 
         private void BtnChinhSua_Click(object sender, RoutedEventArgs e)

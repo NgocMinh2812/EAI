@@ -191,7 +191,7 @@ namespace GUI.Views
             }
             else
             {
-                MessageBox.Show("Hiện chưa có đề thi sẵn sàng trong cơ sở dữ liệu.", "Thông báo");
+                Common.ThongBaoDialog.ThongTin("Hiện chưa có đề thi sẵn sàng trong cơ sở dữ liệu.", "Thông báo");
             }
         }
 
@@ -213,7 +213,7 @@ namespace GUI.Views
 
             if (_currentExam == null)
             {
-                MessageBox.Show("Không tìm thấy thông tin bài thi đã chọn.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                Common.ThongBaoDialog.Loi("Không tìm thấy thông tin bài thi đã chọn.", "Lỗi");
                 return;
             }
 
@@ -230,7 +230,7 @@ namespace GUI.Views
 
             if (_questions == null || _questions.Count == 0)
             {
-                MessageBox.Show("Bài thi này hiện chưa được gán câu hỏi trong hệ thống. Vui lòng thử đề thi khác.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Common.ThongBaoDialog.CanhBao("Bài thi này hiện chưa được gán câu hỏi trong hệ thống. Vui lòng thử đề thi khác.", "Thông báo");
                 return;
             }
 
@@ -293,8 +293,9 @@ namespace GUI.Views
                 {
                     // TASK-209: Tự động nộp bài khi hết giờ
                     _examTimer.Stop();
-                    MessageBox.Show("⏱️ ĐÃ HẾT THỜI GIAN LÀM BÀI!\nHệ thống sẽ tự động thu bài và chấm điểm ngay bây giờ.", 
-                                    "Hết giờ làm bài", MessageBoxButton.OK, MessageBoxImage.Information);
+                    Common.ThongBaoDialog.ThongTin(
+                        "⏱️ ĐÃ HẾT THỜI GIAN LÀM BÀI!\nHệ thống sẽ tự động thu bài và chấm điểm ngay bây giờ.", 
+                        "Hết giờ làm bài");
                     SubmitExam(tuDongNopHetGio: true);
                 }
             };
@@ -478,8 +479,9 @@ namespace GUI.Views
             _secondsRemaining = 5;
             txtCountdownTimer.Text = "00:05";
             txtCountdownTimer.Foreground = new SolidColorBrush(Color.FromRgb(239, 68, 68));
-            MessageBox.Show("⚡ Đã kích hoạt kịch bản kiểm thử (TASK-209):\nThời gian làm bài còn 5 giây. Hệ thống sẽ tự động thu bài và chấm điểm khi đếm về 00:00!", 
-                            "Kiểm thử tự động nộp bài", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin(
+                "⚡ Đã kích hoạt kịch bản kiểm thử (TASK-209):\nThời gian làm bài còn 5 giây. Hệ thống sẽ tự động thu bài và chấm điểm khi đếm về 00:00!", 
+                "Kiểm thử tự động nộp bài");
         }
 
         private void ExamOption_Checked(object sender, RoutedEventArgs e)
@@ -532,8 +534,8 @@ namespace GUI.Views
                 ? $"Bạn còn {unanswered} câu hỏi chưa trả lời.\nBạn có chắc chắn muốn nộp bài thi ngay bây giờ?"
                 : "Bạn đã hoàn thành tất cả các câu hỏi.\nBạn có muốn nộp bài thi để hệ thống chấm điểm?";
 
-            var res = MessageBox.Show(confirmMsg, "Xác nhận nộp bài thi", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (res == MessageBoxResult.Yes)
+            bool xacNhan = Common.ThongBaoDialog.XacNhan(confirmMsg, "Xác nhận nộp bài thi", "Nộp bài ngay", "Tiếp tục làm");
+            if (xacNhan)
             {
                 SubmitExam(tuDongNopHetGio: false);
             }

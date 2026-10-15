@@ -318,7 +318,7 @@ namespace GUI.Views.GiangVien
             bool isAdmin = user != null && string.Equals(user.TenVaiTro, "QuanTriVien", StringComparison.OrdinalIgnoreCase);
             if (!isAdmin)
             {
-                MessageBox.Show("Chức năng 'Giám sát hệ thống' chỉ dành cho Quản trị viên hệ thống!", "Không có quyền truy cập", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Common.ThongBaoDialog.CanhBao(this, "Chức năng 'Giám sát hệ thống' chỉ dành cho Quản trị viên hệ thống!", "Không có quyền truy cập");
                 return;
             }
 

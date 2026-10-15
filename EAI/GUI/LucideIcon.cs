@@ -170,7 +170,9 @@ namespace GUI
         Crown,
         Camera,
         LayoutDashboard,
-        LayoutGrid
+        LayoutGrid,
+        LoaderCircle,
+        Loader2
     }
 
     /// <summary>
@@ -490,7 +492,7 @@ namespace GUI
                 LucideIconKind.Edit2 => "pen-line",
                 LucideIconKind.Edit3 => "pencil-line",
                 LucideIconKind.PenTool => "pencil-line",
-                LucideIconKind.TrendingUp => "chart-line",
+                LucideIconKind.TrendingUp => "trending-up",
                 LucideIconKind.LineChart => "chart-line",
                 LucideIconKind.BarChart => "chart-column-increasing",
                 LucideIconKind.BarChart2 => "chart-bar-big",
@@ -525,7 +527,9 @@ namespace GUI
                 LucideIconKind.FileEdit => "file-pen-line",
                 LucideIconKind.Trash => "trash-2",
                 LucideIconKind.Trash2 => "trash-2",
-                LucideIconKind.RefreshCw => "refresh-cw",
+                LucideIconKind.RefreshCw => "loader-circle",
+                LucideIconKind.LoaderCircle => "loader-circle",
+                LucideIconKind.Loader2 => "loader-circle",
                 LucideIconKind.RotateCcw => "rotate-ccw",
                 LucideIconKind.EyeOff => "eye-off",
                 LucideIconKind.VolumeX => "volume-x",

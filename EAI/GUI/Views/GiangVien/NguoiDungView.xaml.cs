@@ -30,8 +30,9 @@ namespace GUI.Views.GiangVien
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Không thể kết nối cơ sở dữ liệu để tải danh sách người dùng:\n{ex.Message}", 
-                                "Lỗi kết nối CSDL", MessageBoxButton.OK, MessageBoxImage.Error);
+                Views.Common.ThongBaoDialog.Loi(
+                    $"Không thể kết nối cơ sở dữ liệu để tải danh sách người dùng:\n{ex.Message}", 
+                    "Lỗi kết nối CSDL");
                 _allUsers = new List<NguoiDungDTO>();
             }
         }
@@ -132,7 +133,8 @@ namespace GUI.Views.GiangVien
                 {
                     LoadUsersFromDatabase();
                     ApplyFilter();
-                    Views.Common.ThongBaoDialog.ThanhCong(Window.GetWindow(this), msg, "Tạo tài khoản thành công");
+                    string thongBao = $"Tạo tài khoản thành công cho '{dlg.UserData.HoTen}'!\n\n🔑 Mật khẩu khởi tạo mặc định: 123456\n(Người dùng có thể đổi mật khẩu bất kỳ lúc nào sau khi đăng nhập).";
+                    Views.Common.ThongBaoDialog.ThanhCong(Window.GetWindow(this), thongBao, "Tạo tài khoản thành công");
                 }
                 else
                 {

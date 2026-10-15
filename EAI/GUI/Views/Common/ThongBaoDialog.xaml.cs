@@ -139,16 +139,40 @@ namespace GUI.Views.Common
 
         // ================= STATIC HELPER METHODS =================
 
-        private static Window? GetActiveWindow(Window? owner)
+        private static Window? GetActiveWindow(Window? owner = null)
         {
-            return owner ?? Application.Current.MainWindow;
+            if (owner != null && owner.IsLoaded && owner.IsVisible)
+                return owner;
+
+            try
+            {
+                var active = System.Linq.Enumerable.FirstOrDefault(
+                    System.Linq.Enumerable.OfType<Window>(Application.Current?.Windows ?? new WindowCollection()),
+                    w => w.IsActive && w.IsVisible);
+
+                if (active != null) return active;
+
+                if (Application.Current?.MainWindow != null && Application.Current.MainWindow.IsVisible)
+                    return Application.Current.MainWindow;
+
+                return System.Linq.Enumerable.LastOrDefault(
+                    System.Linq.Enumerable.OfType<Window>(Application.Current?.Windows ?? new WindowCollection()),
+                    w => w.IsVisible);
+            }
+            catch
+            {
+                return Application.Current?.MainWindow;
+            }
         }
 
-        public static bool XacNhanXoa(Window? owner, string message, string title = "Xác nhận xóa tài khoản")
+        public static bool XacNhanXoa(Window? owner, string message, string title = "Xác nhận xóa")
         {
             var dlg = new ThongBaoDialog(message, title, ThongBaoType.DangerConfirm, "Xóa vĩnh viễn", "Hủy bỏ");
             return ModalHelper.ShowDialogWithDim(dlg, GetActiveWindow(owner)) == true;
         }
+
+        public static bool XacNhanXoa(string message, string title = "Xác nhận xóa") =>
+            XacNhanXoa(null, message, title);
 
         public static bool XacNhan(Window? owner, string message, string title = "Xác nhận thao tác", 
                                   string confirmText = "Xác nhận", string cancelText = "Hủy bỏ")
@@ -157,11 +181,18 @@ namespace GUI.Views.Common
             return ModalHelper.ShowDialogWithDim(dlg, GetActiveWindow(owner)) == true;
         }
 
+        public static bool XacNhan(string message, string title = "Xác nhận thao tác",
+                                  string confirmText = "Xác nhận", string cancelText = "Hủy bỏ") =>
+            XacNhan(null, message, title, confirmText, cancelText);
+
         public static void ThanhCong(Window? owner, string message, string title = "Thành công")
         {
             var dlg = new ThongBaoDialog(message, title, ThongBaoType.Success);
             ModalHelper.ShowDialogWithDim(dlg, GetActiveWindow(owner));
         }
+
+        public static void ThanhCong(string message, string title = "Thành công") =>
+            ThanhCong(null, message, title);
 
         public static void CanhBao(Window? owner, string message, string title = "Cảnh báo")
         {
@@ -169,16 +200,25 @@ namespace GUI.Views.Common
             ModalHelper.ShowDialogWithDim(dlg, GetActiveWindow(owner));
         }
 
+        public static void CanhBao(string message, string title = "Cảnh báo") =>
+            CanhBao(null, message, title);
+
         public static void Loi(Window? owner, string message, string title = "Lỗi")
         {
             var dlg = new ThongBaoDialog(message, title, ThongBaoType.Error);
             ModalHelper.ShowDialogWithDim(dlg, GetActiveWindow(owner));
         }
 
+        public static void Loi(string message, string title = "Lỗi") =>
+            Loi(null, message, title);
+
         public static void ThongTin(Window? owner, string message, string title = "Thông báo")
         {
             var dlg = new ThongBaoDialog(message, title, ThongBaoType.Info);
             ModalHelper.ShowDialogWithDim(dlg, GetActiveWindow(owner));
         }
+
+        public static void ThongTin(string message, string title = "Thông báo") =>
+            ThongTin(null, message, title);
     }
 }

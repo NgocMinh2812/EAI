@@ -130,7 +130,7 @@ namespace GUI.Views
 
             if (!NguoiDungBUS.KiemTraDinhDangHoTen(hoTen, out string nameError, out string normalizedHoTen))
             {
-                MessageBox.Show(nameError, "Họ và tên không hợp lệ", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Common.ThongBaoDialog.CanhBao(nameError, "Họ và tên không hợp lệ");
                 txtName.Focus();
                 return;
             }
@@ -162,21 +162,24 @@ namespace GUI.Views
             TaiThongTinHoSo();
             MainWindow.Instance?.CapNhatThongTinHocVien();
 
-            MessageBox.Show($"✅ Thông tin hồ sơ cá nhân, trình độ đầu vào (CEFR {trinhDoDauVaoMoi}) và mục tiêu học tập đã được lưu thành công vào CSDL!", 
-                            "Cập nhật thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThanhCong(
+                $"✅ Thông tin hồ sơ cá nhân, trình độ đầu vào (CEFR {trinhDoDauVaoMoi}) và mục tiêu học tập đã được lưu thành công vào CSDL!", 
+                "Cập nhật thành công");
         }
 
         private void BtnChangeAvatar_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Tính năng chọn ảnh đại diện từ thiết bị đang được đồng bộ hóa với hệ thống lưu trữ đám mây.", 
-                            "Đổi ảnh đại diện", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin(
+                "Tính năng chọn ảnh đại diện từ thiết bị đang được đồng bộ hóa với hệ thống lưu trữ đám mây.", 
+                "Đổi ảnh đại diện");
         }
 
         private void BtnChangePassword_Click(object sender, RoutedEventArgs e)
         {
             var email = SessionHelper.CurrentUser?.Email ?? "email của bạn";
-            MessageBox.Show($"Hệ thống đã gửi liên kết đặt lại mật khẩu an toàn đến email '{email}'. Vui lòng kiểm tra hộp thư!", 
-                            "Đổi mật khẩu", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThanhCong(
+                $"Hệ thống đã gửi liên kết đặt lại mật khẩu an toàn đến email '{email}'. Vui lòng kiểm tra hộp thư!", 
+                "Đổi mật khẩu");
         }
 
         private void BtnLogout_Click(object sender, RoutedEventArgs e)

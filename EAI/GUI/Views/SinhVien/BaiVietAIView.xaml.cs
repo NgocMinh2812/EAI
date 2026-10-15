@@ -56,23 +56,24 @@ In conclusion, although artificial intelligence undoubtedly streamlines administ
 
         private void BtnGradeEssay_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("🤖 Hệ thống AI đã phân tích toàn diện 4 tiêu chí IELTS Writing:\n\n" +
-                            "• Task Response: 7.5 (Lập luận sâu sắc, bám sát đề)\n" +
-                            "• Coherence & Cohesion: 7.0 (Từ nối mượt mà, phân đoạn hợp lý)\n" +
-                            "• Lexical Resource: 7.0 (Từ vựng học thuật cao cấp C1)\n" +
-                            "• Grammatical Range: 6.5 (Cấu trúc phức tốt, cần lưu ý câu bị động)\n\n" +
-                            "🎉 Điểm tổng kết ước tính: Band 7.0", 
-                            "Kết quả chấm điểm AI", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThanhCong(
+                "🤖 Hệ thống AI đã phân tích toàn diện 4 tiêu chí IELTS Writing:\n\n" +
+                "• Task Response: 7.5 (Lập luận sâu sắc, bám sát đề)\n" +
+                "• Coherence & Cohesion: 7.0 (Từ nối mượt mà, phân đoạn hợp lý)\n" +
+                "• Lexical Resource: 7.0 (Từ vựng học thuật cao cấp C1)\n" +
+                "• Grammatical Range: 6.5 (Cấu trúc phức tốt, cần lưu ý câu bị động)\n\n" +
+                "🎉 Điểm tổng kết ước tính: Band 7.0", 
+                "Kết quả chấm điểm AI");
         }
 
         private void BtnSaveDraft_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("💾 Bài viết đã được lưu vào danh sách bản nháp học tập của bạn.", "Lưu bài nháp", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThanhCong("💾 Bài viết đã được lưu vào danh sách bản nháp học tập của bạn.", "Lưu bài nháp");
         }
 
         private void BtnClear_Click(object sender, RoutedEventArgs e)
         {
-            if (MessageBox.Show("Bạn có chắc chắn muốn xóa toàn bộ nội dung bài viết không?", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            if (Common.ThongBaoDialog.XacNhan("Bạn có chắc chắn muốn xóa toàn bộ nội dung bài viết không?", "Xác nhận làm mới", "Xóa hết", "Giữ lại"))
             {
                 txtEssayInput.Text = "";
             }
@@ -82,7 +83,7 @@ In conclusion, although artificial intelligence undoubtedly streamlines administ
         {
             txtEssayTopic.Text = "Topic: In many countries, the amount of household waste is increasing rapidly. What are the main causes of this problem, and what measures can be taken to tackle it?";
             txtEssayInput.Text = "";
-            MessageBox.Show("Đã đổi sang đề bài: 'Household Waste & Environmental Protection (Problem & Solution)'. Hãy bắt đầu viết bài mới!", "Đổi đề bài", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin("Đã đổi sang đề bài: 'Household Waste & Environmental Protection (Problem & Solution)'. Hãy bắt đầu viết bài mới!", "Đổi đề bài");
         }
     }
 }

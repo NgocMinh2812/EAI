@@ -299,7 +299,7 @@ namespace GUI.Views
                 else
                 {
                     _quizTimer.Stop();
-                    MessageBox.Show("⏱️ Hết 60 giây phản xạ! Hãy kiểm tra kết quả và chuyển câu hỏi tiếp theo.", "Hết thời gian phản xạ", MessageBoxButton.OK, MessageBoxImage.Information);
+                    Common.ThongBaoDialog.ThongTin("⏱️ Hết 60 giây phản xạ! Hãy kiểm tra kết quả và chuyển câu hỏi tiếp theo.", "Hết thời gian phản xạ");
                     pnlQuizFeedback.Visibility = Visibility.Visible;
                 }
             };
@@ -409,7 +409,7 @@ namespace GUI.Views
             _currentQuizIndex++;
             if (_currentQuizIndex >= _quizQuestions.Count)
             {
-                MessageBox.Show($"🏆 Chúc mừng bạn đã hoàn thành {_quizQuestions.Count} câu hỏi phản xạ!\nĐiểm hiện tại: {_score} pts", "Hoàn thành", MessageBoxButton.OK, MessageBoxImage.Information);
+                Common.ThongBaoDialog.ThanhCong($"🏆 Chúc mừng bạn đã hoàn thành {_quizQuestions.Count} câu hỏi phản xạ!\nĐiểm hiện tại: {_score} pts", "Hoàn thành");
                 _currentQuizIndex = 0;
             }
             StartQuizTimer();
@@ -477,7 +477,7 @@ namespace GUI.Views
             string input = txtDictationInput.Text.Trim();
             if (string.IsNullOrEmpty(input))
             {
-                MessageBox.Show("Vui lòng gõ nội dung bạn nghe được trước khi kiểm tra.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                Common.ThongBaoDialog.CanhBao("Vui lòng gõ nội dung bạn nghe được trước khi kiểm tra.", "Thông báo");
                 return;
             }
 
@@ -523,7 +523,7 @@ namespace GUI.Views
             _currentDictationIndex++;
             if (_currentDictationIndex >= _dictationSentences.Count)
             {
-                MessageBox.Show("🎉 Bạn đã luyện tập hết danh sách câu nghe chép chính tả đợt này!", "Hoàn thành", MessageBoxButton.OK, MessageBoxImage.Information);
+                Common.ThongBaoDialog.ThanhCong("🎉 Bạn đã luyện tập hết danh sách câu nghe chép chính tả đợt này!", "Hoàn thành");
                 _currentDictationIndex = 0;
             }
             DisplayCurrentDictation();

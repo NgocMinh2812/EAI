@@ -58,24 +58,26 @@ namespace GUI.Views.GiangVien
 
         private void BtnDownloadExam_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show($"Đang tải tệp đề thi gốc '{txtInspectExamTitle.Text}' về máy...", "Tải đề thi", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin($"Đang tải tệp đề thi gốc '{txtInspectExamTitle.Text}' về máy...", "Tải đề thi");
         }
 
         private void BtnAddAllToMockTest_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show($"✓ Đã đồng bộ tất cả câu hỏi từ '{txtInspectExamTitle.Text}' vào Phòng Thi thử trực tuyến!", "Đưa vào phòng thi", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThanhCong($"✓ Đã đồng bộ tất cả câu hỏi từ '{txtInspectExamTitle.Text}' vào Phòng Thi thử trực tuyến!", "Đưa vào phòng thi");
         }
 
         private void BtnImportExamFile_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Mở hộp thoại chọn tệp đề thi (.pdf, .docx): Hệ thống sẽ sử dụng AI bóc tách đề bài, 4 phương án, đáp án và lời giải thích tự động.", 
-                            "Nhập đề thi từ tệp", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin(
+                "Mở hộp thoại chọn tệp đề thi (.pdf, .docx): Hệ thống sẽ sử dụng AI bóc tách đề bài, 4 phương án, đáp án và lời giải thích tự động.", 
+                "Nhập đề thi từ tệp");
         }
 
         private void BtnCreateManualQuestion_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Mở biểu mẫu thêm câu hỏi thủ công: Nhập câu hỏi, gán nhãn kỹ năng và độ khó.", 
-                            "Thêm câu hỏi mới", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin(
+                "Mở biểu mẫu thêm câu hỏi thủ công: Nhập câu hỏi, gán nhãn kỹ năng và độ khó.", 
+                "Thêm câu hỏi mới");
         }
     }
 }

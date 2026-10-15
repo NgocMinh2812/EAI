@@ -120,7 +120,7 @@ namespace GUI.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi nạp dữ liệu bài học: " + ex.Message, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Common.ThongBaoDialog.CanhBao("Lỗi nạp dữ liệu bài học: " + ex.Message, "Thông báo");
             }
         }
 
@@ -592,7 +592,7 @@ namespace GUI.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Tính năng giọng đọc AI: " + ex.Message, "Thông báo");
+                Common.ThongBaoDialog.ThongTin("Tính năng giọng đọc AI: " + ex.Message, "Thông báo");
             }
         }
 
@@ -622,7 +622,7 @@ namespace GUI.Views
         private void BtnAskAI_Click(object sender, RoutedEventArgs e)
         {
             if (_currentBaiHoc == null) return;
-            MessageBox.Show($"Trợ lý AI sẵn sàng giải thích chuyên sâu cho bài học '{_currentBaiHoc.TieuDe}'. Bạn có thể đặt câu hỏi về ngữ pháp, từ vựng hoặc ví dụ mở rộng bất kỳ lúc nào!", "EnglishAI Tutor Assistant", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin($"Trợ lý AI sẵn sàng giải thích chuyên sâu cho bài học '{_currentBaiHoc.TieuDe}'. Bạn có thể đặt câu hỏi về ngữ pháp, từ vựng hoặc ví dụ mở rộng bất kỳ lúc nào!", "EnglishAI Tutor Assistant");
         }
 
         // =========================================================================
@@ -639,11 +639,12 @@ namespace GUI.Views
             _studyTimer?.Stop();
             BtnAudioStop_Click(this, new RoutedEventArgs());
 
-            MessageBox.Show($"🎉 Chúc mừng bạn đã hoàn thành bài học '{_currentBaiHoc.TieuDe}'!\n\n" +
-                            $"• Thời gian học ghi nhận: {minutesSpent} phút (đã cộng vào Hồ sơ học tập)\n" +
-                            $"• Tiến độ: 100% (Hoàn thành)\n" +
-                            $"• Điểm số: 10/10", 
-                            "Hoàn thành bài học", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThanhCong(
+                $"🎉 Chúc mừng bạn đã hoàn thành bài học '{_currentBaiHoc.TieuDe}'!\n\n" +
+                $"• Thời gian học ghi nhận: {minutesSpent} phút (đã cộng vào Hồ sơ học tập)\n" +
+                $"• Tiến độ: 100% (Hoàn thành)\n" +
+                $"• Điểm số: 10/10", 
+                "Hoàn thành bài học");
 
             BtnQuayLai_Click(sender, e);
         }

@@ -290,51 +290,74 @@ namespace GUI.Views
 
         // ================= LOGIN LOGIC =================
 
-        private void LoginButton_Click(object sender, RoutedEventArgs e)
+        private async void LoginButton_Click(object sender, RoutedEventArgs e)
         {
             string emailOrUser = txtEmail.Text.Trim();
             string password = GetCurrentPassword();
 
             if (emailOrUser == EmailPlaceholder || string.IsNullOrEmpty(emailOrUser))
             {
-                MessageBox.Show("Vui lòng nhập địa chỉ email hoặc tên đăng nhập.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Common.ThongBaoDialog.CanhBao(this, "Vui lòng nhập địa chỉ email hoặc tên đăng nhập.", "Thông báo");
                 txtEmail.Focus();
                 return;
             }
 
             if (password == PasswordPlaceholder || string.IsNullOrEmpty(password))
             {
-                MessageBox.Show("Vui lòng nhập mật khẩu.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Common.ThongBaoDialog.CanhBao(this, "Vui lòng nhập mật khẩu.", "Thông báo");
                 if (_isPasswordVisible) txtPasswordVisible.Focus();
                 else txtPassword.Focus();
                 return;
             }
 
-            var (success, msg, user) = _nguoiDungBUS.DangNhap(emailOrUser, password);
-            if (!success || user == null)
-            {
-                MessageBox.Show(msg, "Đăng nhập không thành công", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            // Kích hoạt trạng thái Loading mượt mà
+            btnLogin.IsEnabled = false;
+            pnlLoginNormal.Visibility = Visibility.Collapsed;
+            pnlLoginLoading.Visibility = Visibility.Visible;
 
-            // Phân quyền theo vai trò trong CSDL
-            if (user.TenVaiTro == "GiangVien" || user.TenVaiTro == "QuanTriVien")
+            try
             {
-                var gvWindow = new GUI.Views.GiangVien.GiangVienWindow();
-                gvWindow.Show();
-                this.Close();
+                // Xác thực tài khoản trong luồng nền để tránh đóng băng UI
+                var (success, msg, user) = await System.Threading.Tasks.Task.Run(() => _nguoiDungBUS.DangNhap(emailOrUser, password));
+
+                if (!success || user == null)
+                {
+                    btnLogin.IsEnabled = true;
+                    pnlLoginNormal.Visibility = Visibility.Visible;
+                    pnlLoginLoading.Visibility = Visibility.Collapsed;
+                    Common.ThongBaoDialog.CanhBao(this, msg, "Đăng nhập không thành công");
+                    return;
+                }
+
+                // Hiệu ứng transition nhẹ nhàng giúp giao diện tự nhiên
+                await System.Threading.Tasks.Task.Delay(200);
+
+                // Phân quyền theo vai trò trong CSDL
+                if (user.TenVaiTro == "GiangVien" || user.TenVaiTro == "QuanTriVien")
+                {
+                    var gvWindow = new GUI.Views.GiangVien.GiangVienWindow();
+                    gvWindow.Show();
+                    this.Close();
+                }
+                else
+                {
+                    MainWindow mainWindow = new MainWindow(isFirstLogin: user.LaLanDauDangNhap);
+                    mainWindow.Show();
+                    this.Close();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                MainWindow mainWindow = new MainWindow(isFirstLogin: user.LaLanDauDangNhap);
-                mainWindow.Show();
-                this.Close();
+                btnLogin.IsEnabled = true;
+                pnlLoginNormal.Visibility = Visibility.Visible;
+                pnlLoginLoading.Visibility = Visibility.Collapsed;
+                Common.ThongBaoDialog.Loi(this, $"Đã xảy ra sự cố trong quá trình xác thực:\n{ex.Message}", "Lỗi hệ thống");
             }
         }
 
         // ================= REGISTER LOGIC =================
 
-        private void RegisterButton_Click(object sender, RoutedEventArgs e)
+        private async void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
             string name = txtRegName.Text.Trim();
             if (name == NamePlaceholder) name = "";
@@ -349,7 +372,7 @@ namespace GUI.Views
             {
                 txtRegNameError.Text = $"⚠️ {nameError}";
                 txtRegNameError.Visibility = Visibility.Visible;
-                MessageBox.Show(nameError, "Họ và tên không hợp lệ", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Common.ThongBaoDialog.CanhBao(this, nameError, "Họ và tên không hợp lệ");
                 txtRegName.Focus();
                 return;
             }
@@ -357,13 +380,18 @@ namespace GUI.Views
             txtRegName.Text = normalizedName;
             txtRegNameError.Visibility = Visibility.Collapsed;
 
-            if (!string.IsNullOrEmpty(email) && NguoiDungBUS.Instance.KiemTraEmailTonTai(email))
+            // Kiểm tra email tồn tại trong nền
+            bool emailExists = await System.Threading.Tasks.Task.Run(() => 
+                !string.IsNullOrEmpty(email) && NguoiDungBUS.Instance.KiemTraEmailTonTai(email));
+
+            if (emailExists)
             {
                 txtRegEmailError.Text = "⚠️ Email này đã được đăng ký trên hệ thống!";
                 txtRegEmailError.Visibility = Visibility.Visible;
-                var res = MessageBox.Show($"Email '{email}' đã được đăng ký trên hệ thống!\n\nBạn có muốn chuyển sang màn hình Đăng nhập ngay bây giờ không?", 
-                                          "Email đã được đăng ký", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (res == MessageBoxResult.Yes)
+                bool chuyen = Common.ThongBaoDialog.XacNhan(this, 
+                    $"Email '{email}' đã được đăng ký trên hệ thống!\n\nBạn có muốn chuyển sang màn hình Đăng nhập ngay bây giờ không?", 
+                    "Email đã được đăng ký", "Chuyển đăng nhập", "Ở lại");
+                if (chuyen)
                 {
                     SwitchToLoginTab();
                     txtEmail.Text = email;
@@ -374,25 +402,53 @@ namespace GUI.Views
                 return;
             }
 
-            bool success = NguoiDungBUS.Instance.DangKy(name, email, password, confirmPassword, out string errorMessage, out NguoiDungDTO? newUser);
-            if (!success || newUser == null)
+            // Kích hoạt trạng thái loading khi đăng ký
+            btnRegister.IsEnabled = false;
+            pnlRegisterNormal.Visibility = Visibility.Collapsed;
+            pnlRegisterLoading.Visibility = Visibility.Visible;
+
+            try
             {
-                MessageBox.Show(errorMessage, "Đăng ký thất bại", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+                string regErr = "";
+                NguoiDungDTO? newUser = null;
+                bool success = await System.Threading.Tasks.Task.Run(() =>
+                    NguoiDungBUS.Instance.DangKy(name, email, password, confirmPassword, out regErr, out newUser));
+
+                if (!success || newUser == null)
+                {
+                    btnRegister.IsEnabled = true;
+                    pnlRegisterNormal.Visibility = Visibility.Visible;
+                    pnlRegisterLoading.Visibility = Visibility.Collapsed;
+                    Common.ThongBaoDialog.CanhBao(this, regErr, "Đăng ký thất bại");
+                    return;
+                }
+
+                txtRegEmailError.Visibility = Visibility.Collapsed;
+                await System.Threading.Tasks.Task.Delay(200);
+
+                Common.ThongBaoDialog.ThanhCong(this, 
+                    $"Chúc mừng {newUser.HoTen} đã đăng ký tài khoản thành công!\nHệ thống sẽ tiến hành đánh giá năng lực ban đầu để đề xuất lộ trình và bài học phù hợp cho bạn.", 
+                    "Đăng ký thành công");
+
+                // Học viên mới đăng ký: Chuyển ngay vào luồng khảo sát đánh giá năng lực
+                MainWindow mainWindow = new MainWindow(isFirstLogin: true);
+                mainWindow.Show();
+                this.Close();
             }
-
-            txtRegEmailError.Visibility = Visibility.Collapsed;
-            MessageBox.Show($"Chúc mừng {newUser.HoTen} đã đăng ký tài khoản thành công! Hệ thống sẽ tiến hành đánh giá năng lực ban đầu để đề xuất lộ trình và bài học phù hợp cho bạn.", "Đăng ký thành công", MessageBoxButton.OK, MessageBoxImage.Information);
-
-            // Học viên mới đăng ký: Chuyển ngay vào luồng khảo sát đánh giá năng lực
-            MainWindow mainWindow = new MainWindow(isFirstLogin: true);
-            mainWindow.Show();
-            this.Close();
+            catch (Exception ex)
+            {
+                btnRegister.IsEnabled = true;
+                pnlRegisterNormal.Visibility = Visibility.Visible;
+                pnlRegisterLoading.Visibility = Visibility.Collapsed;
+                Common.ThongBaoDialog.Loi(this, $"Đã xảy ra sự cố khi đăng ký:\n{ex.Message}", "Lỗi hệ thống");
+            }
         }
 
         private void ForgotPassword_Click(object sender, MouseButtonEventArgs e)
         {
-            MessageBox.Show("Vui lòng liên hệ Quản trị viên hệ thống qua email: admin@englishai.edu.vn hoặc sử dụng một trong các tài khoản demo sẵn có để trải nghiệm.", "Quên mật khẩu", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin(this, 
+                "Vui lòng liên hệ Quản trị viên hệ thống qua email: admin@englishai.edu.vn hoặc sử dụng một trong các tài khoản demo sẵn có để trải nghiệm.", 
+                "Quên mật khẩu");
         }
 
         private void TxtPassword_KeyDown(object sender, KeyEventArgs e)

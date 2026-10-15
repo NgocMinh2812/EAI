@@ -66,23 +66,24 @@ namespace GUI.Views.GiangVien
 
         private void BtnDownloadFile_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show($"Đang tải tệp tài liệu '{txtReaderDocTitle.Text}' về máy...", "Tải học liệu", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin($"Đang tải tệp tài liệu '{txtReaderDocTitle.Text}' về máy...", "Tải học liệu");
         }
 
         private void BtnEditFile_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show($"Mở trình soạn thảo nội dung bài học và tệp đính kèm '{txtReaderDocTitle.Text}'.", "Chỉnh sửa bài giảng", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin($"Mở trình soạn thảo nội dung bài học và tệp đính kèm '{txtReaderDocTitle.Text}'.", "Chỉnh sửa bài giảng");
         }
 
         private void BtnPreviewStudent_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Mở giao diện phòng học mô phỏng của học viên để kiểm tra tính hiển thị của bài giảng và câu hỏi.", "Mô phỏng học viên", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin("Mở giao diện phòng học mô phỏng của học viên để kiểm tra tính hiển thị của bài giảng và câu hỏi.", "Mô phỏng học viên");
         }
 
         private void BtnThemBaiHoc_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Mở biểu mẫu thêm mới bài giảng: Nhập tên bài, chuyên mục, tải lên file giáo trình PDF và phiếu bài tập Word.", 
-                            "Thêm bài học mới", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin(
+                "Mở biểu mẫu thêm mới bài giảng: Nhập tên bài, chuyên mục, tải lên file giáo trình PDF và phiếu bài tập Word.", 
+                "Thêm bài học mới");
         }
     }
 }

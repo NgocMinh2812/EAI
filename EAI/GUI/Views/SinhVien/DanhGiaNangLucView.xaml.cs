@@ -159,8 +159,9 @@ namespace GUI.Views
                 else
                 {
                     _timer.Stop();
-                    MessageBox.Show("Đã hết thời gian làm bài! Hệ thống sẽ tự động nộp bài và đánh giá năng lực của bạn.", 
-                                    "Hết giờ", MessageBoxButton.OK, MessageBoxImage.Information);
+                    Common.ThongBaoDialog.ThongTin(
+                        "Đã hết thời gian làm bài! Hệ thống sẽ tự động nộp bài và đánh giá năng lực của bạn.", 
+                        "Hết giờ");
                     BtnSubmit_Click(null, null);
                 }
             };
@@ -274,7 +275,7 @@ namespace GUI.Views
             SaveCurrentSelection();
             if (_userAnswers[_currentIndex] < 0)
             {
-                MessageBox.Show("Vui lòng chọn một đáp án cho câu hỏi trước khi tiếp tục.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Common.ThongBaoDialog.CanhBao("Vui lòng chọn một đáp án cho câu hỏi trước khi tiếp tục.", "Thông báo");
                 return;
             }
 
@@ -290,7 +291,7 @@ namespace GUI.Views
 
             if (sender != null && _userAnswers[_currentIndex] < 0)
             {
-                MessageBox.Show("Vui lòng chọn đáp án cho câu hỏi này trước khi nộp bài.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Common.ThongBaoDialog.CanhBao("Vui lòng chọn đáp án cho câu hỏi này trước khi nộp bài.", "Thông báo");
                 return;
             }
 

@@ -324,8 +324,19 @@
                                         </Grid>
                                     </Border>
 
-                                    <!-- Nút Đăng Nhập -->
-                                    <Button x:Name="btnLogin" IsDefault="True" Style="{StaticResource PrimaryGradientButton}" Content="Đăng nhập ngay" Click="LoginButton_Click" Margin="0,0,0,12"/>
+                                    <!-- Nút Đăng Nhập kèm Hiệu ứng Loading Spinner -->
+                                    <Button x:Name="btnLogin" IsDefault="True" Style="{StaticResource PrimaryGradientButton}" Click="LoginButton_Click" Margin="0,0,0,12">
+                                        <Grid>
+                                            <StackPanel x:Name="pnlLoginNormal" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <TextBlock Text="Đăng nhập ngay" FontSize="13.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                                <local:LucideIcon Kind="ArrowRight" Size="15" Foreground="White" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <StackPanel x:Name="pnlLoginLoading" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+                                                <local:LucideIcon Kind="LoaderCircle" Size="15" Foreground="White" Spin="True" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Đang xác thực &amp; khởi tạo..." FontSize="13" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Button>
 
                                     <!-- Quên Mật Khẩu -->
                                     <TextBlock Text="Quên mật khẩu?" Foreground="{StaticResource BrandTeal}" FontSize="12" FontWeight="SemiBold" 
@@ -406,8 +417,19 @@
                                         </Grid>
                                     </Border>
 
-                                    <!-- Register Button -->
-                                    <Button x:Name="btnRegister" Style="{StaticResource PrimaryGradientButton}" Content="Tạo tài khoản học viên" Click="RegisterButton_Click" Margin="0,0,0,4"/>
+                                    <!-- Register Button kèm Hiệu ứng Loading Spinner -->
+                                    <Button x:Name="btnRegister" Style="{StaticResource PrimaryGradientButton}" Click="RegisterButton_Click" Margin="0,0,0,4">
+                                        <Grid>
+                                            <StackPanel x:Name="pnlRegisterNormal" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <TextBlock Text="Tạo tài khoản học viên" FontSize="13.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                                <local:LucideIcon Kind="Check" Size="15" Foreground="White" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <StackPanel x:Name="pnlRegisterLoading" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+                                                <local:LucideIcon Kind="LoaderCircle" Size="15" Foreground="White" Spin="True" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Đang khởi tạo tài khoản..." FontSize="13" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Button>
                                 </StackPanel>
                             </StackPanel>
                         </Border>

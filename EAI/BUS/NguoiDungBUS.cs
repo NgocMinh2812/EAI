@@ -290,7 +290,7 @@ namespace BUS
             bool ok = _dal.Insert(user);
             if (ok)
             {
-                return (true, "Tạo tài khoản thành công.");
+                return (true, "Tạo tài khoản thành công! Mật khẩu khởi tạo mặc định là: 123456 (Người dùng có thể đổi mật khẩu sau khi đăng nhập).");
             }
             return (false, "Lỗi lưu tài khoản vào cơ sở dữ liệu.");
         }

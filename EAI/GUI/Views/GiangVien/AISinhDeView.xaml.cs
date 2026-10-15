@@ -43,12 +43,13 @@ namespace GUI.Views.GiangVien
             string prompt = txtPrompt.Text.Trim();
             if (string.IsNullOrEmpty(prompt))
             {
-                MessageBox.Show("Vui lòng nhập chủ đề hoặc yêu cầu sinh câu hỏi.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Common.ThongBaoDialog.CanhBao("Vui lòng nhập chủ đề hoặc yêu cầu sinh câu hỏi.", "Thông báo");
                 return;
             }
 
-            MessageBox.Show($"AI đang phân tích và sinh bộ câu hỏi trắc nghiệm theo yêu cầu: \"{prompt}\"...\nĐã sinh thành công thêm câu hỏi mới và đưa vào danh sách kiểm duyệt!", 
-                            "AI Sinh đề thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThanhCong(
+                $"AI đang phân tích và sinh bộ câu hỏi trắc nghiệm theo yêu cầu: \"{prompt}\"...\nĐã sinh thành công thêm câu hỏi mới và đưa vào danh sách kiểm duyệt!", 
+                "AI Sinh đề thành công");
 
             _pendingCount++;
             txtPendingCount.Text = $"{_pendingCount} chờ duyệt";
@@ -59,7 +60,7 @@ namespace GUI.Views.GiangVien
             cardQ1.Visibility = Visibility.Collapsed;
             _pendingCount--;
             UpdatePendingCount();
-            MessageBox.Show("✓ Câu hỏi 'Present Perfect' đã được phê duyệt và lưu vào Ngân hàng câu hỏi!", "Phê duyệt thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThanhCong("✓ Câu hỏi 'Present Perfect' đã được phê duyệt và lưu vào Ngân hàng câu hỏi!", "Phê duyệt thành công");
         }
 
         private void BtnTuChoiQ1_Click(object sender, RoutedEventArgs e)
@@ -71,7 +72,7 @@ namespace GUI.Views.GiangVien
 
         private void BtnSuaQ1_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Mở trình biên tập câu hỏi để chỉnh sửa câu hỏi, đáp án hoặc giải thích chi tiết.", "Chỉnh sửa câu hỏi", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin("Mở trình biên tập câu hỏi để chỉnh sửa câu hỏi, đáp án hoặc giải thích chi tiết.", "Chỉnh sửa câu hỏi");
         }
 
         private void BtnDuyetQ2_Click(object sender, RoutedEventArgs e)
@@ -79,7 +80,7 @@ namespace GUI.Views.GiangVien
             cardQ2.Visibility = Visibility.Collapsed;
             _pendingCount--;
             UpdatePendingCount();
-            MessageBox.Show("✓ Câu hỏi 'Từ vựng Môi trường' đã được phê duyệt và lưu vào Ngân hàng câu hỏi!", "Phê duyệt thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThanhCong("✓ Câu hỏi 'Từ vựng Môi trường' đã được phê duyệt và lưu vào Ngân hàng câu hỏi!", "Phê duyệt thành công");
         }
 
         private void BtnTuChoiQ2_Click(object sender, RoutedEventArgs e)
@@ -91,7 +92,7 @@ namespace GUI.Views.GiangVien
 
         private void BtnSuaQ2_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Mở trình biên tập câu hỏi để chỉnh sửa câu hỏi, đáp án hoặc giải thích chi tiết.", "Chỉnh sửa câu hỏi", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin("Mở trình biên tập câu hỏi để chỉnh sửa câu hỏi, đáp án hoặc giải thích chi tiết.", "Chỉnh sửa câu hỏi");
         }
 
         private void UpdatePendingCount()
@@ -109,20 +110,23 @@ namespace GUI.Views.GiangVien
 
         private void BtnChonFile_Click(object sender, MouseButtonEventArgs e)
         {
-            MessageBox.Show("Hệ thống đã nhận diện tệp tải lên: 'IELTS_Reading_Cam18_Test1.xlsx'.\nĐang tự động bóc tách dữ liệu câu hỏi trắc nghiệm...", 
-                            "Bóc tách tệp thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin(
+                "Hệ thống đã nhận diện tệp tải lên: 'IELTS_Reading_Cam18_Test1.xlsx'.\nĐang tự động bóc tách dữ liệu câu hỏi trắc nghiệm...", 
+                "Bóc tách tệp thành công");
         }
 
         private void BtnDownloadTemplate_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Đã tải xuống file mẫu chuẩn hóa gồm các cột: STT, Kỹ năng, Trình độ, Nội dung câu hỏi, Đáp án A, B, C, D, Đáp án đúng, Giải thích chi tiết.", 
-                            "Tải file mẫu", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThongTin(
+                "Đã tải xuống file mẫu chuẩn hóa gồm các cột: STT, Kỹ năng, Trình độ, Nội dung câu hỏi, Đáp án A, B, C, D, Đáp án đúng, Giải thích chi tiết.", 
+                "Tải file mẫu");
         }
 
         private void BtnLuuTepVaoDB_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("🎉 Toàn bộ 30 câu hỏi đã được nạp thành công vào Cơ sở dữ liệu và sẵn sàng đưa vào Đề thi thử!", 
-                            "Lưu dữ liệu thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+            Common.ThongBaoDialog.ThanhCong(
+                "🎉 Toàn bộ 30 câu hỏi đã được nạp thành công vào Cơ sở dữ liệu và sẵn sàng đưa vào Đề thi thử!", 
+                "Lưu dữ liệu thành công");
         }
     }
 }

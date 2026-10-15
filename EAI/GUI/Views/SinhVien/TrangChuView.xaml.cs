@@ -13,6 +13,7 @@ namespace GUI.Views
         {
             InitializeComponent();
             LoadUserData();
+            this.Loaded += async (s, e) => await LoadStatsAsync();
         }
 
         private void LoadUserData()
@@ -34,37 +35,6 @@ namespace GUI.Views
                 txtCurrentLevel.Text = "B1 Intermediate";
                 txtTargetLevel.Text = "IELTS 6.5 (CEFR B2)";
             }
-
-            // Tải thống kê thực tế từ DB
-            try
-            {
-                var stats = BaiHocBUS.LayThongKeSinhVien();
-                txtDiemTrungBinh.Text = $"{stats.DiemTrungBinh:0.0}%";
-                txtSoBaiHoanThanh.Text = stats.SoBaiDaHoanThanh.ToString();
-                txtTongSoBai.Text = $" / {Math.Max(stats.TongSoBaiHoc, 29)} bài";
-                txtThoiGianTichLuy.Text = stats.SoPhutHocTichLuy.ToString();
-                txtChuoiHoc.Text = $"Chuỗi {stats.ChuoiHocLienTiep} ngày chuyên cần";
-
-                txtAccTuVung.Text = $"{stats.TyLeTuVung}% độ chính xác";
-                txtAccNguPhap.Text = $"{stats.TyLeNguPhap}% độ chính xác";
-                txtAccDocHieu.Text = $"{stats.TyLeDocHieu}% độ chính xác";
-                txtAccNgheHieu.Text = $"{stats.TyLeNgheHieu}% độ chính xác";
-
-                if (stats.DanhSachBaiHocGanDay != null && stats.DanhSachBaiHocGanDay.Count > 0)
-                {
-                    icRecentLessons.ItemsSource = stats.DanhSachBaiHocGanDay;
-                    txtNoRecentLessons.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    txtNoRecentLessons.Visibility = Visibility.Visible;
-                }
-            }
-            catch (System.Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Lỗi nạp thống kê TrangChu: {ex.Message}");
-            }
-
             bool daHoanThanhKhaoSat = (SessionHelper.CurrentUser != null && !SessionHelper.CurrentUser.LaLanDauDangNhap);
 
             if (daHoanThanhKhaoSat)
@@ -95,6 +65,38 @@ namespace GUI.Views
                 txtBannerDesc.Foreground = (Brush)new BrushConverter().ConvertFromString("#15803D")!;
                 btnAssessmentAction.Background = (Brush)new BrushConverter().ConvertFromString("#16A34A")!;
                 txtBannerBtnText.Text = "Làm bài kiểm tra ngay ➔";
+            }
+        }
+
+        private async System.Threading.Tasks.Task LoadStatsAsync()
+        {
+            try
+            {
+                var stats = await System.Threading.Tasks.Task.Run(() => BaiHocBUS.LayThongKeSinhVien());
+                txtDiemTrungBinh.Text = $"{stats.DiemTrungBinh:0.0}%";
+                txtSoBaiHoanThanh.Text = stats.SoBaiDaHoanThanh.ToString();
+                txtTongSoBai.Text = $" / {Math.Max(stats.TongSoBaiHoc, 29)} bài";
+                txtThoiGianTichLuy.Text = stats.SoPhutHocTichLuy.ToString();
+                txtChuoiHoc.Text = $"Chuỗi {stats.ChuoiHocLienTiep} ngày chuyên cần";
+
+                txtAccTuVung.Text = $"{stats.TyLeTuVung}% độ chính xác";
+                txtAccNguPhap.Text = $"{stats.TyLeNguPhap}% độ chính xác";
+                txtAccDocHieu.Text = $"{stats.TyLeDocHieu}% độ chính xác";
+                txtAccNgheHieu.Text = $"{stats.TyLeNgheHieu}% độ chính xác";
+
+                if (stats.DanhSachBaiHocGanDay != null && stats.DanhSachBaiHocGanDay.Count > 0)
+                {
+                    icRecentLessons.ItemsSource = stats.DanhSachBaiHocGanDay;
+                    txtNoRecentLessons.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    txtNoRecentLessons.Visibility = Visibility.Visible;
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi nạp thống kê TrangChu: {ex.Message}");
             }
         }
 
