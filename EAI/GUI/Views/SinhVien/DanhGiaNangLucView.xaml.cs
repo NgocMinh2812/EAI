@@ -380,9 +380,17 @@ namespace GUI.Views
         {
             _timer?.Stop();
 
-            if (SessionHelper.CurrentUser != null)
+            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
+            if (userId > 0)
             {
-                NguoiDungBUS.Instance.CapNhatLaLanDauDangNhap(SessionHelper.CurrentUser.MaNguoiDung, false);
+                HoSoHocTapDAL.Instance.CapNhatTrinhDoDauVao(userId, "A1");
+                NguoiDungBUS.Instance.CapNhatLaLanDauDangNhap(userId, false);
+                if (SessionHelper.CurrentUser != null)
+                {
+                    SessionHelper.CurrentUser.LaLanDauDangNhap = false;
+                    SessionHelper.CurrentUser.TrinhDoDauVao = "A1";
+                }
+                SessionHelper.CurrentHoSo = HoSoHocTapDAL.Instance.LayTheoMaNguoiDung(userId);
             }
 
             ChuyenVaoTrangChu();

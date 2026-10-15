@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -65,16 +66,66 @@ namespace BUS
             return true;
         }
 
-        public bool DangKy(string hoTen, string email, string password, string confirmPassword, out string errorMessage, out NguoiDungDTO? newUser)
+        /// <summary>
+        /// Kiểm tra định dạng họ tên:
+        /// - Viết hoa chữ cái đầu mỗi từ, các chữ cái tiếp theo viết thường (Title Case)
+        /// - Tối thiểu 2 từ (họ và tên)
+        /// - Không chứa chữ số hoặc ký tự đặc biệt (chỉ cho phép ký tự chữ cái và khoảng trắng)
+        /// </summary>
+        public static bool KiemTraDinhDangHoTen(string? hoTen, out string errorMessage, out string normalizedHoTen)
         {
-            newUser = null;
             errorMessage = string.Empty;
+            normalizedHoTen = string.Empty;
 
             if (string.IsNullOrWhiteSpace(hoTen))
             {
                 errorMessage = "Vui lòng nhập họ và tên!";
                 return false;
             }
+
+            // Chuẩn hóa Unicode Form C và chuẩn hóa khoảng trắng thừa
+            string cleaned = hoTen.Normalize(NormalizationForm.FormC).Trim();
+            cleaned = Regex.Replace(cleaned, @"\s+", " ");
+
+            // Kiểm tra chỉ cho phép chữ cái và khoảng trắng (không có số hoặc ký tự đặc biệt)
+            if (cleaned.Any(c => !char.IsLetter(c) && !char.IsWhiteSpace(c)))
+            {
+                errorMessage = "Họ và tên không được chứa chữ số hoặc ký tự đặc biệt!";
+                return false;
+            }
+
+            string[] words = cleaned.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (words.Length < 2)
+            {
+                errorMessage = "Họ và tên phải bao gồm cả họ và tên (tối thiểu 2 từ, ví dụ: Nguyễn Văn A)!";
+                return false;
+            }
+
+            // Kiểm tra từng từ: Chữ cái đầu viết hoa (\p{Lu}), các chữ tiếp theo viết thường (\p{Ll})
+            var wordRegex = new Regex(@"^\p{Lu}\p{Ll}*$");
+            foreach (string word in words)
+            {
+                if (!wordRegex.IsMatch(word))
+                {
+                    errorMessage = "Họ và tên phải đúng định dạng: viết hoa chữ cái đầu mỗi từ và viết thường các chữ sau (Ví dụ: Nguyễn Văn A)!";
+                    return false;
+                }
+            }
+
+            normalizedHoTen = cleaned;
+            return true;
+        }
+
+        public bool DangKy(string hoTen, string email, string password, string confirmPassword, out string errorMessage, out NguoiDungDTO? newUser)
+        {
+            newUser = null;
+            errorMessage = string.Empty;
+
+            if (!KiemTraDinhDangHoTen(hoTen, out errorMessage, out string normalizedHoTen))
+            {
+                return false;
+            }
+            hoTen = normalizedHoTen;
 
             if (string.IsNullOrWhiteSpace(email))
             {
@@ -137,13 +188,18 @@ namespace BUS
             dto.TenVaiTro = "HocVien";
 
             // Khởi tạo hồ sơ học tập ban đầu
-            HoSoHocTapDAL.Instance.LuuKetQuaDanhGiaBanDau(newId, "A1", "IELTS", 5.0m);
+            HoSoHocTapDAL.Instance.LuuKetQuaDanhGiaBanDau(newId, "A1", "IELTS", 5.0m, trinhDoDauVao: "A1");
 
-            // Thiết lập Session
-            SessionHelper.CurrentUser = dto;
+            // Tải lại thông tin đầy đủ từ CSDL và thiết lập Session đăng nhập
+            var fullUser = NguoiDungDAL.Instance.LayTheoId(newId) ?? dto;
+            fullUser.MaNguoiDung = newId;
+            fullUser.TenVaiTro = "HocVien";
+            fullUser.TrinhDoDauVao = "A1";
+
+            SessionHelper.CurrentUser = fullUser;
             SessionHelper.CurrentHoSo = HoSoHocTapDAL.Instance.LayTheoMaNguoiDung(newId);
 
-            newUser = dto;
+            newUser = fullUser;
             return true;
         }
 
@@ -213,8 +269,9 @@ namespace BUS
 
         public (bool Success, string Message) TaoTaiKhoan(NguoiDungDTO user)
         {
-            if (string.IsNullOrWhiteSpace(user.HoTen))
-                return (false, "Họ và tên không được để trống.");
+            if (!KiemTraDinhDangHoTen(user.HoTen, out string nameErr, out string validName))
+                return (false, nameErr);
+            user.HoTen = validName;
 
             if (string.IsNullOrWhiteSpace(user.TenDangNhap) || user.TenDangNhap.Trim().Length < 3)
                 return (false, "Tên đăng nhập phải có ít nhất 3 ký tự.");
@@ -243,8 +300,9 @@ namespace BUS
             if (user.MaNguoiDung <= 0)
                 return (false, "Mã người dùng không hợp lệ.");
 
-            if (string.IsNullOrWhiteSpace(user.HoTen))
-                return (false, "Họ và tên không được để trống.");
+            if (!KiemTraDinhDangHoTen(user.HoTen, out string nameErr, out string validName))
+                return (false, nameErr);
+            user.HoTen = validName;
 
             if (string.IsNullOrWhiteSpace(user.Email) || !Regex.IsMatch(user.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
                 return (false, "Địa chỉ email không đúng định dạng hợp lệ.");
@@ -285,23 +343,11 @@ namespace BUS
             if (string.IsNullOrWhiteSpace(password))
                 return (false, "Vui lòng nhập mật khẩu.", null);
 
-            var user = _dal.GetByCredentials(emailOrUsername, password);
-            if (user == null)
+            bool ok = DangNhap(emailOrUsername, password, out string errorMessage, out NguoiDungDTO? user);
+            if (!ok || user == null)
             {
-                return (false, "Email/tên đăng nhập hoặc mật khẩu không chính xác.", null);
+                return (false, string.IsNullOrEmpty(errorMessage) ? "Email/tên đăng nhập hoặc mật khẩu không chính xác." : errorMessage, null);
             }
-
-            if (!user.TrangThaiHoatDong)
-            {
-                return (false, "Tài khoản của bạn hiện đang bị khóa. Vui lòng liên hệ quản trị viên để được hỗ trợ.", null);
-            }
-
-            SessionHelper.CurrentUser = user;
-            try
-            {
-                SessionHelper.CurrentHoSo = HoSoHocTapDAL.Instance.LayTheoMaNguoiDung(user.MaNguoiDung);
-            }
-            catch { }
 
             return (true, "Đăng nhập thành công.", user);
         }

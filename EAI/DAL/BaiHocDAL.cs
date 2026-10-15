@@ -122,6 +122,190 @@ namespace DAL
             SqlDataProvider.Instance.ExecuteNonQuery(query, parameters);
         }
 
+        public void CongDonThoiGianHoc(int maNguoiDung, int soPhut)
+        {
+            if (maNguoiDung <= 0 || soPhut <= 0) return;
+            string query = @"
+                IF EXISTS (SELECT 1 FROM HoSoHocTap WHERE MaNguoiDung = @MaND)
+                BEGIN
+                    UPDATE HoSoHocTap 
+                    SET SoPhutHocTichLuy = SoPhutHocTichLuy + @SoPhut,
+                        NgayCapNhat = SYSDATETIME()
+                    WHERE MaNguoiDung = @MaND;
+                END
+                ELSE
+                BEGIN
+                    INSERT INTO HoSoHocTap (MaNguoiDung, SoPhutHocTichLuy, NgayCapNhat)
+                    VALUES (@MaND, @SoPhut, SYSDATETIME());
+                END";
+
+            SqlDataProvider.Instance.ExecuteNonQuery(query, new[] { 
+                new SqlParameter("@MaND", maNguoiDung),
+                new SqlParameter("@SoPhut", soPhut)
+            });
+        }
+
+        public List<BaiHocDTO> LayDanhSachBaiHocGanDay(int maNguoiDung, int top = 5)
+        {
+            var list = new List<BaiHocDTO>();
+            string query = @"
+                SELECT TOP (@Top) bh.MaBaiHoc, bh.TieuDe, bh.LoaiBaiHoc, td.MaCapDo AS MaTrinhDo, 
+                       cd.TenChuDe, bh.TomTat, bh.ThoiGianUocTinhPhut,
+                       ISNULL(tdbh.PhanTramTienDo, 0) AS PhanTramTienDo,
+                       ISNULL(tdbh.TrangThai, N'ChuaHoc') AS TrangThai,
+                       tdbh.LanTruyCapCuoi
+                FROM TienDoBaiHoc tdbh
+                INNER JOIN BaiHoc bh ON tdbh.MaBaiHoc = bh.MaBaiHoc
+                LEFT JOIN TrinhDo td ON bh.MaTrinhDo = td.MaTrinhDo
+                LEFT JOIN ChuDe cd ON bh.MaChuDe = cd.MaChuDe
+                WHERE tdbh.MaNguoiDung = @MaND
+                ORDER BY tdbh.LanTruyCapCuoi DESC";
+
+            try
+            {
+                DataTable dt = SqlDataProvider.Instance.ExecuteQuery(query, new[] {
+                    new SqlParameter("@MaND", maNguoiDung),
+                    new SqlParameter("@Top", top)
+                });
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    double phanTram = Convert.ToDouble(row["PhanTramTienDo"]);
+                    string trangThaiRaw = row["TrangThai"]?.ToString() ?? "ChuaHoc";
+                    string trangThaiHienThi = trangThaiRaw switch
+                    {
+                        "HoanThanh" => "Hoàn thành",
+                        "DangHoc" => "Đang học",
+                        _ => "Chưa học"
+                    };
+
+                    DateTime lanCuoi = row["LanTruyCapCuoi"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(row["LanTruyCapCuoi"]);
+                    string ngayHocText = (DateTime.Now.Date - lanCuoi.Date).TotalDays switch
+                    {
+                        0 => "Hôm nay",
+                        1 => "Hôm qua",
+                        _ => lanCuoi.ToString("dd/MM/yyyy")
+                    };
+
+                    list.Add(new BaiHocDTO
+                    {
+                        MaBaiHoc = Convert.ToInt32(row["MaBaiHoc"]),
+                        TieuDe = row["TieuDe"]?.ToString() ?? "",
+                        LoaiBaiHoc = row["LoaiBaiHoc"]?.ToString() ?? "NguPhap",
+                        TenLoaiHienThi = row["LoaiBaiHoc"]?.ToString() switch
+                        {
+                            "TuVung" => "Từ vựng",
+                            "NguPhap" => "Ngữ pháp",
+                            "Doc" => "Đọc hiểu",
+                            "Nghe" => "Nghe hiểu",
+                            "Viet" => "Viết luận",
+                            _ => "Bài học"
+                        },
+                        MaTrinhDo = row["MaTrinhDo"]?.ToString() ?? "B1",
+                        TenChuDe = row["TenChuDe"]?.ToString() ?? "Tổng quát",
+                        TomTat = row["TomTat"]?.ToString() ?? "",
+                        ThoiGianUocTinhPhut = row["ThoiGianUocTinhPhut"] == DBNull.Value ? 15 : Convert.ToInt32(row["ThoiGianUocTinhPhut"]),
+                        PhanTramTienDo = phanTram,
+                        TrangThai = trangThaiHienThi,
+                        NgayHocGanNhat = ngayHocText,
+                        DiemSo = phanTram >= 100 ? "10/10" : (phanTram > 50 ? "8/10" : "5/10")
+                    });
+                }
+
+                // Nếu chưa có bài học nào đang học, lấy 2 bài học tiêu biểu từ DB để gợi ý
+                if (list.Count == 0)
+                {
+                    var all = LayDanhSachBaiHoc(maNguoiDung);
+                    if (all.Count > 0)
+                    {
+                        for (int i = 0; i < Math.Min(2, all.Count); i++)
+                        {
+                            var b = all[i];
+                            b.NgayHocGanNhat = "Chưa học";
+                            b.DiemSo = "-";
+                            list.Add(b);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BaiHocDAL] Lỗi lấy bài học gần đây: {ex.Message}");
+            }
+
+            return list;
+        }
+
+        public ThongKeHocTapDTO LayThongKeSinhVien(int maNguoiDung)
+        {
+            var dto = new ThongKeHocTapDTO();
+            if (maNguoiDung <= 0) return dto;
+
+            try
+            {
+                // 1. Số bài đã hoàn thành & tổng số bài
+                string queryBai = @"
+                    SELECT 
+                        (SELECT COUNT(*) FROM TienDoBaiHoc WHERE MaNguoiDung = @MaND AND TrangThai = N'HoanThanh') AS SoHoanThanh,
+                        (SELECT COUNT(*) FROM BaiHoc WHERE DaXuatBan = 1 OR DaXuatBan = 0) AS TongBai,
+                        (SELECT ISNULL(SoPhutHocTichLuy, 0) FROM HoSoHocTap WHERE MaNguoiDung = @MaND) AS SoPhut,
+                        (SELECT COUNT(*) FROM LuotLamBai WHERE MaNguoiDung = @MaND AND TrangThai = N'DaNop') AS TongLuotThi,
+                        (SELECT AVG(DiemSo * 10) FROM LuotLamBai WHERE MaNguoiDung = @MaND AND TrangThai = N'DaNop') AS DiemTBThi,
+                        (SELECT TOP 1 DiemDatDuoc * 10 FROM LuotKhaoSat WHERE MaNguoiDung = @MaND ORDER BY MaLuotKhaoSat DESC) AS DiemKhaoSat";
+
+                DataTable dt = SqlDataProvider.Instance.ExecuteQuery(queryBai, new[] { new SqlParameter("@MaND", maNguoiDung) });
+                if (dt.Rows.Count > 0)
+                {
+                    DataRow r = dt.Rows[0];
+                    dto.SoBaiDaHoanThanh = r["SoHoanThanh"] == DBNull.Value ? 0 : Convert.ToInt32(r["SoHoanThanh"]);
+                    dto.TongSoBaiHoc = r["TongBai"] == DBNull.Value ? 0 : Convert.ToInt32(r["TongBai"]);
+                    dto.SoPhutHocTichLuy = r["SoPhut"] == DBNull.Value ? 0 : Convert.ToInt32(r["SoPhut"]);
+                    dto.TongSoLuotThi = r["TongLuotThi"] == DBNull.Value ? 0 : Convert.ToInt32(r["TongLuotThi"]);
+
+                    double diemThi = r["DiemTBThi"] == DBNull.Value ? 0 : Convert.ToDouble(r["DiemTBThi"]);
+                    double diemKS = r["DiemKhaoSat"] == DBNull.Value ? 0 : Convert.ToDouble(r["DiemKhaoSat"]);
+
+                    dto.DiemTrungBinh = diemThi > 0 ? diemThi : (diemKS > 0 ? diemKS : 75.0);
+                    dto.ChuoiHocLienTiep = dto.SoPhutHocTichLuy > 0 ? Math.Max(1, dto.SoPhutHocTichLuy / 30) : 1;
+                }
+
+                // 2. Tỷ lệ theo kỹ năng
+                string querySkills = @"
+                    SELECT 
+                        ch.KyNang, 
+                        COUNT(*) AS TongCau,
+                        SUM(CASE WHEN ct.KetQuaDungSai = 1 THEN 1 ELSE 0 END) AS SoDung
+                    FROM ChiTietTraLoi ct
+                    INNER JOIN LuotLamBai lb ON ct.MaLuotLamBai = lb.MaLuotLamBai
+                    INNER JOIN CauHoi ch ON ct.MaCauHoi = ch.MaCauHoi
+                    WHERE lb.MaNguoiDung = @MaND
+                    GROUP BY ch.KyNang";
+
+                DataTable dtSkills = SqlDataProvider.Instance.ExecuteQuery(querySkills, new[] { new SqlParameter("@MaND", maNguoiDung) });
+                foreach (DataRow r in dtSkills.Rows)
+                {
+                    string kn = r["KyNang"]?.ToString() ?? "";
+                    int tong = Convert.ToInt32(r["TongCau"]);
+                    int dung = Convert.ToInt32(r["SoDung"]);
+                    int pct = tong > 0 ? (dung * 100 / tong) : 70;
+
+                    if (kn == "TuVung") dto.TyLeTuVung = pct;
+                    else if (kn == "NguPhap") dto.TyLeNguPhap = pct;
+                    else if (kn == "Doc") dto.TyLeDocHieu = pct;
+                    else if (kn == "Nghe") dto.TyLeNgheHieu = pct;
+                }
+
+                // 3. Danh sách bài học gần đây
+                dto.DanhSachBaiHocGanDay = LayDanhSachBaiHocGanDay(maNguoiDung, 4);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BaiHocDAL] Lỗi tính thống kê: {ex.Message}");
+            }
+
+            return dto;
+        }
+
         public List<BaiHocDTO> LayDanhSachBaiHocTheoTrinhDo(string maCapDo, int maNguoiDung = 0, int top = 3)
         {
             var all = LayDanhSachBaiHoc(maNguoiDung);

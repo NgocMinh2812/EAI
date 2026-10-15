@@ -79,6 +79,27 @@ namespace BUS
             }
         }
 
+        public static void CongDonThoiGianHoc(int soPhut)
+        {
+            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
+            if (userId > 0 && soPhut > 0)
+            {
+                BaiHocDAL.Instance.CongDonThoiGianHoc(userId, soPhut);
+            }
+        }
+
+        public static ThongKeHocTapDTO LayThongKeSinhVien()
+        {
+            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
+            return BaiHocDAL.Instance.LayThongKeSinhVien(userId);
+        }
+
+        public static List<BaiHocDTO> LayDanhSachBaiHocGanDay(int top = 4)
+        {
+            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
+            return BaiHocDAL.Instance.LayDanhSachBaiHocGanDay(userId, top);
+        }
+
         public static (bool Success, string Message, int NewId) ThemBaiHoc(BaiHocDTO bh)
         {
             if (string.IsNullOrWhiteSpace(bh.TieuDe))

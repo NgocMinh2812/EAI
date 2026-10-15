@@ -348,6 +348,12 @@
                                                      GotFocus="TxtRegName_GotFocus" LostFocus="TxtRegName_LostFocus"/>
                                         </Grid>
                                     </Border>
+                                    <TextBlock x:Name="txtRegNameError" Foreground="#EF4444" FontSize="11" FontWeight="Medium" Margin="0,0,0,6" Visibility="Collapsed" TextWrapping="Wrap">
+                                        <InlineUIContainer BaselineAlignment="Center">
+                                            <local:LucideIcon Kind="AlertTriangle" Size="12" Foreground="#EF4444" Margin="0,0,4,0"/>
+                                        </InlineUIContainer>
+                                        <Run Text="Họ và tên phải viết hoa chữ cái đầu (Ví dụ: Nguyễn Văn A), không chứa số hay ký tự đặc biệt!"/>
+                                    </TextBlock>
 
                                     <!-- Email Input -->
                                     <TextBlock Text="Email" FontWeight="SemiBold" FontSize="12" Foreground="#374151" Margin="0,0,0,4"/>
