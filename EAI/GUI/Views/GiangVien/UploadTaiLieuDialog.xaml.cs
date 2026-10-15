@@ -210,7 +210,7 @@ namespace GUI.Views.GiangVien
                 var rawContent = Encoding.UTF8.GetString(rawBytes);
 
                 var lines = new List<string>();
-                var matches = Regex.Matches(rawContent, @"\((.*?)\)\s*Tj", RegexOptions.Singleline);
+                var matches = Regex.Matches(rawContent, @"\(((?:\\.|[^\\)])*)\)\s*Tj", RegexOptions.Singleline);
                 foreach (Match m in matches)
                 {
                     string val = m.Groups[1].Value
@@ -227,14 +227,14 @@ namespace GUI.Views.GiangVien
 
                 if (lines.Count == 0)
                 {
-                    var tjMatches = Regex.Matches(rawContent, @"\[(.*?)\]\s*TJ", RegexOptions.Singleline);
+                    var tjMatches = Regex.Matches(rawContent, @"\[((?:\\.|[^\]])*)\]\s*TJ", RegexOptions.Singleline);
                     foreach (Match m in tjMatches)
                     {
-                        var innerMatches = Regex.Matches(m.Groups[1].Value, @"\((.*?)\)");
+                        var innerMatches = Regex.Matches(m.Groups[1].Value, @"\(((?:\\.|[^\\)])*)\)");
                         var lineParts = new List<string>();
                         foreach (Match im in innerMatches)
                         {
-                            lineParts.Add(im.Groups[1].Value.Replace(@"\(", "(").Replace(@"\)", ")"));
+                            lineParts.Add(im.Groups[1].Value.Replace(@"\(", "(").Replace(@"\)", ")").Replace(@"\\", @"\"));
                         }
                         string line = string.Concat(lineParts).Trim();
                         if (!string.IsNullOrWhiteSpace(line) && line.Length > 1) lines.Add(line);

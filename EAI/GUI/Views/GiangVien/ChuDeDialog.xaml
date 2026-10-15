@@ -137,16 +137,19 @@
                         <TextBlock Text="Cấu trúc cây danh mục phục vụ phân loại bài học và đề thi" FontSize="12" Foreground="#CCFBF1" Margin="0,3,0,0"/>
                     </StackPanel>
 
-                    <Button Grid.Column="2" Width="30" Height="30" Background="Transparent" BorderThickness="0" 
-                            Cursor="Hand" VerticalAlignment="Top" Click="BtnCancel_Click">
+                    <Button Grid.Column="2" Width="28" Height="28" Background="Transparent" BorderThickness="0" 
+                            Cursor="Hand" VerticalAlignment="Center" ToolTip="Đóng cửa sổ" Click="BtnCancel_Click">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border x:Name="b" Background="Transparent" CornerRadius="15">
-                                    <local:LucideIcon Kind="X" Size="14" Foreground="#E6F7F3" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border x:Name="b" Background="#FEE2E2" CornerRadius="14" BorderBrush="#FECACA" BorderThickness="1">
+                                    <TextBlock x:Name="t" Text="✕" FontSize="13" FontWeight="Bold" Foreground="#DC2626" 
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1"/>
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="b" Property="Background" Value="#33FFFFFF"/>
+                                        <Setter TargetName="b" Property="Background" Value="#DC2626"/>
+                                        <Setter TargetName="b" Property="BorderBrush" Value="#B91C1C"/>
+                                        <Setter TargetName="t" Property="Foreground" Value="White"/>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>

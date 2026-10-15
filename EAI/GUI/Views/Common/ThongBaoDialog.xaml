@@ -40,15 +40,18 @@
 
             <!-- Top Close Icon Button -->
             <Button Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top"
-                    Width="28" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnCancel_Click">
+                    Width="28" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Đóng" Click="BtnCancel_Click">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="b" Background="Transparent" CornerRadius="14">
-                            <local:LucideIcon Kind="X" Size="14" Foreground="#64748B" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border x:Name="b" Background="#FEE2E2" CornerRadius="14" BorderBrush="#FECACA" BorderThickness="1">
+                            <TextBlock x:Name="t" Text="✕" FontSize="13" FontWeight="Bold" Foreground="#DC2626" 
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="b" Property="Background" Value="#E2E8F0"/>
+                                <Setter TargetName="b" Property="Background" Value="#DC2626"/>
+                                <Setter TargetName="b" Property="BorderBrush" Value="#B91C1C"/>
+                                <Setter TargetName="t" Property="Foreground" Value="White"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

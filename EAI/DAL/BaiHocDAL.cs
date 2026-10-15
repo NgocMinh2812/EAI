@@ -727,6 +727,39 @@ namespace DAL
             return false;
         }
 
+        public bool KiemTraTrungTieuDe(int maChuDe, string tieuDe, int? maBaiHocBoQua = null)
+        {
+            try
+            {
+                string query = "SELECT COUNT(*) FROM BaiHoc WHERE MaChuDe = @MaChuDe AND LOWER(LTRIM(RTRIM(TieuDe))) = LOWER(LTRIM(RTRIM(@TieuDe)))";
+                if (maBaiHocBoQua.HasValue && maBaiHocBoQua.Value > 0)
+                {
+                    query += " AND MaBaiHoc != @MaBaiHocBoQua";
+                }
+
+                var parameters = new List<SqlParameter>
+                {
+                    new SqlParameter("@MaChuDe", maChuDe),
+                    new SqlParameter("@TieuDe", tieuDe.Trim())
+                };
+                if (maBaiHocBoQua.HasValue && maBaiHocBoQua.Value > 0)
+                {
+                    parameters.Add(new SqlParameter("@MaBaiHocBoQua", maBaiHocBoQua.Value));
+                }
+
+                var res = DatabaseHelper.ExecuteScalar(query, parameters.ToArray());
+                if (res != null && res != DBNull.Value)
+                {
+                    return Convert.ToInt32(res) > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BaiHocDAL.KiemTraTrungTieuDe] {ex.Message}");
+            }
+            return false;
+        }
+
         public bool TaoDeThiThuTuBaiHoc(int maBaiHoc, string tenDeThi, int? nguoiTao = null)
         {
             var query = @"

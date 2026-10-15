@@ -218,8 +218,22 @@
                                 <Button Width="30" Height="30" Background="Transparent" Foreground="#64748B" BorderThickness="0" Cursor="Hand" Click="BtnMinimize_Click" Margin="0,0,4,0">
                                     <local:LucideIcon Kind="Minus" Size="14" Foreground="#64748B"/>
                                 </Button>
-                                <Button Width="30" Height="30" Background="Transparent" Foreground="#64748B" BorderThickness="0" Cursor="Hand" Click="BtnClose_Click">
-                                    <local:LucideIcon Kind="X" Size="14" Foreground="#64748B"/>
+                                <Button Width="28" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Đóng ứng dụng" Click="BtnClose_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="b" Background="#FEE2E2" CornerRadius="14" BorderBrush="#FECACA" BorderThickness="1">
+                                                <TextBlock x:Name="t" Text="✕" FontSize="12.5" FontWeight="Bold" Foreground="#DC2626" 
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="b" Property="Background" Value="#DC2626"/>
+                                                    <Setter TargetName="b" Property="BorderBrush" Value="#B91C1C"/>
+                                                    <Setter TargetName="t" Property="Foreground" Value="White"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
                                 </Button>
                             </StackPanel>
 

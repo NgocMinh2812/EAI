@@ -108,6 +108,12 @@ namespace BUS
             if (bh.MaChuDe <= 0)
                 return (false, "Vui lòng chọn danh mục chủ đề hợp lệ cho tài liệu.", 0);
 
+            // Kiểm tra trùng lặp tiêu đề trong cùng chủ đề
+            if (_baiHocDAL.KiemTraTrungTieuDe(bh.MaChuDe, bh.TieuDe))
+            {
+                return (false, $"Chủ đề này đã có bài học / tài liệu mang tiêu đề '{bh.TieuDe}'. Vui lòng đổi tiêu đề khác hoặc chọn tài liệu hiện có để tránh trùng lặp.", 0);
+            }
+
             bool ok = _baiHocDAL.InsertBaiHoc(bh);
             if (ok)
             {

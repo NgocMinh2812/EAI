@@ -373,17 +373,45 @@ namespace BUS
                 {
                     var rawBytes = File.ReadAllBytes(filePath);
                     var rawContent = System.Text.Encoding.UTF8.GetString(rawBytes);
-                    var matches = System.Text.RegularExpressions.Regex.Matches(rawContent, @"\(([^()]+)\)\s*Tj", System.Text.RegularExpressions.RegexOptions.Singleline);
-                    if (matches.Count > 10)
+                    var lines = new List<string>();
+
+                    var matches = System.Text.RegularExpressions.Regex.Matches(rawContent, @"\(((?:\\.|[^\\)])*)\)\s*Tj", System.Text.RegularExpressions.RegexOptions.Singleline);
+                    foreach (System.Text.RegularExpressions.Match m in matches)
                     {
-                        var sb = new System.Text.StringBuilder();
-                        foreach (System.Text.RegularExpressions.Match m in matches)
+                        string val = m.Groups[1].Value
+                            .Replace(@"\(", "(")
+                            .Replace(@"\)", ")")
+                            .Replace(@"\\", @"\")
+                            .Trim();
+
+                        if (!string.IsNullOrWhiteSpace(val) && val.Length > 1)
                         {
-                            string val = m.Groups[1].Value.Trim();
-                            if (val.Length > 2) sb.Append(val + " ");
+                            lines.Add(val);
                         }
-                        string res = sb.ToString().Trim();
-                        if (res.Length > 80) return res;
+                    }
+
+                    if (lines.Count == 0)
+                    {
+                        var tjMatches = System.Text.RegularExpressions.Regex.Matches(rawContent, @"\[((?:\\.|[^\]])*)\]\s*TJ", System.Text.RegularExpressions.RegexOptions.Singleline);
+                        foreach (System.Text.RegularExpressions.Match m in tjMatches)
+                        {
+                            var innerMatches = System.Text.RegularExpressions.Regex.Matches(m.Groups[1].Value, @"\(((?:\\.|[^\\)])*)\)");
+                            var lineParts = new List<string>();
+                            foreach (System.Text.RegularExpressions.Match im in innerMatches)
+                            {
+                                lineParts.Add(im.Groups[1].Value.Replace(@"\(", "(").Replace(@"\)", ")").Replace(@"\\", @"\"));
+                            }
+                            string line = string.Concat(lineParts).Trim();
+                            if (!string.IsNullOrWhiteSpace(line) && line.Length > 1)
+                            {
+                                lines.Add(line);
+                            }
+                        }
+                    }
+
+                    if (lines.Count > 0)
+                    {
+                        return string.Join("\n\n", lines);
                     }
                 }
             }
