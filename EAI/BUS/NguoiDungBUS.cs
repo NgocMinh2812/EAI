@@ -367,5 +367,78 @@ namespace BUS
             var user = _dal.GetById(userId);
             return user != null && (user.TenVaiTro == "GiangVien" || user.TenVaiTro == "QuanTriVien");
         }
+
+        public (bool Success, string Message) ResetMatKhau(int userId, string newPassword = "123456")
+        {
+            if (userId <= 0) return (false, "Mã người dùng không hợp lệ.");
+
+            var user = _dal.GetById(userId);
+            if (user == null) return (false, "Tài khoản không tồn tại.");
+
+            string hashed = HashPassword(newPassword);
+            bool ok = _dal.ResetMatKhau(userId, hashed);
+            if (ok)
+            {
+                return (true, $"Đã đặt lại mật khẩu cho tài khoản '{user.HoTen}' thành công! Mật khẩu mới: {newPassword}");
+            }
+            return (false, "Lỗi khi cập nhật mật khẩu mới vào cơ sở dữ liệu.");
+        }
+
+        public (bool Success, string Message) CapNhatHoSoGiangVien(
+            int userId, 
+            string hoTen, 
+            string? soDienThoai, 
+            DateTime? ngaySinh, 
+            string? newPassword, 
+            string? confirmPassword)
+        {
+            if (userId <= 0) return (false, "Mã người dùng không hợp lệ.");
+
+            if (!KiemTraDinhDangHoTen(hoTen, out string nameErr, out string validName))
+                return (false, nameErr);
+            hoTen = validName;
+
+            if (!string.IsNullOrWhiteSpace(soDienThoai))
+            {
+                string cleanPhone = soDienThoai.Trim();
+                if (!Regex.IsMatch(cleanPhone, @"^(0|\+84)[0-9]{9,10}$"))
+                    return (false, "Số điện thoại không hợp lệ (Ví dụ: 0912345678).");
+            }
+
+            string? hashedNewPass = null;
+            if (!string.IsNullOrWhiteSpace(newPassword))
+            {
+                if (newPassword.Length < 6)
+                    return (false, "Mật khẩu mới phải có tối thiểu 6 ký tự.");
+
+                if (newPassword != confirmPassword)
+                    return (false, "Mật khẩu xác nhận không khớp với mật khẩu mới.");
+
+                hashedNewPass = HashPassword(newPassword);
+            }
+
+            bool ok = _dal.CapNhatHoSoGiangVien(userId, hoTen, soDienThoai?.Trim(), ngaySinh, hashedNewPass);
+            if (ok)
+            {
+                // Cập nhật lại Session người dùng hiện hành
+                if (SessionHelper.CurrentUser != null && SessionHelper.CurrentUser.MaNguoiDung == userId)
+                {
+                    SessionHelper.CurrentUser.HoTen = hoTen;
+                    SessionHelper.CurrentUser.SoDienThoai = soDienThoai?.Trim();
+                    SessionHelper.CurrentUser.NgaySinh = ngaySinh;
+                    if (!string.IsNullOrEmpty(hashedNewPass))
+                    {
+                        SessionHelper.CurrentUser.MatKhauMaHoa = hashedNewPass;
+                    }
+                }
+                return (true, "Cập nhật hồ sơ giảng viên thành công!");
+            }
+            return (false, "Lỗi khi cập nhật hồ sơ vào cơ sở dữ liệu.");
+        }
+
+        public (int SoBaiHoc, int SoCauHoi, int SoDeThi) LayThongKeGiangVien(int userId)
+        {
+            return _dal.LayThongKeGiangVien(userId);
+        }
     }
 }

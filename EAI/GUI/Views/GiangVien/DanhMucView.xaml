@@ -201,6 +201,49 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Style Segmented Tab Switcher Buttons (US-GV04) -->
+        <Style x:Key="TabSwitchBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextGray}"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="14,7"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#E2E8F0"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ActiveTabSwitchBtnStyle" TargetType="Button" BasedOn="{StaticResource TabSwitchBtnStyle}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource AdminDarkGreen}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="White" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="6" ShadowDepth="1" Opacity="0.1" Color="Black"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Page.Resources>
 
     <Grid Margin="20">
@@ -209,28 +252,47 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- ================= TOP HEADER (KHÔNG BỊ CHE - RESPONSIVE CHỐNG ĐÈ CHỮ) ================= -->
+        <!-- ================= TOP HEADER (NAV TABS + ACTIONS) ================= -->
         <Grid Grid.Row="0" Margin="0,0,0,16">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" MaxWidth="440"/>
+                <ColumnDefinition Width="Auto" MaxWidth="380"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Tiêu đề trang gọn gàng & thanh lịch -->
+            <!-- Tiêu đề trang -->
             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="8" Width="36" Height="36" Margin="0,0,10,0">
                         <local:LucideIcon Kind="Folder" Size="18" Foreground="{StaticResource AdminDarkGreen}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Kho Học Liệu &amp; Đề Thi" FontWeight="Bold" FontSize="19" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Text="Cấu trúc cây thư mục bài học &amp; quản lý tệp học liệu (.docx, .pdf)" FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="Kho Học Liệu &amp; Danh Mục" FontWeight="Bold" FontSize="18" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="Quản lý cấu trúc cây chủ đề &amp; danh mục trình độ (A1 - C1)" FontSize="11.5" Foreground="{StaticResource TextGray}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
 
-            <!-- Cụm nút bấm màu sắc sinh động, có khoảng cách 10px rõ ràng -->
-            <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+            <!-- Segmented Mode Tabs (Cây Chủ Đề vs Danh Mục Trình Độ - US-GV04) -->
+            <Border Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#F1F5F9" CornerRadius="10" Padding="4">
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="btnTabCayChuDe" Style="{StaticResource ActiveTabSwitchBtnStyle}" Click="BtnTabCayChuDe_Click">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <local:LucideIcon Kind="FolderOpen" Size="14" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Cây Cấu Trúc Chủ Đề" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="btnTabTrinhDo" Style="{StaticResource TabSwitchBtnStyle}" Click="BtnTabTrinhDo_Click">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <local:LucideIcon Kind="Tag" Size="14" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Danh Mục Trình Độ (A1 - C1)" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
+
+            <!-- Action Buttons for ChuDe -->
+            <WrapPanel x:Name="wrapChuDeActions" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <Button Style="{StaticResource EmeraldHeaderBtn}" Click="BtnNewFolder_Click" Margin="0,0,10,0" ToolTip="Tạo danh mục thư mục bài học mới trong cây phân cấp">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <local:LucideIcon Kind="FolderPlus" Size="14" Foreground="White" Margin="0,0,6,0"/>
@@ -244,10 +306,20 @@
                     </StackPanel>
                 </Button>
             </WrapPanel>
+
+            <!-- Action Buttons for TrinhDo (US-GV04) -->
+            <WrapPanel x:Name="wrapTrinhDoActions" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed">
+                <Button Style="{StaticResource EmeraldHeaderBtn}" Click="BtnThemTrinhDo_Click" ToolTip="Tạo trình độ chuẩn CEFR mới">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <local:LucideIcon Kind="Plus" Size="14" Foreground="White" Margin="0,0,6,0"/>
+                        <TextBlock Text="Thêm Trình Độ" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </WrapPanel>
         </Grid>
 
-        <!-- ================= 3-COLUMN EXPLORER & PREVIEWER ================= -->
-        <Grid Grid.Row="1">
+        <!-- ================= TAB 1: 3-COLUMN EXPLORER & PREVIEWER ================= -->
+        <Grid x:Name="pnlTabCayChuDe" Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <!-- Cột 1: Cây thư mục (Default 270px, Min 180, Max 450) -->
                 <ColumnDefinition Width="270" MinWidth="180" MaxWidth="450"/>
@@ -878,6 +950,111 @@
                 </Grid>
             </Border>
 
+        </Grid>
+
+        <!-- ================= TAB 2: DANH MỤC TRÌNH ĐỘ (A1 - C1) - US-GV04 ================= -->
+        <Grid x:Name="pnlTabTrinhDo" Grid.Row="1" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Info Banner -->
+            <Border Grid.Row="0" Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1" CornerRadius="12" Padding="18,14" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock Text="KHUNG NĂNG LỰC NGOẠI NGỮ CHUẨN QUỐC TẾ (CEFR A1 - C1)" FontWeight="Bold" FontSize="14" Foreground="#166534"/>
+                        <TextBlock Text="Hệ thống quy chuẩn cấp độ tiếng Anh theo khung tham chiếu châu Âu CEFR và quy đổi điểm tương đương TOEIC, IELTS." FontSize="12" Foreground="#15803D" Margin="0,3,0,0"/>
+                    </StackPanel>
+
+                    <Border Grid.Column="1" Background="White" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="8" Padding="12,6" VerticalAlignment="Center">
+                        <TextBlock x:Name="txtTongSoTrinhDo" Text="6 Cấp độ tiêu chuẩn" FontWeight="Bold" FontSize="12.5" Foreground="#166534"/>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Cards Container for Levels -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <ItemsControl x:Name="icTrinhDoList">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="12" 
+                                    Width="360" Margin="0,0,16,16" Padding="18">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.04" Color="Black"/>
+                                </Border.Effect>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Top Level Badge & Code -->
+                                    <Grid Grid.Row="0" Margin="0,0,0,12">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Border Background="{Binding BadgeBg}" CornerRadius="8" Padding="10,4" Margin="0,0,10,0">
+                                                <TextBlock Text="{Binding MaCapDo}" FontWeight="Bold" FontSize="16" Foreground="{Binding BadgeFg}"/>
+                                            </Border>
+                                            <TextBlock Text="{Binding TenTrinhDo}" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Description -->
+                                    <TextBlock Grid.Row="1" Text="{Binding MoTa}" FontSize="12.5" Foreground="{StaticResource TextGray}" 
+                                               TextWrapping="Wrap" Margin="0,0,0,14" LineHeight="18" MinHeight="40"/>
+
+                                    <!-- Equivalents and Stats -->
+                                    <Border Grid.Row="2" Background="#F8FAFC" CornerRadius="8" Padding="10,8" Margin="0,0,0,14" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="IELTS tương đương:" FontSize="10.5" Foreground="{StaticResource TextGray}"/>
+                                                <TextBlock Text="{Binding IeltsTuongDuong}" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}"/>
+                                                <TextBlock Text="{Binding SoLuongBaiHoc, StringFormat='📚 {0} bài học'}" FontSize="11" Foreground="#059669" Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="TOEIC tương đương:" FontSize="10.5" Foreground="{StaticResource TextGray}"/>
+                                                <TextBlock Text="{Binding ToeicTuongDuong}" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}"/>
+                                                <TextBlock Text="{Binding SoLuongCauHoi, StringFormat='❓ {0} câu hỏi'}" FontSize="11" Foreground="#2563EB" Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Actions: Edit / Delete -->
+                                    <Grid Grid.Row="3">
+                                        <Button Content="✏️ Chỉnh sửa" Style="{StaticResource OutlineEditButton}" HorizontalAlignment="Left" Click="BtnSuaTrinhDo_Click" Tag="{Binding MaTrinhDo}"/>
+                                        <Button Content="🗑️ Xóa" Background="#FEF2F2" Foreground="#DC2626" BorderBrush="#FCA5A5" BorderThickness="1"
+                                                FontSize="11.5" FontWeight="SemiBold" Padding="10,5" Cursor="Hand" HorizontalAlignment="Right" Click="BtnXoaTrinhDo_Click" Tag="{Binding MaTrinhDo}">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </Page>

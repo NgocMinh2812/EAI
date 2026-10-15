@@ -1,0 +1,338 @@
+<Window x:Class="GUI.Views.GiangVien.ProfileGiangVienDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:GUI"
+        Title="Hồ Sơ Giảng Viên" 
+        Icon="/Assets/app_icon.ico"
+        Height="700" Width="560"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        FontFamily="Segoe UI"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="AdminDarkGreen" Color="#0F4C3A" />
+        <SolidColorBrush x:Key="AdminMint" Color="#10B981" />
+        <SolidColorBrush x:Key="TextDark" Color="#0F172A" />
+        <SolidColorBrush x:Key="TextGray" Color="#64748B" />
+        <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0" />
+
+        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AdminMint}"/>
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AdminDarkGreen}"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="1.6"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#F8FAFC"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#E2E8F0"/>
+                                <Setter Property="Foreground" Value="#94A3B8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernPasswordBoxStyle" TargetType="PasswordBox">
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="PasswordBox">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AdminMint}"/>
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AdminDarkGreen}"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="1.6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CancelBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#475569"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#F8FAFC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SaveBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource AdminDarkGreen}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="26,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.2" Color="#0F4C3A"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#0B392B"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <!-- Outer shadow wrapper -->
+    <Border Background="White" CornerRadius="16" BorderBrush="#E2E8F0" BorderThickness="1" Margin="14">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="25" ShadowDepth="8" Opacity="0.18" Color="#0F172A"/>
+        </Border.Effect>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Header -->
+                <RowDefinition Height="*"/>    <!-- Content -->
+                <RowDefinition Height="Auto"/> <!-- Footer -->
+            </Grid.RowDefinitions>
+
+            <!-- 1. Header Dialog -->
+            <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" CornerRadius="16,16,0,0" Padding="24,16">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="#E6F4EA" Width="38" Height="38" CornerRadius="10" Margin="0,0,12,0" VerticalAlignment="Center">
+                            <local:LucideIcon Kind="UserCheck" Size="20" Foreground="{StaticResource AdminDarkGreen}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="HỒ SƠ GIẢNG VIÊN" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextDark}"/>
+                            <TextBlock Text="Xem thông tin sư phạm và cập nhật tài khoản cá nhân" FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Button HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent" 
+                            BorderThickness="0" Cursor="Hand" Padding="8" Click="BtnClose_Click" ToolTip="Đóng">
+                        <local:LucideIcon Kind="X" Size="18" Foreground="{StaticResource TextGray}"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- 2. Body Scrollable Content -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="24,18">
+                <StackPanel>
+
+                    <!-- Profile Overview Card -->
+                    <Border Background="#F1F5F9" CornerRadius="12" Padding="16" Margin="0,0,0,18" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Avatar -->
+                            <Border Grid.Column="0" Background="{StaticResource AdminDarkGreen}" Width="64" Height="64" CornerRadius="32" Margin="0,0,16,0" VerticalAlignment="Center">
+                                <TextBlock x:Name="txtProfileAvatarInitials" Text="GV" FontWeight="Bold" FontSize="22" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <TextBlock x:Name="txtProfileFullNameHeader" Text="Giảng viên" FontWeight="Bold" FontSize="17" Foreground="{StaticResource TextDark}" Margin="0,0,10,0"/>
+                                    <Border x:Name="bdRoleTag" Background="#FEF3C7" CornerRadius="6" Padding="8,2" VerticalAlignment="Center">
+                                        <TextBlock x:Name="txtProfileRoleBadge" Text="Giảng viên" FontSize="11" FontWeight="Bold" Foreground="#B45309"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock x:Name="txtProfileEmailHeader" Text="giangvien@eai.edu.vn" FontSize="12.5" Foreground="{StaticResource TextGray}" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="txtProfileJoinedDate" Text="ID: GV-0001 • Ngày tham gia: 15/01/2026" FontSize="11.5" Foreground="#94A3B8"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Lecturer Stats Cards -->
+                    <Grid Margin="0,0,0,18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Stat 1: Bài học -->
+                        <Border Grid.Column="0" Background="#F0FDF4" CornerRadius="8" Padding="10,8" Margin="0,0,4,0" BorderBrush="#DCFCE7" BorderThickness="1">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock x:Name="txtStatBaiHoc" Text="0" FontWeight="Bold" FontSize="18" Foreground="#15803D" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Bài học biên soạn" FontSize="10.5" Foreground="#166534" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Stat 2: Câu hỏi -->
+                        <Border Grid.Column="1" Background="#EFF6FF" CornerRadius="8" Padding="10,8" Margin="2,0,2,0" BorderBrush="#DBEAFE" BorderThickness="1">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock x:Name="txtStatCauHoi" Text="0" FontWeight="Bold" FontSize="18" Foreground="#1D4ED8" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Câu hỏi đóng góp" FontSize="10.5" Foreground="#1E40AF" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Stat 3: Đề thi -->
+                        <Border Grid.Column="2" Background="#FAF5FF" CornerRadius="8" Padding="10,8" Margin="4,0,0,0" BorderBrush="#F3E8FF" BorderThickness="1">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock x:Name="txtStatDeThi" Text="0" FontWeight="Bold" FontSize="18" Foreground="#7E22CE" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Đề thi / Luyện tập" FontSize="10.5" Foreground="#6B21A8" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Editable Personal Information -->
+                    <TextBlock Text="THÔNG TIN CÁ NHÂN" FontWeight="Bold" FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,0,0,10"/>
+
+                    <!-- Họ và tên -->
+                    <StackPanel Margin="0,0,0,12">
+                        <TextBlock Text="Họ và tên *" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
+                        <TextBox x:Name="txtHoTen" Style="{StaticResource ModernTextBoxStyle}"/>
+                    </StackPanel>
+
+                    <!-- Grid: Email & Tên đăng nhập -->
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Email -->
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Địa chỉ Email (Cố định)" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
+                            <TextBox x:Name="txtEmail" Style="{StaticResource ModernTextBoxStyle}" IsReadOnly="True" IsEnabled="False"/>
+                        </StackPanel>
+
+                        <!-- Tên đăng nhập -->
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Tên đăng nhập" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
+                            <TextBox x:Name="txtTenDangNhap" Style="{StaticResource ModernTextBoxStyle}" IsReadOnly="True" IsEnabled="False"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Grid: Số điện thoại & Ngày sinh -->
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Số điện thoại -->
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Số điện thoại liên hệ" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
+                            <TextBox x:Name="txtSoDienThoai" Style="{StaticResource ModernTextBoxStyle}"/>
+                        </StackPanel>
+
+                        <!-- Ngày sinh -->
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Ngày sinh" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
+                            <DatePicker x:Name="dpNgaySinh" Height="38" VerticalContentAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Password Section -->
+                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="10" Padding="14" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="ĐỔI MẬT KHẨU ĐĂNG NHẬP" FontWeight="Bold" FontSize="11.5" Foreground="{StaticResource TextGray}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Chỉ nhập thông tin bên dưới nếu bạn muốn thay đổi mật khẩu hiện tại" FontSize="11.5" Foreground="#94A3B8" Margin="0,0,0,10"/>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Mật khẩu mới" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
+                                    <PasswordBox x:Name="pbMatKhauMoi" Style="{StaticResource ModernPasswordBoxStyle}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Xác nhận mật khẩu mới" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
+                                    <PasswordBox x:Name="pbXacNhanMatKhau" Style="{StaticResource ModernPasswordBoxStyle}"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- 3. Footer Action Buttons -->
+            <Border Grid.Row="2" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0" CornerRadius="0,0,16,16" Padding="24,14">
+                <Grid>
+                    <TextBlock x:Name="txtStatusMessage" Text="" FontSize="12" Foreground="#EF4444" VerticalAlignment="Center" FontWeight="SemiBold"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Đóng" Style="{StaticResource CancelBtnStyle}" Margin="0,0,10,0" Click="BtnClose_Click"/>
+                        <Button Content="💾 Lưu Hồ Sơ" Style="{StaticResource SaveBtnStyle}" Click="BtnSave_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

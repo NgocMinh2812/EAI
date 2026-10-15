@@ -14,6 +14,7 @@ namespace GUI.Views.GiangVien
     {
         private readonly DanhMucBUS _danhMucBUS = new DanhMucBUS();
         private List<BaiHocDTO> _allLessons = new List<BaiHocDTO>();
+        private List<TrinhDoDTO> _allTrinhDo = new List<TrinhDoDTO>();
         private TreeNodeDTO? _selectedNode;
         private BaiHocDTO? _currentPreviewLesson;
         private const string SearchPlaceholder = "Tìm bài học / đề thi...";
@@ -824,5 +825,133 @@ namespace GUI.Views.GiangVien
                 }
             }
         }
+
+        #region Xử lý Tab Danh mục Trình độ (A1 - C1) - US-GV04
+
+        private void BtnTabCayChuDe_Click(object sender, RoutedEventArgs e)
+        {
+            if (TryFindResource("ActiveTabSwitchBtnStyle") is Style activeStyle &&
+                TryFindResource("TabSwitchBtnStyle") is Style normalStyle)
+            {
+                btnTabCayChuDe.Style = activeStyle;
+                btnTabTrinhDo.Style = normalStyle;
+            }
+
+            pnlTabCayChuDe.Visibility = Visibility.Visible;
+            pnlTabTrinhDo.Visibility = Visibility.Collapsed;
+
+            wrapChuDeActions.Visibility = Visibility.Visible;
+            wrapTrinhDoActions.Visibility = Visibility.Collapsed;
+        }
+
+        private void BtnTabTrinhDo_Click(object sender, RoutedEventArgs e)
+        {
+            if (TryFindResource("ActiveTabSwitchBtnStyle") is Style activeStyle &&
+                TryFindResource("TabSwitchBtnStyle") is Style normalStyle)
+            {
+                btnTabTrinhDo.Style = activeStyle;
+                btnTabCayChuDe.Style = normalStyle;
+            }
+
+            pnlTabCayChuDe.Visibility = Visibility.Collapsed;
+            pnlTabTrinhDo.Visibility = Visibility.Visible;
+
+            wrapChuDeActions.Visibility = Visibility.Collapsed;
+            wrapTrinhDoActions.Visibility = Visibility.Visible;
+
+            LoadTrinhDoList();
+        }
+
+        private void LoadTrinhDoList()
+        {
+            try
+            {
+                _allTrinhDo = _danhMucBUS.LayDanhSachTrinhDo();
+                icTrinhDoList.ItemsSource = _allTrinhDo;
+                if (txtTongSoTrinhDo != null)
+                {
+                    txtTongSoTrinhDo.Text = $"{_allTrinhDo.Count} Cấp độ tiêu chuẩn";
+                }
+            }
+            catch (Exception ex)
+            {
+                ThongBaoDialog.Loi(Window.GetWindow(this), $"Lỗi tải danh mục trình độ:\n{ex.Message}", "Lỗi CSDL");
+            }
+        }
+
+        private void BtnThemTrinhDo_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new TrinhDoDialog();
+            if (ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this)) == true)
+            {
+                var (ok, msg) = _danhMucBUS.ThemTrinhDo(dlg.TrinhDoData);
+                if (ok)
+                {
+                    LoadTrinhDoList();
+                    ThongBaoDialog.ThanhCong(Window.GetWindow(this), msg, "Thêm trình độ");
+                }
+                else
+                {
+                    ThongBaoDialog.CanhBao(Window.GetWindow(this), msg, "Lỗi thêm trình độ");
+                }
+            }
+        }
+
+        private void BtnSuaTrinhDo_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is int id)
+            {
+                var td = _allTrinhDo.FirstOrDefault(x => x.MaTrinhDo == id);
+                if (td != null)
+                {
+                    var dlg = new TrinhDoDialog(td);
+                    if (ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this)) == true)
+                    {
+                        var (ok, msg) = _danhMucBUS.CapNhatTrinhDo(dlg.TrinhDoData);
+                        if (ok)
+                        {
+                            LoadTrinhDoList();
+                            ThongBaoDialog.ThanhCong(Window.GetWindow(this), msg, "Cập nhật trình độ");
+                        }
+                        else
+                        {
+                            ThongBaoDialog.CanhBao(Window.GetWindow(this), msg, "Lỗi cập nhật");
+                        }
+                    }
+                }
+            }
+        }
+
+        private void BtnXoaTrinhDo_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is int id)
+            {
+                var td = _allTrinhDo.FirstOrDefault(x => x.MaTrinhDo == id);
+                if (td != null)
+                {
+                    bool confirm = ThongBaoDialog.XacNhanXoa(
+                        Window.GetWindow(this),
+                        $"Bạn có chắc chắn muốn xóa trình độ '{td.MaCapDo} - {td.TenTrinhDo}'?\nLưu ý: Hệ thống sẽ chặn xóa nếu trình độ đang có bài học hoặc câu hỏi liên kết.",
+                        "Xác nhận xóa trình độ");
+
+                    if (confirm)
+                    {
+                        var (ok, msg) = _danhMucBUS.XoaTrinhDo(id);
+                        if (ok)
+                        {
+                            LoadTrinhDoList();
+                            ThongBaoDialog.ThanhCong(Window.GetWindow(this), msg, "Đã xóa trình độ");
+                        }
+                        else
+                        {
+                            // Chặn xóa nếu có bài học hoặc ràng buộc khóa ngoại (US-GV04)
+                            ThongBaoDialog.CanhBao(Window.GetWindow(this), msg, "Ràng buộc dữ liệu không thể xóa");
+                        }
+                    }
+                }
+            }
+        }
+
+        #endregion
     }
 }

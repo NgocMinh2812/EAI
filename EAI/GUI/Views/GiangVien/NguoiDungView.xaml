@@ -181,6 +181,9 @@
 
                                         <!-- Thao tác -->
                                         <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Button Style="{StaticResource IconButton}" ToolTip="Đặt lại mật khẩu (Reset về 123456)" Click="BtnResetMatKhau_Click" Tag="{Binding Id}">
+                                                <local:LucideIcon Kind="Key" Size="13" Foreground="#D97706"/>
+                                            </Button>
                                             <Button Style="{StaticResource IconButton}" ToolTip="Chỉnh sửa thông tin" Click="BtnEditUser_Click" Tag="{Binding Id}">
                                                 <local:LucideIcon Kind="Pencil" Size="13" Foreground="#2563EB"/>
                                             </Button>
@@ -197,8 +200,8 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <!-- Table Footer: Pagination & Filter Chips -->
-                    <Border Background="#FAFBFB" Padding="20,12">
+                    <!-- Table Footer: Pagination & Filter Chips (US-GV03) -->
+                    <Border Background="#FAFBFB" Padding="20,12" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -206,8 +209,22 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Column="0" x:Name="txtCounter" Text="Hiển thị 7 / 7 tài khoản" FontSize="12" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="0" x:Name="txtCounter" Text="Hiển thị 1 - 10 / 10 tài khoản" FontSize="12.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
 
+                            <!-- Pagination Controls (SQL OFFSET FETCH NEXT) -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Button x:Name="btnPrevPage" Content="◀ Trước" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
+                                        FontSize="12" FontWeight="SemiBold" Padding="12,5" Margin="0,0,8,0" Cursor="Hand" Click="BtnPrevPage_Click"/>
+                                
+                                <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="6" Padding="10,4" Margin="0,0,8,0">
+                                    <TextBlock x:Name="txtPageInfo" Text="Trang 1 / 1" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
+                                </Border>
+
+                                <Button x:Name="btnNextPage" Content="Sau ▶" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
+                                        FontSize="12" FontWeight="SemiBold" Padding="12,5" Cursor="Hand" Click="BtnNextPage_Click"/>
+                            </StackPanel>
+
+                            <!-- Status Filter Chips -->
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                 <Button Content="Tất cả" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
                                         FontSize="11.5" FontWeight="SemiBold" Padding="10,4" Margin="0,0,6,0" Cursor="Hand" Click="FilterStatus_All"/>

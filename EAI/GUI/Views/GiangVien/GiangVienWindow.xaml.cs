@@ -338,12 +338,35 @@ namespace GUI.Views.GiangVien
             this.Close();
         }
 
+        private void PnlUserProfile_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var user = SessionHelper.CurrentUser;
+            bool isAdmin = user != null && string.Equals(user.TenVaiTro, "QuanTriVien", StringComparison.OrdinalIgnoreCase);
+
+            var dlg = new ProfileGiangVienDialog();
+            if (Common.ModalHelper.ShowDialogWithDim(dlg, this) == true)
+            {
+                // Đồng bộ cập nhật thông tin hiển thị trên thanh sidebar và header
+                ApplyRolePermissions();
+            }
+        }
+
         private void BtnLogout_Click(object sender, RoutedEventArgs e)
         {
-            SessionHelper.Logout();
-            var dangNhapWindow = new DangNhapWindow();
-            dangNhapWindow.Show();
-            this.Close();
+            bool confirm = Common.ThongBaoDialog.XacNhan(
+                this, 
+                "Bạn có chắc chắn muốn đăng xuất khỏi phiên làm việc hiện tại?", 
+                "Xác nhận đăng xuất", 
+                confirmText: "Đăng xuất", 
+                cancelText: "Ở lại");
+
+            if (confirm)
+            {
+                SessionHelper.Logout();
+                var dangNhapWindow = new DangNhapWindow();
+                dangNhapWindow.Show();
+                this.Close();
+            }
         }
 
         private void BtnMinimize_Click(object sender, RoutedEventArgs e)

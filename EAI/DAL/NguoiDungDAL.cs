@@ -539,6 +539,65 @@ namespace DAL
             return DangNhap(emailOrUsername.Trim(), passwordHash, password.Trim());
         }
 
+        public bool ResetMatKhau(int userId, string hashedPassword)
+        {
+            string query = "UPDATE NguoiDung SET MatKhauMaHoa = @mk WHERE MaNguoiDung = @id";
+            int rows = DatabaseHelper.ExecuteNonQuery(query, new[]
+            {
+                new SqlParameter("@mk", hashedPassword),
+                new SqlParameter("@id", userId)
+            });
+            return rows > 0;
+        }
+
+        public bool CapNhatHoSoGiangVien(int userId, string hoTen, string? soDienThoai, DateTime? ngaySinh, string? newHashedPassword)
+        {
+            string query;
+            var paramsList = new List<SqlParameter>
+            {
+                new SqlParameter("@hoTen", hoTen),
+                new SqlParameter("@sdt", (object?)soDienThoai ?? DBNull.Value),
+                new SqlParameter("@ngaySinh", (object?)ngaySinh ?? DBNull.Value),
+                new SqlParameter("@id", userId)
+            };
+
+            if (!string.IsNullOrEmpty(newHashedPassword))
+            {
+                query = "UPDATE NguoiDung SET HoTen = @hoTen, SoDienThoai = @sdt, NgaySinh = @ngaySinh, MatKhauMaHoa = @mk WHERE MaNguoiDung = @id";
+                paramsList.Add(new SqlParameter("@mk", newHashedPassword));
+            }
+            else
+            {
+                query = "UPDATE NguoiDung SET HoTen = @hoTen, SoDienThoai = @sdt, NgaySinh = @ngaySinh WHERE MaNguoiDung = @id";
+            }
+
+            int rows = DatabaseHelper.ExecuteNonQuery(query, paramsList.ToArray());
+            return rows > 0;
+        }
+
+        public (int SoBaiHoc, int SoCauHoi, int SoDeThi) LayThongKeGiangVien(int userId)
+        {
+            string query = @"
+                SELECT 
+                    (SELECT COUNT(*) FROM BaiHoc WHERE NguoiTao = @id) AS SoBaiHoc,
+                    (SELECT COUNT(*) FROM CauHoi WHERE NguoiTao = @id) AS SoCauHoi,
+                    (SELECT COUNT(*) FROM BaiTapDeThi WHERE NguoiTao = @id) AS SoDeThi;";
+            try
+            {
+                var dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@id", userId) });
+                if (dt.Rows.Count > 0)
+                {
+                    var r = dt.Rows[0];
+                    int sbh = r["SoBaiHoc"] == DBNull.Value ? 0 : Convert.ToInt32(r["SoBaiHoc"]);
+                    int sch = r["SoCauHoi"] == DBNull.Value ? 0 : Convert.ToInt32(r["SoCauHoi"]);
+                    int sdt = r["SoDeThi"] == DBNull.Value ? 0 : Convert.ToInt32(r["SoDeThi"]);
+                    return (sbh, sch, sdt);
+                }
+            }
+            catch { }
+            return (0, 0, 0);
+        }
+
         private static NguoiDungDTO MapDataRowToDTO(DataRow row)
         {
             return new NguoiDungDTO

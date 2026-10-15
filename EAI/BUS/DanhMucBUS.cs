@@ -16,6 +16,62 @@ namespace BUS
             return _dal.GetAllTrinhDo();
         }
 
+        public (bool Success, string Message) ThemTrinhDo(TrinhDoDTO td)
+        {
+            if (string.IsNullOrWhiteSpace(td.MaCapDo))
+                return (false, "Mã cấp độ (A1, A2, B1...) không được để trống.");
+
+            if (string.IsNullOrWhiteSpace(td.TenTrinhDo))
+                return (false, "Tên trình độ không được để trống.");
+
+            var all = _dal.GetAllTrinhDo();
+            if (all.Any(x => x.MaCapDo.Equals(td.MaCapDo.Trim(), StringComparison.OrdinalIgnoreCase)))
+                return (false, $"Mã cấp độ '{td.MaCapDo}' đã tồn tại trong danh mục.");
+
+            bool ok = _dal.InsertTrinhDo(td);
+            if (ok)
+                return (true, "Thêm trình độ mới thành công!");
+            return (false, "Lỗi khi thêm trình độ vào cơ sở dữ liệu.");
+        }
+
+        public (bool Success, string Message) CapNhatTrinhDo(TrinhDoDTO td)
+        {
+            if (td.MaTrinhDo <= 0)
+                return (false, "Mã trình độ không hợp lệ.");
+
+            if (string.IsNullOrWhiteSpace(td.MaCapDo))
+                return (false, "Mã cấp độ không được để trống.");
+
+            if (string.IsNullOrWhiteSpace(td.TenTrinhDo))
+                return (false, "Tên trình độ không được để trống.");
+
+            var all = _dal.GetAllTrinhDo();
+            if (all.Any(x => x.MaTrinhDo != td.MaTrinhDo && x.MaCapDo.Equals(td.MaCapDo.Trim(), StringComparison.OrdinalIgnoreCase)))
+                return (false, $"Mã cấp độ '{td.MaCapDo}' đã được dùng bởi một trình độ khác.");
+
+            bool ok = _dal.UpdateTrinhDo(td);
+            if (ok)
+                return (true, "Cập nhật trình độ thành công!");
+            return (false, "Lỗi khi cập nhật trình độ vào cơ sở dữ liệu.");
+        }
+
+        public (bool Success, string Message) XoaTrinhDo(int maTrinhDo)
+        {
+            if (maTrinhDo <= 0)
+                return (false, "Mã trình độ không hợp lệ.");
+
+            var (baiHoc, cauHoi, deThi) = _dal.DemRangBuocKhoaNgoaiTrinhDo(maTrinhDo);
+            if (baiHoc > 0 || cauHoi > 0 || deThi > 0)
+            {
+                return (false, $"Không thể xóa trình độ này vì đang có dữ liệu ràng buộc: {baiHoc} bài học, {cauHoi} câu hỏi, {deThi} đề thi!");
+            }
+
+            bool ok = _dal.DeleteTrinhDo(maTrinhDo);
+            if (ok)
+                return (true, "Đã xóa trình độ thành công.");
+            return (false, "Lỗi khi xóa trình độ trong cơ sở dữ liệu.");
+        }
+
         public List<ChuDeDTO> LayDanhSachChuDe()
         {
             return _dal.GetAllChuDe();
