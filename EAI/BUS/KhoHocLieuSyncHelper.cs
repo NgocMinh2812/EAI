@@ -18,27 +18,35 @@ namespace BUS
             }
 
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string appStorageDir = Path.Combine(baseDir, "Data", "HocLieu");
             string candidate1 = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\KhoHocLieu"));
             string candidate2 = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\KhoHocLieu"));
-            string candidate3 = @"d:\CDPTUD1\EAI\KhoHocLieu";
 
             if (Directory.Exists(candidate1))
+            {
                 _cachedRootPath = candidate1;
+            }
             else if (Directory.Exists(candidate2))
+            {
                 _cachedRootPath = candidate2;
-            else if (Directory.Exists(candidate3))
-                _cachedRootPath = candidate3;
+            }
             else
             {
                 try
                 {
-                    Directory.CreateDirectory(candidate1);
-                    _cachedRootPath = candidate1;
+                    if (!Directory.Exists(appStorageDir))
+                    {
+                        Directory.CreateDirectory(appStorageDir);
+                    }
+                    _cachedRootPath = appStorageDir;
                 }
                 catch
                 {
-                    Directory.CreateDirectory(candidate3);
-                    _cachedRootPath = candidate3;
+                    _cachedRootPath = Path.Combine(Path.GetTempPath(), "EAI_HocLieu");
+                    if (!Directory.Exists(_cachedRootPath))
+                    {
+                        Directory.CreateDirectory(_cachedRootPath);
+                    }
                 }
             }
 

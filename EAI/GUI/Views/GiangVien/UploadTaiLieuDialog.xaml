@@ -284,7 +284,7 @@
                             <Button Style="{StaticResource SaveBtnStyle}" Click="BtnSave_Click">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <local:LucideIcon Kind="Save" Size="14" Foreground="White" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Lưu vào CSDL &amp; Kho học liệu" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Lưu học liệu vào CSDL" FontWeight="SemiBold"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>

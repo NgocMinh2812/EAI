@@ -224,35 +224,23 @@
                     </Border>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="Kho Học Liệu &amp; Đề Thi" FontWeight="Bold" FontSize="19" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Text="Cấu trúc thư mục &amp; kho tệp (.docx, .pdf) theo chuyên mục" FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="Cấu trúc cây thư mục bài học &amp; quản lý tệp học liệu (.docx, .pdf)" FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
 
             <!-- Cụm nút bấm màu sắc sinh động, tự rớt dòng mềm mại nếu màn hình hẹp -->
             <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <Button Style="{StaticResource AmberHeaderBtn}" Click="BtnOpenFolderExplorer_Click" ToolTip="Mở thư mục KhoHocLieu trên Windows Explorer">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <local:LucideIcon Kind="FolderOpen" Size="14" Foreground="White" Margin="0,0,6,0"/>
-                        <TextBlock Text="Mở Thư Mục" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
-                <Button Style="{StaticResource IndigoHeaderBtn}" Click="BtnSyncKhoHocLieu_Click" ToolTip="Tự động đồng bộ toàn bộ cây danh mục CSDL ra thư mục trên đĩa">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <local:LucideIcon Kind="RefreshCw" Size="14" Foreground="White" Margin="0,0,6,0"/>
-                        <TextBlock Text="Đồng Bộ Kho" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
-                <Button Style="{StaticResource TealHeaderBtn}" Click="BtnUploadFile_Click" ToolTip="Tải lên tệp đề thi hoặc tài liệu học liệu mới (.docx, .pdf)">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <local:LucideIcon Kind="Upload" Size="14" Foreground="White" Margin="0,0,6,0"/>
-                        <TextBlock Text="Tải Lên Tệp" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
-                <Button Style="{StaticResource EmeraldHeaderBtn}" Click="BtnNewFolder_Click" ToolTip="Tạo danh mục chủ đề mới">
+                <Button Style="{StaticResource EmeraldHeaderBtn}" Click="BtnNewFolder_Click" ToolTip="Tạo danh mục thư mục bài học mới trong cây phân cấp">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <local:LucideIcon Kind="FolderPlus" Size="14" Foreground="White" Margin="0,0,6,0"/>
                         <TextBlock Text="Thư Mục Mới" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource TealHeaderBtn}" Click="BtnUploadFile_Click" ToolTip="Tải lên tệp đề thi hoặc tài liệu học liệu vào thư mục đang chọn (.docx, .pdf, .txt)">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <local:LucideIcon Kind="Upload" Size="14" Foreground="White" Margin="0,0,6,0"/>
+                        <TextBlock Text="Tải Lên Tệp" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
             </WrapPanel>
@@ -425,7 +413,8 @@
                             <local:LucideIcon Grid.Column="0" Kind="Search" Size="14" Foreground="{StaticResource TextGray}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                             <TextBox x:Name="txtSearchFile" Grid.Column="1" Text="Tìm bài học / đề thi..." BorderThickness="0" Background="Transparent" 
                                      FontSize="12.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"
-                                     GotFocus="TxtSearchFile_GotFocus" LostFocus="TxtSearchFile_LostFocus" TextChanged="TxtSearchFile_TextChanged"/>
+                                     GotFocus="TxtSearchFile_GotFocus" LostFocus="TxtSearchFile_LostFocus" 
+                                     TextChanged="TxtSearchFile_TextChanged" KeyDown="TxtSearchFile_KeyDown"/>
                             <TextBlock x:Name="txtLessonCounter" Grid.Column="2" Text="4 bài học" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
                         </Grid>
                     </Border>

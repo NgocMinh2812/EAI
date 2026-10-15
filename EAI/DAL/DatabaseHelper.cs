@@ -9,7 +9,7 @@ namespace DAL
         private static string _connectionString = "Server=.\\SQLEXPRESS;Database=TiengAnhAI;Trusted_Connection=True;TrustServerCertificate=True;";
 
         public static string ConnectionString
-        {
+        {   
             get
             {
                 if (!string.IsNullOrEmpty(SqlDataProvider.Instance.ConnectionString))

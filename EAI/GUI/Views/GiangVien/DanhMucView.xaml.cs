@@ -18,10 +18,21 @@ namespace GUI.Views.GiangVien
         private BaiHocDTO? _currentPreviewLesson;
         private const string SearchPlaceholder = "Tìm bài học / đề thi...";
         private bool _isLoaded = false;
+        private readonly System.Windows.Threading.DispatcherTimer _searchDebounceTimer;
 
         public DanhMucView()
         {
             InitializeComponent();
+            _searchDebounceTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(2)
+            };
+            _searchDebounceTimer.Tick += (s, e) =>
+            {
+                _searchDebounceTimer.Stop();
+                LoadLessonsForSelectedTopic();
+            };
+
             _isLoaded = true;
             LoadTreeAndLessons();
         }
@@ -284,7 +295,33 @@ namespace GUI.Views.GiangVien
         private void TxtSearchFile_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (!_isLoaded) return;
-            LoadLessonsForSelectedTopic();
+
+            string text = txtSearchFile.Text;
+            if (text == SearchPlaceholder || 
+                text == "🔍 " + SearchPlaceholder || 
+                text == "🔍 Tìm bài học / đề thi..." || 
+                text == "Tìm bài học / đề thi...")
+            {
+                return;
+            }
+
+            // Tối ưu hiệu năng: thiết lập delay 2 giây sau khi người dùng ngừng gõ mới thực hiện truy vấn
+            _searchDebounceTimer.Stop();
+            if (txtLessonCounter != null && !string.IsNullOrWhiteSpace(text))
+            {
+                txtLessonCounter.Text = "Đang chờ...";
+            }
+            _searchDebounceTimer.Start();
+        }
+
+        private void TxtSearchFile_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                // Khi người dùng bấm phím Enter, lập tức tìm kiếm ngay mà không cần chờ hết 2 giây
+                _searchDebounceTimer.Stop();
+                LoadLessonsForSelectedTopic();
+            }
         }
 
         // ================= CRUD CHỦ ĐỀ HỌC LIỆU =================
@@ -373,51 +410,6 @@ namespace GUI.Views.GiangVien
         }
 
         // ================= TOP HEADER BUTTONS =================
-
-        private void BtnOpenFolderExplorer_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                string candidate1 = System.IO.Path.GetFullPath(System.IO.Path.Combine(baseDir, @"..\..\..\..\KhoHocLieu"));
-                string candidate2 = @"d:\CDPTUD1\EAI\KhoHocLieu";
-                string targetPath = System.IO.Directory.Exists(candidate1) ? candidate1 : candidate2;
-
-                if (System.IO.Directory.Exists(targetPath))
-                {
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = targetPath,
-                        UseShellExecute = true
-                    });
-                }
-                else
-                {
-                    ThongBaoDialog.CanhBao(Window.GetWindow(this), $"Chưa tìm thấy thư mục KhoHocLieu tại:\n{targetPath}", "Kho học liệu");
-                }
-            }
-            catch (Exception ex)
-            {
-                ThongBaoDialog.Loi(Window.GetWindow(this), $"Không thể mở thư mục:\n{ex.Message}", "Lỗi");
-            }
-        }
-
-        private void BtnSyncKhoHocLieu_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var (created, total) = _danhMucBUS.DongBoKhoHocLieu();
-                string root = BUS.KhoHocLieuSyncHelper.GetKhoHocLieuRoot();
-                ThongBaoDialog.ThanhCong(
-                    Window.GetWindow(this),
-                    $"Đã kiểm tra và đồng bộ {total} danh mục chủ đề vào Kho học liệu!\n(Tạo mới {created} thư mục còn thiếu).\n\nĐường dẫn thư mục:\n{root}",
-                    "Đồng bộ hoàn tất");
-            }
-            catch (Exception ex)
-            {
-                ThongBaoDialog.Loi(Window.GetWindow(this), $"Lỗi khi đồng bộ danh mục: {ex.Message}", "Lỗi");
-            }
-        }
 
         private void BtnUploadFile_Click(object sender, RoutedEventArgs e)
         {
