@@ -226,16 +226,23 @@ namespace GUI.Views.GiangVien
 
                     if (result)
                     {
-                        var (success, msg) = _bus.XoaTaiKhoan(id);
-                        if (success)
+                        try
                         {
-                            LoadUsersFromDatabase();
-                            ApplyFilter();
-                            Views.Common.ThongBaoDialog.ThanhCong(Window.GetWindow(this), msg, "Đã xóa tài khoản");
+                            var (success, msg) = _bus.XoaTaiKhoan(id);
+                            if (success)
+                            {
+                                LoadUsersFromDatabase();
+                                ApplyFilter();
+                                Views.Common.ThongBaoDialog.ThanhCong(Window.GetWindow(this), msg, "Đã xóa tài khoản");
+                            }
+                            else
+                            {
+                                Views.Common.ThongBaoDialog.CanhBao(Window.GetWindow(this), msg, "Không thể xóa");
+                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            Views.Common.ThongBaoDialog.Loi(Window.GetWindow(this), msg, "Lỗi khi xóa");
+                            Views.Common.ThongBaoDialog.Loi(Window.GetWindow(this), $"Lỗi phát sinh khi xóa tài khoản:\n{ex.Message}", "Lỗi hệ thống");
                         }
                     }
                 }

@@ -450,10 +450,61 @@ namespace DAL
 
         public bool Delete(int userId)
         {
-            // Xóa hồ sơ học tập trước
-            DatabaseHelper.ExecuteNonQuery("DELETE FROM HoSoHocTap WHERE MaNguoiDung = @id", new[] { new SqlParameter("@id", userId) });
-            // Xóa người dùng
-            int rows = DatabaseHelper.ExecuteNonQuery("DELETE FROM NguoiDung WHERE MaNguoiDung = @id", new[] { new SqlParameter("@id", userId) });
+            const string query = @"
+                BEGIN TRY
+                    BEGIN TRANSACTION;
+
+                    -- 1. Xóa hội thoại AI và nhật ký API
+                    DELETE FROM TinNhanAI WHERE MaPhienHoiThoai IN (SELECT MaPhienHoiThoai FROM PhienHoiThoaiAI WHERE MaNguoiDung = @id);
+                    DELETE FROM NhatKyGoiAPI WHERE MaNguoiDung = @id OR MaPhienHoiThoai IN (SELECT MaPhienHoiThoai FROM PhienHoiThoaiAI WHERE MaNguoiDung = @id);
+                    DELETE FROM PhienHoiThoaiAI WHERE MaNguoiDung = @id;
+
+                    -- 2. Xóa kết quả làm bài thi / luyện tập và chi tiết
+                    DELETE FROM DanhGiaBaiViet WHERE MaChiTietTraLoi IN (
+                        SELECT cttl.MaChiTietTraLoi FROM ChiTietTraLoi cttl
+                        INNER JOIN LuotLamBai llb ON cttl.MaLuotLamBai = llb.MaLuotLamBai
+                        WHERE llb.MaNguoiDung = @id
+                    );
+                    DELETE FROM ChiTietTraLoi WHERE MaLuotLamBai IN (SELECT MaLuotLamBai FROM LuotLamBai WHERE MaNguoiDung = @id);
+                    DELETE FROM KetQuaPhanTichAI WHERE MaNguoiDung = @id OR MaLuotLamBai IN (SELECT MaLuotLamBai FROM LuotLamBai WHERE MaNguoiDung = @id);
+                    DELETE FROM LichSuHocTap WHERE MaNguoiDung = @id OR MaLuotLamBai IN (SELECT MaLuotLamBai FROM LuotLamBai WHERE MaNguoiDung = @id);
+                    DELETE FROM LuotLamBai WHERE MaNguoiDung = @id;
+
+                    -- 3. Xóa khảo sát đầu vào
+                    DELETE FROM CauTraLoiKhaoSat WHERE MaLuotKhaoSat IN (SELECT MaLuotKhaoSat FROM LuotKhaoSat WHERE MaNguoiDung = @id);
+                    DELETE FROM LuotKhaoSat WHERE MaNguoiDung = @id;
+
+                    -- 4. Xóa tiến độ học tập, điểm yếu, đề xuất, flashcard, thông báo
+                    DELETE FROM TienDoBaiHoc WHERE MaNguoiDung = @id;
+                    DELETE FROM DiemYeuNguoiDung WHERE MaNguoiDung = @id;
+                    DELETE FROM DeXuatHocTap WHERE MaNguoiDung = @id;
+                    DELETE FROM Flashcard WHERE MaNguoiDung = @id;
+                    DELETE FROM ThongBao WHERE MaNguoiDung = @id;
+
+                    -- 5. Xóa yêu cầu sinh đề AI và tệp tin nhập liệu
+                    DELETE FROM CauHoiDoAISinh WHERE MaYeuCauSinhDe IN (SELECT MaYeuCauSinhDe FROM YeuCauSinhDeAI WHERE NguoiYeuCau = @id);
+                    DELETE FROM YeuCauSinhDeAI WHERE NguoiYeuCau = @id;
+                    DELETE FROM TepTinNhapLieu WHERE NguoiTaiLen = @id;
+
+                    -- 6. Gỡ tham chiếu tác giả / người duyệt nội dung (đặt về NULL)
+                    UPDATE BaiHoc SET NguoiTao = NULL WHERE NguoiTao = @id;
+                    UPDATE BaiTapDeThi SET NguoiTao = NULL WHERE NguoiTao = @id;
+                    UPDATE CauHoi SET NguoiTao = NULL WHERE NguoiTao = @id;
+                    UPDATE CauHoiDoAISinh SET NguoiDuyet = NULL WHERE NguoiDuyet = @id;
+
+                    -- 7. Xóa hồ sơ học tập và người dùng
+                    DELETE FROM HoSoHocTap WHERE MaNguoiDung = @id;
+                    DELETE FROM NguoiDung WHERE MaNguoiDung = @id;
+
+                    COMMIT TRANSACTION;
+                END TRY
+                BEGIN CATCH
+                    IF @@TRANCOUNT > 0
+                        ROLLBACK TRANSACTION;
+                    THROW;
+                END CATCH;";
+
+            int rows = DatabaseHelper.ExecuteNonQuery(query, new[] { new SqlParameter("@id", userId) });
             return rows > 0;
         }
 

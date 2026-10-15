@@ -322,17 +322,27 @@ namespace BUS
         {
             var user = _dal.GetById(userId);
             if (user == null)
-                return (false, "Tài khoản không tồn tại.");
+                return (false, "Tài khoản không tồn tại trong hệ thống.");
 
-            if (user.TenVaiTro == "QuanTriVien")
+            if (user.TenVaiTro == "QuanTriVien" || user.MaNguoiDung == 1 || string.Equals(user.TenDangNhap, "admin", StringComparison.OrdinalIgnoreCase))
                 return (false, "Không được phép xóa tài khoản Quản trị viên hệ thống.");
 
-            bool ok = _dal.Delete(userId);
-            if (ok)
+            if (SessionHelper.CurrentUser != null && SessionHelper.CurrentUser.MaNguoiDung == userId)
+                return (false, "Bạn không thể tự xóa tài khoản đang đăng nhập hiện tại.");
+
+            try
             {
-                return (true, "Đã xóa tài khoản thành công.");
+                bool ok = _dal.Delete(userId);
+                if (ok)
+                {
+                    return (true, $"Đã xóa vĩnh viễn tài khoản {user.HoTen} và toàn bộ dữ liệu liên quan thành công.");
+                }
+                return (false, "Không thể xóa tài khoản. Vui lòng kiểm tra lại.");
             }
-            return (false, "Không thể xóa tài khoản do có dữ liệu ràng buộc.");
+            catch (Exception ex)
+            {
+                return (false, $"Lỗi khi xóa tài khoản: {ex.Message}");
+            }
         }
 
         public (bool Success, string Message, NguoiDungDTO? User) DangNhap(string emailOrUsername, string password)
