@@ -133,5 +133,49 @@ namespace BUS
                 return (true, $"Đã tạo bộ đề thi thử '{tenDeThi}' và lưu vào hệ thống thành công!");
             return (false, "Lỗi khi tạo bộ đề thi thử trong cơ sở dữ liệu.");
         }
+
+        public static (bool Success, string Message) XoaBaiHoc(int maBaiHoc)
+        {
+            if (maBaiHoc <= 0)
+                return (false, "Mã bài học không hợp lệ.");
+
+            try
+            {
+                bool ok = _baiHocDAL.DeleteBaiHoc(maBaiHoc);
+                if (ok)
+                {
+                    _cacheBaiHoc = null;
+                    return (true, "Đã xóa bài học / đề thi thành công.");
+                }
+                return (false, "Không tìm thấy bài học để xóa hoặc thao tác thất bại.");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Lỗi khi xóa bài học: {ex.Message}");
+            }
+        }
+
+        public static (bool Success, string Message) DiChuyenBaiHoc(int maBaiHoc, int maChuDeMoi)
+        {
+            if (maBaiHoc <= 0)
+                return (false, "Mã bài học không hợp lệ.");
+            if (maChuDeMoi <= 0)
+                return (false, "Vui lòng chọn thư mục đích hợp lệ.");
+
+            try
+            {
+                bool ok = _baiHocDAL.DiChuyenBaiHoc(maBaiHoc, maChuDeMoi);
+                if (ok)
+                {
+                    _cacheBaiHoc = null;
+                    return (true, "Đã di chuyển bài học sang thư mục mới thành công!");
+                }
+                return (false, "Không thể di chuyển bài học. Vui lòng thử lại.");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Lỗi khi di chuyển bài học: {ex.Message}");
+            }
+        }
     }
 }

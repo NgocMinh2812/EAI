@@ -399,6 +399,7 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
@@ -419,8 +420,61 @@
                         </Grid>
                     </Border>
 
+                    <!-- Toolbar 2 Nút: Di Chuyển & Xóa Tệp Trong Cột Bài Học / Đề Thi -->
+                    <Border Grid.Row="1" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="8,5">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Nút Di Chuyển Thư Mục -->
+                            <Button Grid.Column="0" Background="#EFF6FF" Foreground="#1D4ED8" BorderBrush="#3B82F6" BorderThickness="1.5"
+                                    FontSize="11.5" FontWeight="SemiBold" Padding="4,6" Cursor="Hand" Click="BtnMoveSelectedLesson_Click" ToolTip="Di chuyển bài học / đề thi đang chọn sang thư mục khác">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="bdMove" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <local:LucideIcon Kind="FolderOpen" Size="12" Foreground="#1D4ED8" Margin="0,0,4,0"/>
+                                                <TextBlock Text="Di chuyển"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="bdMove" Property="Background" Value="#DBEAFE"/>
+                                                <Setter TargetName="bdMove" Property="BorderBrush" Value="#2563EB"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <!-- Nút Xóa File -->
+                            <Button Grid.Column="2" Background="#FEF2F2" Foreground="#DC2626" BorderBrush="#EF4444" BorderThickness="1.5"
+                                    FontSize="11.5" FontWeight="SemiBold" Padding="4,6" Cursor="Hand" Click="BtnDeleteSelectedLesson_Click" ToolTip="Xóa vĩnh viễn bài học / tệp học liệu đang chọn">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="bdDel" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <local:LucideIcon Kind="Trash2" Size="12" Foreground="#DC2626" Margin="0,0,4,0"/>
+                                                <TextBlock Text="Xóa file"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="bdDel" Property="Background" Value="#FEE2E2"/>
+                                                <Setter TargetName="bdDel" Property="BorderBrush" Value="#B91C1C"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+                    </Border>
+
                     <!-- Lessons / Materials Items from Database -->
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                         <StackPanel>
                             <!-- Empty State Notice -->
                             <TextBlock x:Name="txtEmptyNotice" Text="Chưa có bài học nào trong chủ đề này." 
@@ -479,9 +533,49 @@
                                                     </StackPanel>
                                                 </StackPanel>
 
-                                                <Border Grid.Column="2" Background="{Binding StatusBackground}" CornerRadius="6" Padding="7,3" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding TrangThai}" FontSize="10" FontWeight="SemiBold" Foreground="{Binding StatusColor}"/>
-                                                </Border>
+                                                <!-- Right Badges & Direct Action Buttons -->
+                                                <StackPanel Grid.Column="2" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                    <Border Background="{Binding StatusBackground}" CornerRadius="6" Padding="7,3" HorizontalAlignment="Right" Margin="0,0,0,4">
+                                                        <TextBlock Text="{Binding TrangThai}" FontSize="10" FontWeight="SemiBold" Foreground="{Binding StatusColor}"/>
+                                                    </Border>
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                        <Button Width="24" Height="24" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" 
+                                                                Margin="0,0,4,0" Cursor="Hand" ToolTip="Di chuyển bài học này sang thư mục khác" 
+                                                                Tag="{Binding MaBaiHoc}" Click="BtnItemMove_Click">
+                                                            <Button.Template>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border x:Name="b" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                                                                        <local:LucideIcon Kind="FolderOpen" Size="12" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                            <Setter TargetName="b" Property="Background" Value="#DBEAFE"/>
+                                                                            <Setter TargetName="b" Property="BorderBrush" Value="#2563EB"/>
+                                                                        </Trigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </Button.Template>
+                                                        </Button>
+
+                                                        <Button Width="24" Height="24" Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" 
+                                                                Cursor="Hand" ToolTip="Xóa bài học này" 
+                                                                Tag="{Binding MaBaiHoc}" Click="BtnItemDelete_Click">
+                                                            <Button.Template>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border x:Name="b" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                                                                        <local:LucideIcon Kind="Trash2" Size="12" Foreground="#DC2626" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                            <Setter TargetName="b" Property="Background" Value="#FEE2E2"/>
+                                                                            <Setter TargetName="b" Property="BorderBrush" Value="#B91C1C"/>
+                                                                        </Trigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </Button.Template>
+                                                        </Button>
+                                                    </StackPanel>
+                                                </StackPanel>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>

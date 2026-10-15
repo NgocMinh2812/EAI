@@ -719,5 +719,110 @@ namespace GUI.Views.GiangVien
                 ThongBaoDialog.Loi(Window.GetWindow(this), msg, "Lỗi tạo đề thi");
             }
         }
+
+        // ================= CỘT 2: DI CHUYỂN & XÓA BÀI HỌC / ĐỀ THI =================
+
+        private void BtnMoveSelectedLesson_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentPreviewLesson == null || _currentPreviewLesson.MaBaiHoc <= 0)
+            {
+                ThongBaoDialog.CanhBao(Window.GetWindow(this), "Vui lòng chọn một bài học / đề thi trong danh sách để di chuyển.", "Chưa chọn tệp");
+                return;
+            }
+            PerformMoveLesson(_currentPreviewLesson);
+        }
+
+        private void BtnDeleteSelectedLesson_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentPreviewLesson == null || _currentPreviewLesson.MaBaiHoc <= 0)
+            {
+                ThongBaoDialog.CanhBao(Window.GetWindow(this), "Vui lòng chọn một bài học / đề thi trong danh sách để xóa.", "Chưa chọn tệp");
+                return;
+            }
+            PerformDeleteLesson(_currentPreviewLesson);
+        }
+
+        private void BtnItemMove_Click(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true; // Tránh kích hoạt LessonItem_Click
+            if (sender is FrameworkElement elem && elem.Tag is int id)
+            {
+                var lesson = _allLessons.FirstOrDefault(b => b.MaBaiHoc == id) ?? _currentPreviewLesson;
+                if (lesson != null)
+                {
+                    PerformMoveLesson(lesson);
+                }
+            }
+        }
+
+        private void BtnItemDelete_Click(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true; // Tránh kích hoạt LessonItem_Click
+            if (sender is FrameworkElement elem && elem.Tag is int id)
+            {
+                var lesson = _allLessons.FirstOrDefault(b => b.MaBaiHoc == id) ?? _currentPreviewLesson;
+                if (lesson != null)
+                {
+                    PerformDeleteLesson(lesson);
+                }
+            }
+        }
+
+        private void PerformMoveLesson(BaiHocDTO lesson)
+        {
+            var allChuDe = _danhMucBUS.LayDanhSachChuDe();
+            var dlg = new DiChuyenThuMucDialog(lesson, allChuDe);
+
+            if (ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this)) == true)
+            {
+                var (success, msg) = BaiHocBUS.DiChuyenBaiHoc(lesson.MaBaiHoc, dlg.SelectedTargetMaChuDe);
+                if (success)
+                {
+                    LoadTreeAndLessons();
+                    ThongBaoDialog.ThanhCong(
+                        Window.GetWindow(this), 
+                        $"Đã chuyển '{lesson.TieuDe}' sang thư mục '{dlg.SelectedTargetTenChuDe}' thành công!", 
+                        "Di chuyển hoàn tất");
+                }
+                else
+                {
+                    ThongBaoDialog.CanhBao(Window.GetWindow(this), msg, "Lỗi di chuyển");
+                }
+            }
+        }
+
+        private void PerformDeleteLesson(BaiHocDTO lesson)
+        {
+            bool confirm = ThongBaoDialog.XacNhanXoa(
+                Window.GetWindow(this),
+                $"Bạn có chắc chắn muốn xóa vĩnh viễn bài học / tệp học liệu:\n'{lesson.TieuDe}'?\nThao tác này sẽ gỡ bỏ học liệu khỏi thư mục và cơ sở dữ liệu.",
+                "Xác nhận xóa tệp học liệu");
+
+            if (confirm)
+            {
+                var (success, msg) = BaiHocBUS.XoaBaiHoc(lesson.MaBaiHoc);
+                if (success)
+                {
+                    if (_currentPreviewLesson?.MaBaiHoc == lesson.MaBaiHoc)
+                    {
+                        _currentPreviewLesson = null;
+                    }
+                    LoadTreeAndLessons();
+                    if (_allLessons != null && _allLessons.Count > 0)
+                    {
+                        ShowLessonPreview(_allLessons[0]);
+                    }
+                    else
+                    {
+                        ClearPreview();
+                    }
+                    ThongBaoDialog.ThanhCong(Window.GetWindow(this), msg, "Đã xóa tệp thành công");
+                }
+                else
+                {
+                    ThongBaoDialog.CanhBao(Window.GetWindow(this), msg, "Lỗi khi xóa tệp");
+                }
+            }
+        }
     }
 }

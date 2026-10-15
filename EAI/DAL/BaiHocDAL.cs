@@ -787,5 +787,63 @@ namespace DAL
             var id = DatabaseHelper.ExecuteScalar(query, parameters);
             return id != null && id != DBNull.Value;
         }
+
+        public bool DeleteBaiHoc(int maBaiHoc)
+        {
+            try
+            {
+                const string query = @"
+                    BEGIN TRY
+                        BEGIN TRANSACTION;
+
+                        -- Gỡ liên kết bài học ở các bảng liên quan
+                        UPDATE CauHoi SET MaBaiHoc = NULL WHERE MaBaiHoc = @id;
+                        UPDATE BaiTapDeThi SET MaBaiHoc = NULL WHERE MaBaiHoc = @id;
+                        UPDATE LichSuHocTap SET MaBaiHoc = NULL WHERE MaBaiHoc = @id;
+                        UPDATE DeXuatHocTap SET MaBaiHoc = NULL WHERE MaBaiHoc = @id;
+                        UPDATE PhienHoiThoaiAI SET MaBaiHocLienQuan = NULL WHERE MaBaiHocLienQuan = @id;
+
+                        -- Xóa tiến độ học tập gắn với bài học
+                        DELETE FROM TienDoBaiHoc WHERE MaBaiHoc = @id;
+
+                        -- Xóa bài học
+                        DELETE FROM BaiHoc WHERE MaBaiHoc = @id;
+
+                        COMMIT TRANSACTION;
+                    END TRY
+                    BEGIN CATCH
+                        IF @@TRANCOUNT > 0
+                            ROLLBACK TRANSACTION;
+                        THROW;
+                    END CATCH;";
+
+                int rows = DatabaseHelper.ExecuteNonQuery(query, new[] { new SqlParameter("@id", maBaiHoc) });
+                return rows > 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BaiHocDAL.DeleteBaiHoc] Lỗi: {ex.Message}");
+                throw;
+            }
+        }
+
+        public bool DiChuyenBaiHoc(int maBaiHoc, int maChuDeMoi)
+        {
+            try
+            {
+                const string query = "UPDATE BaiHoc SET MaChuDe = @MaChuDeMoi, NgayCapNhat = SYSDATETIME() WHERE MaBaiHoc = @MaBaiHoc;";
+                int rows = DatabaseHelper.ExecuteNonQuery(query, new[]
+                {
+                    new SqlParameter("@MaChuDeMoi", maChuDeMoi),
+                    new SqlParameter("@MaBaiHoc", maBaiHoc)
+                });
+                return rows > 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BaiHocDAL.DiChuyenBaiHoc] Lỗi: {ex.Message}");
+                throw;
+            }
+        }
     }
 }
