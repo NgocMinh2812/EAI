@@ -24,11 +24,45 @@ namespace GUI.Views
 
             if (SessionHelper.CurrentHoSo != null)
             {
+                txtCurrentLevel.Text = !string.IsNullOrEmpty(SessionHelper.CurrentHoSo.HienThiTrinhDoDauVao) 
+                    ? SessionHelper.CurrentHoSo.HienThiTrinhDoDauVao 
+                    : "B1 Intermediate";
                 txtTargetLevel.Text = SessionHelper.CurrentHoSo.HienThiMucTieu;
             }
             else
             {
-                txtTargetLevel.Text = "Khởi đầu học tập";
+                txtCurrentLevel.Text = "B1 Intermediate";
+                txtTargetLevel.Text = "IELTS 6.5 (CEFR B2)";
+            }
+
+            // Tải thống kê thực tế từ DB
+            try
+            {
+                var stats = BaiHocBUS.LayThongKeSinhVien();
+                txtDiemTrungBinh.Text = $"{stats.DiemTrungBinh:0.0}%";
+                txtSoBaiHoanThanh.Text = stats.SoBaiDaHoanThanh.ToString();
+                txtTongSoBai.Text = $" / {Math.Max(stats.TongSoBaiHoc, 29)} bài";
+                txtThoiGianTichLuy.Text = stats.SoPhutHocTichLuy.ToString();
+                txtChuoiHoc.Text = $"Chuỗi {stats.ChuoiHocLienTiep} ngày chuyên cần";
+
+                txtAccTuVung.Text = $"{stats.TyLeTuVung}% độ chính xác";
+                txtAccNguPhap.Text = $"{stats.TyLeNguPhap}% độ chính xác";
+                txtAccDocHieu.Text = $"{stats.TyLeDocHieu}% độ chính xác";
+                txtAccNgheHieu.Text = $"{stats.TyLeNgheHieu}% độ chính xác";
+
+                if (stats.DanhSachBaiHocGanDay != null && stats.DanhSachBaiHocGanDay.Count > 0)
+                {
+                    icRecentLessons.ItemsSource = stats.DanhSachBaiHocGanDay;
+                    txtNoRecentLessons.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    txtNoRecentLessons.Visibility = Visibility.Visible;
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi nạp thống kê TrangChu: {ex.Message}");
             }
 
             bool daHoanThanhKhaoSat = (SessionHelper.CurrentUser != null && !SessionHelper.CurrentUser.LaLanDauDangNhap);
@@ -74,6 +108,11 @@ namespace GUI.Views
             this.NavigationService?.Navigate(new HocTapView());
         }
 
+        private void BtnThiThu_Click(object sender, RoutedEventArgs e)
+        {
+            this.NavigationService?.Navigate(new ThiThuView());
+        }
+
         private void BtnLuyenTap_Click(object sender, RoutedEventArgs e)
         {
             this.NavigationService?.Navigate(new LuyenTapView());
@@ -99,14 +138,12 @@ namespace GUI.Views
             this.NavigationService?.Navigate(new TroLyAIView());
         }
 
-        private void ItemBaiHoc1_Click(object sender, MouseButtonEventArgs e)
+        private void ItemRecentLesson_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            this.NavigationService?.Navigate(new HocTapView(1));
-        }
-
-        private void ItemBaiHoc2_Click(object sender, MouseButtonEventArgs e)
-        {
-            this.NavigationService?.Navigate(new HocTapView(2));
+            if (sender is FrameworkElement elem && elem.Tag is int maBaiHoc)
+            {
+                this.NavigationService?.Navigate(new HocTapView(maBaiHoc));
+            }
         }
 
         private void AIChatButton_Click(object sender, RoutedEventArgs e)

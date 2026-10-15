@@ -506,6 +506,7 @@
                                             <TextBlock Text="Tiến độ bài học" FontSize="11.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
                                             <TextBlock x:Name="txtChiTietTienDo" Text="80%" FontSize="20" FontWeight="Bold" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center" Margin="0,2,0,2"/>
                                             <TextBlock x:Name="txtChiTietTrangThai" Text="Đang học" FontSize="11" FontWeight="SemiBold" Foreground="#2563EB" HorizontalAlignment="Center"/>
+                                            <TextBlock x:Name="txtStudyTimeElapsed" Text="⏱️ Đã học: 00:00" FontSize="11" Foreground="{StaticResource BrandTeal}" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>
@@ -545,29 +546,109 @@
                         <StackPanel x:Name="pnlTabLyThuyet" Visibility="Visible">
                             <Border Background="White" CornerRadius="14" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="26,24">
                                 <StackPanel>
-                                    <!-- Audio Player Simulator -->
-                                    <Border Background="#F0FDFA" CornerRadius="10" BorderBrush="{StaticResource BrandMintSoft}" BorderThickness="1" Padding="16,12" Margin="0,0,0,20">
+                                    <!-- Modern Audio Player Controller (TASK-203) -->
+                                    <Border Background="#F0FDFA" CornerRadius="12" BorderBrush="{StaticResource BrandMintSoft}" BorderThickness="1.5" Padding="18,14" Margin="0,0,0,20">
                                         <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            
+                                            <Grid Grid.Row="0" Margin="0,0,0,10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
 
-                                            <Button Grid.Column="0" Content="🔊 Nghe phát âm &amp; Giọng đọc AI" 
-                                                    Style="{StaticResource TealActionButton}" Padding="12,7" FontSize="12.5" Click="BtnPlayAudio_Click"/>
+                                                <!-- Play/Pause & Rewind/Forward Controls (TASK-203) -->
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Button x:Name="btnAudioPlayPause" Content="▶️ Nghe bài giảng" 
+                                                            Style="{StaticResource TealActionButton}" Padding="15,7" FontSize="12.5" Click="BtnAudioPlayPause_Click"/>
+                                                    <Button x:Name="btnAudioStop" Content="⏹️" 
+                                                            Style="{StaticResource FilterChipButton}" Margin="6,0,0,0" Padding="10,6" Click="BtnAudioStop_Click" ToolTip="Dừng phát"/>
+                                                    <Button x:Name="btnAudioRewind" Content="⏪ -5s" 
+                                                            Style="{StaticResource FilterChipButton}" Margin="6,0,0,0" Padding="8,6" Click="BtnAudioRewind_Click" ToolTip="Tua lại 5 giây"/>
+                                                    <Button x:Name="btnAudioForward" Content="⏩ +5s" 
+                                                            Style="{StaticResource FilterChipButton}" Margin="6,0,0,0" Padding="8,6" Click="BtnAudioForward_Click" ToolTip="Tua tới 5 giây"/>
+                                                </StackPanel>
 
-                                            <TextBlock Grid.Column="1" Text="AI Audio Tutor: Phát âm chuẩn IPA giọng Anh - Mỹ, giải thích ngữ cảnh chi tiết." 
-                                                       VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{StaticResource BrandTealDark}" FontSize="12.5"/>
+                                                <!-- Status and Audio info -->
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="14,0">
+                                                    <TextBlock x:Name="txtAudioStatus" Text="Bộ phát âm thanh bài học (Audio Tutor • MediaPlayer)" 
+                                                               FontWeight="SemiBold" Foreground="{StaticResource BrandTealDark}" FontSize="13"/>
+                                                    <TextBlock x:Name="txtAudioSubtitle" Text="Giọng đọc tiếng Anh bản xứ chuẩn IPA, hỗ trợ nghe đoạn hội thoại, tạm dừng và tua lại." 
+                                                               Foreground="{StaticResource TextGray}" FontSize="11.5" Margin="0,2,0,0"/>
+                                                </StackPanel>
 
-                                            <Button Grid.Column="2" Content="🤖 Hỏi AI về bài này" Style="{StaticResource FilterChipButton}" 
-                                                    Background="White" BorderBrush="{StaticResource BrandTeal}" Foreground="{StaticResource BrandTeal}" 
-                                                    Click="BtnAskAI_Click"/>
+                                                <!-- Speed & Volume Controls -->
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="🔊" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                    <Slider x:Name="sldAudioVolume" Minimum="0" Maximum="1" Value="0.8" Width="65" VerticalAlignment="Center" 
+                                                            ValueChanged="SldAudioVolume_ValueChanged" Margin="0,0,10,0"/>
+                                                    <Button x:Name="btnAudioSpeed" Content="1.0x" Style="{StaticResource FilterChipButton}" 
+                                                            Padding="8,4" FontSize="11.5" Click="BtnAudioSpeed_Click" ToolTip="Tốc độ đọc"/>
+                                                    <Button Content="🤖 Đọc mẫu" Style="{StaticResource FilterChipButton}" Background="White" 
+                                                            BorderBrush="{StaticResource BrandTeal}" Foreground="{StaticResource BrandTeal}" 
+                                                            Padding="10,4" FontSize="11.5" Click="BtnSpeakFullText_Click" Margin="4,0,0,0"/>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Progress Timeline & Seek Slider -->
+                                            <Grid Grid.Row="1">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock x:Name="txtAudioCurrentTime" Grid.Column="0" Text="00:00" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                <Slider x:Name="sldAudioProgress" Grid.Column="1" Minimum="0" Maximum="100" Value="0" VerticalAlignment="Center" 
+                                                        PreviewMouseDown="SldAudioProgress_PreviewMouseDown" PreviewMouseUp="SldAudioProgress_PreviewMouseUp" ValueChanged="SldAudioProgress_ValueChanged"/>
+                                                <TextBlock x:Name="txtAudioTotalTime" Grid.Column="2" Text="01:30" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                            </Grid>
                                         </Grid>
                                     </Border>
 
-                                    <!-- Main Lecture Content Text -->
-                                    <TextBlock x:Name="txtChiTietNoiDung" Text="Nội dung bài học..." FontSize="14" LineHeight="24" TextWrapping="Wrap" Foreground="#1E293B"/>
+                                    <!-- Formatted Theory Reader (TASK-202) -->
+                                    <StackPanel x:Name="pnlFormattedLecture">
+                                        <!-- Objectives Card -->
+                                        <Border Background="#F0FDF4" CornerRadius="10" BorderBrush="#BBF7D0" BorderThickness="1" Padding="16,14" Margin="0,0,0,16">
+                                            <StackPanel>
+                                                <TextBlock Text="🎯 MỤC TIÊU BÀI HỌC" FontWeight="Bold" FontSize="12" Foreground="#166534" Margin="0,0,0,5"/>
+                                                <TextBlock x:Name="txtLectureObjective" Text="Nắm vững bản chất, quy tắc và phản xạ áp dụng vào bài thi chuẩn hóa." FontSize="13.5" LineHeight="20" Foreground="#14532D" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Core Structure Card -->
+                                        <Border Background="#F8FAFC" CornerRadius="10" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="18,16" Margin="0,0,0,16">
+                                            <StackPanel>
+                                                <TextBlock Text="📖 CẤU TRÚC &amp; QUY TẮC CỐT LÕI (CORE RULES)" FontWeight="Bold" FontSize="12" Foreground="{StaticResource BrandTeal}" Margin="0,0,0,10"/>
+                                                <Border Background="White" CornerRadius="8" Padding="14" BorderBrush="#E2E8F0" BorderThickness="1">
+                                                    <TextBlock x:Name="txtLectureFormula" Text="Cấu trúc ngữ pháp / quy tắc trọng tâm..." FontFamily="Segoe UI Semibold" FontSize="14" Foreground="#0F172A" TextWrapping="Wrap"/>
+                                                </Border>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Real-world Examples Card -->
+                                        <Border Background="#EFF6FF" CornerRadius="10" BorderBrush="#BFDBFE" BorderThickness="1" Padding="16,14" Margin="0,0,0,16">
+                                            <StackPanel>
+                                                <TextBlock Text="💡 VÍ DỤ MINH HỌA NGỮ CẢNH THỰC TẾ (IELTS / TOEIC)" FontWeight="Bold" FontSize="12" Foreground="#1D4ED8" Margin="0,0,0,6"/>
+                                                <TextBlock x:Name="txtLectureExample" Text="Ví dụ ứng dụng thực tế trong bài thi..." FontStyle="Italic" FontSize="13.5" LineHeight="22" Foreground="#1E3A8A" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Common Pitfalls Card -->
+                                        <Border Background="#FEF3C7" CornerRadius="10" BorderBrush="#FDE68A" BorderThickness="1" Padding="16,14" Margin="0,0,0,18">
+                                            <StackPanel>
+                                                <TextBlock Text="⚠️ BẪY THƯỜNG GẶP &amp; LƯU Ý QUAN TRỌNG (EXAM TIPS)" FontWeight="Bold" FontSize="12" Foreground="#92400E" Margin="0,0,0,6"/>
+                                                <TextBlock x:Name="txtLectureTips" Text="Lưu ý các trường hợp ngoại lệ và bẫy thường gặp." FontSize="13" LineHeight="20" Foreground="#78350F" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Full Lecture Text (collapsible or detailed) -->
+                                        <TextBlock Text="Chi tiết nội dung bài giảng:" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
+                                        <TextBlock x:Name="txtChiTietNoiDung" Text="Nội dung bài học..." FontSize="13.5" LineHeight="23" TextWrapping="Wrap" Foreground="#1E293B"/>
+                                    </StackPanel>
 
                                     <!-- Next step button -->
                                     <Rectangle Height="1" Fill="{StaticResource BorderLight}" Margin="0,24,0,20"/>
