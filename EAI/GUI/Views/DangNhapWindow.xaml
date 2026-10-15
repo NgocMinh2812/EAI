@@ -3,8 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:GUI"
         Title="Đăng nhập - EnglishAI" 
-        Height="620" Width="980"
-        MinHeight="560" MinWidth="900"
+        Icon="/Assets/app_icon.ico"
+        Height="670" Width="1050"
+        MinHeight="600" MinWidth="950"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI"
         Background="Transparent"
@@ -13,23 +14,18 @@
         MouseLeftButtonDown="Window_MouseLeftButtonDown">
 
     <Window.Resources>
-        <!-- Colors based on screenshot and floating panel theme -->
+        <!-- Color Palette -->
         <SolidColorBrush x:Key="BrandTeal" Color="#0F766E" />
         <SolidColorBrush x:Key="BrandTealDark" Color="#042F2E" />
-        <SolidColorBrush x:Key="BrandTealLight" Color="#E6F7F3" />
-        <SolidColorBrush x:Key="BrandMint" Color="#A7F3D0" />
-        <SolidColorBrush x:Key="BrandMintSoft" Color="#CCFBF1" />
+        <SolidColorBrush x:Key="BrandMint" Color="#34D399" />
+        <SolidColorBrush x:Key="BrandMintSoft" Color="#A7F3D0" />
         <SolidColorBrush x:Key="TextDark" Color="#0F172A" />
-        <SolidColorBrush x:Key="TextMedium" Color="#334155" />
         <SolidColorBrush x:Key="TextGray" Color="#64748B" />
-        <SolidColorBrush x:Key="TextMuted" Color="#9CA3AF" />
-        <SolidColorBrush x:Key="CardBg" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="InputBg" Color="#F3F4F6" />
-        <SolidColorBrush x:Key="BorderLight" Color="#E5E7EB" />
+        <SolidColorBrush x:Key="TextMuted" Color="#94A3B8" />
+        <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0" />
 
-        <!-- Primary Button Style -->
-        <Style x:Key="TealButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource BrandTeal}"/>
+        <!-- Nút Chính Gradient với Bóng Đổ -->
+        <Style x:Key="PrimaryGradientButton" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="14"/>
@@ -39,58 +35,26 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                        <Border x:Name="btnBorder" CornerRadius="10">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#0D9488" Offset="0"/>
+                                    <GradientStop Color="#0F766E" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.32" Color="#0F766E"/>
+                            </Border.Effect>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Opacity" Value="0.92"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <!-- Input TextBox Style -->
-        <Style x:Key="FormInputTextBox" TargetType="TextBox">
-            <Setter Property="Background" Value="{StaticResource InputBg}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderLight}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="13,9"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBoxBase">
-                        <Border Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="8">
-                            <ScrollViewer x:Name="PART_ContentHost"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Input PasswordBox Style -->
-        <Style x:Key="FormPasswordBox" TargetType="PasswordBox">
-            <Setter Property="Background" Value="{StaticResource InputBg}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderLight}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="13,9"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="PasswordBox">
-                        <Border Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="8">
-                            <ScrollViewer x:Name="PART_ContentHost"/>
-                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="btnBorder" Property="Opacity" Value="0.93"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="btnBorder" Property="Opacity" Value="0.82"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -98,27 +62,85 @@
     </Window.Resources>
 
     <Grid>
-        <!-- Window Outer Container: Floating Panel in Brand Green with Deep Shadow -->
-        <Border Background="{StaticResource BrandTeal}" CornerRadius="20" Margin="15">
+        <!-- LỚP CONTAINER FLOATING NỔI BẬT: Đổ bóng 3D sâu, viền mờ cao cấp, bo góc 24px -->
+        <Border Margin="22" CornerRadius="24" BorderBrush="#35A7F3D0" BorderThickness="1">
+            <!-- Nền Gradient Aurora với chiều sâu -->
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#064E3B" Offset="0"/>
+                    <GradientStop Color="#0F766E" Offset="0.5"/>
+                    <GradientStop Color="#042F2E" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
             <Border.Effect>
-                <DropShadowEffect BlurRadius="30" ShadowDepth="10" Opacity="0.35" Color="#042F2E"/>
+                <DropShadowEffect BlurRadius="42" ShadowDepth="12" Opacity="0.45" Color="#021C1B"/>
             </Border.Effect>
 
-            <Grid>
-                <!-- Top-Right Close Button -->
-                <Button VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,16,18,0"
-                        Background="Transparent" BorderThickness="0" Cursor="Hand" Click="CloseButton_Click" Panel.ZIndex="10">
-                    <local:LucideIcon Kind="X" Size="16" Foreground="{StaticResource BrandMintSoft}"/>
-                </Button>
+            <Grid ClipToBounds="True">
+                <!-- Hiệu ứng Glow Circles tạo chiều sâu không gian (Ambient Glow Orbs) -->
+                <Ellipse Width="340" Height="340" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-100,0,0,-120" IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#2510B981" Offset="0"/>
+                            <GradientStop Color="Transparent" Offset="0.85"/>
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
 
-                <Grid Margin="45,30,45,30">
+                <Ellipse Width="280" Height="280" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-90,-80,0" IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#2014B8A6" Offset="0"/>
+                            <GradientStop Color="Transparent" Offset="0.85"/>
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+
+                <!-- ================= NÚT ĐIỀU KHIỂN CỬA SỔ (WINDOW CONTROLS GÓC PHẢI TRÊN) ================= -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,18,22,0" Panel.ZIndex="100">
+                    <!-- Nút Thu Nhỏ (-) -->
+                    <Button x:Name="btnMinimize" Width="30" Height="30" Cursor="Hand" Click="MinimizeButton_Click" ToolTip="Thu nhỏ" Margin="0,0,8,0">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="bd" Background="#20FFFFFF" CornerRadius="15" BorderBrush="#35FFFFFF" BorderThickness="1">
+                                    <TextBlock Text="—" FontSize="11" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="bd" Property="Background" Value="#45FFFFFF"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!-- Nút Đóng (✕) Sắc Nét Chuẩn Typography -->
+                    <Button x:Name="btnClose" Width="30" Height="30" Cursor="Hand" Click="CloseButton_Click" ToolTip="Đóng">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="bd" Background="#20FFFFFF" CornerRadius="15" BorderBrush="#35FFFFFF" BorderThickness="1">
+                                    <TextBlock Text="✕" FontSize="12.5" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="bd" Property="Background" Value="#EF4444"/>
+                                        <Setter TargetName="bd" Property="BorderBrush" Value="#DC2626"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
+
+                <!-- ================= BỐ CỤC 2 CỘT: BRANDING (TRÁI) & FLOATING CARD (PHẢI) ================= -->
+                <Grid Margin="48,32,48,32">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1.15*"/>
                         <ColumnDefinition Width="0.95*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- ================= LEFT SIDE: Branding, Intro & Stats ================= -->
-                    <Grid Grid.Column="0" VerticalAlignment="Center" Margin="10,0,25,0">
+                    <!-- ================= CỘT TRÁI: BRANDING, VALUE PROPOSITION & STATS ================= -->
+                    <Grid Grid.Column="0" VerticalAlignment="Center" Margin="6,0,28,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -126,103 +148,111 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <!-- Brand Logo & Slogan -->
-                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,26">
-                            <Border Background="White" Width="36" Height="36" CornerRadius="8">
-                                <TextBlock Text="E" Foreground="{StaticResource BrandTeal}" FontWeight="Bold" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <!-- Logo & Brand Header -->
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,24">
+                            <Border Width="42" Height="42" CornerRadius="11" Background="White" Padding="3">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.2" Color="Black"/>
+                                </Border.Effect>
+                                <Image Source="/Assets/logo_icon" RenderOptions.BitmapScalingMode="HighQuality" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="EnglishAI" FontWeight="Bold" FontSize="16.5" Foreground="White"/>
-                                <TextBlock Text="Học tiếng Anh thông minh" Foreground="{StaticResource BrandMintSoft}" FontSize="11.5" Margin="0,1,0,0"/>
+                            <StackPanel Margin="13,0,0,0" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="EnglishAI" FontWeight="Bold" FontSize="18" Foreground="White"/>
+                                    <Border Background="#10B981" CornerRadius="6" Padding="6,2" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="AI POWERED" FontSize="9" FontWeight="Bold" Foreground="White"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Học tiếng Anh thông minh cùng Trợ lý AI" Foreground="{StaticResource BrandMintSoft}" FontSize="12" Margin="0,2,0,0"/>
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- Heading & Paragraph -->
-                        <StackPanel Grid.Row="1" Margin="0,0,0,18">
-                            <TextBlock FontFamily="Georgia" FontSize="31" FontWeight="Bold" Foreground="White" LineHeight="38">
+                        <!-- Slogan & Heading Nghệ Thuật -->
+                        <StackPanel Grid.Row="1" Margin="0,0,0,20">
+                            <TextBlock FontFamily="Georgia" FontSize="32" FontWeight="Bold" Foreground="White" LineHeight="40">
                                 Chinh phục tiếng Anh<LineBreak/>
                                 <Run Foreground="{StaticResource BrandMint}" FontStyle="Italic">cùng trí tuệ nhân tạo</Run>
                             </TextBlock>
 
-                            <TextBlock Text="Hệ thống học tập cá nhân hóa, tích hợp AI — từ chẩn đoán trình độ đến lộ trình chinh phục band điểm mục tiêu."
-                                       FontSize="13" Foreground="#E2E8F0" TextWrapping="Wrap" LineHeight="20" Margin="0,12,15,0"/>
+                            <TextBlock Text="Hệ thống học tập cá nhân hóa — từ chẩn đoán năng lực, luyện đọc hiểu, ngữ pháp đến lộ trình bứt phá band điểm mục tiêu."
+                                       FontSize="13.5" Foreground="#E2E8F0" TextWrapping="Wrap" LineHeight="21" Margin="0,14,18,0"/>
                         </StackPanel>
 
-                        <!-- 5 Features List -->
-                        <StackPanel Grid.Row="2" Margin="0,0,0,24">
+                        <!-- Danh Sách 5 Tính Năng Nổi Bật -->
+                        <StackPanel Grid.Row="2" Margin="0,0,0,26">
                             <!-- Feature 1 -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <Border Background="#14B8A6" Width="18" Height="18" CornerRadius="9" Margin="0,0,10,0">
-                                    <local:LucideIcon Kind="Check" Size="11" StrokeThickness="2.5" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border Background="#10B981" Width="20" Height="20" CornerRadius="10" Margin="0,0,11,0">
+                                    <local:LucideIcon Kind="Check" Size="12" StrokeThickness="2.6" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                <TextBlock Text="Bài kiểm tra chẩn đoán năng lực CEFR/IELTS/TOEIC" Foreground="#F8FAFC" FontSize="12.5" VerticalAlignment="Center"/>
+                                <TextBlock Text="Bài kiểm tra chẩn đoán năng lực CEFR/IELTS/TOEIC" Foreground="#F8FAFC" FontSize="13" VerticalAlignment="Center"/>
                             </StackPanel>
 
                             <!-- Feature 2 -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <Border Background="#14B8A6" Width="18" Height="18" CornerRadius="9" Margin="0,0,10,0">
-                                    <local:LucideIcon Kind="Check" Size="11" StrokeThickness="2.5" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border Background="#10B981" Width="20" Height="20" CornerRadius="10" Margin="0,0,11,0">
+                                    <local:LucideIcon Kind="Check" Size="12" StrokeThickness="2.6" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                <TextBlock Text="Flashcard từ vựng với phát âm IPA" Foreground="#F8FAFC" FontSize="12.5" VerticalAlignment="Center"/>
+                                <TextBlock Text="Kho tài liệu chuẩn hóa DOCX/PDF xem trước như File Explorer" Foreground="#F8FAFC" FontSize="13" VerticalAlignment="Center"/>
                             </StackPanel>
 
                             <!-- Feature 3 -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <Border Background="#14B8A6" Width="18" Height="18" CornerRadius="9" Margin="0,0,10,0">
-                                    <local:LucideIcon Kind="Check" Size="11" StrokeThickness="2.5" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border Background="#10B981" Width="20" Height="20" CornerRadius="10" Margin="0,0,11,0">
+                                    <local:LucideIcon Kind="Check" Size="12" StrokeThickness="2.6" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                <TextBlock Text="Luyện tập &amp; thi thử mô phỏng thực tế" Foreground="#F8FAFC" FontSize="12.5" VerticalAlignment="Center"/>
+                                <TextBlock Text="Trợ lý Gemini AI bóc tách câu hỏi trắc nghiệm tự động" Foreground="#F8FAFC" FontSize="13" VerticalAlignment="Center"/>
                             </StackPanel>
 
                             <!-- Feature 4 -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <Border Background="#14B8A6" Width="18" Height="18" CornerRadius="9" Margin="0,0,10,0">
-                                    <local:LucideIcon Kind="Check" Size="11" StrokeThickness="2.5" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border Background="#10B981" Width="20" Height="20" CornerRadius="10" Margin="0,0,11,0">
+                                    <local:LucideIcon Kind="Check" Size="12" StrokeThickness="2.6" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                <TextBlock Text="Trợ lý AI chấm bài viết &amp; giải thích ngữ pháp" Foreground="#F8FAFC" FontSize="12.5" VerticalAlignment="Center"/>
+                                <TextBlock Text="Luyện tập &amp; thi thử bấm giờ mô phỏng đề thi thực tế" Foreground="#F8FAFC" FontSize="13" VerticalAlignment="Center"/>
                             </StackPanel>
 
                             <!-- Feature 5 -->
                             <StackPanel Orientation="Horizontal">
-                                <Border Background="#14B8A6" Width="18" Height="18" CornerRadius="9" Margin="0,0,10,0">
-                                    <local:LucideIcon Kind="Check" Size="11" StrokeThickness="2.5" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border Background="#10B981" Width="20" Height="20" CornerRadius="10" Margin="0,0,11,0">
+                                    <local:LucideIcon Kind="Check" Size="12" StrokeThickness="2.6" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                <TextBlock Text="Dashboard theo dõi tiến độ &amp; phân tích điểm yếu" Foreground="#F8FAFC" FontSize="12.5" VerticalAlignment="Center"/>
+                                <TextBlock Text="Dashboard phân tích tiến độ, độ hoàn thành &amp; điểm mạnh yếu" Foreground="#F8FAFC" FontSize="13" VerticalAlignment="Center"/>
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- Bottom Stats -->
-                        <StackPanel Grid.Row="3" Orientation="Horizontal">
-                            <StackPanel Margin="0,0,35,0">
-                                <TextBlock Text="12,000+" FontWeight="Bold" FontSize="20" Foreground="White"/>
-                                <TextBlock Text="Học viên" Foreground="{StaticResource BrandMintSoft}" FontSize="12" Margin="0,2,0,0"/>
+                        <!-- Dải Glass Stats Banner (3 Cụm Thống Kê) -->
+                        <Border Grid.Row="3" Background="#18FFFFFF" BorderBrush="#25FFFFFF" BorderThickness="1" CornerRadius="14" Padding="18,12" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel Margin="0,0,28,0">
+                                    <TextBlock Text="12,000+" FontWeight="Bold" FontSize="19" Foreground="White"/>
+                                    <TextBlock Text="Học viên" Foreground="{StaticResource BrandMintSoft}" FontSize="11.5" Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <Rectangle Width="1" Fill="#28FFFFFF" Margin="0,2,28,2"/>
+                                <StackPanel Margin="0,0,28,0">
+                                    <TextBlock Text="500+" FontWeight="Bold" FontSize="19" Foreground="White"/>
+                                    <TextBlock Text="Bài học &amp; đề" Foreground="{StaticResource BrandMintSoft}" FontSize="11.5" Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <Rectangle Width="1" Fill="#28FFFFFF" Margin="0,2,28,2"/>
+                                <StackPanel>
+                                    <TextBlock Text="6.8" FontWeight="Bold" FontSize="19" Foreground="White"/>
+                                    <TextBlock Text="Band điểm TB" Foreground="{StaticResource BrandMintSoft}" FontSize="11.5" Margin="0,2,0,0"/>
+                                </StackPanel>
                             </StackPanel>
-
-                            <StackPanel Margin="0,0,35,0">
-                                <TextBlock Text="500+" FontWeight="Bold" FontSize="20" Foreground="White"/>
-                                <TextBlock Text="Bài học" Foreground="{StaticResource BrandMintSoft}" FontSize="12" Margin="0,2,0,0"/>
-                            </StackPanel>
-
-                            <StackPanel>
-                                <TextBlock Text="6.8" FontWeight="Bold" FontSize="20" Foreground="White"/>
-                                <TextBlock Text="Band điểm TB" Foreground="{StaticResource BrandMintSoft}" FontSize="12" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </StackPanel>
+                        </Border>
                     </Grid>
 
-                    <!-- ================= RIGHT SIDE: Login & Register Card ================= -->
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Width="360">
-                        <!-- Floating Card -->
-                        <Border Background="{StaticResource CardBg}" CornerRadius="16" 
-                                BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
-                                Padding="28,22,28,22">
+                    <!-- ================= CỘT PHẢI: FLOATING AUTH CARD NỔI BẬT ================= -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Width="375">
+                        <!-- Floating White Card -->
+                        <Border Background="White" CornerRadius="20" BorderBrush="#E2E8F0" BorderThickness="1" Padding="28,24">
                             <Border.Effect>
-                                <DropShadowEffect BlurRadius="20" ShadowDepth="5" Opacity="0.1" Color="Black"/>
+                                <DropShadowEffect BlurRadius="32" ShadowDepth="10" Opacity="0.18" Color="#000000"/>
                             </Border.Effect>
 
                             <StackPanel>
-                                <!-- Switch Tabs (Đăng nhập / Đăng ký) -->
-                                <Border Background="{StaticResource InputBg}" CornerRadius="8" Padding="3" Margin="0,0,0,18">
+                                <!-- Switch Tabs (Đăng nhập / Đăng ký) Dạng Pill Control -->
+                                <Border Background="#F1F5F9" CornerRadius="10" Padding="4" Margin="0,0,0,18">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -230,18 +260,18 @@
                                         </Grid.ColumnDefinitions>
 
                                         <!-- Tab Đăng nhập -->
-                                        <Border x:Name="tabLoginBorder" Grid.Column="0" Background="White" CornerRadius="6" Cursor="Hand" MouseDown="TabLogin_Click">
+                                        <Border x:Name="tabLoginBorder" Grid.Column="0" Background="White" CornerRadius="7" Cursor="Hand" MouseDown="TabLogin_Click">
                                             <Border.Effect>
-                                                <DropShadowEffect x:Name="tabLoginShadow" BlurRadius="4" ShadowDepth="1" Opacity="0.06"/>
+                                                <DropShadowEffect x:Name="tabLoginShadow" BlurRadius="6" ShadowDepth="1.5" Opacity="0.08"/>
                                             </Border.Effect>
                                             <TextBlock x:Name="tabLoginText" Text="Đăng nhập" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}" 
                                                        HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0,7"/>
                                         </Border>
 
                                         <!-- Tab Đăng ký -->
-                                        <Border x:Name="tabRegisterBorder" Grid.Column="1" Background="Transparent" CornerRadius="6" Cursor="Hand" MouseDown="TabRegister_Click">
+                                        <Border x:Name="tabRegisterBorder" Grid.Column="1" Background="Transparent" CornerRadius="7" Cursor="Hand" MouseDown="TabRegister_Click">
                                             <Border.Effect>
-                                                <DropShadowEffect x:Name="tabRegisterShadow" BlurRadius="4" ShadowDepth="1" Opacity="0"/>
+                                                <DropShadowEffect x:Name="tabRegisterShadow" BlurRadius="6" ShadowDepth="1.5" Opacity="0"/>
                                             </Border.Effect>
                                             <TextBlock x:Name="tabRegisterText" Text="Đăng ký" FontWeight="Medium" FontSize="13" Foreground="{StaticResource TextGray}" 
                                                        HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0,7"/>
@@ -249,51 +279,91 @@
                                     </Grid>
                                 </Border>
 
-                                <!-- ================= PANEL: ĐĂNG NHẬP ================= -->
+                                <!-- ================= FORM: ĐĂNG NHẬP ================= -->
                                 <StackPanel x:Name="pnlLogin" Visibility="Visible">
                                     <!-- Email Input -->
-                                    <TextBlock Text="Email" FontWeight="SemiBold" FontSize="12" Foreground="#374151" Margin="0,0,0,5"/>
-                                    <TextBox x:Name="txtEmail" Style="{StaticResource FormInputTextBox}" Text="ten@email.com" 
-                                             GotFocus="TxtEmail_GotFocus" LostFocus="TxtEmail_LostFocus" Margin="0,0,0,14"/>
-
-                                    <!-- Password Input -->
-                                    <TextBlock Text="Mật khẩu" FontWeight="SemiBold" FontSize="12" Foreground="#374151" Margin="0,0,0,5"/>
-                                    <PasswordBox x:Name="txtPassword" Style="{StaticResource FormPasswordBox}" Password="password" 
-                                                 GotFocus="TxtPassword_GotFocus" LostFocus="TxtPassword_LostFocus" KeyDown="TxtPassword_KeyDown" Margin="0,0,0,20"/>
-
-                                    <!-- Submit Button (IsDefault="True" allows pressing Enter to login) -->
-                                    <Button x:Name="btnLogin" IsDefault="True" Style="{StaticResource TealButtonStyle}" Content="Đăng nhập" Click="LoginButton_Click" Margin="0,0,0,10"/>
-
-                                    <!-- Forgot Password Link -->
-                                    <TextBlock Text="Quên mật khẩu?" Foreground="{StaticResource BrandTeal}" FontSize="12" FontWeight="Medium" 
-                                               HorizontalAlignment="Center" Cursor="Hand" Margin="0,0,0,10"/>
-
-                                    <!-- Demo Accounts Card -->
-                                    <Border Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,5,0,0">
-                                        <StackPanel>
-                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                                <local:LucideIcon Kind="Lightbulb" Size="14" Foreground="#0F766E" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                                <TextBlock Text="Tài khoản demo truy cập nhanh:" FontWeight="SemiBold" FontSize="11.5" Foreground="#0F766E" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                            <TextBlock Text="• Admin/GV: admin@gmail.com (pass: 123456)" FontSize="11" Foreground="#15803D" Margin="0,1"/>
-                                            <TextBlock Text="• Giảng viên: giangvien@gmail.com (pass: 123456)" FontSize="11" Foreground="#15803D" Margin="0,1"/>
-                                            <TextBlock Text="• Học viên: hocvien@gmail.com (pass: 123456)" FontSize="11" Foreground="#15803D" Margin="0,1"/>
-                                        </StackPanel>
+                                    <TextBlock Text="Email hoặc Tài khoản" FontWeight="SemiBold" FontSize="12" Foreground="#374151" Margin="0,0,0,5"/>
+                                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="40" Margin="0,0,0,12">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="38"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <local:LucideIcon Kind="Mail" Size="15" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBox x:Name="txtEmail" Grid.Column="1" Text="ten@email.com" BorderThickness="0" Background="Transparent" 
+                                                     FontSize="13" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,10,0"
+                                                     GotFocus="TxtEmail_GotFocus" LostFocus="TxtEmail_LostFocus"/>
+                                        </Grid>
                                     </Border>
+
+                                    <!-- Password Input với Nút Hiện/Ẩn Mắt -->
+                                    <TextBlock Text="Mật khẩu" FontWeight="SemiBold" FontSize="12" Foreground="#374151" Margin="0,0,0,5"/>
+                                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="40" Margin="0,0,0,16">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="38"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="38"/>
+                                            </Grid.ColumnDefinitions>
+                                            <local:LucideIcon Kind="Lock" Size="15" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            
+                                            <!-- Ô mật khẩu che dấu sao -->
+                                            <PasswordBox x:Name="txtPassword" Grid.Column="1" Password="password" BorderThickness="0" Background="Transparent" 
+                                                         FontSize="13" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center"
+                                                         GotFocus="TxtPassword_GotFocus" LostFocus="TxtPassword_LostFocus" KeyDown="TxtPassword_KeyDown"/>
+
+                                            <!-- Ô mật khẩu hiện văn bản rõ khi bấm mắt -->
+                                            <TextBox x:Name="txtPasswordVisible" Grid.Column="1" Text="" BorderThickness="0" Background="Transparent" 
+                                                     FontSize="13" Foreground="{StaticResource TextDark}" VerticalAlignment="Center" Visibility="Collapsed"
+                                                     KeyDown="TxtPasswordVisible_KeyDown"/>
+
+                                            <!-- Nút Toggle Eye -->
+                                            <Button x:Name="btnTogglePassword" Grid.Column="2" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnTogglePassword_Click" ToolTip="Hiện/Ẩn mật khẩu">
+                                                <local:LucideIcon x:Name="icoTogglePassword" Kind="Eye" Size="15" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Nút Đăng Nhập -->
+                                    <Button x:Name="btnLogin" IsDefault="True" Style="{StaticResource PrimaryGradientButton}" Content="Đăng nhập ngay" Click="LoginButton_Click" Margin="0,0,0,12"/>
+
+                                    <!-- Quên Mật Khẩu -->
+                                    <TextBlock Text="Quên mật khẩu?" Foreground="{StaticResource BrandTeal}" FontSize="12" FontWeight="SemiBold" 
+                                               HorizontalAlignment="Center" Cursor="Hand" MouseDown="ForgotPassword_Click" Margin="0,0,0,4"/>
                                 </StackPanel>
 
-                                <!-- ================= PANEL: ĐĂNG KÝ ================= -->
+                                <!-- ================= FORM: ĐĂNG KÝ TÀI KHOẢN MỚI ================= -->
                                 <StackPanel x:Name="pnlRegister" Visibility="Collapsed">
                                     <!-- Full Name Input -->
                                     <TextBlock Text="Họ và tên" FontWeight="SemiBold" FontSize="12" Foreground="#374151" Margin="0,0,0,4"/>
-                                    <TextBox x:Name="txtRegName" Style="{StaticResource FormInputTextBox}" Text="Nguyễn Văn A" 
-                                             GotFocus="TxtRegName_GotFocus" LostFocus="TxtRegName_LostFocus" Margin="0,0,0,10"/>
+                                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="38" Margin="0,0,0,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="36"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <local:LucideIcon Kind="User" Size="15" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBox x:Name="txtRegName" Grid.Column="1" Text="Nguyễn Văn A" BorderThickness="0" Background="Transparent" 
+                                                     FontSize="12.5" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,8,0"
+                                                     GotFocus="TxtRegName_GotFocus" LostFocus="TxtRegName_LostFocus"/>
+                                        </Grid>
+                                    </Border>
 
                                     <!-- Email Input -->
                                     <TextBlock Text="Email" FontWeight="SemiBold" FontSize="12" Foreground="#374151" Margin="0,0,0,4"/>
-                                    <TextBox x:Name="txtRegEmail" Style="{StaticResource FormInputTextBox}" Text="ten@email.com" 
-                                             GotFocus="TxtRegEmail_GotFocus" LostFocus="TxtRegEmail_LostFocus" Margin="0,0,0,6"/>
-                                    <TextBlock x:Name="txtRegEmailError" Foreground="#EF4444" FontSize="11" FontWeight="Medium" Margin="0,0,0,8" Visibility="Collapsed">
+                                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="38" Margin="0,0,0,6">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="36"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <local:LucideIcon Kind="Mail" Size="15" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBox x:Name="txtRegEmail" Grid.Column="1" Text="ten@email.com" BorderThickness="0" Background="Transparent" 
+                                                     FontSize="12.5" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,8,0"
+                                                     GotFocus="TxtRegEmail_GotFocus" LostFocus="TxtRegEmail_LostFocus"/>
+                                        </Grid>
+                                    </Border>
+                                    <TextBlock x:Name="txtRegEmailError" Foreground="#EF4444" FontSize="11" FontWeight="Medium" Margin="0,0,0,6" Visibility="Collapsed">
                                         <InlineUIContainer BaselineAlignment="Center">
                                             <local:LucideIcon Kind="AlertTriangle" Size="12" Foreground="#EF4444" Margin="0,0,4,0"/>
                                         </InlineUIContainer>
@@ -302,16 +372,36 @@
 
                                     <!-- Password Input -->
                                     <TextBlock Text="Mật khẩu" FontWeight="SemiBold" FontSize="12" Foreground="#374151" Margin="0,0,0,4"/>
-                                    <PasswordBox x:Name="txtRegPassword" Style="{StaticResource FormPasswordBox}" Password="password" 
-                                                 GotFocus="TxtRegPassword_GotFocus" LostFocus="TxtRegPassword_LostFocus" Margin="0,0,0,10"/>
+                                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="38" Margin="0,0,0,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="36"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <local:LucideIcon Kind="Lock" Size="15" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <PasswordBox x:Name="txtRegPassword" Grid.Column="1" Password="password" BorderThickness="0" Background="Transparent" 
+                                                         FontSize="12.5" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,8,0"
+                                                         GotFocus="TxtRegPassword_GotFocus" LostFocus="TxtRegPassword_LostFocus"/>
+                                        </Grid>
+                                    </Border>
 
                                     <!-- Confirm Password Input -->
                                     <TextBlock Text="Xác nhận mật khẩu" FontWeight="SemiBold" FontSize="12" Foreground="#374151" Margin="0,0,0,4"/>
-                                    <PasswordBox x:Name="txtRegConfirmPassword" Style="{StaticResource FormPasswordBox}" Password="password" 
-                                                 GotFocus="TxtRegConfirmPassword_GotFocus" LostFocus="TxtRegConfirmPassword_LostFocus" KeyDown="TxtRegConfirmPassword_KeyDown" Margin="0,0,0,16"/>
+                                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="38" Margin="0,0,0,14">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="36"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <local:LucideIcon Kind="ShieldCheck" Size="15" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <PasswordBox x:Name="txtRegConfirmPassword" Grid.Column="1" Password="password" BorderThickness="0" Background="Transparent" 
+                                                         FontSize="12.5" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,8,0"
+                                                         GotFocus="TxtRegConfirmPassword_GotFocus" LostFocus="TxtRegConfirmPassword_LostFocus" KeyDown="TxtRegConfirmPassword_KeyDown"/>
+                                        </Grid>
+                                    </Border>
 
                                     <!-- Register Button -->
-                                    <Button x:Name="btnRegister" Style="{StaticResource TealButtonStyle}" Content="Đăng ký tài khoản" Click="RegisterButton_Click" Margin="0,0,0,4"/>
+                                    <Button x:Name="btnRegister" Style="{StaticResource PrimaryGradientButton}" Content="Tạo tài khoản học viên" Click="RegisterButton_Click" Margin="0,0,0,4"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>

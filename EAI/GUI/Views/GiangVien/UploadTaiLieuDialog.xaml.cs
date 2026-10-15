@@ -91,18 +91,21 @@ namespace GUI.Views.GiangVien
                 // Đổi icon tương ứng
                 if (ext == ".pdf")
                 {
-                    txtFileIcon.Text = "📕";
+                    icoFileTypeDisplay.Kind = LucideIconKind.FileText;
+                    icoFileTypeDisplay.Foreground = (Brush)new BrushConverter().ConvertFrom("#DC2626")!;
                     pnlFileIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#FEE2E2")!;
                     cboLoaiBaiHoc.SelectedIndex = 0; // Đọc hiểu
                 }
                 else if (ext == ".docx")
                 {
-                    txtFileIcon.Text = "📘";
+                    icoFileTypeDisplay.Kind = LucideIconKind.FileText;
+                    icoFileTypeDisplay.Foreground = (Brush)new BrushConverter().ConvertFrom("#2563EB")!;
                     pnlFileIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#DBEAFE")!;
                 }
                 else
                 {
-                    txtFileIcon.Text = "📄";
+                    icoFileTypeDisplay.Kind = LucideIconKind.FileText;
+                    icoFileTypeDisplay.Foreground = (Brush)new BrushConverter().ConvertFrom("#0284C7")!;
                     pnlFileIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#E0F2FE")!;
                 }
 

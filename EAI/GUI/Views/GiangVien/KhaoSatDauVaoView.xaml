@@ -1,6 +1,7 @@
 <Page x:Class="GUI.Views.GiangVien.KhaoSatDauVaoView"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="clr-namespace:GUI"
       Title="Khảo sát đầu vào - Admin Dashboard"
       FontFamily="Segoe UI"
       Background="#F8FAFC">
@@ -42,12 +43,15 @@
                     <TextBlock Text="Bài kiểm tra chẩn đoán ngắn gọn, thuật toán tự động quy đổi sang khung năng lực CEFR A1 - C1, IELTS &amp; TOEIC" FontSize="12.5" Foreground="{StaticResource TextGray}"/>
                 </StackPanel>
 
-                <Button Grid.Column="1" Content="⚙️ Cập nhật bộ đề khảo sát" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
+                <Button Grid.Column="1" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
                         FontWeight="SemiBold" FontSize="13" Padding="18,10" Cursor="Hand" BorderThickness="0" Click="BtnCapNhat_Click">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
                             <Border Background="{TemplateBinding Background}" CornerRadius="18" Padding="{TemplateBinding Padding}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <local:LucideIcon Kind="Settings" Size="14" Foreground="White" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Cập nhật bộ đề khảo sát" VerticalAlignment="Center"/>
+                                </StackPanel>
                             </Border>
                         </ControlTemplate>
                     </Button.Template>

@@ -16,7 +16,7 @@ namespace GUI.Views.GiangVien
         private List<BaiHocDTO> _allLessons = new List<BaiHocDTO>();
         private TreeNodeDTO? _selectedNode;
         private BaiHocDTO? _currentPreviewLesson;
-        private const string SearchPlaceholder = "🔍 Tìm bài học / đề thi...";
+        private const string SearchPlaceholder = "Tìm bài học / đề thi...";
         private bool _isLoaded = false;
 
         public DanhMucView()
@@ -56,7 +56,18 @@ namespace GUI.Views.GiangVien
             try
             {
                 int? topicId = (_selectedNode != null && _selectedNode.Id > 0) ? _selectedNode.Id : null;
-                string? search = (txtSearchFile != null && txtSearchFile.Text != SearchPlaceholder) ? txtSearchFile.Text.Trim() : null;
+                string? search = null;
+                if (txtSearchFile != null && !string.IsNullOrWhiteSpace(txtSearchFile.Text))
+                {
+                    string raw = txtSearchFile.Text.Trim();
+                    if (!raw.Equals(SearchPlaceholder, StringComparison.OrdinalIgnoreCase) &&
+                        !raw.Equals("🔍 " + SearchPlaceholder, StringComparison.OrdinalIgnoreCase) &&
+                        !raw.Equals("🔍 Tìm bài học / đề thi...", StringComparison.OrdinalIgnoreCase) &&
+                        !raw.Equals("Tìm bài học / đề thi...", StringComparison.OrdinalIgnoreCase))
+                    {
+                        search = raw;
+                    }
+                }
 
                 _allLessons = BaiHocBUS.LayDanhSachTuDatabase(topicId, search) ?? new List<BaiHocDTO>();
 
@@ -122,27 +133,40 @@ namespace GUI.Views.GiangVien
             txtPreviewDocTitle.Text = fileName;
             txtPreviewDocMeta.Text = $"Định dạng: {lesson.DinhDangTep} • Dung lượng: {lesson.DungLuongHienThi} • Chủ đề: {lesson.TenChuDe} • Trình độ: {lesson.MaTrinhDo}";
             txtSimulationModule.Text = $"{lesson.TenLoaiHienThi?.ToUpper() ?? "HỌC LIỆU"} — TRÌNH ĐỘ {lesson.MaTrinhDo ?? "B1"}";
-            txtSimulationPassage.Text = $"Tóm tắt: {lesson.TomTat ?? ""}";
+            txtSimulationPassage.Text = string.IsNullOrWhiteSpace(lesson.TomTat) ? "Xem trước nội dung tệp" : $"Tóm tắt: {lesson.TomTat}";
 
             txtPassageTitle.Text = lesson.TieuDe ?? "";
-            txtPassageBody.Text = string.IsNullOrWhiteSpace(lesson.NoiDung) 
-                ? "Nội dung bài học chưa được cập nhật chi tiết." 
-                : lesson.NoiDung.Replace("<p>", "").Replace("</p>", "\n\n").Replace("<h3>", "■ ").Replace("</h3>", "\n").Replace("<ul>", "").Replace("</ul>", "").Replace("<li>", "• ").Replace("</li>", "\n");
 
-            // Hiển thị câu hỏi bóc tách tương ứng với bài học hiện tại (bám sát nội dung bài, không bao giờ lệch sang chủ đề khác)
-            if (lesson.DanhSachCauHoi == null || lesson.DanhSachCauHoi.Count == 0)
+            // Đọc nội dung tệp thực tế từ ổ đĩa (DOCX, PDF, TXT) chuẩn như File Explorer
+            string actualContent = KhoHocLieuSyncHelper.DocNoiDungTep(lesson.DuongDanTepVatLy, lesson.NoiDung);
+            txtPassageBody.Text = string.IsNullOrWhiteSpace(actualContent) 
+                ? "Nội dung bài học chưa được cập nhật chi tiết." 
+                : actualContent;
+
+            // KIỂM SOÁT HIỂN THỊ CÂU HỎI AI: Chưa bấm yêu cầu thì KHÔNG hiển thị câu hỏi, chỉ hiển thị nút tạo
+            bool hasQuestions = lesson.DanhSachCauHoi != null && lesson.DanhSachCauHoi.Count > 0;
+            if (pnlAIGeneratePrompt != null)
             {
-                lesson.DanhSachCauHoi = GeminiAIService.TaoCauHoiThongMinhTheoNoiDung(lesson.TieuDe ?? "", lesson.NoiDung ?? "");
+                pnlAIGeneratePrompt.Visibility = hasQuestions ? Visibility.Collapsed : Visibility.Visible;
+            }
+            if (pnlExtractedQuestionsBox != null)
+            {
+                pnlExtractedQuestionsBox.Visibility = hasQuestions ? Visibility.Visible : Visibility.Collapsed;
             }
             if (icExtractedQuestions != null)
             {
-                icExtractedQuestions.ItemsSource = null;
-                icExtractedQuestions.ItemsSource = lesson.DanhSachCauHoi;
+                icExtractedQuestions.ItemsSource = hasQuestions ? lesson.DanhSachCauHoi : null;
             }
 
             // Cập nhật trạng thái động ở Footer Preview
             bool isPublished = string.Equals(lesson.TrangThai, "Đã xuất bản", StringComparison.OrdinalIgnoreCase);
-            if (txtPreviewStatusIcon != null) txtPreviewStatusIcon.Text = isPublished ? "✓" : "✎";
+            if (icoPreviewStatus != null)
+            {
+                icoPreviewStatus.Kind = isPublished ? LucideIconKind.Check : LucideIconKind.Pencil;
+                icoPreviewStatus.Foreground = isPublished 
+                    ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x15, 0x80, 0x3D)) 
+                    : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x64, 0x74, 0x8B));
+            }
             if (bdPreviewStatusIcon != null) bdPreviewStatusIcon.Background = isPublished 
                 ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xDC, 0xFC, 0xE7)) 
                 : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF1, 0xF5, 0xF9));
@@ -159,11 +183,14 @@ namespace GUI.Views.GiangVien
                     ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xDC, 0xFC, 0xE7)) 
                     : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF1, 0xF5, 0xF9));
             }
-            if (txtPreviewStatusSub != null)
+            // Đánh dấu bài học đang chọn trong Cột 2 có viền màu nổi bật
+            if (_allLessons != null)
             {
-                txtPreviewStatusSub.Text = isPublished 
-                    ? "Sẵn sàng đưa vào giảng dạy & đề thi" 
-                    : "Đang ở chế độ bản nháp nội bộ";
+                foreach (var b in _allLessons)
+                {
+                    b.IsSelected = (b.MaBaiHoc == lesson.MaBaiHoc);
+                }
+                icLessonList?.Items.Refresh();
             }
         }
 
@@ -173,24 +200,34 @@ namespace GUI.Views.GiangVien
 
             if (pbAILoading != null) pbAILoading.Visibility = Visibility.Visible;
             if (btnReExtractAI != null) btnReExtractAI.IsEnabled = false;
+            if (btnGenerateAIQuestions != null) btnGenerateAIQuestions.IsEnabled = false;
 
             try
             {
+                // Sử dụng nội dung thực tế vừa được đọc từ tệp vật lý để AI phân tích
+                string contentToAnalyze = KhoHocLieuSyncHelper.DocNoiDungTep(_currentPreviewLesson.DuongDanTepVatLy, _currentPreviewLesson.NoiDung);
+
                 var aiQuestions = await GeminiAIService.BocTachCauHoiAIAsync(
                     _currentPreviewLesson.TieuDe ?? "", 
-                    _currentPreviewLesson.NoiDung ?? "", 
+                    contentToAnalyze, 
                     _currentPreviewLesson.MaTrinhDo ?? "B1", 
                     2);
 
                 if (aiQuestions != null && aiQuestions.Count > 0)
                 {
                     _currentPreviewLesson.DanhSachCauHoi = aiQuestions;
+
+                    // Hiển thị khung câu hỏi và ẩn khung mời tạo
+                    if (pnlAIGeneratePrompt != null) pnlAIGeneratePrompt.Visibility = Visibility.Collapsed;
+                    if (pnlExtractedQuestionsBox != null) pnlExtractedQuestionsBox.Visibility = Visibility.Visible;
+
                     if (icExtractedQuestions != null)
                     {
                         icExtractedQuestions.ItemsSource = null;
                         icExtractedQuestions.ItemsSource = _currentPreviewLesson.DanhSachCauHoi;
                     }
-                    ThongBaoDialog.ThanhCong(Window.GetWindow(this), "Gemini AI đã bóc tách thành công 2 câu hỏi trắc nghiệm mới từ nội dung bài học!", "AI bóc tách thành công");
+
+                    ThongBaoDialog.ThanhCong(Window.GetWindow(this), "Gemini AI đã phân tích nội dung tệp và bóc tách thành công 2 câu hỏi trắc nghiệm mới!", "AI bóc tách thành công");
                 }
             }
             catch (Exception ex)
@@ -201,6 +238,7 @@ namespace GUI.Views.GiangVien
             {
                 if (pbAILoading != null) pbAILoading.Visibility = Visibility.Collapsed;
                 if (btnReExtractAI != null) btnReExtractAI.IsEnabled = true;
+                if (btnGenerateAIQuestions != null) btnGenerateAIQuestions.IsEnabled = true;
             }
         }
 
@@ -212,18 +250,22 @@ namespace GUI.Views.GiangVien
             txtPreviewDocTitle.Text = "Chưa chọn bài học";
             txtPreviewDocMeta.Text = "Vui lòng chọn bài học từ danh sách để xem trước";
             txtSimulationModule.Text = "HỌC LIỆU";
+            if (pnlAIGeneratePrompt != null) pnlAIGeneratePrompt.Visibility = Visibility.Collapsed;
+            if (pnlExtractedQuestionsBox != null) pnlExtractedQuestionsBox.Visibility = Visibility.Collapsed;
             if (icExtractedQuestions != null) icExtractedQuestions.ItemsSource = null;
             txtSimulationPassage.Text = "";
             txtPassageTitle.Text = "Không có dữ liệu bài học";
             txtPassageBody.Text = "Chủ đề này hiện chưa có bài học nào được tạo.";
 
             if (txtPreviewStatusPill != null) txtPreviewStatusPill.Text = "Chưa chọn";
-            if (txtPreviewStatusSub != null) txtPreviewStatusSub.Text = "Chọn bài học để xem chi tiết";
         }
 
         private void TxtSearchFile_GotFocus(object sender, RoutedEventArgs e)
         {
-            if (txtSearchFile.Text == SearchPlaceholder)
+            if (txtSearchFile.Text == SearchPlaceholder ||
+                txtSearchFile.Text == "🔍 " + SearchPlaceholder ||
+                txtSearchFile.Text == "🔍 Tìm bài học / đề thi..." ||
+                txtSearchFile.Text == "Tìm bài học / đề thi...")
             {
                 txtSearchFile.Text = "";
                 txtSearchFile.Foreground = (System.Windows.Media.Brush)FindResource("TextDark");
@@ -415,28 +457,250 @@ namespace GUI.Views.GiangVien
                 return;
             }
 
-            if (!string.IsNullOrEmpty(_currentPreviewLesson.DuongDanTepVatLy) && System.IO.File.Exists(_currentPreviewLesson.DuongDanTepVatLy))
+            try
             {
+                string srcFile = _currentPreviewLesson.DuongDanTepVatLy;
+                // Nếu đường dẫn vật lý trong DB không tồn tại, thử tìm trong thư mục KhoHocLieu theo tên file
+                if (string.IsNullOrEmpty(srcFile) || !System.IO.File.Exists(srcFile))
+                {
+                    string khoRoot = KhoHocLieuSyncHelper.GetKhoHocLieuRoot();
+                    if (!string.IsNullOrEmpty(_currentPreviewLesson.TenTepVatLy) && System.IO.Directory.Exists(khoRoot))
+                    {
+                        var files = System.IO.Directory.GetFiles(khoRoot, _currentPreviewLesson.TenTepVatLy, System.IO.SearchOption.AllDirectories);
+                        if (files != null && files.Length > 0)
+                        {
+                            srcFile = files[0];
+                        }
+                    }
+                }
+
+                string ext = !string.IsNullOrEmpty(srcFile) 
+                    ? System.IO.Path.GetExtension(srcFile)
+                    : (!string.IsNullOrEmpty(_currentPreviewLesson.DuongDanTepVatLy) ? System.IO.Path.GetExtension(_currentPreviewLesson.DuongDanTepVatLy) : ".docx");
+                if (string.IsNullOrEmpty(ext)) ext = ".docx";
+
+                string defaultName = !string.IsNullOrEmpty(_currentPreviewLesson.TenTepVatLy)
+                    ? _currentPreviewLesson.TenTepVatLy
+                    : $"{KhoHocLieuSyncHelper.SanitizeFolderName(_currentPreviewLesson.TieuDe)}{ext}";
+
                 var sfd = new Microsoft.Win32.SaveFileDialog
                 {
-                    FileName = _currentPreviewLesson.TenTepVatLy,
-                    Filter = "Tất cả tệp (*.*)|*.*"
+                    FileName = defaultName,
+                    Filter = $"Tệp tài liệu (*{ext})|*{ext}|Tất cả tệp (*.*)|*.*"
                 };
+
                 if (sfd.ShowDialog() == true)
                 {
-                    System.IO.File.Copy(_currentPreviewLesson.DuongDanTepVatLy, sfd.FileName, true);
-                    ThongBaoDialog.ThanhCong(Window.GetWindow(this), $"Đã tải tệp về máy tính thành công:\n{sfd.FileName}", "Tải về hoàn tất");
+                    if (!string.IsNullOrEmpty(srcFile) && System.IO.File.Exists(srcFile))
+                    {
+                        System.IO.File.Copy(srcFile, sfd.FileName, true);
+                    }
+                    else
+                    {
+                        string content = $"{_currentPreviewLesson.TieuDe}\n\nChủ đề: {_currentPreviewLesson.TenChuDe} | Trình độ: {_currentPreviewLesson.MaTrinhDo}\n\n{_currentPreviewLesson.TomTat}\n\n{_currentPreviewLesson.NoiDung}";
+                        if (_currentPreviewLesson.DanhSachCauHoi != null && _currentPreviewLesson.DanhSachCauHoi.Count > 0)
+                        {
+                            content += "\n\n" + new string('=', 50) + "\nCÂU HỎI TRẮC NGHIỆM ÔN TẬP (GEMINI AI)\n" + new string('=', 50) + "\n";
+                            int qIdx = 1;
+                            foreach (var q in _currentPreviewLesson.DanhSachCauHoi)
+                            {
+                                content += $"\nCâu {qIdx++}: {q.NoiDungCauHoi}\n";
+                                foreach (var opt in q.DanhSachLuaChon) content += $"   {opt}\n";
+                                string ansChar = (q.DapAnDungIndex >= 0 && q.DapAnDungIndex < 4) ? ((char)('A' + q.DapAnDungIndex)).ToString() : "A";
+                                content += $"Đáp án đúng: {ansChar}\n";
+                            }
+                        }
+                        System.IO.File.WriteAllText(sfd.FileName, content, System.Text.Encoding.UTF8);
+                    }
+
+                    ThongBaoDialog.ThanhCong(Window.GetWindow(this), $"Đã lưu tệp về máy tính thành công:\n{sfd.FileName}", "Tải về hoàn tất");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                ThongBaoDialog.ThongTin(Window.GetWindow(this), $"Đang chuẩn bị đóng gói bài học '{_currentPreviewLesson.TieuDe}' để tải về...", "Tải về");
+                ThongBaoDialog.Loi(Window.GetWindow(this), $"Lỗi khi tải tệp:\n{ex.Message}", "Lỗi tải về");
+            }
+        }
+
+        private void BtnOpenFileExternal_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentPreviewLesson == null)
+            {
+                ThongBaoDialog.CanhBao(Window.GetWindow(this), "Vui lòng chọn bài học cần mở tệp.", "Chưa chọn tài liệu");
+                return;
+            }
+
+            try
+            {
+                string targetFilePath = _currentPreviewLesson.DuongDanTepVatLy;
+
+                // Nếu đường dẫn lưu trong DB không tồn tại, thử tìm trong thư mục KhoHocLieu theo tên file
+                if (string.IsNullOrEmpty(targetFilePath) || !System.IO.File.Exists(targetFilePath))
+                {
+                    string khoRoot = KhoHocLieuSyncHelper.GetKhoHocLieuRoot();
+                    if (!string.IsNullOrEmpty(_currentPreviewLesson.TenTepVatLy) && System.IO.Directory.Exists(khoRoot))
+                    {
+                        var files = System.IO.Directory.GetFiles(khoRoot, _currentPreviewLesson.TenTepVatLy, System.IO.SearchOption.AllDirectories);
+                        if (files != null && files.Length > 0)
+                        {
+                            targetFilePath = files[0];
+                        }
+                    }
+                }
+
+                // Nếu file vật lý tồn tại, khởi chạy trực tiếp với phần mềm mặc định của Windows
+                if (!string.IsNullOrEmpty(targetFilePath) && System.IO.File.Exists(targetFilePath))
+                {
+                    var psi = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = targetFilePath,
+                        UseShellExecute = true
+                    };
+                    System.Diagnostics.Process.Start(psi);
+                    return;
+                }
+
+                // Nếu không có tệp vật lý, trích xuất nội dung bài học ra tệp tạm để mở
+                string tempDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "EAI_HocLieu");
+                if (!System.IO.Directory.Exists(tempDir))
+                {
+                    System.IO.Directory.CreateDirectory(tempDir);
+                }
+
+                string safeTitle = KhoHocLieuSyncHelper.SanitizeFolderName(_currentPreviewLesson.TieuDe ?? "TaiLieu");
+                string tempFile = System.IO.Path.Combine(tempDir, $"{safeTitle}.txt");
+
+                string fullContent = $"{_currentPreviewLesson.TieuDe}\n" +
+                                     $"Chủ đề: {_currentPreviewLesson.TenChuDe} | Trình độ: {_currentPreviewLesson.MaTrinhDo}\n" +
+                                     new string('=', 50) + "\n\n" +
+                                     $"{_currentPreviewLesson.TomTat}\n\n" +
+                                     $"{_currentPreviewLesson.NoiDung}";
+
+                if (_currentPreviewLesson.DanhSachCauHoi != null && _currentPreviewLesson.DanhSachCauHoi.Count > 0)
+                {
+                    fullContent += "\n\n" + new string('=', 50) + "\nCÂU HỎI TRẮC NGHIỆM ÔN TẬP (GEMINI AI)\n" + new string('=', 50) + "\n";
+                    int qIndex = 1;
+                    foreach (var q in _currentPreviewLesson.DanhSachCauHoi)
+                    {
+                        fullContent += $"\nCâu {qIndex++}: {q.NoiDungCauHoi}\n";
+                        foreach (var opt in q.DanhSachLuaChon)
+                        {
+                            fullContent += $"   {opt}\n";
+                        }
+                        string ans = (q.DapAnDungIndex >= 0 && q.DapAnDungIndex < 4) ? ((char)('A' + q.DapAnDungIndex)).ToString() : "A";
+                        fullContent += $"Đáp án đúng: {ans}\n";
+                    }
+                }
+
+                System.IO.File.WriteAllText(tempFile, fullContent, System.Text.Encoding.UTF8);
+
+                var tempPsi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = tempFile,
+                    UseShellExecute = true
+                };
+                System.Diagnostics.Process.Start(tempPsi);
+            }
+            catch (Exception ex)
+            {
+                ThongBaoDialog.Loi(Window.GetWindow(this), $"Không thể mở tệp bên ngoài:\n{ex.Message}", "Lỗi mở tệp");
             }
         }
 
         private void BtnPrintCurrent_Click(object sender, RoutedEventArgs e)
         {
-            ThongBaoDialog.ThongTin(Window.GetWindow(this), "Đang kết nối dịch vụ in ấn để xuất bản tài liệu / đề thi...", "In ấn");
+            if (_currentPreviewLesson == null)
+            {
+                ThongBaoDialog.CanhBao(Window.GetWindow(this), "Vui lòng chọn bài học cần in ấn.", "Chưa chọn bài học");
+                return;
+            }
+
+            try
+            {
+                var printDlg = new System.Windows.Controls.PrintDialog();
+                if (printDlg.ShowDialog() == true)
+                {
+                    var doc = new System.Windows.Documents.FlowDocument
+                    {
+                        FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
+                        FontSize = 13,
+                        PagePadding = new Thickness(40),
+                        ColumnWidth = double.PositiveInfinity
+                    };
+
+                    // Tiêu đề bài học
+                    doc.Blocks.Add(new System.Windows.Documents.Paragraph(
+                        new System.Windows.Documents.Run(_currentPreviewLesson.TieuDe))
+                    {
+                        FontSize = 20,
+                        FontWeight = FontWeights.Bold,
+                        Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x0F, 0x4C, 0x3A)),
+                        Margin = new Thickness(0, 0, 0, 10)
+                    });
+
+                    // Thông tin Meta
+                    doc.Blocks.Add(new System.Windows.Documents.Paragraph(
+                        new System.Windows.Documents.Run($"Chủ đề: {_currentPreviewLesson.TenChuDe}  •  Trình độ: {_currentPreviewLesson.MaTrinhDo}  •  Thời gian: {_currentPreviewLesson.ThoiGianUocTinhPhut} phút"))
+                    {
+                        FontSize = 11,
+                        Foreground = System.Windows.Media.Brushes.Gray,
+                        Margin = new Thickness(0, 0, 0, 16)
+                    });
+
+                    // Nội dung đọc được từ file thực tế
+                    string contentToPrint = KhoHocLieuSyncHelper.DocNoiDungTep(_currentPreviewLesson.DuongDanTepVatLy, _currentPreviewLesson.NoiDung);
+                    var paragraphs = contentToPrint.Split(new[] { "\n\n", "\r\n\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var p in paragraphs)
+                    {
+                        doc.Blocks.Add(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Run(p.Trim()))
+                        {
+                            LineHeight = 22,
+                            Margin = new Thickness(0, 0, 0, 8)
+                        });
+                    }
+
+                    // Nếu có câu hỏi trắc nghiệm kèm theo, in luôn
+                    if (_currentPreviewLesson.DanhSachCauHoi != null && _currentPreviewLesson.DanhSachCauHoi.Count > 0)
+                    {
+                        doc.Blocks.Add(new System.Windows.Documents.Paragraph(
+                            new System.Windows.Documents.Run("CÂU HỎI TRẮC NGHIỆM ÔN TẬP"))
+                        {
+                            FontSize = 14,
+                            FontWeight = FontWeights.Bold,
+                            Margin = new Thickness(0, 16, 0, 8)
+                        });
+
+                        int qIndex = 1;
+                        foreach (var q in _currentPreviewLesson.DanhSachCauHoi)
+                        {
+                            doc.Blocks.Add(new System.Windows.Documents.Paragraph(
+                                new System.Windows.Documents.Run($"Câu {qIndex}: {q.NoiDungCauHoi}"))
+                            {
+                                FontWeight = FontWeights.SemiBold,
+                                Margin = new Thickness(0, 4, 0, 4)
+                            });
+
+                            foreach (var opt in q.DanhSachLuaChon)
+                            {
+                                doc.Blocks.Add(new System.Windows.Documents.Paragraph(
+                                    new System.Windows.Documents.Run($"   {opt}"))
+                                {
+                                    Margin = new Thickness(12, 2, 0, 2)
+                                });
+                            }
+                            qIndex++;
+                        }
+                    }
+
+                    var idpSource = ((System.Windows.Documents.IDocumentPaginatorSource)doc).DocumentPaginator;
+                    printDlg.PrintDocument(idpSource, $"In tài liệu - {_currentPreviewLesson.TieuDe}");
+                    ThongBaoDialog.ThanhCong(Window.GetWindow(this), "Đã gửi tài liệu tới máy in thành công!", "In ấn hoàn tất");
+                }
+            }
+            catch (Exception ex)
+            {
+                ThongBaoDialog.Loi(Window.GetWindow(this), $"Lỗi khi in ấn tài liệu:\n{ex.Message}", "Lỗi in ấn");
+            }
         }
 
         private void BtnAddToExam_Click(object sender, RoutedEventArgs e)

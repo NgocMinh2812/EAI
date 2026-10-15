@@ -1,6 +1,7 @@
 <Page x:Class="GUI.Views.GiangVien.NguoiDungView"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="clr-namespace:GUI"
       Title="Quản lý Người dùng - Admin Dashboard"
       FontFamily="Segoe UI"
       Background="#F8FAFC">
@@ -65,12 +66,15 @@
                     <TextBlock x:Name="txtStatsSummary" Text="7 tài khoản • 5 đang hoạt động" FontSize="12.5" Foreground="{StaticResource TextGray}"/>
                 </StackPanel>
 
-                <Button Grid.Column="1" Content="➕ Tạo tài khoản" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
+                <Button Grid.Column="1" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
                         FontWeight="SemiBold" FontSize="13" Padding="18,10" Cursor="Hand" BorderThickness="0" Click="BtnTaoTaiKhoan_Click">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
                             <Border Background="{TemplateBinding Background}" CornerRadius="18" Padding="{TemplateBinding Padding}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <local:LucideIcon Kind="UserPlus" Size="14" Foreground="White" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Tạo tài khoản" FontWeight="SemiBold"/>
+                                </StackPanel>
                             </Border>
                         </ControlTemplate>
                     </Button.Template>
@@ -91,7 +95,7 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="🔍" Foreground="{StaticResource TextGray}" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <local:LucideIcon Grid.Column="0" Kind="Search" Size="14" Foreground="{StaticResource TextGray}" Margin="0,0,10,0" VerticalAlignment="Center"/>
                         <TextBox x:Name="txtSearchUser" Grid.Column="1" Text="Tìm theo tên hoặc email..." Foreground="{StaticResource TextGray}" 
                                  Background="Transparent" BorderThickness="0" FontSize="13" VerticalAlignment="Center" 
                                  GotFocus="TxtSearchUser_GotFocus" LostFocus="TxtSearchUser_LostFocus" TextChanged="TxtSearchUser_TextChanged"/>
@@ -178,13 +182,13 @@
                                         <!-- Thao tác -->
                                         <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <Button Style="{StaticResource IconButton}" ToolTip="Chỉnh sửa thông tin" Click="BtnEditUser_Click" Tag="{Binding Id}">
-                                                <TextBlock Text="✏️" FontSize="11"/>
+                                                <local:LucideIcon Kind="Pencil" Size="13" Foreground="#2563EB"/>
                                             </Button>
                                             <Button Style="{StaticResource IconButton}" ToolTip="Khóa / Mở tài khoản" Click="BtnToggleStatus_Click" Tag="{Binding Id}">
                                                 <TextBlock Text="{Binding LockIcon}" FontSize="11"/>
                                             </Button>
                                             <Button Style="{StaticResource IconButton}" ToolTip="Xóa người dùng" Click="BtnDeleteUser_Click" Tag="{Binding Id}">
-                                                <TextBlock Text="🗑️" FontSize="11" Foreground="#EF4444"/>
+                                                <local:LucideIcon Kind="Trash2" Size="13" Foreground="#EF4444"/>
                                             </Button>
                                         </StackPanel>
                                     </Grid>

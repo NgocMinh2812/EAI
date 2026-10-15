@@ -6,7 +6,7 @@ namespace DAL
 {
     public class DatabaseHelper
     {
-        private static string _connectionString = "Data Source=B202A-PC34\\SQLEXPRESS;Initial Catalog=TiengAnhAI;Integrated Security=True;TrustServerCertificate=True";
+        private static string _connectionString = "Server=.\\SQLEXPRESS;Database=TiengAnhAI;Trusted_Connection=True;TrustServerCertificate=True;";
 
         public static string ConnectionString
         {

@@ -23,12 +23,23 @@ namespace BUS
             if (!string.IsNullOrEmpty(_cachedApiKey))
                 return _cachedApiKey;
 
+            // 1. Ưu tiên biến môi trường hệ thống
+            string envKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") 
+                            ?? Environment.GetEnvironmentVariable("GOOGLE_API_KEY") ?? "";
+            if (!string.IsNullOrWhiteSpace(envKey))
+            {
+                _cachedApiKey = envKey.Trim();
+                return _cachedApiKey;
+            }
+
+            // 2. Tìm tệp secrets.json theo các đường dẫn tương đối chuẩn
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string[] candidatePaths = new[]
             {
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "secrets.json"),
-                Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\secrets.json")),
-                Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\GUI\secrets.json")),
-                @"d:\CDPTUD1\EAI\EAI\GUI\secrets.json"
+                Path.Combine(baseDir, "secrets.json"),                                    // Cùng cấp với file .exe khi đóng gói/chạy thật
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\secrets.json")),        // Khi chạy Debug trong VS
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\GUI\secrets.json")),    // Thư mục mã nguồn GUI
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\GUI\secrets.json"))
             };
 
             foreach (var path in candidatePaths)
@@ -54,7 +65,7 @@ namespace BUS
                 catch { }
             }
 
-            // Fallback key bảo đảm hệ thống luôn vận hành mượt mà
+            // 3. Fallback mặc định
             _cachedApiKey = "AQ.Ab8RN6KaYwl2ehi-pIci6fcqNhmYAq2aEpQQe8yq6D6m0VWhyA";
             return _cachedApiKey;
         }

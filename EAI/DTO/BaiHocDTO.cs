@@ -52,5 +52,6 @@ namespace DTO
         public string BadgeDinhDangBorder { get; set; } = "#BFDBFE";
 
         public List<CauHoiDTO> DanhSachCauHoi { get; set; } = new List<CauHoiDTO>();
+        public bool IsSelected { get; set; } = false;
     }
 }

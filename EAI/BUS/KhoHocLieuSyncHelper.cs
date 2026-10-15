@@ -218,16 +218,47 @@ namespace BUS
                         .ToList();
                 }
 
+                string NormalizeForCompare(string str)
+                {
+                    if (string.IsNullOrWhiteSpace(str)) return "";
+                    return new string(str.Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
+                }
+
                 foreach (var bh in lessons)
                 {
                     string safeTitle = SanitizeFolderName(bh.TieuDe);
+                    string normTitle = NormalizeForCompare(bh.TieuDe);
                     
-                    // Tìm tệp chính xác hoặc gần đúng theo tiêu đề bài học
+                    // 1. Tìm tệp chính xác hoặc gần đúng theo tiêu đề bài học (cả chuẩn hóa ký tự)
                     var match = allFiles.FirstOrDefault(f =>
+                        f.Name.Equals($"{safeTitle}.docx", StringComparison.OrdinalIgnoreCase) ||
+                        f.Name.Equals($"{safeTitle}.pdf", StringComparison.OrdinalIgnoreCase) ||
                         f.Name.Contains(safeTitle, StringComparison.OrdinalIgnoreCase) ||
                         safeTitle.Contains(Path.GetFileNameWithoutExtension(f.Name), StringComparison.OrdinalIgnoreCase) ||
-                        (!string.IsNullOrEmpty(bh.TenChuDe) && f.DirectoryName != null && f.DirectoryName.Contains(bh.TenChuDe, StringComparison.OrdinalIgnoreCase) &&
-                         f.Name.Contains(bh.TieuDe.Split(' ')[0], StringComparison.OrdinalIgnoreCase)));
+                        NormalizeForCompare(Path.GetFileNameWithoutExtension(f.Name)).Contains(normTitle) ||
+                        normTitle.Contains(NormalizeForCompare(Path.GetFileNameWithoutExtension(f.Name))));
+
+                    // 2. Nếu chưa thấy, tìm trong đúng thư mục chủ đề theo độ trùng khớp từ khóa
+                    if (match == null && !string.IsNullOrEmpty(bh.TenChuDe))
+                    {
+                        var topicFiles = allFiles.Where(f => f.DirectoryName != null && f.DirectoryName.Contains(bh.TenChuDe, StringComparison.OrdinalIgnoreCase)).ToList();
+                        if (topicFiles.Count > 0)
+                        {
+                            var titleWords = bh.TieuDe.Split(new[] { ' ', '-', '_', ':', ',', '(', ')' }, StringSplitOptions.RemoveEmptyEntries)
+                                                      .Where(w => w.Length > 2).ToList();
+
+                            match = topicFiles
+                                .Select(f => new
+                                {
+                                    File = f,
+                                    Score = titleWords.Count(w => f.Name.Contains(w, StringComparison.OrdinalIgnoreCase))
+                                })
+                                .Where(x => x.Score > 0)
+                                .OrderByDescending(x => x.Score)
+                                .Select(x => x.File)
+                                .FirstOrDefault();
+                        }
+                    }
 
                     if (match != null)
                     {
@@ -291,6 +322,79 @@ namespace BUS
             {
                 System.Diagnostics.Debug.WriteLine($"[KhoHocLieuSyncHelper] Lỗi EnrichBaiHocFileInfo: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Đọc nội dung tệp thực tế từ ổ đĩa (.docx, .txt, .pdf) theo đúng chuẩn xem trước File Explorer
+        /// </summary>
+        public static string DocNoiDungTep(string? filePath, string? fallbackContent = null)
+        {
+            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+            {
+                return CleanFallbackText(fallbackContent);
+            }
+
+            string ext = Path.GetExtension(filePath).ToLowerInvariant();
+            try
+            {
+                if (ext == ".docx")
+                {
+                    using var zip = System.IO.Compression.ZipFile.OpenRead(filePath);
+                    var entry = zip.GetEntry("word/document.xml");
+                    if (entry != null)
+                    {
+                        using var stream = entry.Open();
+                        var xdoc = System.Xml.Linq.XDocument.Load(stream);
+                        System.Xml.Linq.XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+                        var paragraphs = xdoc.Descendants(w + "p")
+                            .Select(p => string.Concat(p.Descendants(w + "t").Select(t => t.Value)).Trim())
+                            .Where(text => !string.IsNullOrEmpty(text))
+                            .ToList();
+
+                        if (paragraphs.Count > 0)
+                        {
+                            return string.Join("\n\n", paragraphs);
+                        }
+                    }
+                }
+                else if (ext == ".txt")
+                {
+                    return File.ReadAllText(filePath, System.Text.Encoding.UTF8).Trim();
+                }
+                else if (ext == ".pdf")
+                {
+                    var rawBytes = File.ReadAllBytes(filePath);
+                    var rawContent = System.Text.Encoding.UTF8.GetString(rawBytes);
+                    var matches = System.Text.RegularExpressions.Regex.Matches(rawContent, @"\(([^()]+)\)\s*Tj", System.Text.RegularExpressions.RegexOptions.Singleline);
+                    if (matches.Count > 10)
+                    {
+                        var sb = new System.Text.StringBuilder();
+                        foreach (System.Text.RegularExpressions.Match m in matches)
+                        {
+                            string val = m.Groups[1].Value.Trim();
+                            if (val.Length > 2) sb.Append(val + " ");
+                        }
+                        string res = sb.ToString().Trim();
+                        if (res.Length > 80) return res;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DocNoiDungTep] Lỗi đọc {filePath}: {ex.Message}");
+            }
+
+            return CleanFallbackText(fallbackContent);
+        }
+
+        private static string CleanFallbackText(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return "Nội dung bài học chưa được cập nhật chi tiết.";
+            return raw.Replace("<p>", "").Replace("</p>", "\n\n")
+                      .Replace("<h3>", "■ ").Replace("</h3>", "\n")
+                      .Replace("<ul>", "").Replace("</ul>", "")
+                      .Replace("<li>", "• ").Replace("</li>", "\n")
+                      .Trim();
         }
     }
 }

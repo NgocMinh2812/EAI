@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -11,8 +12,8 @@ namespace GUI.Views
         private readonly NguoiDungBUS _nguoiDungBUS = new NguoiDungBUS();
         private const string EmailPlaceholder = "ten@email.com";
         private const string PasswordPlaceholder = "password";
-
         private const string NamePlaceholder = "Nguyễn Văn A";
+        private bool _isPasswordVisible = false;
 
         public DangNhapWindow()
         {
@@ -26,6 +27,20 @@ namespace GUI.Views
                 this.DragMove();
             }
         }
+
+        // ================= WINDOW CONTROLS =================
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        // ================= TAB SWITCHING =================
 
         private void TabLogin_Click(object sender, MouseButtonEventArgs e)
         {
@@ -46,7 +61,7 @@ namespace GUI.Views
             btnRegister.IsDefault = false;
 
             tabLoginBorder.Background = Brushes.White;
-            tabLoginShadow.Opacity = 0.06;
+            tabLoginShadow.Opacity = 0.08;
             tabLoginText.FontWeight = FontWeights.SemiBold;
             tabLoginText.Foreground = (Brush)FindResource("TextDark");
 
@@ -68,7 +83,7 @@ namespace GUI.Views
             btnRegister.IsDefault = true;
 
             tabRegisterBorder.Background = Brushes.White;
-            tabRegisterShadow.Opacity = 0.06;
+            tabRegisterShadow.Opacity = 0.08;
             tabRegisterText.FontWeight = FontWeights.SemiBold;
             tabRegisterText.Foreground = (Brush)FindResource("TextDark");
 
@@ -80,6 +95,8 @@ namespace GUI.Views
             footerLogin.Visibility = Visibility.Collapsed;
             footerRegister.Visibility = Visibility.Visible;
         }
+
+        // ================= INPUT PLACEHOLDER HANDLERS =================
 
         private void TxtEmail_GotFocus(object sender, RoutedEventArgs e)
         {
@@ -204,10 +221,57 @@ namespace GUI.Views
             }
         }
 
+        // ================= SHOW / HIDE PASSWORD (EYE TOGGLE) =================
+
+        private void BtnTogglePassword_Click(object sender, RoutedEventArgs e)
+        {
+            _isPasswordVisible = !_isPasswordVisible;
+
+            if (_isPasswordVisible)
+            {
+                // Đồng bộ từ PasswordBox sang TextBox
+                txtPasswordVisible.Text = txtPassword.Password == PasswordPlaceholder ? "" : txtPassword.Password;
+                txtPassword.Visibility = Visibility.Collapsed;
+                txtPasswordVisible.Visibility = Visibility.Visible;
+                txtPasswordVisible.Focus();
+                txtPasswordVisible.CaretIndex = txtPasswordVisible.Text.Length;
+                icoTogglePassword.Kind = LucideIconKind.EyeOff;
+            }
+            else
+            {
+                // Đồng bộ từ TextBox sang PasswordBox
+                txtPassword.Password = string.IsNullOrEmpty(txtPasswordVisible.Text) ? PasswordPlaceholder : txtPasswordVisible.Text;
+                txtPasswordVisible.Visibility = Visibility.Collapsed;
+                txtPassword.Visibility = Visibility.Visible;
+                txtPassword.Focus();
+                icoTogglePassword.Kind = LucideIconKind.Eye;
+            }
+        }
+
+        // ================= HELPER CHO MẬT KHẨU =================
+
+        private void SetCurrentPassword(string pass)
+        {
+            txtPassword.Password = pass;
+            txtPassword.Foreground = (Brush)FindResource("TextDark");
+            txtPasswordVisible.Text = pass;
+        }
+
+        private string GetCurrentPassword()
+        {
+            if (_isPasswordVisible)
+            {
+                return txtPasswordVisible.Text;
+            }
+            return txtPassword.Password;
+        }
+
+        // ================= LOGIN LOGIC =================
+
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
             string emailOrUser = txtEmail.Text.Trim();
-            string password = txtPassword.Password;
+            string password = GetCurrentPassword();
 
             if (emailOrUser == EmailPlaceholder || string.IsNullOrEmpty(emailOrUser))
             {
@@ -219,7 +283,8 @@ namespace GUI.Views
             if (password == PasswordPlaceholder || string.IsNullOrEmpty(password))
             {
                 MessageBox.Show("Vui lòng nhập mật khẩu.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-                txtPassword.Focus();
+                if (_isPasswordVisible) txtPasswordVisible.Focus();
+                else txtPassword.Focus();
                 return;
             }
 
@@ -244,6 +309,9 @@ namespace GUI.Views
                 this.Close();
             }
         }
+
+        // ================= REGISTER LOGIC =================
+
         private void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
             string name = txtRegName.Text.Trim();
@@ -266,7 +334,7 @@ namespace GUI.Views
                     SwitchToLoginTab();
                     txtEmail.Text = email;
                     txtEmail.Foreground = (Brush)FindResource("TextDark");
-                    txtPassword.Password = "";
+                    SetCurrentPassword("");
                     txtPassword.Focus();
                 }
                 return;
@@ -282,13 +350,26 @@ namespace GUI.Views
             txtRegEmailError.Visibility = Visibility.Collapsed;
             MessageBox.Show($"Chúc mừng {newUser.HoTen} đã đăng ký tài khoản thành công! Hệ thống sẽ tiến hành đánh giá năng lực ban đầu để đề xuất lộ trình và bài học phù hợp cho bạn.", "Đăng ký thành công", MessageBoxButton.OK, MessageBoxImage.Information);
 
-            // Học viên mới đăng ký: Chuyển ngay vào luồng khảo sát đánh giá năng lực (Hỏi mức độ -> Làm khảo sát -> Đề xuất bài học)
+            // Học viên mới đăng ký: Chuyển ngay vào luồng khảo sát đánh giá năng lực
             MainWindow mainWindow = new MainWindow(isFirstLogin: true);
             mainWindow.Show();
             this.Close();
         }
 
+        private void ForgotPassword_Click(object sender, MouseButtonEventArgs e)
+        {
+            MessageBox.Show("Vui lòng liên hệ Quản trị viên hệ thống qua email: admin@englishai.edu.vn hoặc sử dụng một trong các tài khoản demo sẵn có để trải nghiệm.", "Quên mật khẩu", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
         private void TxtPassword_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                LoginButton_Click(sender, e);
+            }
+        }
+
+        private void TxtPasswordVisible_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
@@ -302,11 +383,6 @@ namespace GUI.Views
             {
                 RegisterButton_Click(sender, e);
             }
-        }
-
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
         }
     }
 }

@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:GUI"
         Title="EnglishAI - Hệ thống học tiếng Anh thông minh" 
+        Icon="/Assets/app_icon.ico"
         WindowState="Maximized"
         WindowStyle="None"
         WindowStartupLocation="CenterScreen"
@@ -93,8 +94,11 @@
 
                                 <!-- Logo Thương Hiệu -->
                                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="20,24,20,20">
-                                    <Border Background="{StaticResource BrandTeal}" Width="34" Height="34" CornerRadius="8">
-                                        <TextBlock Text="E" Foreground="White" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" Width="36" Height="36" CornerRadius="9" Padding="3">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="8" ShadowDepth="1.5" Opacity="0.1" Color="Black"/>
+                                        </Border.Effect>
+                                        <Image Source="/Assets/logo_icon.png" RenderOptions.BitmapScalingMode="HighQuality" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
                                         <TextBlock Text="EnglishAI" FontWeight="Bold" FontSize="18"/>
