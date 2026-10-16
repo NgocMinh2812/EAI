@@ -10,7 +10,7 @@ namespace DAL
         public static SqlDataProvider Instance => _instance ??= new SqlDataProvider();
 
         // Chuỗi kết nối mặc định - có thể thay đổi linh hoạt hoặc nạp từ biến môi trường
-        private string _connectionString = "Server=B202A-PC34\\SQLEXPRESS;Database=TiengAnhAI;Trusted_Connection=True;TrustServerCertificate=True;";
+        private string _connectionString = "Server=MSI\\SQLEXPRESS;Database=TiengAnhAI;Trusted_Connection=True;TrustServerCertificate=True;";
 
         public string ConnectionString
         {
