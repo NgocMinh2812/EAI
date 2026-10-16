@@ -38,6 +38,29 @@ namespace GUI.Views.GiangVien
             {
                 cboChuDe.SelectedIndex = 0;
             }
+
+            // Nạp danh sách trình độ động từ CSDL
+            NapDanhSachTrinhDo();
+        }
+
+        private void NapDanhSachTrinhDo()
+        {
+            try
+            {
+                var danhMucBUS = new BUS.DanhMucBUS();
+                var danhSachTrinhDo = danhMucBUS.LayDanhSachTrinhDo();
+                if (danhSachTrinhDo != null && danhSachTrinhDo.Count > 0)
+                {
+                    cboTrinhDo.ItemsSource = danhSachTrinhDo;
+                    var defaultItem = danhSachTrinhDo.FirstOrDefault(t => t.MaCapDo == "B1") ?? danhSachTrinhDo[0];
+                    cboTrinhDo.SelectedItem = defaultItem;
+                    cboTrinhDo.SelectedValue = defaultItem.MaCapDo;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[UploadTaiLieuDialog] Lỗi nạp trình độ: {ex.Message}");
+            }
         }
 
         private void BtnBrowseFile_Click(object sender, RoutedEventArgs e)
@@ -323,12 +346,17 @@ namespace GUI.Views.GiangVien
             }
 
             string loai = (cboLoaiBaiHoc.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "Doc";
-            string capDo = (cboTrinhDo.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Substring(0, 2) ?? "B1";
+            string capDo = cboTrinhDo.SelectedValue?.ToString()
+                ?? (cboTrinhDo.SelectedItem as TrinhDoDTO)?.MaCapDo
+                ?? (cboTrinhDo.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Substring(0, 2)
+                ?? "B1";
+            int maTrinhDoId = (cboTrinhDo.SelectedItem as TrinhDoDTO)?.MaTrinhDo ?? 0;
             int thoiGian = int.TryParse(txtThoiGian.Text.Trim(), out int tg) ? tg : 25;
 
             BaiHocData.TieuDe = tieuDe;
             BaiHocData.MaChuDe = maChuDe;
             BaiHocData.MaTrinhDo = capDo;
+            BaiHocData.MaTrinhDoId = maTrinhDoId > 0 ? maTrinhDoId : 3;
             BaiHocData.LoaiBaiHoc = loai;
             BaiHocData.ThoiGianUocTinhPhut = thoiGian;
             BaiHocData.TomTat = txtTomTat.Text.Trim();

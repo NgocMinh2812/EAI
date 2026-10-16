@@ -123,6 +123,19 @@ GO
 -- ===================================================================
 -- 4. NẠP HỒ SƠ HỌC TẬP (HoSoHocTap)
 -- ===================================================================
+-- Đảm bảo cột TrinhDoDauVao và DiemDanhGiaDauVao tồn tại nếu CSDL được tạo trước đó
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'TrinhDoDauVao' AND Object_ID = Object_ID('HoSoHocTap'))
+BEGIN
+    ALTER TABLE HoSoHocTap ADD TrinhDoDauVao NVARCHAR(10) NULL;
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'DiemDanhGiaDauVao' AND Object_ID = Object_ID('HoSoHocTap'))
+BEGIN
+    ALTER TABLE HoSoHocTap ADD DiemDanhGiaDauVao DECIMAL(5,2) NULL;
+END
+GO
+
 INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, TrinhDoDauVao, DiemDanhGiaDauVao, SoPhutHocTichLuy, GhiChuCaNhan)
 SELECT nd.MaNguoiDung, 7.0, N'IELTS', N'B2', N'B1', 6.5, 420, N'Tập trung luyện Reading và Writing task 2'
 FROM NguoiDung nd WHERE nd.TenDangNhap = N'lan.nguyen';

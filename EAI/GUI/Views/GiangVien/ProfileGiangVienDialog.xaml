@@ -144,6 +144,115 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- Modern DatePickerTextBox Style with Vietnamese Watermark -->
+        <Style x:Key="ModernDatePickerTextBoxStyle" TargetType="{x:Type DatePickerTextBox}">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4,0,0,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DatePickerTextBox}">
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalAlignment="Center"/>
+                            <ContentControl x:Name="PART_Watermark"
+                                            Content="Chọn ngày sinh (dd/MM/yyyy)"
+                                            Foreground="#94A3B8"
+                                            FontSize="12.5"
+                                            VerticalAlignment="Center"
+                                            Margin="4,0,0,0"
+                                            IsHitTestVisible="False"
+                                            Visibility="Collapsed"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter TargetName="PART_Watermark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern DatePicker Style with Emerald Calendar Badge -->
+        <Style x:Key="ModernDatePickerStyle" TargetType="{x:Type DatePicker}">
+            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="IsTodayHighlighted" Value="True"/>
+            <Setter Property="SelectedDateFormat" Value="Short"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DatePicker}">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="8,2,6,2">
+                            <Grid x:Name="PART_Root" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <DatePickerTextBox x:Name="PART_TextBox"
+                                                   Grid.Column="0"
+                                                   Style="{StaticResource ModernDatePickerTextBoxStyle}"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Stretch"
+                                                   Background="Transparent"
+                                                   BorderThickness="0"
+                                                   Focusable="{TemplateBinding Focusable}"/>
+                                <Button x:Name="PART_Button"
+                                        Grid.Column="1"
+                                        Width="28" Height="28"
+                                        Background="#ECFDF5"
+                                        BorderBrush="#A7F3D0"
+                                        BorderThickness="1"
+                                        Cursor="Hand"
+                                        Focusable="False">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="btnBd" Background="{TemplateBinding Background}" 
+                                                    BorderBrush="{TemplateBinding BorderBrush}" 
+                                                    BorderThickness="{TemplateBinding BorderThickness}" 
+                                                    CornerRadius="6">
+                                                <local:LucideIcon Kind="Calendar" Size="14" Foreground="#0F766E" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="btnBd" Property="Background" Value="#A7F3D0"/>
+                                                    <Setter TargetName="btnBd" Property="BorderBrush" Value="#059669"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <Popup x:Name="PART_Popup"
+                                       AllowsTransparency="True"
+                                       Placement="Bottom"
+                                       PlacementTarget="{Binding ElementName=border}"
+                                       StaysOpen="False" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AdminMint}"/>
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AdminDarkGreen}"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="1.6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <!-- Outer shadow wrapper -->
@@ -242,6 +351,18 @@
                         </Border>
                     </Grid>
 
+                    <!-- Inline Validation Alert Banner -->
+                    <Border x:Name="pnlInlineAlert" Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="8" Padding="12,9" Margin="0,0,0,12" Visibility="Collapsed">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <local:LucideIcon Grid.Column="0" Kind="AlertCircle" Size="16" Foreground="#DC2626" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Grid.Column="1" x:Name="txtInlineAlert" Text="" FontSize="12" Foreground="#B91C1C" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
                     <!-- Editable Personal Information -->
                     <TextBlock Text="THÔNG TIN CÁ NHÂN" FontWeight="Bold" FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,0,0,10"/>
 
@@ -289,7 +410,7 @@
                         <!-- Ngày sinh -->
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Ngày sinh" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
-                            <DatePicker x:Name="dpNgaySinh" Height="38" VerticalContentAlignment="Center"/>
+                            <DatePicker x:Name="dpNgaySinh" Style="{StaticResource ModernDatePickerStyle}"/>
                         </StackPanel>
                     </Grid>
 
@@ -322,14 +443,32 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- 3. Footer Action Buttons -->
-            <Border Grid.Row="2" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0" CornerRadius="0,0,16,16" Padding="24,14">
+            <!-- 3. Footer Action Buttons (2 columns to prevent overlap) -->
+            <Border Grid.Row="2" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0" CornerRadius="0,0,16,16" Padding="20,12">
                 <Grid>
-                    <TextBlock x:Name="txtStatusMessage" Text="" FontSize="12" Foreground="#EF4444" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <!-- Validation error / status message with wrapping, never overlaps buttons -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                        <Border x:Name="bdStatusIcon" Background="#FEE2E2" CornerRadius="10" Width="20" Height="20" Margin="0,0,6,0" Visibility="Collapsed" VerticalAlignment="Center">
+                            <local:LucideIcon Kind="AlertCircle" Size="13" Foreground="#DC2626" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock x:Name="txtStatusMessage" Text="" FontSize="11.5" Foreground="#DC2626" 
+                                   VerticalAlignment="Center" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button Content="Đóng" Style="{StaticResource CancelBtnStyle}" Margin="0,0,10,0" Click="BtnClose_Click"/>
-                        <Button Content="💾 Lưu Hồ Sơ" Style="{StaticResource SaveBtnStyle}" Click="BtnSave_Click"/>
+                        <Button Style="{StaticResource SaveBtnStyle}" Click="BtnSave_Click">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <local:LucideIcon Kind="Save" Size="14" Foreground="White" Margin="0,0,6,0"/>
+                                <TextBlock Text="Lưu Hồ Sơ" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>

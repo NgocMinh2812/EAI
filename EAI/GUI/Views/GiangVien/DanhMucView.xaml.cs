@@ -830,13 +830,6 @@ namespace GUI.Views.GiangVien
 
         private void BtnTabCayChuDe_Click(object sender, RoutedEventArgs e)
         {
-            if (TryFindResource("ActiveTabSwitchBtnStyle") is Style activeStyle &&
-                TryFindResource("TabSwitchBtnStyle") is Style normalStyle)
-            {
-                btnTabCayChuDe.Style = activeStyle;
-                btnTabTrinhDo.Style = normalStyle;
-            }
-
             pnlTabCayChuDe.Visibility = Visibility.Visible;
             pnlTabTrinhDo.Visibility = Visibility.Collapsed;
 
@@ -846,13 +839,6 @@ namespace GUI.Views.GiangVien
 
         private void BtnTabTrinhDo_Click(object sender, RoutedEventArgs e)
         {
-            if (TryFindResource("ActiveTabSwitchBtnStyle") is Style activeStyle &&
-                TryFindResource("TabSwitchBtnStyle") is Style normalStyle)
-            {
-                btnTabTrinhDo.Style = activeStyle;
-                btnTabCayChuDe.Style = normalStyle;
-            }
-
             pnlTabCayChuDe.Visibility = Visibility.Collapsed;
             pnlTabTrinhDo.Visibility = Visibility.Visible;
 

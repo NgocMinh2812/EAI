@@ -83,36 +83,35 @@ namespace BUS
                 return false;
             }
 
-            // Chuẩn hóa Unicode Form C và chuẩn hóa khoảng trắng thừa
+            // Chuẩn hóa Unicode Form C và loại bỏ khoảng trắng thừa
             string cleaned = hoTen.Normalize(NormalizationForm.FormC).Trim();
             cleaned = Regex.Replace(cleaned, @"\s+", " ");
 
-            // Kiểm tra chỉ cho phép chữ cái và khoảng trắng (không có số hoặc ký tự đặc biệt)
-            if (cleaned.Any(c => !char.IsLetter(c) && !char.IsWhiteSpace(c)))
+            if (cleaned.Length < 2)
+            {
+                errorMessage = "Họ và tên phải có tối thiểu 2 ký tự!";
+                return false;
+            }
+
+            // Kiểm tra: Chỉ cho phép chữ cái tiếng Việt/quốc tế, khoảng trắng và dấu gạch nối
+            if (cleaned.Any(c => !char.IsLetter(c) && !char.IsWhiteSpace(c) && c != '-' && c != '\''))
             {
                 errorMessage = "Họ và tên không được chứa chữ số hoặc ký tự đặc biệt!";
                 return false;
             }
 
+            // Tự động chuẩn hóa viết hoa chữ cái đầu mỗi từ thay vì bắt lỗi người dùng
             string[] words = cleaned.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (words.Length < 2)
+            for (int i = 0; i < words.Length; i++)
             {
-                errorMessage = "Họ và tên phải bao gồm cả họ và tên (tối thiểu 2 từ, ví dụ: Nguyễn Văn A)!";
-                return false;
-            }
-
-            // Kiểm tra từng từ: Chữ cái đầu viết hoa (\p{Lu}), các chữ tiếp theo viết thường (\p{Ll})
-            var wordRegex = new Regex(@"^\p{Lu}\p{Ll}*$");
-            foreach (string word in words)
-            {
-                if (!wordRegex.IsMatch(word))
+                string w = words[i];
+                if (w.Length > 0)
                 {
-                    errorMessage = "Họ và tên phải đúng định dạng: viết hoa chữ cái đầu mỗi từ và viết thường các chữ sau (Ví dụ: Nguyễn Văn A)!";
-                    return false;
+                    words[i] = char.ToUpper(w[0]) + (w.Length > 1 ? w.Substring(1).ToLower() : "");
                 }
             }
 
-            normalizedHoTen = cleaned;
+            normalizedHoTen = string.Join(" ", words);
             return true;
         }
 

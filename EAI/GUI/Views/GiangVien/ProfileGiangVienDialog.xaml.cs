@@ -22,6 +22,13 @@ namespace GUI.Views.GiangVien
         {
             if (_user == null) return;
 
+            // Cấu hình định dạng ngày tháng tiếng Việt chuẩn dd/MM/yyyy
+            try
+            {
+                dpNgaySinh.Language = System.Windows.Markup.XmlLanguage.GetLanguage("vi-VN");
+            }
+            catch { }
+
             txtProfileAvatarInitials.Text = _user.Initials;
             txtProfileFullNameHeader.Text = _user.HoTen;
             txtProfileEmailHeader.Text = _user.Email;
@@ -61,6 +68,8 @@ namespace GUI.Views.GiangVien
         private void BtnSave_Click(object sender, RoutedEventArgs e)
         {
             txtStatusMessage.Text = "";
+            bdStatusIcon.Visibility = Visibility.Collapsed;
+            pnlInlineAlert.Visibility = Visibility.Collapsed;
 
             string hoTen = txtHoTen.Text.Trim();
             string sdt = txtSoDienThoai.Text.Trim();
@@ -81,8 +90,16 @@ namespace GUI.Views.GiangVien
             if (!success)
             {
                 txtStatusMessage.Text = msg;
+                bdStatusIcon.Visibility = Visibility.Visible;
+                txtInlineAlert.Text = msg;
+                pnlInlineAlert.Visibility = Visibility.Visible;
                 return;
             }
+
+            // Đồng bộ cập nhật lại form theo tên đã chuẩn hóa
+            txtHoTen.Text = SessionHelper.CurrentUser?.HoTen ?? hoTen;
+            txtProfileFullNameHeader.Text = txtHoTen.Text;
+            txtProfileAvatarInitials.Text = SessionHelper.CurrentUser?.Initials ?? "GV";
 
             Views.Common.ThongBaoDialog.ThanhCong(this, msg, "Cập nhật hồ sơ");
             this.DialogResult = true;

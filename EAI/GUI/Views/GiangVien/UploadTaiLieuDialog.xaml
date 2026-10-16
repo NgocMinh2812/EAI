@@ -224,13 +224,7 @@
                                 <!-- Trình độ -->
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="Trình độ mục tiêu" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
-                                    <ComboBox x:Name="cboTrinhDo" Height="36" SelectedIndex="2">
-                                        <ComboBoxItem Content="A1 — Beginner"/>
-                                        <ComboBoxItem Content="A2 — Elementary"/>
-                                        <ComboBoxItem Content="B1 — Intermediate"/>
-                                        <ComboBoxItem Content="B2 — Upper-Inter"/>
-                                        <ComboBoxItem Content="C1 — Advanced"/>
-                                    </ComboBox>
+                                    <ComboBox x:Name="cboTrinhDo" Height="36" DisplayMemberPath="TenHienThi" SelectedValuePath="MaCapDo"/>
                                 </StackPanel>
 
                                 <!-- Phân loại kỹ năng -->

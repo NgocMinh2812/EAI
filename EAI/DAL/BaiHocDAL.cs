@@ -666,6 +666,8 @@ namespace DAL
                 list.Add(new BaiHocDTO
                 {
                     MaBaiHoc = Convert.ToInt32(row["MaBaiHoc"]),
+                    MaChuDe = Convert.ToInt32(row["MaChuDe"]),
+                    MaTrinhDoId = row["MaTrinhDo"] == DBNull.Value ? 3 : Convert.ToInt32(row["MaTrinhDo"]),
                     TieuDe = row["TieuDe"]?.ToString() ?? "",
                     TenChuDe = row["TenChuDe"]?.ToString() ?? "",
                     LoaiBaiHoc = loai,

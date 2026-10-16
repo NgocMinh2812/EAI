@@ -61,6 +61,7 @@ CREATE TABLE HoSoHocTap (
     DiemMucTieu DECIMAL(5,1) NULL,
     KhungNangLucMucTieu NVARCHAR(30) NULL, -- IELTS / TOEIC / CEFR...
     TrinhDoMucTieu NVARCHAR(10) NULL,     -- A1-C1...
+    TrinhDoDauVao NVARCHAR(10) NULL,      -- A1, A2, B1, B2, C1... (Trình độ khảo sát / đánh giá đầu vào)
     DiemDanhGiaDauVao DECIMAL(5,2) NULL,  -- Điểm bài khảo sát / đánh giá năng lực đầu vào
     SoPhutHocTichLuy INT NOT NULL DEFAULT 0,
     GhiChuCaNhan NVARCHAR(MAX) NULL,
