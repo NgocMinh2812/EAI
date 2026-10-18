@@ -11,6 +11,11 @@
         AllowsTransparency="True"
         Background="Transparent"
         FontFamily="Segoe UI"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.ClearTypeHint="Enabled"
         MouseLeftButtonDown="Window_MouseLeftButtonDown">
 
     <Window.Resources>
@@ -91,13 +96,17 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
-                                CornerRadius="8" Padding="{TemplateBinding Padding}">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.2" Color="#0F4C3A"/>
-                            </Border.Effect>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Grid>
+                            <Border CornerRadius="8" Background="{TemplateBinding Background}">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.2" Color="#0F4C3A"/>
+                                </Border.Effect>
+                            </Border>
+                            <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                    CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="bd" Property="Background" Value="#0B392B"/>
@@ -109,13 +118,17 @@
         </Style>
     </Window.Resources>
 
-    <!-- Outer Card Wrapper with Shadow -->
-    <Border Background="White" CornerRadius="16" BorderBrush="#E2E8F0" BorderThickness="1" Margin="14">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="25" ShadowDepth="6" Opacity="0.18" Color="#0F172A"/>
-        </Border.Effect>
+    <Grid Margin="14">
+        <!-- Lớp đổ bóng độc lập phía sau -->
+        <Border CornerRadius="16" Background="#0F172A">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="24" ShadowDepth="6" Opacity="0.18" Color="#0F172A"/>
+            </Border.Effect>
+        </Border>
 
-        <Grid>
+        <!-- Khung nội dung hộp thoại (Không có Effect -> Render Vector & ClearType sắc nét 100%) -->
+        <Border Background="White" CornerRadius="16" BorderBrush="#E2E8F0" BorderThickness="1" ClipToBounds="True">
+            <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -191,5 +204,6 @@
                 </Grid>
             </Border>
         </Grid>
-    </Border>
+        </Border>
+    </Grid>
 </Window>

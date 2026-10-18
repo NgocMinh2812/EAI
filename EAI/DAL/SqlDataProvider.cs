@@ -147,6 +147,29 @@ namespace DAL
                             ALTER TABLE BaiTapDeThi ADD XaoTronCauHoi BIT NOT NULL DEFAULT 1;
                         IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'TongSoCau' AND Object_ID = OBJECT_ID('BaiTapDeThi'))
                             ALTER TABLE BaiTapDeThi ADD TongSoCau INT NOT NULL DEFAULT 0;
+                    END;
+
+                    -- LÀM SẠCH DỮ LIỆU HTML CŨ TRONG BẢNG BAIHOC
+                    IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'BaiHoc')
+                    BEGIN
+                        UPDATE BaiHoc
+                        SET NoiDung = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                            NoiDung,
+                            '<h3>', N'■ '),
+                            '</h3>', CHAR(10)),
+                            '<ol>', ''),
+                            '</ol>', ''),
+                            '<ul>', ''),
+                            '</ul>', ''),
+                            '<li>', N'• '),
+                            '</li>', CHAR(10)),
+                            '<p>', ''),
+                            '</p>', CHAR(10) + CHAR(10))
+                        WHERE NoiDung LIKE '%<%>%';
+
+                        UPDATE BaiHoc
+                        SET NoiDung = REPLACE(REPLACE(REPLACE(REPLACE(NoiDung, '<strong>', ''), '</strong>', ''), '<em>', ''), '</em>', '')
+                        WHERE NoiDung LIKE '%<%>%';
                     END;";
                 ExecuteNonQuery(script);
             }

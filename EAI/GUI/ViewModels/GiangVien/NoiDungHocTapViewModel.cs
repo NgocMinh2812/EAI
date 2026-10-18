@@ -26,7 +26,14 @@ namespace GUI.ViewModels.GiangVien
         public BaiHocDTO SelectedBaiHoc
         {
             get => _selectedBaiHoc;
-            set => SetProperty(ref _selectedBaiHoc, value);
+            set
+            {
+                if (value != null && !string.IsNullOrEmpty(value.NoiDung))
+                {
+                    value.NoiDung = KhoHocLieuSyncHelper.ChuyenDoiHtmlSangVanBan(value.NoiDung);
+                }
+                SetProperty(ref _selectedBaiHoc, value ?? new BaiHocDTO());
+            }
         }
 
         public string ThongBaoLoi
@@ -98,11 +105,15 @@ namespace GUI.ViewModels.GiangVien
         {
             try
             {
-                // Nạp Trình Độ
+                // Nạp Trình Độ kèm mục mặc định
                 DanhSachTrinhDo.Clear();
+                DanhSachTrinhDo.Add(new TrinhDoDTO { MaCapDo = "", TenTrinhDo = "Tất cả cấp độ (A1 - C1)" });
                 var trinhDos = _danhMucBUS.LayDanhSachTrinhDo();
                 foreach (var td in trinhDos)
                     DanhSachTrinhDo.Add(td);
+
+                _selectedTrinhDoFilter = DanhSachTrinhDo[0];
+                OnPropertyChanged(nameof(SelectedTrinhDoFilter));
 
                 // Nạp Chủ Đề
                 DanhSachChuDe.Clear();
@@ -126,7 +137,7 @@ namespace GUI.ViewModels.GiangVien
                 int? maChuDe = SelectedChuDeFilter?.MaChuDe > 0 ? SelectedChuDeFilter.MaChuDe : null;
                 var ds = BaiHocBUS.LayDanhSachTuDatabase(maChuDe, TuKhoaTimKiem);
 
-                if (SelectedTrinhDoFilter != null && !string.IsNullOrEmpty(SelectedTrinhDoFilter.MaCapDo))
+                if (SelectedTrinhDoFilter != null && !string.IsNullOrWhiteSpace(SelectedTrinhDoFilter.MaCapDo))
                 {
                     ds = ds.Where(x => string.Equals(x.MaTrinhDo, SelectedTrinhDoFilter.MaCapDo, StringComparison.OrdinalIgnoreCase)).ToList();
                 }
@@ -138,7 +149,13 @@ namespace GUI.ViewModels.GiangVien
 
                 DanhSachBaiHoc.Clear();
                 foreach (var item in ds)
+                {
+                    if (!string.IsNullOrEmpty(item.NoiDung))
+                    {
+                        item.NoiDung = KhoHocLieuSyncHelper.ChuyenDoiHtmlSangVanBan(item.NoiDung);
+                    }
                     DanhSachBaiHoc.Add(item);
+                }
 
                 if ((SelectedBaiHoc == null || SelectedBaiHoc.MaBaiHoc <= 0) && DanhSachBaiHoc.Count > 0)
                 {

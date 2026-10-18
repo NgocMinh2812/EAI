@@ -10,6 +10,11 @@
         AllowsTransparency="True"
         Background="Transparent"
         FontFamily="Segoe UI"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.ClearTypeHint="Enabled"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
         KeyDown="Window_KeyDown">
 
@@ -24,13 +29,17 @@
         </Style>
     </Window.Resources>
 
-    <!-- Khối thẻ nổi xanh ngọc dịu đổ bóng viền ngọc bích -->
-    <Border Background="#F2F9F7" CornerRadius="18" BorderBrush="#5EEAD4" BorderThickness="1.5" Margin="14">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="28" ShadowDepth="6" Opacity="0.25" Color="#042F2E"/>
-        </Border.Effect>
+    <Grid Margin="14">
+        <!-- Lớp đổ bóng độc lập phía sau -->
+        <Border CornerRadius="18" Background="#042F2E">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="24" ShadowDepth="6" Opacity="0.22" Color="#042F2E"/>
+            </Border.Effect>
+        </Border>
 
-        <Grid Margin="24,18,24,22">
+        <!-- Khung nội dung hộp thoại (Không có Effect -> Render Vector & ClearType sắc nét 100%) -->
+        <Border Background="#F2F9F7" CornerRadius="18" BorderBrush="#5EEAD4" BorderThickness="1.5" ClipToBounds="True">
+            <Grid Margin="24,18,24,22">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -115,6 +124,7 @@
                     </Button.Template>
                 </Button>
             </Grid>
-        </Grid>
-    </Border>
+            </Grid>
+        </Border>
+    </Grid>
 </Window>

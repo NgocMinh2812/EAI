@@ -8,6 +8,11 @@
         WindowStyle="None"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.ClearTypeHint="Enabled"
         Background="#0F766E"
         Width="1280" Height="800"
         MinWidth="1024" MinHeight="680"
@@ -63,24 +68,17 @@
             </LinearGradientBrush>
         </Grid.Background>
 
-        <!-- Floating panel -->
-        <Border Background="#F8FAFC" CornerRadius="20" Margin="24,15" BorderBrush="#14B8A6" BorderThickness="1">
+        <!-- Lớp đổ bóng độc lập phía sau -->
+        <Border CornerRadius="20" Margin="24,15" Background="#042F2E">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="28" ShadowDepth="6" Opacity="0.3" Color="#042F2E"/>
             </Border.Effect>
+        </Border>
 
+        <!-- Khung làm việc chính sắc nét (Không có DropShadowEffect & Không có OpacityMask -> ClearType 100%) -->
+        <Border Background="#F8FAFC" CornerRadius="20" Margin="24,15" BorderBrush="#14B8A6" BorderThickness="1" ClipToBounds="True">
+            <!-- Khung làm việc chính chia 2 cột: Cột 0 là Menu Trái dùng chung, Cột 1 là Nội dung trang -->
             <Grid>
-                <!-- Mask element để cắt bo góc tròn 100% cho toàn bộ nội dung bên trong -->
-                <Border x:Name="MaskElement" Background="White" CornerRadius="20"/>
-
-                <!-- Container áp dụng OpacityMask bo góc tròn -->
-                <Border CornerRadius="20">
-                    <Border.OpacityMask>
-                        <VisualBrush Visual="{Binding ElementName=MaskElement}"/>
-                    </Border.OpacityMask>
-
-                    <!-- Khung làm việc chính chia 2 cột: Cột 0 là Menu Trái dùng chung, Cột 1 là Nội dung trang -->
-                    <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="240" x:Name="colSidebar"/>
                             <ColumnDefinition Width="*"/>
@@ -288,8 +286,6 @@
                             <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden"/>
                         </Grid>
                     </Grid>
-                </Border>
-            </Grid>
         </Border>
     </Grid>
 </Window>

@@ -6,6 +6,11 @@
       xmlns:conv="clr-namespace:GUI.ViewModels.Common"
       Title="Nội dung học tập - Admin Dashboard"
       FontFamily="Segoe UI"
+      UseLayoutRounding="True"
+      SnapsToDevicePixels="True"
+      TextOptions.TextFormattingMode="Display"
+      TextOptions.TextRenderingMode="ClearType"
+      RenderOptions.ClearTypeHint="Enabled"
       Background="#F8FAFC">
 
     <Page.DataContext>
@@ -24,17 +29,162 @@
         <SolidColorBrush x:Key="TextGray" Color="#64748B" />
         <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0" />
         <SolidColorBrush x:Key="CardBg" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="TextMuted" Color="#64748B" />
 
-        <Style x:Key="AdminCardStyle" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource CardBg}"/>
-            <Setter Property="CornerRadius" Value="14"/>
+        <!-- Style Bo góc chuẩn cho ô nhập văn bản (TextBox) -->
+        <Style x:Key="RoundedFormTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderLight}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="18"/>
-            <Setter Property="Margin" Value="0,0,0,14"/>
-            <Setter Property="Effect">
+            <Setter Property="BorderThickness" Value="1.2"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Template">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.03" Color="Black"/>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="0" Focusable="False"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#0F766E"/>
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#10B981"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="1.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style Item hiển thị trong danh sách thả xuống ComboBox -->
+        <Style x:Key="RoundedFormComboBoxItem" TargetType="ComboBoxItem">
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="itemBorder" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}" Margin="3,1.5">
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="itemBorder" Property="Background" Value="#F0FDF4"/>
+                                <Setter Property="Foreground" Value="#0F766E"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="itemBorder" Property="Background" Value="#DCFCE7"/>
+                                <Setter TargetName="itemBorder" Property="BorderBrush" Value="#86EFAC"/>
+                                <Setter TargetName="itemBorder" Property="BorderThickness" Value="1"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="Foreground" Value="#15803D"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ToggleButton Template cho ComboBox Form bo góc chuẩn -->
+        <ControlTemplate x:Key="RoundedFormComboBoxToggleButton" TargetType="ToggleButton">
+            <Border x:Name="btnBorder" 
+                    Background="{TemplateBinding Background}" 
+                    BorderBrush="{TemplateBinding BorderBrush}" 
+                    BorderThickness="{TemplateBinding BorderThickness}" 
+                    CornerRadius="8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="32"/>
+                    </Grid.ColumnDefinitions>
+                    <!-- Chevron icon mũi tên mềm mại hiện đại -->
+                    <Path x:Name="arrow" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                          Data="M 0 0 L 4.5 4.5 L 9 0" Stroke="#64748B" StrokeThickness="1.8" 
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" Fill="Transparent"/>
+                </Grid>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="btnBorder" Property="BorderBrush" Value="#0F766E"/>
+                    <Setter TargetName="btnBorder" Property="Background" Value="#F8FAFC"/>
+                    <Setter TargetName="arrow" Property="Stroke" Value="#0F766E"/>
+                </Trigger>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter TargetName="btnBorder" Property="BorderBrush" Value="#10B981"/>
+                    <Setter TargetName="btnBorder" Property="BorderThickness" Value="1.5"/>
+                    <Setter TargetName="arrow" Property="Stroke" Value="#10B981"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!-- Style Bo góc chuẩn cao cấp cho ComboBox (Nền trắng, Bo góc 8px, Chevron thanh lịch) -->
+        <Style x:Key="RoundedFormComboBox" TargetType="ComboBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderLight}"/>
+            <Setter Property="BorderThickness" Value="1.2"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource RoundedFormComboBoxItem}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Focusable="False"
+                                          IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press"
+                                          Background="{TemplateBinding Background}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          Template="{StaticResource RoundedFormComboBoxToggleButton}"/>
+                            <ContentPresenter IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              Margin="12,0,32,0"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"/>
+                            <Popup Name="PART_Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Slide"
+                                   VerticalOffset="4">
+                                <Grid Name="DropDown"
+                                      SnapsToDevicePixels="True"
+                                      Margin="4"
+                                      MinWidth="{TemplateBinding ActualWidth}"
+                                      MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <!-- Lớp bóng đổ độc lập không làm mờ text -->
+                                    <Border CornerRadius="8" Background="#042F2E">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="12" ShadowDepth="4" Opacity="0.12" Color="#042F2E"/>
+                                        </Border.Effect>
+                                    </Border>
+                                    <Border Background="White"
+                                            BorderBrush="{StaticResource BorderLight}"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Padding="4"
+                                            RenderOptions.ClearTypeHint="Enabled">
+                                        <ScrollViewer SnapsToDevicePixels="True" VerticalScrollBarVisibility="Auto">
+                                            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                        </ScrollViewer>
+                                    </Border>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
@@ -101,10 +251,10 @@
                     <ColumnDefinition Width="1.2*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Search box -->
+                <!-- Search box kèm Placeholder nhận biết rõ ràng -->
                 <Grid Grid.Column="0">
-                    <TextBox Text="{Binding TuKhoaTimKiem, UpdateSourceTrigger=PropertyChanged}" 
-                             Padding="30,8,10,8" VerticalContentAlignment="Center" FontSize="13"
+                    <TextBox x:Name="txtSearchLesson" Text="{Binding TuKhoaTimKiem, UpdateSourceTrigger=PropertyChanged}" 
+                             Padding="32,8,10,8" VerticalContentAlignment="Center" FontSize="13"
                              BorderBrush="{StaticResource BorderLight}">
                         <TextBox.Resources>
                             <Style TargetType="{x:Type Border}">
@@ -113,26 +263,35 @@
                         </TextBox.Resources>
                     </TextBox>
                     <local:LucideIcon Kind="Search" Size="14" Foreground="{StaticResource TextGray}" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                    
+                    <!-- Nhãn gợi ý Placeholder -->
+                    <TextBlock Text="Tìm kiếm theo tiêu đề bài học, tóm tắt, nội dung..." 
+                               FontSize="12.5" Foreground="{StaticResource TextMuted}" 
+                               VerticalAlignment="Center" Margin="32,0,10,0" IsHitTestVisible="False">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Text, ElementName=txtSearchLesson}" Value="">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                 </Grid>
 
                 <!-- Trình độ Filter -->
-                <ComboBox Grid.Column="2" ItemsSource="{Binding DanhSachTrinhDo}" SelectedItem="{Binding SelectedTrinhDoFilter}"
-                          DisplayMemberPath="TenTrinhDo" Padding="8,6" VerticalContentAlignment="Center">
-                    <ComboBox.Resources>
-                        <Style TargetType="{x:Type Border}">
-                            <Setter Property="CornerRadius" Value="8"/>
-                        </Style>
-                    </ComboBox.Resources>
-                </ComboBox>
+                <ComboBox Grid.Column="2" Style="{StaticResource RoundedFormComboBox}"
+                          ItemsSource="{Binding DanhSachTrinhDo}" SelectedItem="{Binding SelectedTrinhDoFilter}"
+                          DisplayMemberPath="TenTrinhDo" VerticalContentAlignment="Center"
+                          ToolTip="Lọc theo cấp độ trình độ (A1 - C1)"/>
 
                 <!-- Kỹ năng Filter -->
-                <ComboBox Grid.Column="4" SelectedValue="{Binding SelectedKyNangFilter}" SelectedValuePath="Tag"
-                          Padding="8,6" VerticalContentAlignment="Center">
-                    <ComboBox.Resources>
-                        <Style TargetType="{x:Type Border}">
-                            <Setter Property="CornerRadius" Value="8"/>
-                        </Style>
-                    </ComboBox.Resources>
+                <ComboBox Grid.Column="4" Style="{StaticResource RoundedFormComboBox}"
+                          SelectedValue="{Binding SelectedKyNangFilter}" SelectedValuePath="Tag"
+                          VerticalContentAlignment="Center"
+                          ToolTip="Lọc theo kỹ năng (Đọc hiểu, Từ vựng, Ngữ pháp, v.v.)">
                     <ComboBoxItem Content="Tất cả kỹ năng" Tag="All" IsSelected="True"/>
                     <ComboBoxItem Content="Ngữ pháp" Tag="NguPhap"/>
                     <ComboBoxItem Content="Từ vựng" Tag="TuVung"/>
@@ -238,13 +397,35 @@
             <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="14" Padding="20">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>
-                        <TextBlock Text="SOẠN THẢO CHI TIẾT BÀI HỌC" FontWeight="Bold" FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,0,0,14"/>
+                        <!-- Tiêu đề Panel & Nút Soạn bài mới -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="SOẠN THẢO CHI TIẾT BÀI HỌC" FontWeight="Bold" FontSize="12" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
+                            <Button Grid.Column="1" Command="{Binding ThemBaiHocMoiCommand}" Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1" 
+                                    Padding="10,4" Cursor="Hand" ToolTip="Làm trống form để soạn một bài giảng mới">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7" Padding="{TemplateBinding Padding}">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <local:LucideIcon Kind="Plus" Size="13" Foreground="#15803D" Margin="0,0,4,0"/>
+                                                <TextBlock Text="Soạn bài mới" FontSize="11.5" FontWeight="SemiBold" Foreground="#15803D"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
 
-                        <!-- Tiêu đề -->
-                        <TextBlock Text="Tiêu đề bài giảng (*)" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding SelectedBaiHoc.TieuDe, UpdateSourceTrigger=PropertyChanged}" Padding="10" Margin="0,0,0,14" FontSize="13"/>
+                        <!-- Tiêu đề bài giảng (Bo góc) -->
+                        <TextBlock Text="Tiêu đề bài giảng (*)" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                        <TextBox Style="{StaticResource RoundedFormTextBox}" 
+                                 Text="{Binding SelectedBaiHoc.TieuDe, UpdateSourceTrigger=PropertyChanged}" 
+                                 Height="38" Padding="10,6" Margin="0,0,0,14" FontSize="13"/>
 
-                        <!-- Trình độ & Kỹ năng -->
+                        <!-- Trình độ & Kỹ năng (Bo góc) -->
                         <Grid Margin="0,0,0,14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -253,14 +434,16 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="Cấp độ trình độ" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                <ComboBox ItemsSource="{Binding DanhSachTrinhDo}" SelectedValue="{Binding SelectedBaiHoc.MaTrinhDo}" 
-                                          SelectedValuePath="MaCapDo" DisplayMemberPath="TenTrinhDo" Padding="8,6"/>
+                                <TextBlock Text="Cấp độ trình độ" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <ComboBox Style="{StaticResource RoundedFormComboBox}"
+                                          ItemsSource="{Binding DanhSachTrinhDo}" SelectedValue="{Binding SelectedBaiHoc.MaTrinhDo}" 
+                                          SelectedValuePath="MaCapDo" DisplayMemberPath="TenTrinhDo"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="Kỹ năng" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                <ComboBox SelectedValue="{Binding SelectedBaiHoc.LoaiBaiHoc}" SelectedValuePath="Tag" Padding="8,6">
+                                <TextBlock Text="Kỹ năng" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <ComboBox Style="{StaticResource RoundedFormComboBox}"
+                                          SelectedValue="{Binding SelectedBaiHoc.LoaiBaiHoc}" SelectedValuePath="Tag">
                                     <ComboBoxItem Content="Ngữ pháp" Tag="NguPhap"/>
                                     <ComboBoxItem Content="Từ vựng" Tag="TuVung"/>
                                     <ComboBoxItem Content="Đọc hiểu" Tag="Doc"/>
@@ -270,7 +453,7 @@
                             </StackPanel>
                         </Grid>
 
-                        <!-- Thời lượng & Chủ đề -->
+                        <!-- Thời lượng & Chủ đề (Bo góc) -->
                         <Grid Margin="0,0,0,14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -279,20 +462,25 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="Thời lượng ước tính (phút)" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding SelectedBaiHoc.ThoiGianUocTinhPhut, UpdateSourceTrigger=PropertyChanged}" Padding="8"/>
+                                <TextBlock Text="Thời lượng ước tính (phút)" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBox Style="{StaticResource RoundedFormTextBox}"
+                                         Text="{Binding SelectedBaiHoc.ThoiGianUocTinhPhut, UpdateSourceTrigger=PropertyChanged}" 
+                                         Height="38" Padding="10,6"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="Chuyên đề kiến thức" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                <ComboBox ItemsSource="{Binding DanhSachChuDe}" SelectedValue="{Binding SelectedBaiHoc.MaChuDe}"
-                                          SelectedValuePath="MaChuDe" DisplayMemberPath="TenChuDe" Padding="8,6"/>
+                                <TextBlock Text="Chuyên đề kiến thức" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <ComboBox Style="{StaticResource RoundedFormComboBox}"
+                                          ItemsSource="{Binding DanhSachChuDe}" SelectedValue="{Binding SelectedBaiHoc.MaChuDe}"
+                                          SelectedValuePath="MaChuDe" DisplayMemberPath="TenChuDe"/>
                             </StackPanel>
                         </Grid>
 
-                        <!-- Tóm tắt -->
-                        <TextBlock Text="Tóm tắt ngắn gọn nội dung bài" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding SelectedBaiHoc.TomTat, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="50" Padding="8" Margin="0,0,0,14" TextWrapping="Wrap"/>
+                        <!-- Tóm tắt (Bo góc) -->
+                        <TextBlock Text="Tóm tắt ngắn gọn nội dung bài" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                        <TextBox Style="{StaticResource RoundedFormTextBox}"
+                                 Text="{Binding SelectedBaiHoc.TomTat, UpdateSourceTrigger=PropertyChanged}" 
+                                 AcceptsReturn="True" Height="56" Padding="10,8" Margin="0,0,0,14" TextWrapping="Wrap"/>
 
                         <!-- Tệp đính kèm Audio & Hình ảnh -->
                         <Grid Margin="0,0,0,14">
@@ -327,9 +515,11 @@
                             </Border>
                         </Grid>
 
-                        <!-- Nội dung lý thuyết chi tiết -->
-                        <TextBlock Text="Nội dung giáo trình lý thuyết (*)" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding SelectedBaiHoc.NoiDung, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="150" Padding="10" Margin="0,0,0,14" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                        <!-- Nội dung lý thuyết chi tiết (Bo góc) -->
+                        <TextBlock Text="Nội dung giáo trình lý thuyết (*)" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                        <TextBox Style="{StaticResource RoundedFormTextBox}"
+                                 Text="{Binding SelectedBaiHoc.NoiDung, UpdateSourceTrigger=PropertyChanged}" 
+                                 AcceptsReturn="True" Height="150" Padding="10,8" Margin="0,0,0,14" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
 
                         <!-- Cờ xuất bản -->
                         <CheckBox Content="Cho phép học viên truy cập (Đã xuất bản)" IsChecked="{Binding SelectedBaiHoc.DaXuatBan}" Margin="0,0,0,16" FontWeight="SemiBold"/>

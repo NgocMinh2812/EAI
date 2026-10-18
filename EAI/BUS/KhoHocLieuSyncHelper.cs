@@ -423,14 +423,66 @@ namespace BUS
             return CleanFallbackText(fallbackContent);
         }
 
-        private static string CleanFallbackText(string? raw)
+        /// <summary>
+        /// Chuyển đổi mã HTML thành văn bản thuần có cấu trúc đẹp (tiêu đề ■, gạch đầu dòng •, danh sách số 1. 2., ngắt đoạn tự nhiên)
+        /// </summary>
+        public static string ChuyenDoiHtmlSangVanBan(string? raw)
         {
             if (string.IsNullOrWhiteSpace(raw)) return "Nội dung bài học chưa được cập nhật chi tiết.";
-            return raw.Replace("<p>", "").Replace("</p>", "\n\n")
-                      .Replace("<h3>", "■ ").Replace("</h3>", "\n")
-                      .Replace("<ul>", "").Replace("</ul>", "")
-                      .Replace("<li>", "• ").Replace("</li>", "\n")
-                      .Trim();
+
+            if (!raw.Contains("<") || !raw.Contains(">"))
+                return raw.Trim();
+
+            string text = raw;
+
+            // Xử lý tiêu đề h1 - h6
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"<h[1-6][^>]*>(.*?)</h[1-6]>", "\n■ $1\n", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline);
+
+            // Xử lý danh sách có thứ tự ol li -> 1. 2. 3.
+            var olMatches = System.Text.RegularExpressions.Regex.Matches(text, @"<ol[^>]*>(.*?)</ol>", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline);
+            foreach (System.Text.RegularExpressions.Match olm in olMatches)
+            {
+                string olContent = olm.Groups[1].Value;
+                var liMatches = System.Text.RegularExpressions.Regex.Matches(olContent, @"<li[^>]*>(.*?)</li>", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline);
+                var sbLi = new System.Text.StringBuilder("\n");
+                int idx = 1;
+                foreach (System.Text.RegularExpressions.Match lim in liMatches)
+                {
+                    string liText = System.Text.RegularExpressions.Regex.Replace(lim.Groups[1].Value, @"<[^>]+>", "").Trim();
+                    sbLi.AppendLine($"{idx}. {liText}");
+                    idx++;
+                }
+                text = text.Replace(olm.Value, sbLi.ToString());
+            }
+
+            // Xử lý danh sách không có thứ tự ul li -> • bullet
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"<li[^>]*>(.*?)</li>", "\n• $1", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline);
+
+            // Xử lý ngắt đoạn và xuống dòng
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"<br\s*/?>", "\n", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"</p>", "\n\n", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"<p[^>]*>", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"</div[^>]*>", "\n", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"<div[^>]*>", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"</?ul[^>]*>", "\n", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"</?ol[^>]*>", "\n", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+            // Loại bỏ toàn bộ các thẻ HTML còn lại (strong, em, b, i, span, v.v.)
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"<[^>]+>", "", System.Text.RegularExpressions.RegexOptions.Singleline);
+
+            // Giải mã HTML entities
+            text = System.Net.WebUtility.HtmlDecode(text);
+
+            // Chuẩn hóa khoảng trắng và dòng trống liên tiếp
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"[ \t]+", " ");
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"(\r?\n){3,}", "\n\n");
+
+            return text.Trim();
+        }
+
+        private static string CleanFallbackText(string? raw)
+        {
+            return ChuyenDoiHtmlSangVanBan(raw);
         }
     }
 }

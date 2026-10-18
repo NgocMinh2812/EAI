@@ -4,6 +4,11 @@
       xmlns:local="clr-namespace:GUI"
       Title="Danh mục &amp; Cấu trúc Học liệu - Admin Dashboard"
       FontFamily="Segoe UI"
+      UseLayoutRounding="True"
+      SnapsToDevicePixels="True"
+      TextOptions.TextFormattingMode="Display"
+      TextOptions.TextRenderingMode="ClearType"
+      RenderOptions.ClearTypeHint="Enabled"
       Background="#F8FAFC">
 
     <Page.Resources>
@@ -68,15 +73,19 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="8" Padding="{TemplateBinding Padding}">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.25" Color="#EA580C"/>
-                            </Border.Effect>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Grid>
+                            <Border CornerRadius="8" Background="{TemplateBinding Background}">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.25" Color="#EA580C"/>
+                                </Border.Effect>
+                            </Border>
+                            <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                    BorderBrush="{TemplateBinding BorderBrush}" 
+                                    BorderThickness="{TemplateBinding BorderThickness}" 
+                                    CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="bd" Property="Background" Value="#C2410C"/>
@@ -105,15 +114,19 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="8" Padding="{TemplateBinding Padding}">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.25" Color="#4F46E5"/>
-                            </Border.Effect>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Grid>
+                            <Border CornerRadius="8" Background="{TemplateBinding Background}">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.25" Color="#4F46E5"/>
+                                </Border.Effect>
+                            </Border>
+                            <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                    BorderBrush="{TemplateBinding BorderBrush}" 
+                                    BorderThickness="{TemplateBinding BorderThickness}" 
+                                    CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="bd" Property="Background" Value="#4338CA"/>
@@ -142,15 +155,19 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="8" Padding="{TemplateBinding Padding}">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.25" Color="#0284C7"/>
-                            </Border.Effect>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Grid>
+                            <Border CornerRadius="8" Background="{TemplateBinding Background}">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.25" Color="#0284C7"/>
+                                </Border.Effect>
+                            </Border>
+                            <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                    BorderBrush="{TemplateBinding BorderBrush}" 
+                                    BorderThickness="{TemplateBinding BorderThickness}" 
+                                    CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="bd" Property="Background" Value="#0369A1"/>
@@ -179,15 +196,19 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="8" Padding="{TemplateBinding Padding}">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="8" ShadowDepth="1.5" Opacity="0.3" Color="#059669"/>
-                            </Border.Effect>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Grid>
+                            <Border CornerRadius="8" Background="{TemplateBinding Background}">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="8" ShadowDepth="1.5" Opacity="0.3" Color="#059669"/>
+                                </Border.Effect>
+                            </Border>
+                            <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                    BorderBrush="{TemplateBinding BorderBrush}" 
+                                    BorderThickness="{TemplateBinding BorderThickness}" 
+                                    CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="bd" Property="Background" Value="#047857"/>
@@ -216,15 +237,19 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="8" Padding="{TemplateBinding Padding}">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.25" Color="#7C3AED"/>
-                            </Border.Effect>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Grid>
+                            <Border CornerRadius="8" Background="{TemplateBinding Background}">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.25" Color="#7C3AED"/>
+                                </Border.Effect>
+                            </Border>
+                            <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                    BorderBrush="{TemplateBinding BorderBrush}" 
+                                    BorderThickness="{TemplateBinding BorderThickness}" 
+                                    CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="bd" Property="Background" Value="#6D28D9"/>
@@ -833,15 +858,19 @@
                                             Padding="12,6" Cursor="Hand" Click="BtnReExtractAI_Click" ToolTip="Phân tích văn bản và tạo câu hỏi trắc nghiệm" VerticalAlignment="Center">
                                         <Button.Template>
                                             <ControlTemplate TargetType="Button">
-                                                <Border x:Name="bgen" Background="{TemplateBinding Background}" CornerRadius="7" Padding="{TemplateBinding Padding}">
-                                                    <Border.Effect>
-                                                        <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.2" Color="#059669"/>
-                                                    </Border.Effect>
-                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <local:LucideIcon Kind="Sparkles" Size="13" Foreground="White" Margin="0,0,5,0"/>
-                                                        <TextBlock Text="Tạo câu hỏi AI" FontWeight="SemiBold" FontSize="11.5"/>
-                                                    </StackPanel>
-                                                </Border>
+                                                <Grid>
+                                                    <Border CornerRadius="7" Background="{TemplateBinding Background}">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.2" Color="#059669"/>
+                                                        </Border.Effect>
+                                                    </Border>
+                                                    <Border x:Name="bgen" Background="{TemplateBinding Background}" CornerRadius="7" Padding="{TemplateBinding Padding}">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <local:LucideIcon Kind="Sparkles" Size="13" Foreground="White" Margin="0,0,5,0"/>
+                                                            <TextBlock Text="Tạo câu hỏi AI" FontWeight="SemiBold" FontSize="11.5"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Grid>
                                                 <ControlTemplate.Triggers>
                                                     <Trigger Property="IsMouseOver" Value="True">
                                                         <Setter TargetName="bgen" Property="Background" Value="#047857"/>
@@ -942,15 +971,19 @@
                                     ToolTip="Tạo đề thi thử tự động từ bài học này">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
-                                        <Border x:Name="btnBd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                            <Border.Effect>
-                                                <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.25" Color="#059669"/>
-                                            </Border.Effect>
-                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <local:LucideIcon Kind="Plus" Size="14" Foreground="White" Margin="0,0,6,0"/>
-                                                <TextBlock Text="Đưa vào Đề thi thử" FontWeight="Bold"/>
-                                            </StackPanel>
-                                        </Border>
+                                        <Grid>
+                                            <Border CornerRadius="8" Background="{TemplateBinding Background}">
+                                                <Border.Effect>
+                                                    <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.25" Color="#059669"/>
+                                                </Border.Effect>
+                                            </Border>
+                                            <Border x:Name="btnBd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <local:LucideIcon Kind="Plus" Size="14" Foreground="White" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Đưa vào Đề thi thử" FontWeight="Bold"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
                                                 <Setter TargetName="btnBd" Property="Background" Value="#047857"/>

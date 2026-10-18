@@ -4,6 +4,11 @@
       xmlns:local="clr-namespace:GUI"
       Title="AI sinh đề &amp; Nhập tệp - Admin Dashboard"
       FontFamily="Segoe UI"
+      UseLayoutRounding="True"
+      SnapsToDevicePixels="True"
+      TextOptions.TextFormattingMode="Display"
+      TextOptions.TextRenderingMode="ClearType"
+      RenderOptions.ClearTypeHint="Enabled"
       Background="#F8FAFC">
 
     <Page.Resources>

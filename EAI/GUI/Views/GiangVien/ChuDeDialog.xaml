@@ -11,6 +11,11 @@
         AllowsTransparency="True"
         Background="Transparent"
         FontFamily="Segoe UI"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.ClearTypeHint="Enabled"
         MouseLeftButtonDown="Window_MouseLeftButtonDown">
 
     <Window.Resources>
@@ -100,110 +105,116 @@
         </Style>
     </Window.Resources>
 
-    <Border CornerRadius="18" BorderBrush="#5EEAD4" BorderThickness="1.5" Margin="14" ClipToBounds="True">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="28" ShadowDepth="6" Opacity="0.25" Color="#042F2E"/>
-        </Border.Effect>
+    <Grid Margin="14">
+        <!-- Lớp đổ bóng ngoài độc lập (Tách rời khỏi cây hiển thị để text không bị rasterize) -->
+        <Border CornerRadius="18" Background="#042F2E">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="24" ShadowDepth="6" Opacity="0.22" Color="#042F2E"/>
+            </Border.Effect>
+        </Border>
 
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+        <!-- Khung nội dung hộp thoại (Không có Effect -> Render Vector & ClearType sắc nét 100%) -->
+        <Border CornerRadius="18" BorderBrush="#5EEAD4" BorderThickness="1.5" Background="#F2F9F7" ClipToBounds="True">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-            <!-- Emerald Teal Header Banner -->
-            <Border Grid.Row="0" CornerRadius="16,16,0,0" Padding="22,18,20,18">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#042F2E" Offset="0.0"/>
-                        <GradientStop Color="#0F4C3A" Offset="0.45"/>
-                        <GradientStop Color="#0F766E" Offset="1.0"/>
-                    </LinearGradientBrush>
-                </Border.Background>
+                <!-- Emerald Teal Header Banner -->
+                <Border Grid.Row="0" CornerRadius="16,16,0,0" Padding="22,18,20,18">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#042F2E" Offset="0.0"/>
+                            <GradientStop Color="#0F4C3A" Offset="0.45"/>
+                            <GradientStop Color="#0F766E" Offset="1.0"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
 
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
-                    <Border Grid.Column="0" Width="44" Height="44" CornerRadius="22" Background="#26FFFFFF" Margin="0,0,12,0" VerticalAlignment="Center">
-                        <local:LucideIcon Kind="Folder" Size="22" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
+                        <Border Grid.Column="0" Width="44" Height="44" CornerRadius="22" Background="#26FFFFFF" Margin="0,0,12,0" VerticalAlignment="Center">
+                            <local:LucideIcon Kind="Folder" Size="22" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
 
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock x:Name="txtTitle" Text="Thêm Chủ đề Mới" FontWeight="Bold" FontSize="17.5" Foreground="White"/>
-                        <TextBlock Text="Cấu trúc cây danh mục phục vụ phân loại bài học và đề thi" FontSize="12" Foreground="#CCFBF1" Margin="0,3,0,0"/>
-                    </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock x:Name="txtTitle" Text="Thêm Chủ đề Mới" FontWeight="Bold" FontSize="17.5" Foreground="White"/>
+                            <TextBlock Text="Cấu trúc cây danh mục phục vụ phân loại bài học và đề thi" FontSize="12" Foreground="#CCFBF1" Margin="0,3,0,0"/>
+                        </StackPanel>
 
-                    <Button Grid.Column="2" Width="28" Height="28" Background="Transparent" BorderThickness="0" 
-                            Cursor="Hand" VerticalAlignment="Center" ToolTip="Đóng cửa sổ" Click="BtnCancel_Click">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border x:Name="b" Background="#FEE2E2" CornerRadius="14" BorderBrush="#FECACA" BorderThickness="1">
-                                    <TextBlock x:Name="t" Text="✕" FontSize="13" FontWeight="Bold" Foreground="#DC2626" 
-                                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1"/>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="b" Property="Background" Value="#DC2626"/>
-                                        <Setter TargetName="b" Property="BorderBrush" Value="#B91C1C"/>
-                                        <Setter TargetName="t" Property="Foreground" Value="White"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                </Grid>
-            </Border>
-
-            <!-- Soft Mint Form Body -->
-            <Border Grid.Row="1" Background="#F2F9F7" CornerRadius="0,0,16,16" Padding="24,18,24,20">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <StackPanel Grid.Row="0">
-                        <!-- Tên chủ đề -->
-                        <TextBlock Text="Tên chủ đề *" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
-                        <TextBox x:Name="txtTenChuDe" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,12"/>
-
-                        <!-- Chủ đề cha -->
-                        <TextBlock Text="Chủ đề cha (Để trống nếu là Danh mục gốc)" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
-                        <ComboBox x:Name="cboChuDeCha" Height="38" Margin="0,0,0,12" DisplayMemberPath="TenChuDe" SelectedValuePath="MaChuDe"/>
-
-                        <!-- Mô tả -->
-                        <TextBlock Text="Mô tả tóm tắt" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
-                        <TextBox x:Name="txtMoTa" Height="65" Padding="10,8" FontSize="12.5" TextWrapping="Wrap" AcceptsReturn="True" 
-                                 VerticalScrollBarVisibility="Auto" BorderBrush="#CBD5E1" Margin="0,0,0,6">
-                            <TextBox.Template>
-                                <ControlTemplate TargetType="TextBox">
-                                    <Border x:Name="bd" Background="White" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8">
-                                        <ScrollViewer x:Name="PART_ContentHost" Margin="0"/>
+                        <Button Grid.Column="2" Width="28" Height="28" Background="Transparent" BorderThickness="0" 
+                                Cursor="Hand" VerticalAlignment="Center" ToolTip="Đóng cửa sổ" Click="BtnCancel_Click">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="b" Background="#FEE2E2" CornerRadius="14" BorderBrush="#FECACA" BorderThickness="1">
+                                        <TextBlock x:Name="t" Text="✕" FontSize="13" FontWeight="Bold" Foreground="#DC2626" 
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1"/>
                                     </Border>
                                     <ControlTemplate.Triggers>
-                                        <Trigger Property="IsFocused" Value="True">
-                                            <Setter TargetName="bd" Property="BorderBrush" Value="#0F766E"/>
-                                            <Setter TargetName="bd" Property="BorderThickness" Value="1.6"/>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="b" Property="Background" Value="#DC2626"/>
+                                            <Setter TargetName="b" Property="BorderBrush" Value="#B91C1C"/>
+                                            <Setter TargetName="t" Property="Foreground" Value="White"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
-                            </TextBox.Template>
-                        </TextBox>
-                    </StackPanel>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+                </Border>
 
-                    <!-- Action Buttons -->
-                    <Border Grid.Row="1" BorderBrush="#D1E7DD" BorderThickness="0,1,0,0" Padding="0,14,0,0" Margin="0,8,0,0">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Content="Hủy bỏ" Style="{StaticResource CancelBtnStyle}" Margin="0,0,10,0" Click="BtnCancel_Click"/>
-                            <Button Content="Lưu chủ đề" Style="{StaticResource SaveBtnStyle}" Click="BtnSave_Click"/>
+                <!-- Soft Mint Form Body -->
+                <Border Grid.Row="1" Background="#F2F9F7" CornerRadius="0,0,16,16" Padding="24,18,24,20">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0">
+                            <!-- Tên chủ đề -->
+                            <TextBlock Text="Tên chủ đề *" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
+                            <TextBox x:Name="txtTenChuDe" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,12"/>
+
+                            <!-- Chủ đề cha -->
+                            <TextBlock Text="Chủ đề cha (Để trống nếu là Danh mục gốc)" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
+                            <ComboBox x:Name="cboChuDeCha" Height="38" Margin="0,0,0,12" DisplayMemberPath="TenChuDe" SelectedValuePath="MaChuDe"/>
+
+                            <!-- Mô tả -->
+                            <TextBlock Text="Mô tả tóm tắt" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
+                            <TextBox x:Name="txtMoTa" Height="65" Padding="10,8" FontSize="12.5" TextWrapping="Wrap" AcceptsReturn="True" 
+                                     VerticalScrollBarVisibility="Auto" BorderBrush="#CBD5E1" Margin="0,0,0,6">
+                                <TextBox.Template>
+                                    <ControlTemplate TargetType="TextBox">
+                                        <Border x:Name="bd" Background="White" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8">
+                                            <ScrollViewer x:Name="PART_ContentHost" Margin="0"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsFocused" Value="True">
+                                                <Setter TargetName="bd" Property="BorderBrush" Value="#0F766E"/>
+                                                <Setter TargetName="bd" Property="BorderThickness" Value="1.6"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </TextBox.Template>
+                            </TextBox>
                         </StackPanel>
-                    </Border>
-                </Grid>
-            </Border>
-        </Grid>
-    </Border>
+
+                        <!-- Action Buttons -->
+                        <Border Grid.Row="1" BorderBrush="#D1E7DD" BorderThickness="0,1,0,0" Padding="0,14,0,0" Margin="0,8,0,0">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Content="Hủy bỏ" Style="{StaticResource CancelBtnStyle}" Margin="0,0,10,0" Click="BtnCancel_Click"/>
+                                <Button Content="Lưu chủ đề" Style="{StaticResource SaveBtnStyle}" Click="BtnSave_Click"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
 </Window>

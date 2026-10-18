@@ -109,16 +109,20 @@
                                    VerticalOffset="4">
                                 <Grid Name="DropDown"
                                       SnapsToDevicePixels="True"
+                                      Margin="4"
                                       MinWidth="{TemplateBinding ActualWidth}"
                                       MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border Background="White" CornerRadius="8">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.12" Color="Black"/>
+                                        </Border.Effect>
+                                    </Border>
                                     <Border Background="White"
                                             BorderBrush="{StaticResource BorderLight}"
                                             BorderThickness="1"
                                             CornerRadius="8"
-                                            Padding="4">
-                                        <Border.Effect>
-                                            <DropShadowEffect BlurRadius="14" ShadowDepth="4" Opacity="0.1" Color="Black"/>
-                                        </Border.Effect>
+                                            Padding="4"
+                                            RenderOptions.ClearTypeHint="Enabled">
                                         <ScrollViewer SnapsToDevicePixels="True" VerticalScrollBarVisibility="Auto">
                                             <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
                                         </ScrollViewer>
