@@ -169,6 +169,7 @@ namespace GUI
         Rocket,
         Crown,
         Camera,
+        Image,
         LayoutDashboard,
         LayoutGrid,
         LoaderCircle,
@@ -557,6 +558,7 @@ namespace GUI
                 LucideIconKind.ClipboardList => "clipboard-list",
                 LucideIconKind.SlidersHorizontal => "sliders-horizontal",
                 LucideIconKind.Wand2 => "wand-2",
+                LucideIconKind.Image => "camera",
                 _ => ToKebabCase(kind.ToString())
             };
         }

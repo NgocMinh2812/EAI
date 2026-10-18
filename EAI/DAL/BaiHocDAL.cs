@@ -847,5 +847,139 @@ namespace DAL
                 throw;
             }
         }
+
+        /// <summary>
+        /// [US-GV05] Thêm mới hoặc Cập nhật Nội dung Bài học
+        /// </summary>
+        public bool LuuBaiHoc(BaiHocDTO baiHoc, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+            try
+            {
+                // Đảm bảo MaTrinhDo hợp lệ nếu chưa có
+                int maTrinhDo = baiHoc.MaTrinhDoId;
+                if (maTrinhDo <= 0)
+                {
+                    object? tdObj = DatabaseHelper.ExecuteScalar(
+                        "SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = @CapDo", 
+                        new[] { new SqlParameter("@CapDo", string.IsNullOrWhiteSpace(baiHoc.MaTrinhDo) ? "B1" : baiHoc.MaTrinhDo) });
+                    if (tdObj != null && tdObj != DBNull.Value)
+                        maTrinhDo = Convert.ToInt32(tdObj);
+                    else
+                        maTrinhDo = 1;
+                }
+
+                // Đảm bảo MaChuDe hợp lệ nếu chưa có
+                int maChuDe = baiHoc.MaChuDe;
+                if (maChuDe <= 0)
+                {
+                    object? cdObj = DatabaseHelper.ExecuteScalar("SELECT TOP 1 MaChuDe FROM ChuDe ORDER BY MaChuDe ASC");
+                    maChuDe = (cdObj != null && cdObj != DBNull.Value) ? Convert.ToInt32(cdObj) : 1;
+                }
+
+                string audio = baiHoc.AudioPath ?? baiHoc.DuongDanAudio ?? "";
+                string image = baiHoc.AnhMinhHoaPath ?? baiHoc.DuongDanHinhAnh ?? "";
+                int thoiLuong = baiHoc.ThoiGianUocTinhPhut > 0 ? baiHoc.ThoiGianUocTinhPhut : 15;
+                string loai = string.IsNullOrWhiteSpace(baiHoc.LoaiBaiHoc) ? "NguPhap" : baiHoc.LoaiBaiHoc;
+
+                if (baiHoc.MaBaiHoc <= 0)
+                {
+                    string insertSql = @"
+                        INSERT INTO BaiHoc (MaChuDe, MaTrinhDo, NguoiTao, TieuDe, LoaiBaiHoc, TomTat, NoiDung, 
+                                            DuongDanAudio, DuongDanHinhAnh, ThoiGianUocTinhPhut, DaXuatBan, 
+                                            AudioPath, AnhMinhHoaPath, ThoiLuongUocTinh, NgayTao)
+                        VALUES (@MaChuDe, @MaTrinhDo, @NguoiTao, @TieuDe, @LoaiBaiHoc, @TomTat, @NoiDung,
+                                @Audio, @Image, @ThoiLuong, @DaXuatBan,
+                                @Audio, @Image, @ThoiLuong, SYSDATETIME());
+                        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+                    object? newId = DatabaseHelper.ExecuteScalar(insertSql, new[]
+                    {
+                        new SqlParameter("@MaChuDe", maChuDe),
+                        new SqlParameter("@MaTrinhDo", maTrinhDo),
+                        new SqlParameter("@NguoiTao", (object?)baiHoc.NguoiTao ?? DBNull.Value),
+                        new SqlParameter("@TieuDe", baiHoc.TieuDe ?? ""),
+                        new SqlParameter("@LoaiBaiHoc", loai),
+                        new SqlParameter("@TomTat", (object?)baiHoc.TomTat ?? DBNull.Value),
+                        new SqlParameter("@NoiDung", (object?)baiHoc.NoiDung ?? DBNull.Value),
+                        new SqlParameter("@Audio", string.IsNullOrEmpty(audio) ? DBNull.Value : (object)audio),
+                        new SqlParameter("@Image", string.IsNullOrEmpty(image) ? DBNull.Value : (object)image),
+                        new SqlParameter("@ThoiLuong", thoiLuong),
+                        new SqlParameter("@DaXuatBan", baiHoc.DaXuatBan)
+                    });
+
+                    if (newId != null && newId != DBNull.Value)
+                    {
+                        baiHoc.MaBaiHoc = Convert.ToInt32(newId);
+                        return true;
+                    }
+                    return false;
+                }
+                else
+                {
+                    string updateSql = @"
+                        UPDATE BaiHoc
+                        SET MaChuDe = @MaChuDe,
+                            MaTrinhDo = @MaTrinhDo,
+                            TieuDe = @TieuDe,
+                            LoaiBaiHoc = @LoaiBaiHoc,
+                            TomTat = @TomTat,
+                            NoiDung = @NoiDung,
+                            DuongDanAudio = @Audio,
+                            DuongDanHinhAnh = @Image,
+                            ThoiGianUocTinhPhut = @ThoiLuong,
+                            AudioPath = @Audio,
+                            AnhMinhHoaPath = @Image,
+                            ThoiLuongUocTinh = @ThoiLuong,
+                            DaXuatBan = @DaXuatBan,
+                            NgayCapNhat = SYSDATETIME()
+                        WHERE MaBaiHoc = @MaBaiHoc;";
+
+                    int rows = DatabaseHelper.ExecuteNonQuery(updateSql, new[]
+                    {
+                        new SqlParameter("@MaBaiHoc", baiHoc.MaBaiHoc),
+                        new SqlParameter("@MaChuDe", maChuDe),
+                        new SqlParameter("@MaTrinhDo", maTrinhDo),
+                        new SqlParameter("@TieuDe", baiHoc.TieuDe ?? ""),
+                        new SqlParameter("@LoaiBaiHoc", loai),
+                        new SqlParameter("@TomTat", (object?)baiHoc.TomTat ?? DBNull.Value),
+                        new SqlParameter("@NoiDung", (object?)baiHoc.NoiDung ?? DBNull.Value),
+                        new SqlParameter("@Audio", string.IsNullOrEmpty(audio) ? DBNull.Value : (object)audio),
+                        new SqlParameter("@Image", string.IsNullOrEmpty(image) ? DBNull.Value : (object)image),
+                        new SqlParameter("@ThoiLuong", thoiLuong),
+                        new SqlParameter("@DaXuatBan", baiHoc.DaXuatBan)
+                    });
+
+                    return rows > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// [US-GV05] Cập nhật cờ DaXuatBan
+        /// </summary>
+        public bool CapNhatTrangThaiXuatBan(int maBaiHoc, bool daXuatBan)
+        {
+            try
+            {
+                const string query = "UPDATE BaiHoc SET DaXuatBan = @DaXuatBan, NgayCapNhat = SYSDATETIME() WHERE MaBaiHoc = @MaBaiHoc;";
+                int rows = DatabaseHelper.ExecuteNonQuery(query, new[]
+                {
+                    new SqlParameter("@DaXuatBan", daXuatBan),
+                    new SqlParameter("@MaBaiHoc", maBaiHoc)
+                });
+                return rows > 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BaiHocDAL.CapNhatTrangThaiXuatBan] Lỗi: {ex.Message}");
+                return false;
+            }
+        }
     }
 }

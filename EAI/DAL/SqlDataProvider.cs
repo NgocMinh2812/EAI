@@ -10,7 +10,7 @@ namespace DAL
         public static SqlDataProvider Instance => _instance ??= new SqlDataProvider();
 
         // Chuỗi kết nối mặc định - có thể thay đổi linh hoạt hoặc nạp từ biến môi trường
-        private string _connectionString = "Server=MSI\\SQLEXPRESS;Database=TiengAnhAI;Trusted_Connection=True;TrustServerCertificate=True;";
+        private string _connectionString = "Server=SHIN-QUYS\\SQLEXPRESS;Database=TiengAnhAI;Trusted_Connection=True;TrustServerCertificate=True;";
 
         public string ConnectionString
         {
@@ -116,6 +116,37 @@ namespace DAL
                         BEGIN
                             EXEC('CREATE VIEW KetQuaThi AS SELECT MaLuotLamBai AS MaKetQuaThi, MaNguoiDung, MaBaiTapDeThi, HinhThucLam, ThoiDiemBatDau, ThoiDiemNopBai, ThoiGianLamGiay, TongSoCau, SoCauDung, SoCauSai, DiemSo, TrangThai FROM LuotLamBai');
                         END
+                    END;
+
+                    -- SPRINT 2 SCHEMA COMPATIBILITY
+                    IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'BaiHoc')
+                    BEGIN
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'AudioPath' AND Object_ID = OBJECT_ID('BaiHoc'))
+                            ALTER TABLE BaiHoc ADD AudioPath NVARCHAR(500) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'AnhMinhHoaPath' AND Object_ID = OBJECT_ID('BaiHoc'))
+                            ALTER TABLE BaiHoc ADD AnhMinhHoaPath NVARCHAR(500) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'ThoiLuongUocTinh' AND Object_ID = OBJECT_ID('BaiHoc'))
+                            ALTER TABLE BaiHoc ADD ThoiLuongUocTinh INT NOT NULL DEFAULT 15;
+                    END;
+
+                    IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'CauHoi')
+                    BEGIN
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'DoKho' AND Object_ID = OBJECT_ID('CauHoi'))
+                            ALTER TABLE CauHoi ADD DoKho NVARCHAR(20) NOT NULL DEFAULT N'TrungBinh';
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'LoiGiaiChiTiet' AND Object_ID = OBJECT_ID('CauHoi'))
+                            ALTER TABLE CauHoi ADD LoiGiaiChiTiet NVARCHAR(MAX) NULL;
+                    END;
+
+                    IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'BaiTapDeThi')
+                    BEGIN
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'DiemDat' AND Object_ID = OBJECT_ID('BaiTapDeThi'))
+                            ALTER TABLE BaiTapDeThi ADD DiemDat FLOAT NOT NULL DEFAULT 5.0;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'TongDiem' AND Object_ID = OBJECT_ID('BaiTapDeThi'))
+                            ALTER TABLE BaiTapDeThi ADD TongDiem FLOAT NOT NULL DEFAULT 10.0;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'XaoTronCauHoi' AND Object_ID = OBJECT_ID('BaiTapDeThi'))
+                            ALTER TABLE BaiTapDeThi ADD XaoTronCauHoi BIT NOT NULL DEFAULT 1;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'TongSoCau' AND Object_ID = OBJECT_ID('BaiTapDeThi'))
+                            ALTER TABLE BaiTapDeThi ADD TongSoCau INT NOT NULL DEFAULT 0;
                     END;";
                 ExecuteNonQuery(script);
             }

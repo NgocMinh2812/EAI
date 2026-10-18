@@ -8,23 +8,28 @@
         MinHeight="600" MinWidth="950"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.ClearTypeHint="Enabled"
         Background="Transparent"
         WindowStyle="None"
         AllowsTransparency="True"
         MouseLeftButtonDown="Window_MouseLeftButtonDown">
 
     <Window.Resources>
-        <!-- Color Palette -->
+        <!-- Color Palette (Nâng cao độ tương phản & độ sắc nét hiển thị) -->
         <SolidColorBrush x:Key="BrandTeal" Color="#0F766E" />
         <SolidColorBrush x:Key="BrandTealDark" Color="#042F2E" />
-        <SolidColorBrush x:Key="BrandMint" Color="#34D399" />
+        <SolidColorBrush x:Key="BrandMint" Color="#10B981" />
         <SolidColorBrush x:Key="BrandMintSoft" Color="#A7F3D0" />
         <SolidColorBrush x:Key="TextDark" Color="#0F172A" />
-        <SolidColorBrush x:Key="TextGray" Color="#64748B" />
-        <SolidColorBrush x:Key="TextMuted" Color="#94A3B8" />
-        <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0" />
+        <SolidColorBrush x:Key="TextGray" Color="#475569" />
+        <SolidColorBrush x:Key="TextMuted" Color="#64748B" />
+        <SolidColorBrush x:Key="BorderLight" Color="#CBD5E1" />
 
-        <!-- Nút Chính Gradient với Bóng Đổ -->
+        <!-- Nút Chính Gradient với Bóng Đổ Tách Rời (Không làm mờ Text) -->
         <Style x:Key="PrimaryGradientButton" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -35,18 +40,24 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="btnBorder" CornerRadius="10">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#0D9488" Offset="0"/>
-                                    <GradientStop Color="#0F766E" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.32" Color="#0F766E"/>
-                            </Border.Effect>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Grid>
+                            <!-- Lớp bóng đổ độc lập phía sau -->
+                            <Border CornerRadius="10" Background="#0F766E">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.32" Color="#042F2E"/>
+                                </Border.Effect>
+                            </Border>
+                            <!-- Lớp nội dung nút (không có Effect -> Text sắc nét 100%) -->
+                            <Border x:Name="btnBorder" CornerRadius="10">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#0D9488" Offset="0"/>
+                                        <GradientStop Color="#0F766E" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="btnBorder" Property="Opacity" Value="0.93"/>
@@ -62,8 +73,15 @@
     </Window.Resources>
 
     <Grid>
-        <!-- LỚP CONTAINER FLOATING NỔI BẬT: Đổ bóng 3D sâu, viền mờ cao cấp, bo góc 24px -->
-        <Border Margin="22" CornerRadius="24" BorderBrush="#35A7F3D0" BorderThickness="1">
+        <!-- LỚP ĐỔ BÓNG CỬA SỔ ĐỘC LẬP (Tách rời khỏi cây hiển thị để KHÔNG làm mờ hay rasterize text) -->
+        <Border Margin="22" CornerRadius="24" Background="#064E3B">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="38" ShadowDepth="10" Opacity="0.45" Color="#021C1B"/>
+            </Border.Effect>
+        </Border>
+
+        <!-- CONTAINER NỘI DUNG CHÍNH (KHÔNG CÓ Effect -> Render ClearType sắc nét) -->
+        <Border Margin="22" CornerRadius="24" BorderBrush="#35A7F3D0" BorderThickness="1" ClipToBounds="True">
             <!-- Nền Gradient Aurora với chiều sâu -->
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -72,9 +90,6 @@
                     <GradientStop Color="#042F2E" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="42" ShadowDepth="12" Opacity="0.45" Color="#021C1B"/>
-            </Border.Effect>
 
             <Grid ClipToBounds="True">
                 <!-- Hiệu ứng Glow Circles tạo chiều sâu không gian (Ambient Glow Orbs) -->
@@ -150,12 +165,9 @@
 
                         <!-- Logo & Brand Header -->
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,24">
-                            <Border Width="42" Height="42" CornerRadius="11" Background="White" Padding="3">
-                                <Border.Effect>
-                                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.2" Color="Black"/>
-                                </Border.Effect>
-                                <Image Source="/Assets/logo_icon" RenderOptions.BitmapScalingMode="HighQuality" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
+                            <Image Source="/Assets/logo_icon.png" Width="44" Height="44" 
+                                   RenderOptions.BitmapScalingMode="HighQuality" 
+                                   VerticalAlignment="Center"/>
                             <StackPanel Margin="13,0,0,0" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="EnglishAI" FontWeight="Bold" FontSize="18" Foreground="White"/>
@@ -244,204 +256,215 @@
 
                     <!-- ================= CỘT PHẢI: FLOATING AUTH CARD NỔI BẬT ================= -->
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Width="375">
-                        <!-- Floating White Card -->
-                        <Border Background="White" CornerRadius="20" BorderBrush="#E2E8F0" BorderThickness="1" Padding="28,24">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="32" ShadowDepth="10" Opacity="0.18" Color="#000000"/>
-                            </Border.Effect>
+                        <!-- Floating White Card (Sử dụng Grid xếp tầng để cách ly bóng đổ, tránh mờ văn bản) -->
+                        <Grid>
+                            <!-- Lớp Đổ bóng Card độc lập (không bọc text/input -> không bị mờ) -->
+                            <Border Background="White" CornerRadius="20">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="28" ShadowDepth="8" Opacity="0.16" Color="#000000"/>
+                                </Border.Effect>
+                            </Border>
 
-                            <StackPanel>
-                                <!-- Switch Tabs (Đăng nhập / Đăng ký) Dạng Pill Control -->
-                                <Border Background="#F1F5F9" CornerRadius="10" Padding="4" Margin="0,0,0,18">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
+                            <!-- Lớp Nội dung Card sắc nét tuyệt đối -->
+                            <Border Background="White" CornerRadius="20" BorderBrush="#E2E8F0" BorderThickness="1" Padding="28,24"
+                                    RenderOptions.ClearTypeHint="Enabled">
+                                <StackPanel>
+                                    <!-- Switch Tabs (Đăng nhập / Đăng ký) Dạng Pill Control -->
+                                    <Border Background="#F1F5F9" CornerRadius="10" Padding="4" Margin="0,0,0,18">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
 
-                                        <!-- Tab Đăng nhập -->
-                                        <Border x:Name="tabLoginBorder" Grid.Column="0" Background="White" CornerRadius="7" Cursor="Hand" MouseDown="TabLogin_Click">
-                                            <Border.Effect>
-                                                <DropShadowEffect x:Name="tabLoginShadow" BlurRadius="6" ShadowDepth="1.5" Opacity="0.08"/>
-                                            </Border.Effect>
-                                            <TextBlock x:Name="tabLoginText" Text="Đăng nhập" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}" 
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0,7"/>
+                                            <!-- Tab Đăng nhập -->
+                                            <Grid Grid.Column="0" Cursor="Hand" MouseDown="TabLogin_Click">
+                                                <Border x:Name="tabLoginBorder" Background="White" CornerRadius="7">
+                                                    <Border.Effect>
+                                                        <DropShadowEffect x:Name="tabLoginShadow" BlurRadius="4" ShadowDepth="1" Opacity="0.08"/>
+                                                    </Border.Effect>
+                                                </Border>
+                                                <TextBlock x:Name="tabLoginText" Text="Đăng nhập" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}" 
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0,7" IsHitTestVisible="False"/>
+                                            </Grid>
+
+                                            <!-- Tab Đăng ký -->
+                                            <Grid Grid.Column="1" Cursor="Hand" MouseDown="TabRegister_Click">
+                                                <Border x:Name="tabRegisterBorder" Background="Transparent" CornerRadius="7">
+                                                    <Border.Effect>
+                                                        <DropShadowEffect x:Name="tabRegisterShadow" BlurRadius="4" ShadowDepth="1" Opacity="0"/>
+                                                    </Border.Effect>
+                                                </Border>
+                                                <TextBlock x:Name="tabRegisterText" Text="Đăng ký" FontWeight="Medium" FontSize="13" Foreground="{StaticResource TextGray}" 
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0,7" IsHitTestVisible="False"/>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- ================= FORM: ĐĂNG NHẬP ================= -->
+                                    <StackPanel x:Name="pnlLogin" Visibility="Visible">
+                                        <!-- Email Input -->
+                                        <TextBlock Text="Email hoặc Tài khoản" FontWeight="SemiBold" FontSize="12.5" Foreground="#1E293B" Margin="0,0,0,6"/>
+                                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="42" Margin="0,0,0,12">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="38"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <local:LucideIcon Kind="Mail" Size="16" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <TextBox x:Name="txtEmail" Grid.Column="1" Text="ten@email.com" BorderThickness="0" Background="Transparent" 
+                                                         FontSize="13" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,10,0"
+                                                         GotFocus="TxtEmail_GotFocus" LostFocus="TxtEmail_LostFocus"/>
+                                            </Grid>
                                         </Border>
 
-                                        <!-- Tab Đăng ký -->
-                                        <Border x:Name="tabRegisterBorder" Grid.Column="1" Background="Transparent" CornerRadius="7" Cursor="Hand" MouseDown="TabRegister_Click">
-                                            <Border.Effect>
-                                                <DropShadowEffect x:Name="tabRegisterShadow" BlurRadius="6" ShadowDepth="1.5" Opacity="0"/>
-                                            </Border.Effect>
-                                            <TextBlock x:Name="tabRegisterText" Text="Đăng ký" FontWeight="Medium" FontSize="13" Foreground="{StaticResource TextGray}" 
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0,7"/>
+                                        <!-- Password Input với Nút Hiện/Ẩn Mắt -->
+                                        <TextBlock Text="Mật khẩu" FontWeight="SemiBold" FontSize="12.5" Foreground="#1E293B" Margin="0,0,0,6"/>
+                                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="42" Margin="0,0,0,16">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="38"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="38"/>
+                                                </Grid.ColumnDefinitions>
+                                                <local:LucideIcon Kind="Lock" Size="16" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                
+                                                <!-- Ô mật khẩu che dấu sao -->
+                                                <PasswordBox x:Name="txtPassword" Grid.Column="1" Password="password" BorderThickness="0" Background="Transparent" 
+                                                             FontSize="13" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center"
+                                                             GotFocus="TxtPassword_GotFocus" LostFocus="TxtPassword_LostFocus" KeyDown="TxtPassword_KeyDown"/>
+
+                                                <!-- Ô mật khẩu hiện văn bản rõ khi bấm mắt -->
+                                                <TextBox x:Name="txtPasswordVisible" Grid.Column="1" Text="" BorderThickness="0" Background="Transparent" 
+                                                         FontSize="13" Foreground="{StaticResource TextDark}" VerticalAlignment="Center" Visibility="Collapsed"
+                                                         KeyDown="TxtPasswordVisible_KeyDown"/>
+
+                                                <!-- Nút Toggle Eye -->
+                                                <Button x:Name="btnTogglePassword" Grid.Column="2" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnTogglePassword_Click" ToolTip="Hiện/Ẩn mật khẩu">
+                                                    <local:LucideIcon x:Name="icoTogglePassword" Kind="Eye" Size="16" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Button>
+                                            </Grid>
                                         </Border>
-                                    </Grid>
-                                </Border>
 
-                                <!-- ================= FORM: ĐĂNG NHẬP ================= -->
-                                <StackPanel x:Name="pnlLogin" Visibility="Visible">
-                                    <!-- Email Input -->
-                                    <TextBlock Text="Email hoặc Tài khoản" FontWeight="SemiBold" FontSize="12" Foreground="#374151" Margin="0,0,0,5"/>
-                                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="40" Margin="0,0,0,12">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="38"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <local:LucideIcon Kind="Mail" Size="15" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            <TextBox x:Name="txtEmail" Grid.Column="1" Text="ten@email.com" BorderThickness="0" Background="Transparent" 
-                                                     FontSize="13" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,10,0"
-                                                     GotFocus="TxtEmail_GotFocus" LostFocus="TxtEmail_LostFocus"/>
-                                        </Grid>
-                                    </Border>
+                                        <!-- Nút Đăng Nhập kèm Hiệu ứng Loading Spinner -->
+                                        <Button x:Name="btnLogin" IsDefault="True" Style="{StaticResource PrimaryGradientButton}" Click="LoginButton_Click" Margin="0,0,0,12">
+                                            <Grid>
+                                                <StackPanel x:Name="pnlLoginNormal" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <TextBlock Text="Đăng nhập ngay" FontSize="13.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                                    <local:LucideIcon Kind="ArrowRight" Size="15" Foreground="White" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <StackPanel x:Name="pnlLoginLoading" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+                                                    <local:LucideIcon Kind="LoaderCircle" Size="15" Foreground="White" Spin="True" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Đang xác thực &amp; khởi tạo..." FontSize="13" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Button>
 
-                                    <!-- Password Input với Nút Hiện/Ẩn Mắt -->
-                                    <TextBlock Text="Mật khẩu" FontWeight="SemiBold" FontSize="12" Foreground="#374151" Margin="0,0,0,5"/>
-                                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="40" Margin="0,0,0,16">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="38"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="38"/>
-                                            </Grid.ColumnDefinitions>
-                                            <local:LucideIcon Kind="Lock" Size="15" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            
-                                            <!-- Ô mật khẩu che dấu sao -->
-                                            <PasswordBox x:Name="txtPassword" Grid.Column="1" Password="password" BorderThickness="0" Background="Transparent" 
-                                                         FontSize="13" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center"
-                                                         GotFocus="TxtPassword_GotFocus" LostFocus="TxtPassword_LostFocus" KeyDown="TxtPassword_KeyDown"/>
+                                        <!-- Quên Mật Khẩu -->
+                                        <TextBlock Text="Quên mật khẩu?" Foreground="{StaticResource BrandTeal}" FontSize="12.5" FontWeight="SemiBold" 
+                                                   HorizontalAlignment="Center" Cursor="Hand" MouseDown="ForgotPassword_Click" Margin="0,0,0,4"/>
+                                    </StackPanel>
 
-                                            <!-- Ô mật khẩu hiện văn bản rõ khi bấm mắt -->
-                                            <TextBox x:Name="txtPasswordVisible" Grid.Column="1" Text="" BorderThickness="0" Background="Transparent" 
-                                                     FontSize="13" Foreground="{StaticResource TextDark}" VerticalAlignment="Center" Visibility="Collapsed"
-                                                     KeyDown="TxtPasswordVisible_KeyDown"/>
-
-                                            <!-- Nút Toggle Eye -->
-                                            <Button x:Name="btnTogglePassword" Grid.Column="2" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnTogglePassword_Click" ToolTip="Hiện/Ẩn mật khẩu">
-                                                <local:LucideIcon x:Name="icoTogglePassword" Kind="Eye" Size="15" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Button>
-                                        </Grid>
-                                    </Border>
-
-                                    <!-- Nút Đăng Nhập kèm Hiệu ứng Loading Spinner -->
-                                    <Button x:Name="btnLogin" IsDefault="True" Style="{StaticResource PrimaryGradientButton}" Click="LoginButton_Click" Margin="0,0,0,12">
-                                        <Grid>
-                                            <StackPanel x:Name="pnlLoginNormal" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <TextBlock Text="Đăng nhập ngay" FontSize="13.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
-                                                <local:LucideIcon Kind="ArrowRight" Size="15" Foreground="White" Margin="6,0,0,0" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                            <StackPanel x:Name="pnlLoginLoading" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
-                                                <local:LucideIcon Kind="LoaderCircle" Size="15" Foreground="White" Spin="True" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                                <TextBlock Text="Đang xác thực &amp; khởi tạo..." FontSize="13" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Button>
-
-                                    <!-- Quên Mật Khẩu -->
-                                    <TextBlock Text="Quên mật khẩu?" Foreground="{StaticResource BrandTeal}" FontSize="12" FontWeight="SemiBold" 
-                                               HorizontalAlignment="Center" Cursor="Hand" MouseDown="ForgotPassword_Click" Margin="0,0,0,4"/>
-                                </StackPanel>
-
-                                <!-- ================= FORM: ĐĂNG KÝ TÀI KHOẢN MỚI ================= -->
-                                <StackPanel x:Name="pnlRegister" Visibility="Collapsed">
-                                    <!-- Full Name Input -->
-                                    <TextBlock Text="Họ và tên" FontWeight="SemiBold" FontSize="12" Foreground="#374151" Margin="0,0,0,4"/>
-                                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="38" Margin="0,0,0,8">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="36"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <local:LucideIcon Kind="User" Size="15" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            <TextBox x:Name="txtRegName" Grid.Column="1" Text="Nguyễn Văn A" BorderThickness="0" Background="Transparent" 
-                                                     FontSize="12.5" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,8,0"
-                                                     GotFocus="TxtRegName_GotFocus" LostFocus="TxtRegName_LostFocus"/>
-                                        </Grid>
-                                    </Border>
-                                    <TextBlock x:Name="txtRegNameError" Foreground="#EF4444" FontSize="11" FontWeight="Medium" Margin="0,0,0,6" Visibility="Collapsed" TextWrapping="Wrap">
-                                        <InlineUIContainer BaselineAlignment="Center">
-                                            <local:LucideIcon Kind="AlertTriangle" Size="12" Foreground="#EF4444" Margin="0,0,4,0"/>
-                                        </InlineUIContainer>
-                                        <Run Text="Họ và tên phải viết hoa chữ cái đầu (Ví dụ: Nguyễn Văn A), không chứa số hay ký tự đặc biệt!"/>
-                                    </TextBlock>
-
-                                    <!-- Email Input -->
-                                    <TextBlock Text="Email" FontWeight="SemiBold" FontSize="12" Foreground="#374151" Margin="0,0,0,4"/>
-                                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="38" Margin="0,0,0,6">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="36"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <local:LucideIcon Kind="Mail" Size="15" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            <TextBox x:Name="txtRegEmail" Grid.Column="1" Text="ten@email.com" BorderThickness="0" Background="Transparent" 
-                                                     FontSize="12.5" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,8,0"
-                                                     GotFocus="TxtRegEmail_GotFocus" LostFocus="TxtRegEmail_LostFocus"/>
-                                        </Grid>
-                                    </Border>
-                                    <TextBlock x:Name="txtRegEmailError" Foreground="#EF4444" FontSize="11" FontWeight="Medium" Margin="0,0,0,6" Visibility="Collapsed">
-                                        <InlineUIContainer BaselineAlignment="Center">
-                                            <local:LucideIcon Kind="AlertTriangle" Size="12" Foreground="#EF4444" Margin="0,0,4,0"/>
-                                        </InlineUIContainer>
-                                        <Run Text="Email này đã được đăng ký trên hệ thống!"/>
-                                    </TextBlock>
-
-                                    <!-- Password Input -->
-                                    <TextBlock Text="Mật khẩu" FontWeight="SemiBold" FontSize="12" Foreground="#374151" Margin="0,0,0,4"/>
-                                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="38" Margin="0,0,0,8">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="36"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <local:LucideIcon Kind="Lock" Size="15" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            <PasswordBox x:Name="txtRegPassword" Grid.Column="1" Password="password" BorderThickness="0" Background="Transparent" 
+                                    <!-- ================= FORM: ĐĂNG KÝ TÀI KHOẢN MỚI ================= -->
+                                    <StackPanel x:Name="pnlRegister" Visibility="Collapsed">
+                                        <!-- Full Name Input -->
+                                        <TextBlock Text="Họ và tên" FontWeight="SemiBold" FontSize="12.5" Foreground="#1E293B" Margin="0,0,0,6"/>
+                                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="40" Margin="0,0,0,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="36"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <local:LucideIcon Kind="User" Size="16" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <TextBox x:Name="txtRegName" Grid.Column="1" Text="Nguyễn Văn A" BorderThickness="0" Background="Transparent" 
                                                          FontSize="12.5" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,8,0"
-                                                         GotFocus="TxtRegPassword_GotFocus" LostFocus="TxtRegPassword_LostFocus"/>
-                                        </Grid>
-                                    </Border>
+                                                         GotFocus="TxtRegName_GotFocus" LostFocus="TxtRegName_LostFocus"/>
+                                            </Grid>
+                                        </Border>
+                                        <TextBlock x:Name="txtRegNameError" Foreground="#EF4444" FontSize="11" FontWeight="Medium" Margin="0,0,0,6" Visibility="Collapsed" TextWrapping="Wrap">
+                                            <InlineUIContainer BaselineAlignment="Center">
+                                                <local:LucideIcon Kind="AlertTriangle" Size="12" Foreground="#EF4444" Margin="0,0,4,0"/>
+                                            </InlineUIContainer>
+                                            <Run Text="Họ và tên phải viết hoa chữ cái đầu (Ví dụ: Nguyễn Văn A), không chứa số hay ký tự đặc biệt!"/>
+                                        </TextBlock>
 
-                                    <!-- Confirm Password Input -->
-                                    <TextBlock Text="Xác nhận mật khẩu" FontWeight="SemiBold" FontSize="12" Foreground="#374151" Margin="0,0,0,4"/>
-                                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="38" Margin="0,0,0,14">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="36"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <local:LucideIcon Kind="ShieldCheck" Size="15" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            <PasswordBox x:Name="txtRegConfirmPassword" Grid.Column="1" Password="password" BorderThickness="0" Background="Transparent" 
+                                        <!-- Email Input -->
+                                        <TextBlock Text="Email" FontWeight="SemiBold" FontSize="12.5" Foreground="#1E293B" Margin="0,0,0,6"/>
+                                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="40" Margin="0,0,0,6">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="36"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <local:LucideIcon Kind="Mail" Size="16" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <TextBox x:Name="txtRegEmail" Grid.Column="1" Text="ten@email.com" BorderThickness="0" Background="Transparent" 
                                                          FontSize="12.5" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,8,0"
-                                                         GotFocus="TxtRegConfirmPassword_GotFocus" LostFocus="TxtRegConfirmPassword_LostFocus" KeyDown="TxtRegConfirmPassword_KeyDown"/>
-                                        </Grid>
-                                    </Border>
+                                                         GotFocus="TxtRegEmail_GotFocus" LostFocus="TxtRegEmail_LostFocus"/>
+                                            </Grid>
+                                        </Border>
+                                        <TextBlock x:Name="txtRegEmailError" Foreground="#EF4444" FontSize="11" FontWeight="Medium" Margin="0,0,0,6" Visibility="Collapsed">
+                                            <InlineUIContainer BaselineAlignment="Center">
+                                                <local:LucideIcon Kind="AlertTriangle" Size="12" Foreground="#EF4444" Margin="0,0,4,0"/>
+                                            </InlineUIContainer>
+                                            <Run Text="Email này đã được đăng ký trên hệ thống!"/>
+                                        </TextBlock>
 
-                                    <!-- Register Button kèm Hiệu ứng Loading Spinner -->
-                                    <Button x:Name="btnRegister" Style="{StaticResource PrimaryGradientButton}" Click="RegisterButton_Click" Margin="0,0,0,4">
-                                        <Grid>
-                                            <StackPanel x:Name="pnlRegisterNormal" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <TextBlock Text="Tạo tài khoản học viên" FontSize="13.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
-                                                <local:LucideIcon Kind="Check" Size="15" Foreground="White" Margin="6,0,0,0" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                            <StackPanel x:Name="pnlRegisterLoading" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
-                                                <local:LucideIcon Kind="LoaderCircle" Size="15" Foreground="White" Spin="True" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                                <TextBlock Text="Đang khởi tạo tài khoản..." FontSize="13" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Button>
+                                        <!-- Password Input -->
+                                        <TextBlock Text="Mật khẩu" FontWeight="SemiBold" FontSize="12.5" Foreground="#1E293B" Margin="0,0,0,6"/>
+                                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="40" Margin="0,0,0,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="36"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <local:LucideIcon Kind="Lock" Size="16" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <PasswordBox x:Name="txtRegPassword" Grid.Column="1" Password="password" BorderThickness="0" Background="Transparent" 
+                                                             FontSize="12.5" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,8,0"
+                                                             GotFocus="TxtRegPassword_GotFocus" LostFocus="TxtRegPassword_LostFocus"/>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Confirm Password Input -->
+                                        <TextBlock Text="Xác nhận mật khẩu" FontWeight="SemiBold" FontSize="12.5" Foreground="#1E293B" Margin="0,0,0,6"/>
+                                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="9" Height="40" Margin="0,0,0,14">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="36"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <local:LucideIcon Kind="ShieldCheck" Size="16" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <PasswordBox x:Name="txtRegConfirmPassword" Grid.Column="1" Password="password" BorderThickness="0" Background="Transparent" 
+                                                             FontSize="12.5" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,8,0"
+                                                             GotFocus="TxtRegConfirmPassword_GotFocus" LostFocus="TxtRegConfirmPassword_LostFocus" KeyDown="TxtRegConfirmPassword_KeyDown"/>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Register Button kèm Hiệu ứng Loading Spinner -->
+                                        <Button x:Name="btnRegister" Style="{StaticResource PrimaryGradientButton}" Click="RegisterButton_Click" Margin="0,0,0,4">
+                                            <Grid>
+                                                <StackPanel x:Name="pnlRegisterNormal" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <TextBlock Text="Tạo tài khoản học viên" FontSize="13.5" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                                    <local:LucideIcon Kind="Check" Size="15" Foreground="White" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <StackPanel x:Name="pnlRegisterLoading" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+                                                    <local:LucideIcon Kind="LoaderCircle" Size="15" Foreground="White" Spin="True" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Đang khởi tạo tài khoản..." FontSize="13" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Button>
+                                    </StackPanel>
                                 </StackPanel>
-                            </StackPanel>
-                        </Border>
+                            </Border>
+                        </Grid>
 
                         <!-- Footer: Switch to Register -->
-                        <TextBlock x:Name="footerLogin" HorizontalAlignment="Center" FontSize="12.5" Foreground="{StaticResource BrandMintSoft}" Margin="0,14,0,0" Visibility="Visible">
+                        <TextBlock x:Name="footerLogin" HorizontalAlignment="Center" FontSize="13" Foreground="#E2E8F0" Margin="0,16,0,0" Visibility="Visible">
                             <Run Text="Chưa có tài khoản? "/>
                             <Run Text="Đăng ký ngay" Foreground="White" FontWeight="Bold" Cursor="Hand" MouseDown="TabRegister_Click"/>
                         </TextBlock>
 
                         <!-- Footer: Switch to Login -->
-                        <TextBlock x:Name="footerRegister" HorizontalAlignment="Center" FontSize="12.5" Foreground="{StaticResource BrandMintSoft}" Margin="0,14,0,0" Visibility="Collapsed">
+                        <TextBlock x:Name="footerRegister" HorizontalAlignment="Center" FontSize="13" Foreground="#E2E8F0" Margin="0,16,0,0" Visibility="Collapsed">
                             <Run Text="Đã có tài khoản? "/>
                             <Run Text="Đăng nhập ngay" Foreground="White" FontWeight="Bold" Cursor="Hand" MouseDown="TabLogin_Click"/>
                         </TextBlock>

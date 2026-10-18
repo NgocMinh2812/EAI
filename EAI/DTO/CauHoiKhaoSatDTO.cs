@@ -23,6 +23,15 @@ namespace DTO
         public string? DoanVanDoc { get; set; }
         public string? GiaiThichDapAn { get; set; }
 
+        public int? MaChuDe { get; set; }
+        public int? MaTrinhDoId { get; set; }
+        public string LoaiCauHoi { get; set; } = "TracNghiem"; // TracNghiem, DienKhuyet
+        public string DoKho { get; set; } = "TrungBinh"; // De, TrungBinh, Kho
+        public string? AudioPath { get; set; }
+        public bool DaKiemDuyet { get; set; } = true;
+        public int? NguoiTaoId { get; set; }
+        public DateTime? NgayTao { get; set; }
+
         public List<LuaChonDapAnDTO> DanhSachLuaChon { get; set; } = new List<LuaChonDapAnDTO>();
 
         // Lựa chọn hiện tại của học viên

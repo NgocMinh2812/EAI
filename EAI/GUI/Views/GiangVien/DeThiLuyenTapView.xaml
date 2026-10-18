@@ -2,182 +2,228 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="clr-namespace:GUI"
+      xmlns:vm="clr-namespace:GUI.ViewModels.GiangVien"
+      xmlns:conv="clr-namespace:GUI.ViewModels.Common"
       Title="Đề thi &amp; Luyện tập - Admin Dashboard"
       FontFamily="Segoe UI"
       Background="#F8FAFC">
 
+    <Page.DataContext>
+        <vm:DeThiLuyenTapViewModel />
+    </Page.DataContext>
+
     <Page.Resources>
+        <conv:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisConverter"/>
+        <conv:PublishStatusTextConverter x:Key="PublishStatusTextConverter"/>
+        <conv:PublishStatusBackgroundConverter x:Key="PublishStatusBgConverter"/>
+        <conv:PublishStatusForegroundConverter x:Key="PublishStatusFgConverter"/>
+
         <SolidColorBrush x:Key="AdminDarkGreen" Color="#0F4C3A" />
+        <SolidColorBrush x:Key="AdminMint" Color="#10B981" />
         <SolidColorBrush x:Key="TextDark" Color="#0F172A" />
         <SolidColorBrush x:Key="TextGray" Color="#64748B" />
         <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0" />
         <SolidColorBrush x:Key="CardBg" Color="#FFFFFF" />
-
-        <Style x:Key="AdminCardStyle" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource CardBg}"/>
-            <Setter Property="CornerRadius" Value="14"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderLight}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="20"/>
-            <Setter Property="Margin" Value="0,0,0,16"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.03" Color="Black"/>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </Page.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="25">
-        <StackPanel MaxWidth="1200" HorizontalAlignment="Stretch">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <!-- Top Header -->
-            <Grid Margin="0,0,0,20">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+        <!-- 1. Top Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                    <TextBlock Text="Quản lý Đề thi &amp; Gói Luyện tập" FontWeight="Bold" FontSize="20" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                    <TextBlock Text="Cấu hình Mock Test theo format chuẩn quốc tế (chia Section, đếm ngược, khóa tab) và bài luyện tập tự do" FontSize="12.5" Foreground="{StaticResource TextGray}"/>
-                </StackPanel>
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Quản lý Đề thi &amp; Gói Luyện tập (US-GV07)" FontWeight="Bold" FontSize="22" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
+                <TextBlock Text="Cấu hình Mock Test chuẩn hóa, ghép câu hỏi từ ngân hàng đề, tự động tính tổng số câu và tổng điểm" FontSize="13" Foreground="{StaticResource TextGray}"/>
+            </StackPanel>
 
-                <Button Grid.Column="1" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
-                        FontWeight="SemiBold" FontSize="13" Padding="18,10" Cursor="Hand" BorderThickness="0" Click="BtnTaoDeThi_Click">
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Command="{Binding ThemDeThiMoiCommand}" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
+                        Padding="16,9" BorderThickness="0" Cursor="Hand">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" CornerRadius="18" Padding="{TemplateBinding Padding}">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <local:LucideIcon Kind="Plus" Size="14" Foreground="White" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Tạo đề thi mới" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Tạo đề thi mới" FontSize="12.5" FontWeight="Bold"/>
                                 </StackPanel>
                             </Border>
                         </ControlTemplate>
                     </Button.Template>
                 </Button>
-            </Grid>
+            </StackPanel>
+        </Grid>
 
-            <!-- Test 1: IELTS Mock Test #1 -->
-            <Border Style="{StaticResource AdminCardStyle}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+        <!-- 2. Main 2-Column Split -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.1*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="1.3*"/>
+            </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                            <Border Background="#FEE2E2" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
-                                <TextBlock Text="IELTS ACADEMIC" FontSize="11" FontWeight="Bold" Foreground="#B91C1C"/>
-                            </Border>
-                            <Border Background="#DCFCE7" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
-                                <TextBlock Text="Mock Test Mode" FontSize="11" FontWeight="Bold" Foreground="#15803D"/>
-                            </Border>
-                            <TextBlock Text="Mã đề: DE-001" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
-                        </StackPanel>
+            <!-- CỘT TRÁI: FORM CẤU HÌNH ĐỀ THI & TÓM TẮT -->
+            <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="14" Padding="20">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="THIẾT LẬP THÔNG SỐ ĐỀ THI" FontWeight="Bold" FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,0,0,14"/>
 
-                        <TextBlock Text="IELTS Academic Full Mini Test #01 — Reading &amp; Listening" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                        <TextBlock Text="Cấu trúc: 4 Section • 40 câu hỏi • Thời gian làm bài: 60 phút • Kích hoạt chế độ toàn màn hình và cảnh báo chuyển tab" FontSize="12.5" Foreground="{StaticResource TextGray}" Margin="0,0,0,10"/>
+                        <TextBlock Text="Tên đề thi (*)" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding CurrentDeThi.TenBaiTapDeThi, UpdateSourceTrigger=PropertyChanged}" Padding="10" Margin="0,0,0,14" FontSize="13"/>
 
-                        <StackPanel Orientation="Horizontal">
-                            <Border Background="#F1F5F9" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <local:LucideIcon Kind="Clock" Size="12" Foreground="{StaticResource TextDark}" Margin="0,0,5,0"/>
-                                    <TextBlock Text="60 phút" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}"/>
-                                </StackPanel>
-                            </Border>
-                            <Border Background="#F1F5F9" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <local:LucideIcon Kind="Lock" Size="12" Foreground="#047857" Margin="0,0,5,0"/>
-                                    <TextBlock Text="Chống chuyển tab: BẬT" FontSize="11.5" FontWeight="SemiBold" Foreground="#047857"/>
-                                </StackPanel>
-                            </Border>
-                            <Border Background="#F1F5F9" CornerRadius="6" Padding="8,4">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <local:LucideIcon Kind="Bot" Size="12" Foreground="#6366F1" Margin="0,0,5,0"/>
-                                    <TextBlock Text="Chấm AI: Tự động" FontSize="11.5" FontWeight="SemiBold" Foreground="#6366F1"/>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-                    </StackPanel>
+                        <!-- Hình thức & Thời gian -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <Button Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
-                                FontWeight="SemiBold" FontSize="12.5" Padding="14,8" Cursor="Hand" Margin="0,0,0,8">
-                            <StackPanel Orientation="Horizontal">
-                                <local:LucideIcon Kind="Settings" Size="13" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
-                                <TextBlock Text="Cấu hình đề thi"/>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Hình thức thi" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                <ComboBox SelectedValue="{Binding CurrentDeThi.LoaiHinh}" SelectedValuePath="Tag" Padding="8,6">
+                                    <ComboBoxItem Content="Thi thử Mock Test (Tính giờ)" Tag="ThiThu" IsSelected="True"/>
+                                    <ComboBoxItem Content="Luyện tập tự do" Tag="LuyenTap"/>
+                                </ComboBox>
                             </StackPanel>
-                        </Button>
-                        <Button Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
-                                FontWeight="Medium" FontSize="12" Padding="14,6" Cursor="Hand">
-                            <StackPanel Orientation="Horizontal">
-                                <local:LucideIcon Kind="BarChart3" Size="13" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
-                                <TextBlock Text="Xem thống kê nộp bài (38 học viên)"/>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Thời gian làm (phút)" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding CurrentDeThi.ThoiGianLamBaiPhut, UpdateSourceTrigger=PropertyChanged}" Padding="8"/>
                             </StackPanel>
+                        </Grid>
+
+                        <!-- Điểm đạt & Điểm tổng -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Điểm đạt (Pass)" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding CurrentDeThi.DiemDat, UpdateSourceTrigger=PropertyChanged}" Padding="8"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Tổng thang điểm (Tự động)" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding TongDiemDeThi, Mode=OneWay}" IsReadOnly="True" Background="#F1F5F9" Padding="8" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <CheckBox Content="Xáo trộn thứ tự câu hỏi khi phát đề" IsChecked="{Binding CurrentDeThi.XaoTronCauHoi}" Margin="0,0,0,8" FontWeight="SemiBold"/>
+                        <CheckBox Content="Phát hành ngay cho học viên thi" IsChecked="{Binding CurrentDeThi.DaPhatHanh}" Margin="0,0,0,16" FontWeight="SemiBold"/>
+
+                        <!-- Thống kê Card tóm tắt -->
+                        <Border Background="#F0FDF4" BorderBrush="#DCFCE7" BorderThickness="1" CornerRadius="10" Padding="14" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="TỔNG HỢP CẤU TRÚC ĐỀ THI:" FontWeight="Bold" FontSize="11" Foreground="#15803D" Margin="0,0,0,6"/>
+                                <TextBlock Text="{Binding TongSoCauDaChon, StringFormat='Số lượng câu hỏi đã gán: {0} câu'}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,2"/>
+                                <TextBlock Text="{Binding TongDiemDeThi, StringFormat='Tổng thang điểm: {0} điểm'}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextDark}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Báo lỗi -->
+                        <Border Background="#FEE2E2" BorderBrush="#FCA5A5" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,14"
+                                Visibility="{Binding ThongBaoLoi, Converter={StaticResource StringNotEmptyToVisConverter}}">
+                            <TextBlock Text="{Binding ThongBaoLoi}" Foreground="#B91C1C" FontSize="12" FontWeight="SemiBold"/>
+                        </Border>
+
+                        <Button Content="Lưu &amp; Xuất bản Đề thi" Command="{Binding LuuDeThiCommand}" Background="{StaticResource AdminDarkGreen}" Foreground="White" Padding="20,10" FontWeight="Bold" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Right">
+                            <Button.Resources>
+                                <Style TargetType="{x:Type Border}">
+                                    <Setter Property="CornerRadius" Value="10"/>
+                                </Style>
+                            </Button.Resources>
                         </Button>
                     </StackPanel>
-                </Grid>
+                </ScrollViewer>
             </Border>
 
-            <!-- Test 2: TOEIC Format -->
-            <Border Style="{StaticResource AdminCardStyle}">
+            <!-- CỘT PHẢI: CHỌN CÂU HỎI TỪ NGÂN HÀNG ĐỀ -->
+            <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="14" Padding="16">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Column="0">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                            <Border Background="#DBEAFE" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
-                                <TextBlock Text="TOEIC 450+" FontSize="11" FontWeight="Bold" Foreground="#1D4ED8"/>
-                            </Border>
-                            <Border Background="#DCFCE7" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
-                                <TextBlock Text="Luyện tập tự do" FontSize="11" FontWeight="Bold" Foreground="#15803D"/>
-                            </Border>
-                            <TextBlock Text="Mã đề: DE-002" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
+                    <Grid Grid.Row="0" Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="CHỌN CÂU HỎI TỪ NGÂN HÀNG ĐƯA VÀO ĐỀ" FontWeight="Bold" FontSize="11.5" Foreground="{StaticResource TextGray}"/>
+                            <TextBlock Text="Tích chọn câu hỏi và tùy chỉnh điểm số cho từng câu" FontSize="11" Foreground="{StaticResource TextGray}"/>
                         </StackPanel>
 
-                        <TextBlock Text="TOEIC Reading Comprehension Diagnostic Test" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                        <TextBlock Text="Cấu trúc: 3 Parts • 50 câu hỏi • Không giới hạn thời gian, hỗ trợ tra từ vựng và giải thích tức thì từng câu" FontSize="12.5" Foreground="{StaticResource TextGray}" Margin="0,0,0,10"/>
-
-                        <StackPanel Orientation="Horizontal">
-                            <Border Background="#F1F5F9" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <local:LucideIcon Kind="Clock" Size="12" Foreground="{StaticResource TextDark}" Margin="0,0,5,0"/>
-                                    <TextBlock Text="Tự do" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}"/>
-                                </StackPanel>
-                            </Border>
-                            <Border Background="#F1F5F9" CornerRadius="6" Padding="8,4">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <local:LucideIcon Kind="Lightbulb" Size="12" Foreground="#047857" Margin="0,0,5,0"/>
-                                    <TextBlock Text="Giải thích tức thì: BẬT" FontSize="11.5" FontWeight="SemiBold" Foreground="#047857"/>
-                                </StackPanel>
-                            </Border>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Content="Chọn tất cả" Command="{Binding ChonTatCaCauHoiCommand}" Background="Transparent" Foreground="{StaticResource AdminMint}" BorderThickness="0" FontWeight="Bold" Cursor="Hand" Margin="0,0,10,0"/>
+                            <Button Content="Bỏ chọn" Command="{Binding BoChonTatCaCommand}" Background="Transparent" Foreground="{StaticResource TextGray}" BorderThickness="0" Cursor="Hand"/>
                         </StackPanel>
-                    </StackPanel>
+                    </Grid>
 
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <Button Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
-                                FontWeight="SemiBold" FontSize="12.5" Padding="14,8" Cursor="Hand" Margin="0,0,0,8">
-                            <StackPanel Orientation="Horizontal">
-                                <local:LucideIcon Kind="Settings" Size="13" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
-                                <TextBlock Text="Cấu hình đề thi"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
-                                FontWeight="Medium" FontSize="12" Padding="14,6" Cursor="Hand">
-                            <StackPanel Orientation="Horizontal">
-                                <local:LucideIcon Kind="BarChart3" Size="13" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
-                                <TextBlock Text="Xem thống kê nộp bài (56 học viên)"/>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding NgânHangCauHoiChon}" BorderThickness="0" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0,0,0,6"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="10">
+                                                <ContentPresenter/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}"
+                                              Command="{Binding DataContext.CapNhatLuaChonCauHoiCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                              VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                                            <Border Background="#EFF6FF" CornerRadius="4" Padding="5,2" Margin="0,0,6,0">
+                                                <TextBlock Text="{Binding CauHoi.KyNang}" FontSize="10" FontWeight="Bold" Foreground="#1D4ED8"/>
+                                            </Border>
+                                            <Border Background="#F1F5F9" CornerRadius="4" Padding="5,2" Margin="0,0,6,0">
+                                                <TextBlock Text="{Binding CauHoi.MaTrinhDo}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextGray}"/>
+                                            </Border>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding CauHoi.NoiDungCauHoi}" FontSize="12.5" FontWeight="SemiBold" TextWrapping="Wrap" MaxHeight="38" Foreground="{StaticResource TextDark}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                                        <TextBlock Text="Điểm:" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                        <TextBox Text="{Binding Diem, UpdateSourceTrigger=PropertyChanged}" Width="45" Padding="4" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </Grid>
             </Border>
-
-        </StackPanel>
-    </ScrollViewer>
+        </Grid>
+    </Grid>
 </Page>

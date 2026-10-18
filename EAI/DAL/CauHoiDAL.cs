@@ -257,5 +257,108 @@ namespace DAL
 
             return null;
         }
+
+        /// <summary>
+        /// [US-GV06] Thêm mới hoặc Cập nhật Câu hỏi cùng toàn bộ Danh sách đáp án trong 1 SqlTransaction an toàn
+        /// </summary>
+        public bool LuuCauHoiVaDapAn(CauHoiKhaoSatDTO cauHoi, List<LuaChonDapAnDTO> dsDapAn, int nguoiTaoId, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+            using var conn = SqlDataProvider.Instance.GetConnection();
+            conn.Open();
+            using var trans = conn.BeginTransaction(IsolationLevel.ReadCommitted);
+
+            try
+            {
+                int maCauHoi = cauHoi.MaCauHoi;
+
+                if (maCauHoi <= 0)
+                {
+                    // 1. INSERT CÂU HỎI
+                    string insertSql = @"
+                        INSERT INTO CauHoi (MaChuDe, MaTrinhDo, LoaiCauHoi, KyNang, DoKho, NoiDungCauHoi, 
+                                            DoanVanDoc, DuongDanAudio, GiaiThichDapAn, LoiGiaiChiTiet, DaKiemDuyet, NguoiTao, NgayTao)
+                        VALUES (@MaChuDe, @MaTrinhDo, @LoaiCauHoi, @KyNang, @DoKho, @NoiDung, 
+                                @DoanVanDoc, @AudioPath, @GiaiThich, @LoiGiai, @DaKiemDuyet, @NguoiTao, SYSDATETIME());
+                        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+                    using var cmd = new SqlCommand(insertSql, conn, trans);
+                    cmd.Parameters.AddWithValue("@MaChuDe", (object?)cauHoi.MaChuDe ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@MaTrinhDo", (object?)cauHoi.MaTrinhDoId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LoaiCauHoi", string.IsNullOrWhiteSpace(cauHoi.LoaiCauHoi) ? "TracNghiem" : cauHoi.LoaiCauHoi);
+                    cmd.Parameters.AddWithValue("@KyNang", string.IsNullOrWhiteSpace(cauHoi.KyNang) ? "Doc" : cauHoi.KyNang);
+                    cmd.Parameters.AddWithValue("@DoKho", string.IsNullOrWhiteSpace(cauHoi.DoKho) ? "TrungBinh" : cauHoi.DoKho);
+                    cmd.Parameters.AddWithValue("@NoiDung", cauHoi.NoiDungCauHoi ?? "");
+                    cmd.Parameters.AddWithValue("@DoanVanDoc", (object?)cauHoi.DoanVanDoc ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@AudioPath", (object?)cauHoi.AudioPath ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@GiaiThich", (object?)cauHoi.GiaiThichDapAn ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LoiGiai", (object?)cauHoi.GiaiThichDapAn ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@DaKiemDuyet", cauHoi.DaKiemDuyet);
+                    cmd.Parameters.AddWithValue("@NguoiTao", nguoiTaoId > 0 ? (object)nguoiTaoId : DBNull.Value);
+
+                    maCauHoi = (int)cmd.ExecuteScalar();
+                    cauHoi.MaCauHoi = maCauHoi;
+                }
+                else
+                {
+                    // 2. UPDATE CÂU HỎI
+                    string updateSql = @"
+                        UPDATE CauHoi
+                        SET MaChuDe = @MaChuDe,
+                            MaTrinhDo = @MaTrinhDo,
+                            LoaiCauHoi = @LoaiCauHoi,
+                            KyNang = @KyNang,
+                            DoKho = @DoKho,
+                            NoiDungCauHoi = @NoiDung,
+                            DoanVanDoc = @DoanVanDoc,
+                            DuongDanAudio = @AudioPath,
+                            GiaiThichDapAn = @GiaiThich,
+                            LoiGiaiChiTiet = @LoiGiai,
+                            DaKiemDuyet = @DaKiemDuyet
+                        WHERE MaCauHoi = @MaCauHoi;
+                        DELETE FROM LuaChonDapAn WHERE MaCauHoi = @MaCauHoi;";
+
+                    using var cmd = new SqlCommand(updateSql, conn, trans);
+                    cmd.Parameters.AddWithValue("@MaCauHoi", maCauHoi);
+                    cmd.Parameters.AddWithValue("@MaChuDe", (object?)cauHoi.MaChuDe ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@MaTrinhDo", (object?)cauHoi.MaTrinhDoId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LoaiCauHoi", string.IsNullOrWhiteSpace(cauHoi.LoaiCauHoi) ? "TracNghiem" : cauHoi.LoaiCauHoi);
+                    cmd.Parameters.AddWithValue("@KyNang", string.IsNullOrWhiteSpace(cauHoi.KyNang) ? "Doc" : cauHoi.KyNang);
+                    cmd.Parameters.AddWithValue("@DoKho", string.IsNullOrWhiteSpace(cauHoi.DoKho) ? "TrungBinh" : cauHoi.DoKho);
+                    cmd.Parameters.AddWithValue("@NoiDung", cauHoi.NoiDungCauHoi ?? "");
+                    cmd.Parameters.AddWithValue("@DoanVanDoc", (object?)cauHoi.DoanVanDoc ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@AudioPath", (object?)cauHoi.AudioPath ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@GiaiThich", (object?)cauHoi.GiaiThichDapAn ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LoiGiai", (object?)cauHoi.GiaiThichDapAn ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@DaKiemDuyet", cauHoi.DaKiemDuyet);
+
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 3. INSERT TỪNG PHƯƠNG ÁN LỰA CHỌN
+                string insertDaSql = @"
+                    INSERT INTO LuaChonDapAn (MaCauHoi, KyHieuLuaChon, NoiDungLuaChon, LaDapAnDung)
+                    VALUES (@MaCauHoi, @KyHieu, @NoiDung, @LaDapAnDung);";
+
+                foreach (var da in dsDapAn)
+                {
+                    using var cmdDa = new SqlCommand(insertDaSql, conn, trans);
+                    cmdDa.Parameters.AddWithValue("@MaCauHoi", maCauHoi);
+                    cmdDa.Parameters.AddWithValue("@KyHieu", da.KyHieuLuaChon);
+                    cmdDa.Parameters.AddWithValue("@NoiDung", da.NoiDungLuaChon ?? "");
+                    cmdDa.Parameters.AddWithValue("@LaDapAnDung", da.LaDapAnDung);
+                    cmdDa.ExecuteNonQuery();
+                }
+
+                trans.Commit();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                trans.Rollback();
+                errorMessage = ex.Message;
+                return false;
+            }
+        }
     }
 }

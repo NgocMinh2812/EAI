@@ -15,8 +15,18 @@ namespace DTO
         public string LoaiHinh { get; set; } = "ThiThu"; // ThiThu / LuyenTap
         public string MoTa { get; set; } = string.Empty;
         public int ThoiGianLamBaiPhut { get; set; } = 40;
+        public int ThoiGianLamBai { get => ThoiGianLamBaiPhut; set => ThoiGianLamBaiPhut = value; }
         public bool DaPhatHanh { get; set; } = true;
         public int SoLuongCauHoi { get; set; } = 10;
+        public int TongSoCau { get => SoLuongCauHoi; set => SoLuongCauHoi = value; }
+        public double DiemDat { get; set; } = 5.0;
+        public double TongDiem { get; set; } = 10.0;
+        public bool XaoTronCauHoi { get; set; } = true;
+        public int MaDeThi { get => MaBaiTapDeThi; set => MaBaiTapDeThi = value; }
+        public string TieuDeDe { get => TenBaiTapDeThi; set => TenBaiTapDeThi = value; }
+        public string LoaiDe { get => LoaiHinh; set => LoaiHinh = value; }
+        public int? NguoiTaoId { get; set; }
+        public DateTime? NgayTao { get; set; }
 
         // UI Helpers
         public string ThoiGianHienThi => $"{ThoiGianLamBaiPhut} phút";

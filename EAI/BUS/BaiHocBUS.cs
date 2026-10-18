@@ -177,5 +177,17 @@ namespace BUS
                 return (false, $"Lỗi khi di chuyển bài học: {ex.Message}");
             }
         }
+
+        public static bool LuuBaiHoc(BaiHocDTO baiHoc, out string errorMessage)
+        {
+            _cacheBaiHoc = null;
+            return _baiHocDAL.LuuBaiHoc(baiHoc, out errorMessage);
+        }
+
+        public static bool CapNhatTrangThaiXuatBan(int maBaiHoc, bool daXuatBan)
+        {
+            _cacheBaiHoc = null;
+            return _baiHocDAL.CapNhatTrangThaiXuatBan(maBaiHoc, daXuatBan);
+        }
     }
 }

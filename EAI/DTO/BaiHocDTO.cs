@@ -28,11 +28,17 @@ namespace DTO
         public string TomTat { get; set; } = string.Empty;
         public string NoiDung { get; set; } = string.Empty;
         public int ThoiGianUocTinhPhut { get; set; } = 15;
+        public int ThoiLuongUocTinh { get => ThoiGianUocTinhPhut; set => ThoiGianUocTinhPhut = value; }
         public bool DaXuatBan { get; set; } = true;
+        public string? DuongDanAudio { get; set; }
+        public string? DuongDanHinhAnh { get; set; }
+        public string? AudioPath { get => DuongDanAudio; set => DuongDanAudio = value; }
+        public string? AnhMinhHoaPath { get => DuongDanHinhAnh; set => DuongDanHinhAnh = value; }
         public double PhanTramTienDo { get; set; } = 0;
         public string TrangThai { get; set; } = "Chưa học"; // Chưa học, Đang học, Hoàn thành
         public string DiemSo { get; set; } = "--";
         public string NgayHocGanNhat { get; set; } = "Chưa học";
+        public DateTime? NgayTao { get; set; }
 
         // Helpers for UI display
         public string BadgeBackground { get; set; } = "#E6F7F3";

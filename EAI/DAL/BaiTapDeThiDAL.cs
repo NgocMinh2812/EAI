@@ -378,5 +378,104 @@ namespace DAL
             }
             return list;
         }
+
+        /// <summary>
+        /// [US-GV07] Lưu cấu hình đề thi và danh sách câu hỏi n-n sử dụng SqlTransaction an toàn
+        /// </summary>
+        public bool LuuDeThiVaCauHoi(BaiTapDeThiDTO deThi, List<(int MaCauHoi, int ThuTu, double Diem)> dsCauHoi, int nguoiTaoId, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+            using var conn = SqlDataProvider.Instance.GetConnection();
+            conn.Open();
+            using var trans = conn.BeginTransaction(IsolationLevel.ReadCommitted);
+
+            try
+            {
+                int maDeThi = deThi.MaBaiTapDeThi;
+                int tongSoCau = dsCauHoi.Count;
+
+                if (maDeThi <= 0)
+                {
+                    string sqlInsert = @"
+                        INSERT INTO BaiTapDeThi (TenBaiTapDeThi, LoaiHinh, MaTrinhDo, MaChuDe, ThoiGianLamBaiPhut,
+                                                DiemDat, TongDiem, TongSoCau, XaoTronCauHoi, DaPhatHanh, NguoiTao, NgayTao)
+                        VALUES (@TenDe, @LoaiHinh, @MaTrinhDo, @MaChuDe, @ThoiGian, 
+                                @DiemDat, @TongDiem, @TongSoCau, @XaoTron, @DaPhatHanh, @NguoiTao, SYSDATETIME());
+                        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+                    using var cmd = new SqlCommand(sqlInsert, conn, trans);
+                    cmd.Parameters.AddWithValue("@TenDe", deThi.TenBaiTapDeThi ?? "");
+                    cmd.Parameters.AddWithValue("@LoaiHinh", deThi.LoaiHinh ?? "ThiThu");
+                    cmd.Parameters.AddWithValue("@MaTrinhDo", (object?)deThi.MaTrinhDo ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@MaChuDe", (object?)deThi.MaChuDe ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ThoiGian", deThi.ThoiGianLamBaiPhut);
+                    cmd.Parameters.AddWithValue("@DiemDat", deThi.DiemDat);
+                    cmd.Parameters.AddWithValue("@TongDiem", deThi.TongDiem);
+                    cmd.Parameters.AddWithValue("@TongSoCau", tongSoCau);
+                    cmd.Parameters.AddWithValue("@XaoTron", deThi.XaoTronCauHoi);
+                    cmd.Parameters.AddWithValue("@DaPhatHanh", deThi.DaPhatHanh);
+                    cmd.Parameters.AddWithValue("@NguoiTao", nguoiTaoId > 0 ? (object)nguoiTaoId : DBNull.Value);
+
+                    maDeThi = (int)cmd.ExecuteScalar();
+                    deThi.MaBaiTapDeThi = maDeThi;
+                }
+                else
+                {
+                    string sqlUpdate = @"
+                        UPDATE BaiTapDeThi
+                        SET TenBaiTapDeThi = @TenDe,
+                            LoaiHinh = @LoaiHinh,
+                            MaTrinhDo = @MaTrinhDo,
+                            MaChuDe = @MaChuDe,
+                            ThoiGianLamBaiPhut = @ThoiGian,
+                            DiemDat = @DiemDat,
+                            TongDiem = @TongDiem,
+                            TongSoCau = @TongSoCau,
+                            XaoTronCauHoi = @XaoTron,
+                            DaPhatHanh = @DaPhatHanh
+                        WHERE MaBaiTapDeThi = @MaDe;
+                        DELETE FROM CauHoiBaiTap WHERE MaBaiTapDeThi = @MaDe;";
+
+                    using var cmd = new SqlCommand(sqlUpdate, conn, trans);
+                    cmd.Parameters.AddWithValue("@MaDe", maDeThi);
+                    cmd.Parameters.AddWithValue("@TenDe", deThi.TenBaiTapDeThi ?? "");
+                    cmd.Parameters.AddWithValue("@LoaiHinh", deThi.LoaiHinh ?? "ThiThu");
+                    cmd.Parameters.AddWithValue("@MaTrinhDo", (object?)deThi.MaTrinhDo ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@MaChuDe", (object?)deThi.MaChuDe ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ThoiGian", deThi.ThoiGianLamBaiPhut);
+                    cmd.Parameters.AddWithValue("@DiemDat", deThi.DiemDat);
+                    cmd.Parameters.AddWithValue("@TongDiem", deThi.TongDiem);
+                    cmd.Parameters.AddWithValue("@TongSoCau", tongSoCau);
+                    cmd.Parameters.AddWithValue("@XaoTron", deThi.XaoTronCauHoi);
+                    cmd.Parameters.AddWithValue("@DaPhatHanh", deThi.DaPhatHanh);
+
+                    cmd.ExecuteNonQuery();
+                }
+
+                // Gán danh sách câu hỏi vào bảng trung gian CauHoiBaiTap
+                string sqlInsertDetail = @"
+                    INSERT INTO CauHoiBaiTap (MaBaiTapDeThi, MaCauHoi, ThuTuCauHoi, DiemSo)
+                    VALUES (@MaDe, @MaCauHoi, @ThuTu, @DiemSo);";
+
+                foreach (var item in dsCauHoi)
+                {
+                    using var cmdDetail = new SqlCommand(sqlInsertDetail, conn, trans);
+                    cmdDetail.Parameters.AddWithValue("@MaDe", maDeThi);
+                    cmdDetail.Parameters.AddWithValue("@MaCauHoi", item.MaCauHoi);
+                    cmdDetail.Parameters.AddWithValue("@ThuTu", item.ThuTu);
+                    cmdDetail.Parameters.AddWithValue("@DiemSo", (decimal)item.Diem);
+                    cmdDetail.ExecuteNonQuery();
+                }
+
+                trans.Commit();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                trans.Rollback();
+                errorMessage = ex.Message;
+                return false;
+            }
+        }
     }
 }
