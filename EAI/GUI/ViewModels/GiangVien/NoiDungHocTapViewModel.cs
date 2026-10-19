@@ -303,7 +303,7 @@ namespace GUI.ViewModels.GiangVien
             if (SelectedBaiHoc == null) return;
             if (string.IsNullOrWhiteSpace(SelectedBaiHoc.TieuDe))
             {
-                ThongBaoLoi = "Vui lòng nhập tiêu đề bài học trước khi tạo nội dung mẫu bằng AI.";
+                ThongBaoLoi = "Vui lòng nhập tiêu đề bài học trước khi tạo bài học bằng AI.";
                 return;
             }
 
@@ -322,7 +322,7 @@ namespace GUI.ViewModels.GiangVien
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[SinhNoiDungMauAI] {ex.Message}");
-                ThongBaoLoi = "Không thể sinh nội dung: " + ex.Message;
+                ThongBaoLoi = "Không thể tạo bài học bằng AI: " + ex.Message;
             }
             finally
             {
@@ -330,12 +330,12 @@ namespace GUI.ViewModels.GiangVien
             }
         }
 
-        private async void ThucHienSinhCauHoiAI()
+        public async Task SinhCauHoiAIAsync()
         {
             if (SelectedBaiHoc == null) return;
             if (string.IsNullOrWhiteSpace(SelectedBaiHoc.TieuDe) && string.IsNullOrWhiteSpace(SelectedBaiHoc.NoiDung))
             {
-                ThongBaoLoi = "Vui lòng nhập tiêu đề hoặc nội dung bài học trước khi tạo bộ câu hỏi bằng AI.";
+                ThongBaoLoi = "Vui lòng nhập tiêu đề hoặc nội dung bài học trước khi tạo câu hỏi bằng AI.";
                 return;
             }
 
@@ -346,7 +346,7 @@ namespace GUI.ViewModels.GiangVien
             }
 
             IsAiGeneratingQuestions = true;
-            AiQuestionsStatusMessage = "Gemini AI đang phân tích bài giảng và tạo bộ câu hỏi...";
+            AiQuestionsStatusMessage = "AI đang phân tích bài học và tạo câu hỏi...";
             IsQuestionsModalOpen = true;
 
             try
@@ -361,11 +361,11 @@ namespace GUI.ViewModels.GiangVien
                 {
                     AiGeneratedQuestions.Add(q);
                 }
-                AiQuestionsStatusMessage = $"Gemini AI đã tạo thành công {AiGeneratedQuestions.Count} câu hỏi chuẩn hóa!";
+                AiQuestionsStatusMessage = $"AI đã tạo thành công {AiGeneratedQuestions.Count} câu hỏi chuẩn hóa!";
             }
             catch (Exception ex)
             {
-                AiQuestionsStatusMessage = "Lỗi khi tạo câu hỏi: " + ex.Message;
+                AiQuestionsStatusMessage = "Lỗi khi tạo câu hỏi bằng AI: " + ex.Message;
             }
             finally
             {
@@ -373,7 +373,12 @@ namespace GUI.ViewModels.GiangVien
             }
         }
 
-        private void ThucHienChenCauHoiVaoBaiHoc()
+        private async void ThucHienSinhCauHoiAI()
+        {
+            await SinhCauHoiAIAsync();
+        }
+
+        public void ThucHienChenCauHoiVaoBaiHoc()
         {
             if (SelectedBaiHoc == null || AiGeneratedQuestions.Count == 0) return;
 
@@ -384,7 +389,7 @@ namespace GUI.ViewModels.GiangVien
                 sb.AppendLine();
             }
 
-            sb.AppendLine("■ BỘ CÂU HỎI TRẮC NGHIỆM ÔN TẬP (AI GENERATED):");
+            sb.AppendLine("■ BỘ CÂU HỎI TRẮC NGHIỆM ÔN TẬP (AI):");
             int qIdx = 1;
             foreach (var q in AiGeneratedQuestions)
             {

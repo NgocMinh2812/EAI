@@ -7,6 +7,7 @@ namespace GUI.Views.GiangVien
         public GiamSatHeThongView()
         {
             InitializeComponent();
+            DataContext = new ViewModels.GiangVien.GiamSatHeThongViewModel();
         }
     }
 }

@@ -43,13 +43,13 @@ namespace GUI.Views.GiangVien
             string prompt = txtPrompt.Text.Trim();
             if (string.IsNullOrEmpty(prompt))
             {
-                Common.ThongBaoDialog.CanhBao("Vui lòng nhập chủ đề hoặc yêu cầu sinh câu hỏi.", "Thông báo");
+                Common.ThongBaoDialog.CanhBao("Vui lòng nhập chủ đề hoặc yêu cầu tạo câu hỏi bằng AI.", "Thông báo");
                 return;
             }
 
             Common.ThongBaoDialog.ThanhCong(
-                $"AI đang phân tích và sinh bộ câu hỏi trắc nghiệm theo yêu cầu: \"{prompt}\"...\nĐã sinh thành công thêm câu hỏi mới và đưa vào danh sách kiểm duyệt!", 
-                "AI Sinh đề thành công");
+                $"AI đã phân tích và tạo bộ câu hỏi trắc nghiệm theo yêu cầu: \"{prompt}\".\nĐã tạo thành công câu hỏi mới và đưa vào danh sách kiểm duyệt!", 
+                "Tạo câu hỏi bằng AI thành công");
 
             _pendingCount++;
             txtPendingCount.Text = $"{_pendingCount} chờ duyệt";
@@ -111,8 +111,8 @@ namespace GUI.Views.GiangVien
         private void BtnChonFile_Click(object sender, MouseButtonEventArgs e)
         {
             Common.ThongBaoDialog.ThongTin(
-                "Hệ thống đã nhận diện tệp tải lên: 'IELTS_Reading_Cam18_Test1.xlsx'.\nĐang tự động bóc tách dữ liệu câu hỏi trắc nghiệm...", 
-                "Bóc tách tệp thành công");
+                "Hệ thống đã nhận diện tệp tải lên: 'IELTS_Reading_Cam18_Test1.xlsx'.\nĐang tự động bóc tách dữ liệu câu hỏi trắc nghiệm từ tệp...", 
+                "Nhận diện tệp thành công");
         }
 
         private void BtnDownloadTemplate_Click(object sender, RoutedEventArgs e)

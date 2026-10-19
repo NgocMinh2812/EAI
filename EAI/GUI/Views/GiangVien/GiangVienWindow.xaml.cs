@@ -231,7 +231,7 @@ namespace GUI.Views.GiangVien
             else if (e.Content is AISinhDeView)
             {
                 SetActiveButton(btnNavAISinhDe);
-                txtBreadcrumb.Text = "AI sinh đề";
+                txtBreadcrumb.Text = "Tạo câu hỏi bằng AI";
             }
             else if (e.Content is GiamSatHeThongView)
             {
@@ -315,10 +315,12 @@ namespace GUI.Views.GiangVien
         private void NavGiamSat_Click(object sender, RoutedEventArgs e)
         {
             var user = SessionHelper.CurrentUser;
-            bool isAdmin = user != null && string.Equals(user.TenVaiTro, "QuanTriVien", StringComparison.OrdinalIgnoreCase);
-            if (!isAdmin)
+            bool hasAccess = user == null || 
+                             string.Equals(user.TenVaiTro, "QuanTriVien", StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(user.TenVaiTro, "GiangVien", StringComparison.OrdinalIgnoreCase);
+            if (!hasAccess)
             {
-                Common.ThongBaoDialog.CanhBao(this, "Chức năng 'Giám sát hệ thống' chỉ dành cho Quản trị viên hệ thống!", "Không có quyền truy cập");
+                Common.ThongBaoDialog.CanhBao(this, "Chức năng 'Giám sát hệ thống' chỉ dành cho Quản trị viên và Giảng viên!", "Không có quyền truy cập");
                 return;
             }
 

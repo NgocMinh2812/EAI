@@ -8,6 +8,7 @@
     <UseWPF>true</UseWPF>
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
     <ApplicationIcon>Logo\LogoRemoveBackground.ico</ApplicationIcon>
+    <UserSecretsId>eai-desktop-app-secrets</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

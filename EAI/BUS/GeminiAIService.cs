@@ -281,7 +281,7 @@ namespace BUS
         }
 
         /// <summary>
-        /// Gọi Google Gemini API để bóc tách câu hỏi trắc nghiệm trực tiếp từ văn bản học liệu
+        /// Gọi hệ thống AI để bóc tách câu hỏi trắc nghiệm trực tiếp từ văn bản học liệu
         /// theo sát trình độ (A1 - C1) và kỹ năng (Ngữ pháp, Từ vựng, Đọc hiểu, Nghe hiểu, Viết luận)
         /// </summary>
         public static async Task<List<CauHoiDTO>> BocTachCauHoiAIAsync(
@@ -299,79 +299,13 @@ namespace BUS
                 !module.Equals("DanhMucCauTruc", StringComparison.OrdinalIgnoreCase))
             {
                 loaiBaiHoc = module;
-                module = "NoiDungHocTap";
             }
 
-            string cleanContent = string.IsNullOrWhiteSpace(noiDung) ? tieuDe : noiDung;
-            if (cleanContent.Length > 8000)
-                cleanContent = cleanContent.Substring(0, 8000);
-
-            try
-            {
-                string skillInstruction = GetSkillQuestionInstruction(loaiBaiHoc);
-                string levelInstruction = GetLevelInstruction(trinhDo);
-
-                string prompt = $@"Bạn là trợ lý AI chuyên gia khảo thí và sư phạm tiếng Anh hàng đầu.
-Nhiệm vụ của bạn là đọc kỹ tài liệu bài học sau và tạo ra đúng {soLuong} câu hỏi trắc nghiệm tiếng Anh 4 lựa chọn (A, B, C, D) đạt chuẩn chuẩn mực giáo dục.
-
-THÔNG TIN BÀI HỌC:
-- Tiêu đề: {tieuDe}
-- Khung trình độ CEFR: {trinhDo} ({levelInstruction})
-- Kỹ năng trọng tâm: {loaiBaiHoc}
-
-NỘI DUNG TÀI LIỆU CẦN RA ĐỀ:
-{cleanContent}
-
-YÊU CẦU ĐẶC BIỆT THEO KỸ NĂNG:
-{skillInstruction}
-
-QUY TẮC BẮT BUỘC:
-1. Câu hỏi và các phương án PHẢI bám sát 100% nội dung bài học trên (từ vựng, ngữ pháp, ngữ cảnh hoặc thông điệp bài đọc).
-2. Độ khó của từ vựng và câu hỏi PHẢI tương xứng với cấp độ {trinhDo}.
-3. Luôn có 1 đáp án đúng duy nhất (chỉ số 0: A, 1: B, 2: C, 3: D) và phần giải thích rõ ràng kèm trích dẫn văn bản.
-4. Trả về DUY NHẤT một mảng JSON thuần túy (KHÔNG bọc trong markdown code block, không thêm bất kỳ văn bản nào ngoài JSON):
-[
-  {{
-    ""NoiDungCauHoi"": ""Question 1: Nội dung câu hỏi..."",
-    ""DanhSachLuaChon"": [""A. Phương án 1"", ""B. Phương án 2"", ""C. Phương án 3"", ""D. Phương án 4""],
-    ""DapAnDungIndex"": 0,
-    ""GiaiThichChiTiet"": ""Giải thích chi tiết vì sao đáp án này đúng và dẫn chứng từ văn bản...""
-  }}
-]";
-
-                string? rawText = await GoiGeminiApiAsync(prompt, module);
-                if (!string.IsNullOrWhiteSpace(rawText))
-                {
-                    string cleanJson = rawText.Trim();
-                    if (cleanJson.StartsWith("```json", StringComparison.OrdinalIgnoreCase)) cleanJson = cleanJson.Substring(7);
-                    else if (cleanJson.StartsWith("```")) cleanJson = cleanJson.Substring(3);
-
-                    if (cleanJson.EndsWith("```")) cleanJson = cleanJson.Substring(0, cleanJson.Length - 3);
-
-                    cleanJson = cleanJson.Trim();
-
-                    var questions = JsonSerializer.Deserialize<List<CauHoiDTO>>(cleanJson, new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
-
-                    if (questions != null && questions.Count > 0)
-                    {
-                        return questions;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[GeminiAIService.BocTachCauHoiAIAsync] Exception: {ex.Message}");
-            }
-
-            // Fallback thông minh: Tạo câu hỏi bám sát đúng nội dung tài liệu theo trình độ & kỹ năng
-            return TaoCauHoiThongMinhTheoNoiDung(tieuDe, cleanContent, trinhDo, loaiBaiHoc);
+            return await AI.AIServiceManager.Instance.BocTachCauHoiAsync(tieuDe, noiDung, trinhDo, soLuong, loaiBaiHoc);
         }
 
         /// <summary>
-        /// Gọi Google Gemini API để sinh nội dung giáo trình mẫu (Text Sample) cho bài học
+        /// Gọi hệ thống AI để sinh nội dung giáo trình mẫu (Text Sample) cho bài học
         /// phụ thuộc chính xác vào Cấp độ trình độ (A1 - C1) và Kỹ năng (Ngữ pháp, Từ vựng, Đọc hiểu, Nghe hiểu, Viết luận)
         /// </summary>
         public static async Task<string> SinhNoiDungMauAIAsync(
@@ -380,37 +314,10 @@ QUY TẮC BẮT BUỘC:
             string loaiBaiHoc = "Doc", 
             string module = "NoiDungHocTap")
         {
-            if (string.IsNullOrWhiteSpace(tieuDe))
-            {
-                return TaoNoiDungMauThongMinh(tieuDe, trinhDo, loaiBaiHoc);
-            }
-
-            try
-            {
-                string prompt = BuildSamplePrompt(tieuDe, trinhDo, loaiBaiHoc);
-                string? rawText = await GoiGeminiApiAsync(prompt, module);
-
-                if (!string.IsNullOrWhiteSpace(rawText))
-                {
-                    string cleanText = rawText.Trim();
-                    if (cleanText.StartsWith("```markdown", StringComparison.OrdinalIgnoreCase)) cleanText = cleanText.Substring(11);
-                    else if (cleanText.StartsWith("```", StringComparison.OrdinalIgnoreCase)) cleanText = cleanText.Substring(3);
-                    if (cleanText.EndsWith("```")) cleanText = cleanText.Substring(0, cleanText.Length - 3);
-                    cleanText = cleanText.Trim();
-                    if (!string.IsNullOrWhiteSpace(cleanText))
-                        return cleanText;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[GeminiAIService.SinhNoiDungMauAIAsync] Exception: {ex.Message}");
-            }
-
-            // Fallback thông minh theo ngữ cảnh, trình độ và kỹ năng
-            return TaoNoiDungMauThongMinh(tieuDe, trinhDo, loaiBaiHoc);
+            return await AI.AIServiceManager.Instance.SinhNoiDungMauAsync(tieuDe, trinhDo, loaiBaiHoc);
         }
 
-        private static string GetLevelInstruction(string trinhDo)
+        public static string GetLevelInstruction(string trinhDo)
         {
             return (trinhDo ?? "B1").ToUpperInvariant() switch
             {
@@ -423,7 +330,7 @@ QUY TẮC BẮT BUỘC:
             };
         }
 
-        private static string GetSkillQuestionInstruction(string loaiBaiHoc)
+        public static string GetSkillQuestionInstruction(string loaiBaiHoc)
         {
             string loaiLower = (loaiBaiHoc ?? "").ToLowerInvariant();
 
@@ -448,7 +355,7 @@ QUY TẮC BẮT BUỘC:
         /// <summary>
         /// Xây dựng prompt chi tiết cho Gemini AI sinh giáo trình bài học theo đúng Trình độ và Kỹ năng
         /// </summary>
-        private static string BuildSamplePrompt(string tieuDe, string trinhDo, string loaiBaiHoc)
+        public static string BuildSamplePrompt(string tieuDe, string trinhDo, string loaiBaiHoc)
         {
             string levelDesc = GetLevelInstruction(trinhDo);
             string loaiLower = (loaiBaiHoc ?? "").ToLowerInvariant();

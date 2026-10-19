@@ -213,7 +213,7 @@
                                 <Border Background="#10B981" Width="20" Height="20" CornerRadius="10" Margin="0,0,11,0">
                                     <local:LucideIcon Kind="Check" Size="12" StrokeThickness="2.6" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                <TextBlock Text="Trợ lý Gemini AI bóc tách câu hỏi trắc nghiệm tự động" Foreground="#F8FAFC" FontSize="13" VerticalAlignment="Center"/>
+                                <TextBlock Text="Trợ lý AI tạo câu hỏi trắc nghiệm tự động từ tài liệu" Foreground="#F8FAFC" FontSize="13" VerticalAlignment="Center"/>
                             </StackPanel>
 
                             <!-- Feature 4 -->

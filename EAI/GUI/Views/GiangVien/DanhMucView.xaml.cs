@@ -241,12 +241,12 @@ namespace GUI.Views.GiangVien
                         icExtractedQuestions.ItemsSource = _currentPreviewLesson.DanhSachCauHoi;
                     }
 
-                    ThongBaoDialog.ThanhCong(Window.GetWindow(this), $"Gemini AI đã phân tích nội dung tệp và bóc tách thành công {aiQuestions.Count} câu hỏi trắc nghiệm chất lượng cao!", "AI bóc tách thành công");
+                    ThongBaoDialog.ThanhCong(Window.GetWindow(this), $"AI đã phân tích nội dung tài liệu và tạo thành công {aiQuestions.Count} câu hỏi trắc nghiệm kèm giải thích chi tiết!", "Tạo câu hỏi bằng AI thành công");
                 }
             }
             catch (Exception ex)
             {
-                ThongBaoDialog.Loi(Window.GetWindow(this), $"Lỗi khi bóc tách câu hỏi bằng AI:\n{ex.Message}", "Lỗi Gemini AI");
+                ThongBaoDialog.Loi(Window.GetWindow(this), $"Lỗi khi tạo câu hỏi bằng AI:\n{ex.Message}", "Lỗi tạo câu hỏi bằng AI");
             }
             finally
             {

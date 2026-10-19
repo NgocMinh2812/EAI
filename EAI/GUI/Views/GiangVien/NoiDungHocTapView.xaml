@@ -984,18 +984,18 @@
                                             </Button>
                                         </StackPanel>
 
-                                        <!-- Right Group: [✨ Generate Sample] AI Button (Disable khi trống tiêu đề) -->
+                                        <!-- Right Group: [✨ Tạo bài học bằng AI] Button (Disable khi trống tiêu đề) -->
                                         <Button Grid.Column="2" Command="{Binding SinhNoiDungMauAICommand}"
                                                 IsEnabled="{Binding Text, ElementName=txtLessonTitle, Converter={StaticResource StringNotEmptyToBoolConverter}}"
                                                 Background="White" BorderBrush="#818CF8" BorderThickness="1.5"
-                                                Padding="12,5" Cursor="Hand" ToolTip="Kích hoạt Gemini AI để tự động tạo nội dung giáo trình mẫu theo chủ đề bài học">
+                                                Padding="12,5" Cursor="Hand" ToolTip="Tạo bài học mẫu tự động bằng AI theo tiêu đề và trình độ bài học">
                                             <Button.Template>
                                                 <ControlTemplate TargetType="Button">
                                                     <Border x:Name="bdSample" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
                                                             BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
                                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                             <local:LucideIcon Kind="Sparkles" Size="14" Foreground="#4F46E5" Margin="0,0,6,0"/>
-                                                            <TextBlock Text="Generate Sample" FontSize="12" FontWeight="Bold" Foreground="#4F46E5"/>
+                                                            <TextBlock Text="Tạo bài học bằng AI" FontSize="12" FontWeight="Bold" Foreground="#4F46E5"/>
                                                         </StackPanel>
                                                     </Border>
                                                     <ControlTemplate.Triggers>
@@ -1041,15 +1041,15 @@
 
                                         <!-- Placeholder shown when text is empty (Matches Image 2 exactly) -->
                                         <StackPanel x:Name="pnlPlaceholder" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,18,20,0" IsHitTestVisible="False">
-                                            <TextBlock Text="Insert the text for analysis here..." FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" Margin="0,0,0,3"/>
-                                            <TextBlock Text="Press &quot;/&quot; to Generate Sample using AI" FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Right"/>
+                                            <TextBlock Text="Nhập nội dung bài học hoặc tài liệu học tập tại đây..." FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" Margin="0,0,0,3"/>
+                                            <TextBlock Text="Nhấn &quot;/&quot; để tạo bài học mẫu bằng AI" FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Right"/>
                                         </StackPanel>
 
                                         <!-- AI Sample Loading Overlay -->
                                         <Border Background="#99FFFFFF" CornerRadius="10" Visibility="{Binding IsAiGeneratingSample, Converter={StaticResource BooleanToVisibilityConverter}}">
                                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <local:LucideIcon Kind="Sparkles" Size="28" Foreground="#6366F1" Spin="True" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                                                <TextBlock Text="Gemini AI đang tạo tài liệu mẫu..." FontWeight="Bold" FontSize="13" Foreground="#4F46E5"/>
+                                                <TextBlock Text="Đang tạo bài học bằng AI..." FontWeight="Bold" FontSize="13" Foreground="#4F46E5"/>
                                             </StackPanel>
                                         </Border>
                                     </Grid>
@@ -1062,7 +1062,7 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <!-- Hàng 1: [✨ Generate Questions] (Trái) và [Critical Thinking ::] (Phải) -->
+                                    <!-- Hàng 1: [✨ Tạo câu hỏi bằng AI] (Trái) và [Critical Thinking ::] (Phải) -->
                                     <Grid Grid.Row="0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
@@ -1070,17 +1070,17 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <!-- Bottom Left: [✨ Generate Questions] (Disable khi trống tiêu đề) -->
-                                        <Button Grid.Column="0" Command="{Binding SinhCauHoiAICommand}"
+                                        <!-- Bottom Left: [✨ Tạo câu hỏi bằng AI] (Disable khi trống tiêu đề) -->
+                                        <Button Grid.Column="0" Click="BtnTaoCauHoiAI_Click"
                                                 IsEnabled="{Binding Text, ElementName=txtLessonTitle, Converter={StaticResource StringNotEmptyToBoolConverter}}"
                                                 Background="#4F46E5" Foreground="White" BorderThickness="0" Padding="14,8" Cursor="Hand"
-                                                ToolTip="Gemini AI phân tích nội dung trên và tự động bóc tách bộ câu hỏi trắc nghiệm">
+                                                ToolTip="Phân tích nội dung bài học và tự động tạo câu hỏi bằng AI">
                                             <Button.Template>
                                                 <ControlTemplate TargetType="Button">
                                                     <Border x:Name="bdGenQ" Background="{TemplateBinding Background}" CornerRadius="9" Padding="{TemplateBinding Padding}">
                                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                             <local:LucideIcon Kind="Sparkles" Size="14" Foreground="White" Margin="0,0,8,0"/>
-                                                            <TextBlock Text="Generate Questions" FontSize="12.5" FontWeight="Bold" Foreground="White"/>
+                                                            <TextBlock Text="Tạo câu hỏi bằng AI" FontSize="12.5" FontWeight="Bold" Foreground="White"/>
                                                         </StackPanel>
                                                     </Border>
                                                     <ControlTemplate.Triggers>
@@ -1160,119 +1160,6 @@
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
-            </Border>
-        </Grid>
-
-        <!-- ============================================================ -->
-        <!-- MODAL OVERLAY: REVIEW & INSERT AI-GENERATED QUESTIONS       -->
-        <!-- ============================================================ -->
-        <Grid Visibility="{Binding IsQuestionsModalOpen, Converter={StaticResource BooleanToVisibilityConverter}}"
-              Grid.RowSpan="3" Background="#800F172A">
-            <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="16"
-                    MaxWidth="680" MaxHeight="580" Margin="24" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="24" ShadowDepth="8" Opacity="0.25" Color="#0F172A"/>
-                </Border.Effect>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- Modal Header -->
-                    <Grid Grid.Row="0" Margin="0,0,0,16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <local:LucideIcon Kind="Sparkles" Size="18" Foreground="#6366F1" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Trợ lý AI bóc tách &amp; sinh câu hỏi tự động" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
-                            </StackPanel>
-                            <TextBlock Text="{Binding AiQuestionsStatusMessage}" FontSize="12.5" Foreground="{StaticResource TextGray}"/>
-                        </StackPanel>
-
-                        <Button Grid.Column="1" Command="{Binding DongModalCauHoiCommand}" Background="#F1F5F9" BorderThickness="0" Width="30" Height="30" Cursor="Hand" VerticalAlignment="Top">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" CornerRadius="15">
-                                        <local:LucideIcon Kind="X" Size="14" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                    </Grid>
-
-                    <!-- Loading Spinner or Question List -->
-                    <Grid Grid.Row="1" MinHeight="260">
-                        <!-- Loading State -->
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
-                                    Visibility="{Binding IsAiGeneratingQuestions, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <local:LucideIcon Kind="Sparkles" Size="40" Foreground="#6366F1" Spin="True" HorizontalAlignment="Center" Margin="0,0,0,14"/>
-                            <TextBlock Text="Gemini 3.8 Flash đang phân tích ngữ nghĩa giáo trình..." FontSize="13.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Đang bóc tách các câu hỏi trắc nghiệm, lựa chọn và lời giải thích..." FontSize="12" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-                        </StackPanel>
-
-                        <!-- Questions List -->
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,0,2,0">
-                            <ItemsControl ItemsSource="{Binding AiGeneratedQuestions}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,12">
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding NoiDungCauHoi}" FontWeight="Bold" FontSize="13.5" Foreground="{StaticResource TextDark}" TextWrapping="Wrap" Margin="0,0,0,10"/>
-                                                <ItemsControl ItemsSource="{Binding DanhSachLuaChon}">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,0,0,6">
-                                                                <TextBlock Text="{Binding}" FontSize="12.5" Foreground="#1E293B" TextWrapping="Wrap"/>
-                                                            </Border>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                                <!-- Explanation -->
-                                                <Border Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,6,0,0">
-                                                    <TextBlock Text="{Binding GiaiThichChiTiet}" FontSize="12" Foreground="#1D4ED8" TextWrapping="Wrap"/>
-                                                </Border>
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                    </Grid>
-
-                    <!-- Modal Footer Buttons -->
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
-                        <Button Content="Đóng" Command="{Binding DongModalCauHoiCommand}" Background="#F1F5F9" Foreground="{StaticResource TextDark}"
-                                Padding="16,8" FontWeight="SemiBold" FontSize="12.5" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-
-                        <Button Command="{Binding ChenCauHoiVaoBaiHocCommand}"
-                                Background="{StaticResource AdminDarkGreen}" Foreground="White" Padding="18,8" FontWeight="Bold" FontSize="12.5" BorderThickness="0" Cursor="Hand">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <local:LucideIcon Kind="Check" Size="13" Foreground="White" Margin="0,0,6,0"/>
-                                            <TextBlock Text="Chèn vào nội dung bài học" FontSize="12.5" FontWeight="Bold" Foreground="White"/>
-                                        </StackPanel>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                    </StackPanel>
-                </Grid>
             </Border>
         </Grid>
     </Grid>

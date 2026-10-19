@@ -103,7 +103,7 @@ namespace GUI.Views
             var botStack = new StackPanel();
             var botName = new TextBlock
             {
-                Text = "EnglishAI Tutor",
+                Text = "Trợ lý TiếngAnhAI",
                 FontWeight = FontWeights.Bold,
                 FontSize = 12.5,
                 Foreground = (SolidColorBrush)FindResource("BrandTeal"),

@@ -376,5 +376,24 @@ namespace GUI.Views.GiangVien
                 }
             }
         }
+
+        private void BtnTaoCauHoiAI_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is NoiDungHocTapViewModel vm)
+            {
+                if (vm.SelectedBaiHoc == null) return;
+                if (string.IsNullOrWhiteSpace(vm.SelectedBaiHoc.TieuDe) && string.IsNullOrWhiteSpace(vm.SelectedBaiHoc.NoiDung))
+                {
+                    vm.ThongBaoLoi = "Vui lòng nhập tiêu đề hoặc nội dung bài học trước khi tạo câu hỏi bằng AI.";
+                    return;
+                }
+
+                var dlg = new TaoCauHoiAIDialog(vm);
+                if (ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this)) == true)
+                {
+                    LoadDocumentFromBaiHoc(vm.SelectedBaiHoc?.NoiDung);
+                }
+            }
+        }
     }
 }

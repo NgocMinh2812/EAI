@@ -57,13 +57,13 @@ In conclusion, although artificial intelligence undoubtedly streamlines administ
         private void BtnGradeEssay_Click(object sender, RoutedEventArgs e)
         {
             Common.ThongBaoDialog.ThanhCong(
-                "🤖 Hệ thống AI đã phân tích toàn diện 4 tiêu chí IELTS Writing:\n\n" +
-                "• Task Response: 7.5 (Lập luận sâu sắc, bám sát đề)\n" +
-                "• Coherence & Cohesion: 7.0 (Từ nối mượt mà, phân đoạn hợp lý)\n" +
-                "• Lexical Resource: 7.0 (Từ vựng học thuật cao cấp C1)\n" +
-                "• Grammatical Range: 6.5 (Cấu trúc phức tốt, cần lưu ý câu bị động)\n\n" +
-                "🎉 Điểm tổng kết ước tính: Band 7.0", 
-                "Kết quả chấm điểm AI");
+                "Hệ thống AI đã phân tích và chấm điểm bài viết theo 4 tiêu chí chuẩn IELTS Writing:\n\n" +
+                "• Task Achievement: 7.5 (Lập luận sâu sắc, bám sát đề)\n" +
+                "• Coherence & Cohesion: 7.0 (Từ nối mạch lạc, phân đoạn hợp lý)\n" +
+                "• Lexical Resource: 7.0 (Từ vựng học thuật phong phú)\n" +
+                "• Grammatical Range: 6.5 (Cấu trúc ngữ pháp đa dạng)\n\n" +
+                "Điểm tổng kết ước tính: Band 7.0", 
+                "Chấm bài bằng AI hoàn tất");
         }
 
         private void BtnSaveDraft_Click(object sender, RoutedEventArgs e)
