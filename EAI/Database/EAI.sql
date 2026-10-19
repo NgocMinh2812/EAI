@@ -1,4 +1,4 @@
-/*
+﻿/*
     DATABASE: TiengAnhAI
     Mục đích: CSDL cho đề tài "Ứng dụng khảo thí & học tiếng Anh tích hợp AI"
     Hệ quản trị: Microsoft SQL Server.

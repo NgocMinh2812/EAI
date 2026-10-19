@@ -10,6 +10,48 @@ namespace BUS
     {
         private static string? _cachedRootPath;
 
+        public static List<string> GetAllHocLieuRoots()
+        {
+            var list = new List<string>();
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+
+            string[] candidates = new[]
+            {
+                GetKhoHocLieuRoot(),
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\..\KhoHocLieu")),
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\KhoHocLieu")),
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\KhoHocLieu")),
+                @"d:\TDC\HK5\CDPTUD\EAI\KhoHocLieu",
+                @"d:\CDPTUD1\EAI\KhoHocLieu",
+                Path.Combine(baseDir, "Data", "KhoHocLieu"),
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\..\TaiLieu_TestUpload")),
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\TaiLieu_TestUpload")),
+                @"d:\TDC\HK5\CDPTUD\EAI\TaiLieu_TestUpload",
+                @"d:\CDPTUD1\EAI\TaiLieu_TestUpload"
+            };
+
+            foreach (var dir in candidates)
+            {
+                try
+                {
+                    if (Directory.Exists(dir) && !list.Any(x => x.Equals(dir, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        list.Add(dir);
+                    }
+                }
+                catch { }
+            }
+
+            if (list.Count == 0)
+            {
+                string fallback = Path.Combine(baseDir, "Data", "KhoHocLieu");
+                try { Directory.CreateDirectory(fallback); } catch { }
+                list.Add(fallback);
+            }
+
+            return list;
+        }
+
         public static string GetKhoHocLieuRoot()
         {
             if (!string.IsNullOrEmpty(_cachedRootPath) && Directory.Exists(_cachedRootPath))
@@ -18,39 +60,45 @@ namespace BUS
             }
 
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string appStorageDir = Path.Combine(baseDir, "Data", "HocLieu");
-            string candidate1 = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\KhoHocLieu"));
-            string candidate2 = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\KhoHocLieu"));
+            string[] preferredRoots = new[]
+            {
+                @"d:\TDC\HK5\CDPTUD\EAI\KhoHocLieu",
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\..\KhoHocLieu")),
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\KhoHocLieu")),
+                Path.Combine(baseDir, "Data", "KhoHocLieu")
+            };
 
-            if (Directory.Exists(candidate1))
-            {
-                _cachedRootPath = candidate1;
-            }
-            else if (Directory.Exists(candidate2))
-            {
-                _cachedRootPath = candidate2;
-            }
-            else
+            foreach (var r in preferredRoots)
             {
                 try
                 {
-                    if (!Directory.Exists(appStorageDir))
+                    if (Directory.Exists(r))
                     {
-                        Directory.CreateDirectory(appStorageDir);
-                    }
-                    _cachedRootPath = appStorageDir;
-                }
-                catch
-                {
-                    _cachedRootPath = Path.Combine(Path.GetTempPath(), "EAI_HocLieu");
-                    if (!Directory.Exists(_cachedRootPath))
-                    {
-                        Directory.CreateDirectory(_cachedRootPath);
+                        _cachedRootPath = r;
+                        return _cachedRootPath;
                     }
                 }
+                catch { }
             }
 
-            return _cachedRootPath;
+            // Nếu chưa có, tự động tạo KhoHocLieu chuẩn tại d:\TDC\HK5\CDPTUD\EAI\KhoHocLieu
+            string defaultKho = @"d:\TDC\HK5\CDPTUD\EAI\KhoHocLieu";
+            try
+            {
+                if (!Directory.Exists(defaultKho))
+                {
+                    Directory.CreateDirectory(defaultKho);
+                }
+                _cachedRootPath = defaultKho;
+                return _cachedRootPath;
+            }
+            catch
+            {
+                string fallback = Path.Combine(baseDir, "Data", "KhoHocLieu");
+                try { Directory.CreateDirectory(fallback); } catch { }
+                _cachedRootPath = fallback;
+                return _cachedRootPath;
+            }
         }
 
         /// <summary>
@@ -217,13 +265,18 @@ namespace BUS
 
             try
             {
-                string root = GetKhoHocLieuRoot();
+                var roots = GetAllHocLieuRoots();
                 List<FileInfo> allFiles = new List<FileInfo>();
-                if (Directory.Exists(root))
+                foreach (var r in roots)
                 {
-                    allFiles = Directory.GetFiles(root, "*.*", SearchOption.AllDirectories)
-                        .Select(f => new FileInfo(f))
-                        .ToList();
+                    if (Directory.Exists(r))
+                    {
+                        try
+                        {
+                            allFiles.AddRange(Directory.GetFiles(r, "*.*", SearchOption.AllDirectories).Select(f => new FileInfo(f)));
+                        }
+                        catch { }
+                    }
                 }
 
                 string NormalizeForCompare(string str)
@@ -483,6 +536,218 @@ namespace BUS
         private static string CleanFallbackText(string? raw)
         {
             return ChuyenDoiHtmlSangVanBan(raw);
+        }
+
+        public static string? TimTepVatLyChoBaiHoc(BaiHocDTO bh)
+        {
+            if (bh == null) return null;
+            if (!string.IsNullOrEmpty(bh.DuongDanTepVatLy) && File.Exists(bh.DuongDanTepVatLy))
+                return bh.DuongDanTepVatLy;
+
+            var roots = GetAllHocLieuRoots();
+            List<FileInfo> allFiles = new List<FileInfo>();
+            foreach (var r in roots)
+            {
+                if (Directory.Exists(r))
+                {
+                    try
+                    {
+                        allFiles.AddRange(Directory.GetFiles(r, "*.*", SearchOption.AllDirectories).Select(f => new FileInfo(f)));
+                    }
+                    catch { }
+                }
+            }
+
+            string safeTitle = SanitizeFolderName(bh.TieuDe);
+            string normTitle = new string((bh.TieuDe ?? "").Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
+
+            // 1. Khớp chính xác tên tệp vật lý nếu có
+            if (!string.IsNullOrEmpty(bh.TenTepVatLy))
+            {
+                var byName = allFiles.FirstOrDefault(f => f.Name.Equals(bh.TenTepVatLy, StringComparison.OrdinalIgnoreCase));
+                if (byName != null) return byName.FullName;
+            }
+
+            // 2. Khớp theo tiêu đề bài học
+            var match = allFiles.FirstOrDefault(f =>
+                f.Name.Equals($"{safeTitle}.docx", StringComparison.OrdinalIgnoreCase) ||
+                f.Name.Equals($"{safeTitle}.pdf", StringComparison.OrdinalIgnoreCase) ||
+                f.Name.Contains(safeTitle, StringComparison.OrdinalIgnoreCase) ||
+                safeTitle.Contains(Path.GetFileNameWithoutExtension(f.Name), StringComparison.OrdinalIgnoreCase) ||
+                (normTitle.Length > 4 && Path.GetFileNameWithoutExtension(f.Name).ToLowerInvariant().Contains(normTitle)));
+
+            if (match != null) return match.FullName;
+
+            // 3. Khớp theo chủ đề và từ khóa
+            if (!string.IsNullOrEmpty(bh.TenChuDe))
+            {
+                var topicFiles = allFiles.Where(f => f.DirectoryName != null && f.DirectoryName.Contains(bh.TenChuDe, StringComparison.OrdinalIgnoreCase)).ToList();
+                if (topicFiles.Count > 0)
+                {
+                    var titleWords = (bh.TieuDe ?? "").Split(new[] { ' ', '-', '_', ':', ',', '(', ')' }, StringSplitOptions.RemoveEmptyEntries)
+                                              .Where(w => w.Length > 2).ToList();
+                    var best = topicFiles
+                        .Select(f => new { File = f, Score = titleWords.Count(w => f.Name.Contains(w, StringComparison.OrdinalIgnoreCase)) })
+                        .Where(x => x.Score > 0)
+                        .OrderByDescending(x => x.Score)
+                        .Select(x => x.File)
+                        .FirstOrDefault();
+
+                    if (best != null) return best.FullName;
+                }
+            }
+
+            return null;
+        }
+
+        public static void TaoTepDocxTuBaiHoc(string filePath, BaiHocDTO bh)
+        {
+            if (File.Exists(filePath))
+            {
+                try { File.Delete(filePath); } catch { }
+            }
+
+            using var zip = System.IO.Compression.ZipFile.Open(filePath, System.IO.Compression.ZipArchiveMode.Create);
+
+            // [Content_Types].xml
+            var entryTypes = zip.CreateEntry("[Content_Types].xml");
+            using (var sw = new StreamWriter(entryTypes.Open(), System.Text.Encoding.UTF8))
+            {
+                sw.Write(@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<Types xmlns=""http://schemas.openxmlformats.org/package/2006/content-types"">
+  <Default Extension=""rels"" ContentType=""application/vnd.openxmlformats-package.relationships+xml""/>
+  <Default Extension=""xml"" ContentType=""application/xml""/>
+  <Override PartName=""/word/document.xml"" ContentType=""application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml""/>
+</Types>");
+            }
+
+            // _rels/.rels
+            var entryRels = zip.CreateEntry("_rels/.rels");
+            using (var sw = new StreamWriter(entryRels.Open(), System.Text.Encoding.UTF8))
+            {
+                sw.Write(@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<Relationships xmlns=""http://schemas.openxmlformats.org/package/2006/relationships"">
+  <Relationship Id=""rId1"" Type=""http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"" Target=""word/document.xml""/>
+</Relationships>");
+            }
+
+            // word/document.xml
+            var entryDoc = zip.CreateEntry("word/document.xml");
+            using (var sw = new StreamWriter(entryDoc.Open(), System.Text.Encoding.UTF8))
+            {
+                var sb = new System.Text.StringBuilder();
+                sb.Append(@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<w:document xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"">
+  <w:body>");
+
+                string safeTitle = System.Security.SecurityElement.Escape(bh.TieuDe ?? "HỌC LIỆU");
+                sb.Append($@"<w:p><w:pPr><w:jc w:val=""center""/><w:spacing w:after=""240""/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val=""36""/><w:color w:val=""0F4C3A""/></w:rPr><w:t>{safeTitle}</w:t></w:r></w:p>");
+
+                string meta = $"Chủ đề: {bh.TenChuDe} | Trình độ: {bh.MaTrinhDo} | Thời lượng: {bh.ThoiGianUocTinhPhut} phút";
+                sb.Append($@"<w:p><w:pPr><w:jc w:val=""center""/><w:spacing w:after=""360""/></w:pPr><w:r><w:rPr><w:i/><w:sz w:val=""20""/><w:color w:val=""64748B""/></w:rPr><w:t>{System.Security.SecurityElement.Escape(meta)}</w:t></w:r></w:p>");
+
+                if (!string.IsNullOrWhiteSpace(bh.TomTat))
+                {
+                    sb.Append($@"<w:p><w:pPr><w:spacing w:after=""160""/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val=""24""/><w:color w:val=""1E293B""/></w:rPr><w:t>TÓM TẮT BÀI HỌC</w:t></w:r></w:p>");
+                    sb.Append($@"<w:p><w:pPr><w:spacing w:after=""300""/></w:pPr><w:r><w:rPr><w:sz w:val=""22""/><w:color w:val=""334155""/></w:rPr><w:t>{System.Security.SecurityElement.Escape(bh.TomTat)}</w:t></w:r></w:p>");
+                }
+
+                sb.Append($@"<w:p><w:pPr><w:spacing w:after=""160""/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val=""24""/><w:color w:val=""1E293B""/></w:rPr><w:t>NỘI DUNG GIÁO TRÌNH</w:t></w:r></w:p>");
+                var lines = (bh.NoiDung ?? "").Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+                foreach (var line in lines)
+                {
+                    string esc = System.Security.SecurityElement.Escape(line);
+                    sb.Append($@"<w:p><w:pPr><w:spacing w:after=""120""/></w:pPr><w:r><w:rPr><w:sz w:val=""22""/></w:rPr><w:t xml:space=""preserve"">{esc}</w:t></w:r></w:p>");
+                }
+
+                if (bh.DanhSachCauHoi != null && bh.DanhSachCauHoi.Count > 0)
+                {
+                    sb.Append($@"<w:p><w:pPr><w:spacing w:before=""360"" w:after=""160""/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val=""24""/><w:color w:val=""4F46E5""/></w:rPr><w:t>BỘ CÂU HỎI ÔN TẬP CỦNG CỐ</w:t></w:r></w:p>");
+                    int qIdx = 1;
+                    foreach (var q in bh.DanhSachCauHoi)
+                    {
+                        sb.Append($@"<w:p><w:pPr><w:spacing w:before=""160"" w:after=""80""/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val=""22""/></w:rPr><w:t xml:space=""preserve"">Câu {qIdx++}: {System.Security.SecurityElement.Escape(q.NoiDungCauHoi)}</w:t></w:r></w:p>");
+                        for (int i = 0; i < q.DanhSachLuaChon.Count; i++)
+                        {
+                            string mark = (i == q.DapAnDungIndex) ? " (Đúng ✓)" : "";
+                            sb.Append($@"<w:p><w:pPr><w:ind w:left=""360""/><w:spacing w:after=""60""/></w:pPr><w:r><w:rPr><w:sz w:val=""21""/></w:rPr><w:t xml:space=""preserve"">{System.Security.SecurityElement.Escape(q.DanhSachLuaChon[i] + mark)}</w:t></w:r></w:p>");
+                        }
+                        if (!string.IsNullOrWhiteSpace(q.GiaiThichChiTiet))
+                        {
+                            sb.Append($@"<w:p><w:pPr><w:ind w:left=""360""/><w:spacing w:after=""160""/></w:pPr><w:r><w:rPr><w:i/><w:sz w:val=""20""/><w:color w:val=""2563EB""/></w:rPr><w:t xml:space=""preserve"">➔ {System.Security.SecurityElement.Escape(q.GiaiThichChiTiet)}</w:t></w:r></w:p>");
+                        }
+                    }
+                }
+
+                sb.Append(@"<w:sectPr><w:pgSz w:w=""11906"" w:h=""16838""/><w:pgMar w:top=""1440"" w:right=""1440"" w:bottom=""1440"" w:left=""1440""/></w:sectPr>
+  </w:body>
+</w:document>");
+
+                sw.Write(sb.ToString());
+            }
+        }
+
+        public static void TaoTepHtmlInAn(string filePath, BaiHocDTO bh)
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.Append(@"<!DOCTYPE html>
+<html lang=""vi"">
+<head>
+    <meta charset=""UTF-8"">
+    <title>" + System.Net.WebUtility.HtmlEncode(bh.TieuDe ?? "Học liệu") + @"</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        h1 { color: #0f4c3a; text-align: center; margin-bottom: 8px; font-size: 26px; }
+        .meta { text-align: center; color: #64748b; font-size: 14px; margin-bottom: 24px; }
+        .summary-box { background: #f8fafc; border-left: 4px solid #10b981; padding: 14px 18px; border-radius: 6px; margin-bottom: 24px; font-style: italic; }
+        .section-title { font-size: 18px; font-weight: bold; color: #0f172a; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
+        .content { white-space: pre-wrap; font-size: 15px; }
+        .question-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+        .choice { padding: 6px 10px; margin: 4px 0; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+        .choice.correct { border-color: #10b981; background: #ecfdf5; font-weight: bold; color: #047857; }
+        .explanation { color: #1d4ed8; font-size: 13.5px; margin-top: 8px; font-style: italic; }
+        @media print { body { margin: 20px; max-width: 100%; } }
+    </style>
+</head>
+<body>");
+
+            sb.Append("<h1>" + System.Net.WebUtility.HtmlEncode(bh.TieuDe ?? "Học liệu") + "</h1>");
+            sb.Append($"<div class=\"meta\">Chủ đề: {System.Net.WebUtility.HtmlEncode(bh.TenChuDe)} | Trình độ: {bh.MaTrinhDo} | Thời lượng: {bh.ThoiGianUocTinhPhut} phút | Định dạng: {bh.DinhDangTep}</div>");
+
+            if (!string.IsNullOrWhiteSpace(bh.TomTat))
+            {
+                sb.Append("<div class=\"summary-box\">" + System.Net.WebUtility.HtmlEncode(bh.TomTat) + "</div>");
+            }
+
+            sb.Append("<div class=\"section-title\">NỘI DUNG GIÁO TRÌNH LÝ THUYẾT</div>");
+            sb.Append("<div class=\"content\">" + System.Net.WebUtility.HtmlEncode(bh.NoiDung) + "</div>");
+
+            if (bh.DanhSachCauHoi != null && bh.DanhSachCauHoi.Count > 0)
+            {
+                sb.Append("<div class=\"section-title\" style=\"margin-top: 32px;\">BỘ CÂU HỎI TRẮC NGHIỆM ÔN TẬP</div>");
+                int qIdx = 1;
+                foreach (var q in bh.DanhSachCauHoi)
+                {
+                    sb.Append("<div class=\"question-card\">");
+                    sb.Append($"<strong>Câu {qIdx++}:</strong> {System.Net.WebUtility.HtmlEncode(q.NoiDungCauHoi)}<div style=\"margin-top: 8px;\">");
+                    for (int i = 0; i < q.DanhSachLuaChon.Count; i++)
+                    {
+                        bool isCorrect = (i == q.DapAnDungIndex);
+                        string cssClass = isCorrect ? "choice correct" : "choice";
+                        string mark = isCorrect ? " ✓" : "";
+                        sb.Append($"<div class=\"{cssClass}\">{System.Net.WebUtility.HtmlEncode(q.DanhSachLuaChon[i])}{mark}</div>");
+                    }
+                    sb.Append("</div>");
+                    if (!string.IsNullOrWhiteSpace(q.GiaiThichChiTiet))
+                    {
+                        sb.Append($"<div class=\"explanation\">➔ {System.Net.WebUtility.HtmlEncode(q.GiaiThichChiTiet)}</div>");
+                    }
+                    sb.Append("</div>");
+                }
+            }
+
+            sb.Append("</body></html>");
+            File.WriteAllText(filePath, sb.ToString(), System.Text.Encoding.UTF8);
         }
     }
 }

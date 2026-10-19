@@ -173,7 +173,8 @@ namespace GUI
         LayoutDashboard,
         LayoutGrid,
         LoaderCircle,
-        Loader2
+        Loader2,
+        GripVertical
     }
 
     /// <summary>

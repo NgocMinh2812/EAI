@@ -19,6 +19,7 @@
 
     <Page.Resources>
         <conv:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisConverter"/>
+        <conv:StringNotEmptyToBooleanConverter x:Key="StringNotEmptyToBoolConverter"/>
         <conv:PublishStatusTextConverter x:Key="PublishStatusTextConverter"/>
         <conv:PublishStatusBackgroundConverter x:Key="PublishStatusBgConverter"/>
         <conv:PublishStatusForegroundConverter x:Key="PublishStatusFgConverter"/>
@@ -188,6 +189,198 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+        <!-- Nét kẻ ngang tập vở thanh lịch cho khung soạn thảo mẫu (Notebook Ruled Lines) -->
+        <DrawingBrush x:Key="NotebookRuledLinesBrush" Viewport="0,0,1,28" ViewportUnits="Absolute" TileMode="Tile">
+            <DrawingBrush.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="Transparent">
+                        <GeometryDrawing.Geometry>
+                            <RectangleGeometry Rect="0,0,1,28"/>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                    <GeometryDrawing>
+                        <GeometryDrawing.Pen>
+                            <Pen Brush="#F1F5F9" Thickness="1.2"/>
+                        </GeometryDrawing.Pen>
+                        <GeometryDrawing.Geometry>
+                            <LineGeometry StartPoint="0,27.5" EndPoint="1,27.5"/>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+
+        <!-- Style cho các nút định dạng trên thanh công cụ Studio -->
+        <Style x:Key="EditorToolbarIconBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="7,4"/>
+            <Setter Property="Margin" Value="1,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#F1F5F9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style Item trong Menu thả xuống của nút [+] -->
+        <Style x:Key="ModernDropdownMenuItemStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="Margin" Value="0,1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#F8FAFC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style cho các nút thêm nhanh câu hỏi ở thanh dưới (Canh giữa hoàn hảo) -->
+        <Style x:Key="QuickAddQuestionBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="UseLayoutRounding" Value="True"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#F0FDF4"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#86EFAC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style cho từng nút emoji trong Palette -->
+        <Style x:Key="EmojiButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#F1F5F9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style Thanh cuộn siêu mảnh bo tròn (Slim Scrollbar) - Đẩy sát mép phải, không che nội dung -->
+        <Style TargetType="{x:Type ScrollBar}">
+            <Setter Property="Width" Value="7"/>
+            <Setter Property="MinWidth" Value="7"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <Grid Background="Transparent" SnapsToDevicePixels="true">
+                            <Track x:Name="PART_Track" IsDirectionReversed="true">
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="{x:Type Thumb}">
+                                                <Border Background="#CBD5E1" CornerRadius="3.5" Margin="0,2"/>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#94A3B8"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsDragging" Value="True">
+                                                        <Setter Property="Background" Value="#64748B"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Height" Value="7"/>
+                    <Setter Property="MinHeight" Value="7"/>
+                    <Setter Property="Width" Value="Auto"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                <Grid Background="Transparent" SnapsToDevicePixels="true">
+                                    <Track x:Name="PART_Track">
+                                        <Track.Thumb>
+                                            <Thumb>
+                                                <Thumb.Template>
+                                                    <ControlTemplate TargetType="{x:Type Thumb}">
+                                                        <Border Background="#CBD5E1" CornerRadius="3.5" Margin="2,0"/>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background" Value="#94A3B8"/>
+                                                            </Trigger>
+                                                            <Trigger Property="IsDragging" Value="True">
+                                                                <Setter Property="Background" Value="#64748B"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Thumb.Template>
+                                            </Thumb>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Page.Resources>
 
     <Grid Margin="24">
@@ -310,18 +503,20 @@
                 <ColumnDefinition Width="1.4*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- CỘT TRÁI: DANH SÁCH BÀI HỌC -->
-            <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="14" Padding="14">
+            <!-- CỘT TRÁI: DANH SÁCH BÀI HỌC (ScrollBar đẩy sát mép phải, có khoảng đệm 12px không che nội dung) -->
+            <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="14" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Text="DANH SÁCH BÀI HỌC THEO BỘ LỌC" FontWeight="Bold" FontSize="11.5" Foreground="{StaticResource TextGray}" Margin="4,0,0,12"/>
+                    <TextBlock Grid.Row="0" Text="DANH SÁCH BÀI HỌC THEO BỘ LỌC" FontWeight="Bold" FontSize="11.5" Foreground="{StaticResource TextGray}" Margin="16,14,16,10"/>
 
-                    <ListBox Grid.Row="1" ItemsSource="{Binding DanhSachBaiHoc}" SelectedItem="{Binding SelectedBaiHoc, Mode=TwoWay}"
-                             BorderThickness="0" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox x:Name="lstBaiHoc" Grid.Row="1" ItemsSource="{Binding DanhSachBaiHoc}" SelectedItem="{Binding SelectedBaiHoc, Mode=TwoWay}"
+                             BorderThickness="0" Background="Transparent" Margin="0,0,2,8" Padding="14,0,12,6"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto">
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
                                 <Setter Property="Padding" Value="0"/>
@@ -348,55 +543,63 @@
                         </ListBox.ItemContainerStyle>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <!-- Hàng 1: Trình độ, Loại bài học, Tên chủ đề (Trái) & Nút Xuất bản (Phải) -->
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
 
-                                    <StackPanel Grid.Column="0">
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                            <Border Background="#DCFCE7" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                                        <DockPanel Grid.Column="0" LastChildFill="True" Margin="0,0,10,0" VerticalAlignment="Center">
+                                            <Border DockPanel.Dock="Left" Background="#DCFCE7" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
                                                 <TextBlock Text="{Binding MaTrinhDo}" FontSize="10.5" FontWeight="Bold" Foreground="#15803D"/>
                                             </Border>
-                                            <Border Background="#EFF6FF" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                                            <Border DockPanel.Dock="Left" Background="#EFF6FF" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
                                                 <TextBlock Text="{Binding TenLoaiHienThi}" FontSize="10.5" FontWeight="Bold" Foreground="#1D4ED8"/>
                                             </Border>
-                                            <TextBlock Text="{Binding TenChuDe}" FontSize="11" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
-                                        </StackPanel>
+                                            <TextBlock Text="{Binding TenChuDe}" FontSize="11" Foreground="{StaticResource TextGray}" 
+                                                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                        </DockPanel>
 
-                                        <TextBlock Text="{Binding TieuDe}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                                        <TextBlock Text="{Binding TomTat}" FontSize="12" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" MaxHeight="34"/>
+                                        <!-- Nút chuyển đổi trạng thái Xuất bản (DaXuatBan) -->
+                                        <Button Grid.Column="1" VerticalAlignment="Center" Cursor="Hand" Background="Transparent" BorderThickness="0"
+                                                Command="{Binding DataContext.ToggleXuatBanCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                CommandParameter="{Binding}" ToolTip="Nhấp để đổi trạng thái Xuất bản / Bản nháp">
+                                            <Border CornerRadius="8" Padding="10,4" 
+                                                    Background="{Binding DaXuatBan, Converter={StaticResource PublishStatusBgConverter}}">
+                                                <TextBlock Text="{Binding DaXuatBan, Converter={StaticResource PublishStatusTextConverter}}" 
+                                                           FontSize="11" FontWeight="Bold"
+                                                           Foreground="{Binding DaXuatBan, Converter={StaticResource PublishStatusFgConverter}}"/>
+                                            </Border>
+                                        </Button>
+                                    </Grid>
 
-                                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                            <local:LucideIcon Kind="Clock" Size="12" Foreground="{StaticResource TextGray}" Margin="0,0,4,0"/>
-                                            <TextBlock Text="{Binding ThoiGianUocTinhPhut, StringFormat='{}{0} phút'}" FontSize="11.5" Foreground="{StaticResource TextGray}" Margin="0,0,12,0"/>
-                                            <TextBlock Text="{Binding DinhDangTep, StringFormat='Tệp: {0}'}" FontSize="11.5" Foreground="{StaticResource TextGray}"/>
-                                        </StackPanel>
+                                    <!-- Hàng 2: Tiêu đề bài học (Hiển thị 100% bề ngang thẻ, tự xuống dòng gọn gàng, không bị badge che) -->
+                                    <TextBlock Text="{Binding TieuDe}" FontWeight="Bold" FontSize="13.5" Foreground="{StaticResource TextDark}" 
+                                               TextWrapping="Wrap" Margin="0,0,0,4"/>
+
+                                    <!-- Hàng 3: Tóm tắt bài học -->
+                                    <TextBlock Text="{Binding TomTat}" FontSize="12" Foreground="{StaticResource TextGray}" 
+                                               TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="34" Margin="0,0,0,8"/>
+
+                                    <!-- Hàng 4: Thời lượng & Định dạng tệp -->
+                                    <StackPanel Orientation="Horizontal">
+                                        <local:LucideIcon Kind="Clock" Size="12" Foreground="{StaticResource TextGray}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding ThoiGianUocTinhPhut, StringFormat='{}{0} phút'}" FontSize="11.5" Foreground="{StaticResource TextGray}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding DinhDangTep, StringFormat='Tệp: {0}'}" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
                                     </StackPanel>
-
-                                    <!-- Nút chuyển đổi trạng thái Xuất bản (DaXuatBan) -->
-                                    <Button Grid.Column="1" VerticalAlignment="Top" Cursor="Hand" Background="Transparent" BorderThickness="0"
-                                            Command="{Binding DataContext.ToggleXuatBanCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                            CommandParameter="{Binding}" ToolTip="Nhấp để đổi trạng thái Xuất bản / Bản nháp">
-                                        <Border CornerRadius="8" Padding="10,5" 
-                                                Background="{Binding DaXuatBan, Converter={StaticResource PublishStatusBgConverter}}">
-                                            <TextBlock Text="{Binding DaXuatBan, Converter={StaticResource PublishStatusTextConverter}}" 
-                                                       FontSize="11" FontWeight="Bold"
-                                                       Foreground="{Binding DaXuatBan, Converter={StaticResource PublishStatusFgConverter}}"/>
-                                        </Border>
-                                    </Button>
-                                </Grid>
+                                </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
                 </Grid>
             </Border>
 
-            <!-- CỘT PHẢI: TRÌNH SOẠN THẢO BÀI HỌC -->
-            <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="14" Padding="20">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
+            <!-- CỘT PHẢI: TRÌNH SOẠN THẢO BÀI HỌC (ScrollBar đẩy sát viền phải, nội dung đệm 18px không che controls) -->
+            <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="14" Padding="0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,0,2,0">
+                    <StackPanel Margin="20,18,18,20">
                         <!-- Tiêu đề Panel & Nút Soạn bài mới -->
                         <Grid Margin="0,0,0,14">
                             <Grid.ColumnDefinitions>
@@ -421,7 +624,8 @@
 
                         <!-- Tiêu đề bài giảng (Bo góc) -->
                         <TextBlock Text="Tiêu đề bài giảng (*)" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                        <TextBox Style="{StaticResource RoundedFormTextBox}" 
+                        <TextBox x:Name="txtLessonTitle"
+                                 Style="{StaticResource RoundedFormTextBox}" 
                                  Text="{Binding SelectedBaiHoc.TieuDe, UpdateSourceTrigger=PropertyChanged}" 
                                  Height="38" Padding="10,6" Margin="0,0,0,14" FontSize="13"/>
 
@@ -515,11 +719,425 @@
                             </Border>
                         </Grid>
 
-                        <!-- Nội dung lý thuyết chi tiết (Bo góc) -->
-                        <TextBlock Text="Nội dung giáo trình lý thuyết (*)" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                        <TextBox Style="{StaticResource RoundedFormTextBox}"
-                                 Text="{Binding SelectedBaiHoc.NoiDung, UpdateSourceTrigger=PropertyChanged}" 
-                                 AcceptsReturn="True" Height="150" Padding="10,8" Margin="0,0,0,14" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                        <!-- ============================================================ -->
+                        <!-- KHUNG TRÌNH BIÊN TẬP GIÁO TRÌNH LÝ THUYẾT STUDIO (CHUẨN ẢNH 2) -->
+                        <!-- ============================================================ -->
+                        <Border Background="#FAF9F6" BorderBrush="{StaticResource BorderLight}" BorderThickness="1.2" CornerRadius="14" Margin="0,4,0,16" Padding="16">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/> <!-- Header: Title & Sample Text Pill -->
+                                    <RowDefinition Height="Auto"/> <!-- Toolbar: [+] Menu, Lists, Alignments, Styles, AI Generate Sample -->
+                                    <RowDefinition Height="*"/>    <!-- Canvas: Ruled lines, placeholder, editor text -->
+                                    <RowDefinition Height="Auto"/> <!-- Bottom Bar: Generate Questions, Critical Thinking Pill, Quick Buttons -->
+                                </Grid.RowDefinitions>
+
+                                <!-- 0. Header (Tiêu đề rõ ràng 2 cột, không bị đè chữ, loại bỏ chữ mẫu Provide Text Sample) -->
+                                <Grid Grid.Row="0" Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Tiêu đề phân hệ bên trái -->
+                                    <TextBlock Grid.Column="0" Text="Nội dung giáo trình lý thuyết (*)" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
+
+                                    <!-- Pill Badge "Sample Text ::" bên phải -->
+                                    <Border Grid.Column="1" Background="#F1F5F9" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="8,4" ToolTip="Khu vực khối văn bản giáo trình mẫu">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="Sample Text" FontSize="11.5" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,6,0"/>
+                                            <local:LucideIcon Icon="grip-vertical" Size="13" Foreground="#94A3B8"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+
+                                <!-- 1. Rich Toolbar (Border nền trắng, bo góc 10px) -->
+                                <Border Grid.Row="1" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="10" Padding="8,6" Margin="0,0,0,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Left Group: [+] button, Lists, Alignments, Underline, Italic, Bold -->
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <!-- [+] Button to open insert elements popup -->
+                                            <Grid>
+                                                <Button x:Name="btnInsertElement" Click="BtnInsertElement_Click"
+                                                        Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="1"
+                                                        Width="30" Height="28" Cursor="Hand" ToolTip="Chèn khối tiêu đề, đoạn văn, biểu tượng cảm xúc, liên kết, ảnh, mẹo...">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                                                                <TextBlock Text="+" FontSize="16" FontWeight="Bold" Foreground="#334155" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+
+                                                <!-- Popup for [+] Dropdown Menu -->
+                                                <Popup x:Name="popupInsertBlock" StaysOpen="False" AllowsTransparency="True" Placement="Bottom" PlacementTarget="{Binding ElementName=btnInsertElement}" VerticalOffset="4">
+                                                    <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="10" Padding="6" MinWidth="190">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect BlurRadius="14" ShadowDepth="4" Opacity="0.15" Color="#0F172A"/>
+                                                        </Border.Effect>
+                                                        <StackPanel>
+                                                            <!-- Heading 1 H1 -->
+                                                            <Button Click="BtnHeading1_Click" Style="{StaticResource ModernDropdownMenuItemStyle}">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Text="Heading 1" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                                    <TextBlock Grid.Column="1" Text="H₁" FontSize="12" FontWeight="Bold" Foreground="#64748B" VerticalAlignment="Center"/>
+                                                                </Grid>
+                                                            </Button>
+
+                                                            <!-- Heading 2 H2 -->
+                                                            <Button Click="BtnHeading2_Click" Style="{StaticResource ModernDropdownMenuItemStyle}">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Text="Heading 2" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                                    <TextBlock Grid.Column="1" Text="H₂" FontSize="12" FontWeight="Bold" Foreground="#64748B" VerticalAlignment="Center"/>
+                                                                </Grid>
+                                                            </Button>
+
+                                                            <!-- Heading 3 H3 -->
+                                                            <Button Click="BtnHeading3_Click" Style="{StaticResource ModernDropdownMenuItemStyle}">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Text="Heading 3" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                                    <TextBlock Grid.Column="1" Text="H₃" FontSize="12" FontWeight="Bold" Foreground="#64748B" VerticalAlignment="Center"/>
+                                                                </Grid>
+                                                            </Button>
+
+                                                            <!-- Body Text T -->
+                                                            <Button Click="BtnBodyText_Click" Style="{StaticResource ModernDropdownMenuItemStyle}">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Text="Body Text" FontSize="12.5" VerticalAlignment="Center"/>
+                                                                    <TextBlock Grid.Column="1" Text="T" FontSize="12" FontWeight="Bold" Foreground="#64748B" VerticalAlignment="Center"/>
+                                                                </Grid>
+                                                            </Button>
+
+                                                            <!-- Paragraph ¶ -->
+                                                            <Button Click="BtnParagraph_Click" Style="{StaticResource ModernDropdownMenuItemStyle}">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Text="Paragraph" FontSize="12.5" VerticalAlignment="Center"/>
+                                                                    <TextBlock Grid.Column="1" Text="¶" FontSize="13" FontWeight="Bold" Foreground="#64748B" VerticalAlignment="Center"/>
+                                                                </Grid>
+                                                            </Button>
+
+                                                            <Border Height="1" Background="#E2E8F0" Margin="4,3"/>
+
+                                                            <!-- Emoji 😊 -->
+                                                            <Button Click="BtnOpenEmojiPicker_Click" Style="{StaticResource ModernDropdownMenuItemStyle}">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Text="Emoji" FontSize="12.5" VerticalAlignment="Center"/>
+                                                                    <TextBlock Grid.Column="1" Text="😊" FontSize="13" VerticalAlignment="Center"/>
+                                                                </Grid>
+                                                            </Button>
+
+                                                            <!-- Link 🔗 -->
+                                                            <Button Click="BtnLink_Click" Style="{StaticResource ModernDropdownMenuItemStyle}">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Text="Link" FontSize="12.5" VerticalAlignment="Center"/>
+                                                                    <local:LucideIcon Grid.Column="1" Kind="Link" Size="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                                                </Grid>
+                                                            </Button>
+
+                                                            <!-- File Upload 📁 -->
+                                                            <Button Click="BtnFileUpload_Click" Style="{StaticResource ModernDropdownMenuItemStyle}">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Text="File Upload" FontSize="12.5" VerticalAlignment="Center"/>
+                                                                    <local:LucideIcon Grid.Column="1" Kind="Upload" Size="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                                                </Grid>
+                                                            </Button>
+
+                                                            <!-- Image 🖼 -->
+                                                            <Button Click="BtnImageUpload_Click" Style="{StaticResource ModernDropdownMenuItemStyle}">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Text="Image" FontSize="12.5" VerticalAlignment="Center"/>
+                                                                    <local:LucideIcon Grid.Column="1" Kind="Image" Size="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                                                </Grid>
+                                                            </Button>
+
+                                                            <Border Height="1" Background="#E2E8F0" Margin="4,3"/>
+
+                                                            <!-- Add Hint 💡 (Green) -->
+                                                            <Button Click="BtnAddHint_Click" Style="{StaticResource ModernDropdownMenuItemStyle}">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Text="Add Hint" FontSize="12.5" FontWeight="Bold" Foreground="#0F766E" VerticalAlignment="Center"/>
+                                                                    <local:LucideIcon Grid.Column="1" Kind="Lightbulb" Size="14" Foreground="#10B981" VerticalAlignment="Center"/>
+                                                                </Grid>
+                                                            </Button>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Popup>
+
+                                                <!-- Popup Emoji Palette -->
+                                                <Popup x:Name="popupEmojiPalette" StaysOpen="False" AllowsTransparency="True" Placement="Right" PlacementTarget="{Binding ElementName=btnInsertElement}">
+                                                    <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="10" Padding="8">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.15" Color="#0F172A"/>
+                                                        </Border.Effect>
+                                                        <UniformGrid Columns="5" Margin="2">
+                                                            <Button Content="😊" Click="EmojiSelected_Click" Style="{StaticResource EmojiButtonStyle}"/>
+                                                            <Button Content="👍" Click="EmojiSelected_Click" Style="{StaticResource EmojiButtonStyle}"/>
+                                                            <Button Content="💡" Click="EmojiSelected_Click" Style="{StaticResource EmojiButtonStyle}"/>
+                                                            <Button Content="🎯" Click="EmojiSelected_Click" Style="{StaticResource EmojiButtonStyle}"/>
+                                                            <Button Content="⭐" Click="EmojiSelected_Click" Style="{StaticResource EmojiButtonStyle}"/>
+                                                            <Button Content="📖" Click="EmojiSelected_Click" Style="{StaticResource EmojiButtonStyle}"/>
+                                                            <Button Content="✍️" Click="EmojiSelected_Click" Style="{StaticResource EmojiButtonStyle}"/>
+                                                            <Button Content="🚀" Click="EmojiSelected_Click" Style="{StaticResource EmojiButtonStyle}"/>
+                                                            <Button Content="💬" Click="EmojiSelected_Click" Style="{StaticResource EmojiButtonStyle}"/>
+                                                            <Button Content="🔍" Click="EmojiSelected_Click" Style="{StaticResource EmojiButtonStyle}"/>
+                                                        </UniformGrid>
+                                                    </Border>
+                                                </Popup>
+                                            </Grid>
+
+                                            <!-- Divider -->
+                                            <Border Width="1" Background="#E2E8F0" Height="18" Margin="8,0"/>
+
+                                            <!-- Numbered List [1/2 ≡] -->
+                                            <Button Click="BtnNumberedList_Click" Style="{StaticResource EditorToolbarIconBtn}" ToolTip="Danh sách đánh số (1. 2. 3.)">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="¹⁄₂" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,-2,2,0"/>
+                                                    <TextBlock Text="≡" FontSize="13" FontWeight="Bold" Foreground="#475569"/>
+                                                </StackPanel>
+                                            </Button>
+
+                                            <!-- Bullet List [• ≡] -->
+                                            <Button Click="BtnBulletList_Click" Style="{StaticResource EditorToolbarIconBtn}" ToolTip="Danh sách dấu gạch đầu dòng (•)">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="•" FontSize="14" FontWeight="Bold" Foreground="#475569" Margin="0,-1,2,0"/>
+                                                    <TextBlock Text="≡" FontSize="13" FontWeight="Bold" Foreground="#475569"/>
+                                                </StackPanel>
+                                            </Button>
+
+                                            <!-- Divider -->
+                                            <Border Width="1" Background="#E2E8F0" Height="18" Margin="8,0"/>
+
+                                            <!-- Alignment: Left, Center, Right -->
+                                            <Button Click="BtnAlignLeft_Click" Style="{StaticResource EditorToolbarIconBtn}" ToolTip="Căn trái">
+                                                <local:LucideIcon Icon="text-align-start" Size="14" Foreground="#475569"/>
+                                            </Button>
+                                            <Button Click="BtnAlignCenter_Click" Style="{StaticResource EditorToolbarIconBtn}" ToolTip="Căn giữa">
+                                                <local:LucideIcon Icon="text-align-center" Size="14" Foreground="#475569"/>
+                                            </Button>
+                                            <Button Click="BtnAlignRight_Click" Style="{StaticResource EditorToolbarIconBtn}" ToolTip="Căn phải">
+                                                <local:LucideIcon Icon="text-align-end" Size="14" Foreground="#475569"/>
+                                            </Button>
+
+                                            <!-- Divider -->
+                                            <Border Width="1" Background="#E2E8F0" Height="18" Margin="8,0"/>
+
+                                            <!-- Underline [U] -->
+                                            <Button Click="BtnUnderline_Click" Style="{StaticResource EditorToolbarIconBtn}" ToolTip="Gạch chân (Underline)">
+                                                <TextBlock Text="U" FontSize="13" FontWeight="SemiBold" TextDecorations="Underline" Foreground="#475569"/>
+                                            </Button>
+
+                                            <!-- Italic [I] -->
+                                            <Button Click="BtnItalic_Click" Style="{StaticResource EditorToolbarIconBtn}" ToolTip="In nghiêng (Italic)">
+                                                <TextBlock Text="I" FontSize="13" FontWeight="SemiBold" FontStyle="Italic" Foreground="#475569"/>
+                                            </Button>
+
+                                            <!-- Bold [B] -->
+                                            <Button Click="BtnBold_Click" Style="{StaticResource EditorToolbarIconBtn}" ToolTip="In đậm (Bold)">
+                                                <TextBlock Text="B" FontSize="13" FontWeight="Bold" Foreground="#475569"/>
+                                            </Button>
+                                        </StackPanel>
+
+                                        <!-- Right Group: [✨ Generate Sample] AI Button (Disable khi trống tiêu đề) -->
+                                        <Button Grid.Column="2" Command="{Binding SinhNoiDungMauAICommand}"
+                                                IsEnabled="{Binding Text, ElementName=txtLessonTitle, Converter={StaticResource StringNotEmptyToBoolConverter}}"
+                                                Background="White" BorderBrush="#818CF8" BorderThickness="1.5"
+                                                Padding="12,5" Cursor="Hand" ToolTip="Kích hoạt Gemini AI để tự động tạo nội dung giáo trình mẫu theo chủ đề bài học">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="bdSample" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <local:LucideIcon Kind="Sparkles" Size="14" Foreground="#4F46E5" Margin="0,0,6,0"/>
+                                                            <TextBlock Text="Generate Sample" FontSize="12" FontWeight="Bold" Foreground="#4F46E5"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="#EEF2FF"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsEnabled" Value="False">
+                                                            <Setter TargetName="bdSample" Property="Opacity" Value="0.45"/>
+                                                            <Setter Property="Cursor" Value="Arrow"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+
+                                <!-- 2. Editor Canvas with Ruled Lines background & Placeholder -->
+                                <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="10" MinHeight="190" Margin="0,0,0,12" ClipToBounds="True">
+                                    <Grid>
+                                        <!-- Ruled Horizontal Lines Background (delicate notebook lines) -->
+                                        <Rectangle Fill="{StaticResource NotebookRuledLinesBrush}" IsHitTestVisible="False"/>
+
+                                        <!-- The Actual Rich Text Editor (Hỗ trợ định dạng chuẩn như Microsoft Word) -->
+                                        <RichTextBox x:Name="rtbEditorContent"
+                                                     AcceptsTab="True"
+                                                     VerticalScrollBarVisibility="Auto"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     Padding="14,10"
+                                                     FontSize="13.5"
+                                                     FontFamily="Segoe UI"
+                                                     PreviewKeyDown="RtbEditorContent_PreviewKeyDown"
+                                                     TextChanged="RtbEditorContent_TextChanged"
+                                                     MinHeight="180">
+                                            <RichTextBox.Resources>
+                                                <Style TargetType="{x:Type Paragraph}">
+                                                    <Setter Property="Margin" Value="0,0,0,6"/>
+                                                    <Setter Property="LineHeight" Value="22"/>
+                                                </Style>
+                                            </RichTextBox.Resources>
+                                        </RichTextBox>
+
+                                        <!-- Placeholder shown when text is empty (Matches Image 2 exactly) -->
+                                        <StackPanel x:Name="pnlPlaceholder" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,18,20,0" IsHitTestVisible="False">
+                                            <TextBlock Text="Insert the text for analysis here..." FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Right" Margin="0,0,0,3"/>
+                                            <TextBlock Text="Press &quot;/&quot; to Generate Sample using AI" FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Right"/>
+                                        </StackPanel>
+
+                                        <!-- AI Sample Loading Overlay -->
+                                        <Border Background="#99FFFFFF" CornerRadius="10" Visibility="{Binding IsAiGeneratingSample, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <local:LucideIcon Kind="Sparkles" Size="28" Foreground="#6366F1" Spin="True" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                                <TextBlock Text="Gemini AI đang tạo tài liệu mẫu..." FontWeight="Bold" FontSize="13" Foreground="#4F46E5"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- 3. Bottom Action Bar (Bố trí 2 hàng thông thoáng, hiển thị trọn vẹn 100% chữ, không bị tràn hay cắt nút) -->
+                                <Grid Grid.Row="3">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Hàng 1: [✨ Generate Questions] (Trái) và [Critical Thinking ::] (Phải) -->
+                                    <Grid Grid.Row="0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Bottom Left: [✨ Generate Questions] (Disable khi trống tiêu đề) -->
+                                        <Button Grid.Column="0" Command="{Binding SinhCauHoiAICommand}"
+                                                IsEnabled="{Binding Text, ElementName=txtLessonTitle, Converter={StaticResource StringNotEmptyToBoolConverter}}"
+                                                Background="#4F46E5" Foreground="White" BorderThickness="0" Padding="14,8" Cursor="Hand"
+                                                ToolTip="Gemini AI phân tích nội dung trên và tự động bóc tách bộ câu hỏi trắc nghiệm">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="bdGenQ" Background="{TemplateBinding Background}" CornerRadius="9" Padding="{TemplateBinding Padding}">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <local:LucideIcon Kind="Sparkles" Size="14" Foreground="White" Margin="0,0,8,0"/>
+                                                            <TextBlock Text="Generate Questions" FontSize="12.5" FontWeight="Bold" Foreground="White"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="#4338CA"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsEnabled" Value="False">
+                                                            <Setter TargetName="bdGenQ" Property="Opacity" Value="0.45"/>
+                                                            <Setter Property="Cursor" Value="Arrow"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+
+                                        <!-- Bottom Right: [Critical Thinking ::] pill badge -->
+                                        <Border Grid.Column="2" Background="#F1F5F9" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="10,6"
+                                                ToolTip="Phân loại kỹ năng tư duy phản biện (Critical Thinking)">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="Critical Thinking" FontSize="12" FontWeight="SemiBold" Foreground="#334155" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                <local:LucideIcon Icon="grip-vertical" Size="13" Foreground="#64748B" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Hàng 2: Các nút thêm nhanh mẫu câu hỏi dạng WrapPanel (Canh giữa hoàn hảo, hiển thị trọn vẹn) -->
+                                    <WrapPanel Grid.Row="1" Margin="0,10,0,0" HorizontalAlignment="Right">
+                                        <!-- [+ Multi Choice] -->
+                                        <Button Command="{Binding ThemCauHoiTracNghiemCommand}" Style="{StaticResource QuickAddQuestionBtnStyle}" Margin="0,0,8,4"
+                                                ToolTip="Chèn nhanh mẫu câu hỏi trắc nghiệm 4 đáp án (A, B, C, D)">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <local:LucideIcon Kind="Plus" Size="13" Foreground="#0F766E" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Multi Choice" FontSize="12" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <!-- [+ Free Text] -->
+                                        <Button Command="{Binding ThemCauHoiTuLuanCommand}" Style="{StaticResource QuickAddQuestionBtnStyle}" Margin="0,0,8,4"
+                                                ToolTip="Chèn nhanh mẫu câu hỏi tự luận ngắn / trả lời tự do">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <local:LucideIcon Kind="Plus" Size="13" Foreground="#0F766E" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Free Text" FontSize="12" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <!-- [+ Fill in the Blank] -->
+                                        <Button Command="{Binding ThemCauHoiDienTuCommand}" Style="{StaticResource QuickAddQuestionBtnStyle}" Margin="0,0,0,4"
+                                                ToolTip="Chèn nhanh mẫu câu hỏi điền từ vào chỗ trống">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <local:LucideIcon Kind="Plus" Size="13" Foreground="#0F766E" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Fill in the Blank" FontSize="12" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </WrapPanel>
+                                </Grid>
+                            </Grid>
+                        </Border>
 
                         <!-- Cờ xuất bản -->
                         <CheckBox Content="Cho phép học viên truy cập (Đã xuất bản)" IsChecked="{Binding SelectedBaiHoc.DaXuatBan}" Margin="0,0,0,16" FontWeight="SemiBold"/>
@@ -542,6 +1160,119 @@
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================ -->
+        <!-- MODAL OVERLAY: REVIEW & INSERT AI-GENERATED QUESTIONS       -->
+        <!-- ============================================================ -->
+        <Grid Visibility="{Binding IsQuestionsModalOpen, Converter={StaticResource BooleanToVisibilityConverter}}"
+              Grid.RowSpan="3" Background="#800F172A">
+            <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="16"
+                    MaxWidth="680" MaxHeight="580" Margin="24" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="24" ShadowDepth="8" Opacity="0.25" Color="#0F172A"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Modal Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <local:LucideIcon Kind="Sparkles" Size="18" Foreground="#6366F1" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Trợ lý AI bóc tách &amp; sinh câu hỏi tự động" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding AiQuestionsStatusMessage}" FontSize="12.5" Foreground="{StaticResource TextGray}"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="1" Command="{Binding DongModalCauHoiCommand}" Background="#F1F5F9" BorderThickness="0" Width="30" Height="30" Cursor="Hand" VerticalAlignment="Top">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="15">
+                                        <local:LucideIcon Kind="X" Size="14" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+
+                    <!-- Loading Spinner or Question List -->
+                    <Grid Grid.Row="1" MinHeight="260">
+                        <!-- Loading State -->
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                    Visibility="{Binding IsAiGeneratingQuestions, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <local:LucideIcon Kind="Sparkles" Size="40" Foreground="#6366F1" Spin="True" HorizontalAlignment="Center" Margin="0,0,0,14"/>
+                            <TextBlock Text="Gemini 3.8 Flash đang phân tích ngữ nghĩa giáo trình..." FontSize="13.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Đang bóc tách các câu hỏi trắc nghiệm, lựa chọn và lời giải thích..." FontSize="12" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                        </StackPanel>
+
+                        <!-- Questions List -->
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,0,2,0">
+                            <ItemsControl ItemsSource="{Binding AiGeneratedQuestions}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,12">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding NoiDungCauHoi}" FontWeight="Bold" FontSize="13.5" Foreground="{StaticResource TextDark}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                                <ItemsControl ItemsSource="{Binding DanhSachLuaChon}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,0,0,6">
+                                                                <TextBlock Text="{Binding}" FontSize="12.5" Foreground="#1E293B" TextWrapping="Wrap"/>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                                <!-- Explanation -->
+                                                <Border Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,6,0,0">
+                                                    <TextBlock Text="{Binding GiaiThichChiTiet}" FontSize="12" Foreground="#1D4ED8" TextWrapping="Wrap"/>
+                                                </Border>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <!-- Modal Footer Buttons -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                        <Button Content="Đóng" Command="{Binding DongModalCauHoiCommand}" Background="#F1F5F9" Foreground="{StaticResource TextDark}"
+                                Padding="16,8" FontWeight="SemiBold" FontSize="12.5" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <Button Command="{Binding ChenCauHoiVaoBaiHocCommand}"
+                                Background="{StaticResource AdminDarkGreen}" Foreground="White" Padding="18,8" FontWeight="Bold" FontSize="12.5" BorderThickness="0" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <local:LucideIcon Kind="Check" Size="13" Foreground="White" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Chèn vào nội dung bài học" FontSize="12.5" FontWeight="Bold" Foreground="White"/>
+                                        </StackPanel>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </Grid>
             </Border>
         </Grid>
     </Grid>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,33 +14,38 @@ namespace BUS
     public class GeminiAIService
     {
         private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(25) };
-        private static string? _cachedApiKey;
+        private static readonly ConcurrentDictionary<string, string> _cachedApiKeys = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
-        /// Đọc API Key từ secrets.json theo mô hình Manage User Secret của .NET
+        /// Đọc API Key Gemini cho từng module chuyên biệt (ví dụ: "NoiDungHocTap", "LuyenNoi", v.v.)
+        /// từ secrets.json theo mô hình User Secrets hoặc từ biến môi trường hệ thống.
         /// </summary>
-        public static string GetApiKey()
+        public static string GetApiKey(string module = "NoiDungHocTap")
         {
-            if (!string.IsNullOrEmpty(_cachedApiKey))
-                return _cachedApiKey;
+            if (string.IsNullOrWhiteSpace(module))
+                module = "NoiDungHocTap";
 
-            // 1. Ưu tiên biến môi trường hệ thống
-            string envKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") 
-                            ?? Environment.GetEnvironmentVariable("GOOGLE_API_KEY") ?? "";
+            if (_cachedApiKeys.TryGetValue(module, out var cachedKey) && !string.IsNullOrWhiteSpace(cachedKey))
+                return cachedKey;
+
+            // 1. Kiểm tra biến môi trường đặc thù của module: ví dụ GEMINI_API_KEY_NOIDUNGHOCTAP
+            string modEnvVar = $"GEMINI_API_KEY_{module.ToUpperInvariant()}";
+            string? envKey = Environment.GetEnvironmentVariable(modEnvVar);
             if (!string.IsNullOrWhiteSpace(envKey))
             {
-                _cachedApiKey = envKey.Trim();
-                return _cachedApiKey;
+                _cachedApiKeys[module] = envKey.Trim();
+                return _cachedApiKeys[module];
             }
 
             // 2. Tìm tệp secrets.json theo các đường dẫn tương đối chuẩn
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string[] candidatePaths = new[]
             {
-                Path.Combine(baseDir, "secrets.json"),                                    // Cùng cấp với file .exe khi đóng gói/chạy thật
+                Path.Combine(baseDir, "secrets.json"),                                    // Cùng cấp với file .exe khi chạy thật
                 Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\secrets.json")),        // Khi chạy Debug trong VS
                 Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\GUI\secrets.json")),    // Thư mục mã nguồn GUI
-                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\GUI\secrets.json"))
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\GUI\secrets.json")),
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\secrets.json"))
             };
 
             foreach (var path in candidatePaths)
@@ -50,14 +56,48 @@ namespace BUS
                     {
                         string json = File.ReadAllText(path);
                         using var doc = JsonDocument.Parse(json);
-                        if (doc.RootElement.TryGetProperty("Gemini", out var geminiProp) &&
-                            geminiProp.TryGetProperty("ApiKey", out var keyProp))
+                        if (doc.RootElement.TryGetProperty("Gemini", out var geminiProp))
                         {
-                            string key = keyProp.GetString() ?? "";
-                            if (!string.IsNullOrWhiteSpace(key))
+                            // 2a. Ưu tiên đọc key riêng của module (ví dụ "NoiDungHocTap", "DanhMuc", "DanhMucCauTruc")
+                            if (geminiProp.TryGetProperty(module, out var modKeyProp))
                             {
-                                _cachedApiKey = key.Trim();
-                                return _cachedApiKey;
+                                string key = modKeyProp.GetString() ?? "";
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    _cachedApiKeys[module] = key.Trim();
+                                    return _cachedApiKeys[module];
+                                }
+                            }
+
+                            // Hỗ trợ alias tên gọi tương thích giữa DanhMuc và DanhMucCauTruc
+                            if (module.Equals("DanhMuc", StringComparison.OrdinalIgnoreCase) && geminiProp.TryGetProperty("DanhMucCauTruc", out var dmKeyProp))
+                            {
+                                string key = dmKeyProp.GetString() ?? "";
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    _cachedApiKeys[module] = key.Trim();
+                                    return _cachedApiKeys[module];
+                                }
+                            }
+                            if (module.Equals("DanhMucCauTruc", StringComparison.OrdinalIgnoreCase) && geminiProp.TryGetProperty("DanhMuc", out var dmKeyProp2))
+                            {
+                                string key = dmKeyProp2.GetString() ?? "";
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    _cachedApiKeys[module] = key.Trim();
+                                    return _cachedApiKeys[module];
+                                }
+                            }
+
+                            // 2b. Fallback về key chung "ApiKey" nếu chưa cấu hình key riêng cho module
+                            if (geminiProp.TryGetProperty("ApiKey", out var fallbackKeyProp))
+                            {
+                                string key = fallbackKeyProp.GetString() ?? "";
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    _cachedApiKeys[module] = key.Trim();
+                                    return _cachedApiKeys[module];
+                                }
                             }
                         }
                     }
@@ -65,35 +105,231 @@ namespace BUS
                 catch { }
             }
 
-            // 3. Fallback mặc định
-            _cachedApiKey = "AQ.Ab8RN6KaYwl2ehi-pIci6fcqNhmYAq2aEpQQe8yq6D6m0VWhyA";
-            return _cachedApiKey;
+            // 3. Fallback biến môi trường hệ thống chung
+            string generalEnvKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") 
+                            ?? Environment.GetEnvironmentVariable("GOOGLE_API_KEY") ?? "";
+            if (!string.IsNullOrWhiteSpace(generalEnvKey))
+            {
+                _cachedApiKeys[module] = generalEnvKey.Trim();
+                return _cachedApiKeys[module];
+            }
+
+            // 4. Bảo mật: Tuyệt đối không hardcode API Key trong mã nguồn C#!
+            return string.Empty;
         }
 
         /// <summary>
-        /// Gọi Google Gemini API (model gemini-3.8-flash) để bóc tách câu hỏi trắc nghiệm trực tiếp từ văn bản học liệu
+        /// Đọc API Key chung "ApiKey" từ secrets.json làm dự phòng khi key riêng của module gặp sự cố hoặc hết quota
         /// </summary>
-        public static async Task<List<CauHoiDTO>> BocTachCauHoiAIAsync(string tieuDe, string noiDung, string trinhDo = "B1", int soLuong = 2)
+        public static string LayApiKeyChung()
         {
-            string apiKey = GetApiKey();
-            string endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={apiKey}";
+            if (_cachedApiKeys.TryGetValue("__GENERAL_APIKEY__", out var cached) && !string.IsNullOrWhiteSpace(cached))
+                return cached;
+
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string[] candidatePaths = new[]
+            {
+                Path.Combine(baseDir, "secrets.json"),
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\secrets.json")),
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\GUI\secrets.json")),
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\GUI\secrets.json")),
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\secrets.json"))
+            };
+
+            foreach (var path in candidatePaths)
+            {
+                try
+                {
+                    if (File.Exists(path))
+                    {
+                        string json = File.ReadAllText(path);
+                        using var doc = JsonDocument.Parse(json);
+                        if (doc.RootElement.TryGetProperty("Gemini", out var geminiProp))
+                        {
+                            if (geminiProp.TryGetProperty("ApiKey", out var fallbackKeyProp))
+                            {
+                                string key = fallbackKeyProp.GetString() ?? "";
+                                if (!string.IsNullOrWhiteSpace(key))
+                                {
+                                    _cachedApiKeys["__GENERAL_APIKEY__"] = key.Trim();
+                                    return key.Trim();
+                                }
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            string envKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") 
+                         ?? Environment.GetEnvironmentVariable("GOOGLE_API_KEY") ?? "";
+            return envKey.Trim();
+        }
+
+        /// <summary>
+        /// Lấy danh sách các API Key khả dụng (ưu tiên key module chuyên biệt, tiếp theo là key chung ApiKey)
+        /// </summary>
+        public static List<string> LayDanhSachApiKeyKhaDung(string module = "NoiDungHocTap")
+        {
+            var keys = new List<string>();
+            string primaryKey = GetApiKey(module);
+            if (!string.IsNullOrWhiteSpace(primaryKey))
+            {
+                keys.Add(primaryKey);
+            }
+
+            string generalKey = LayApiKeyChung();
+            if (!string.IsNullOrWhiteSpace(generalKey) && !keys.Contains(generalKey))
+            {
+                keys.Add(generalKey);
+            }
+
+            return keys;
+        }
+
+        /// <summary>
+        /// Gọi Google Gemini API với cơ chế Fallback Model Chain (thử lần lượt gemini-3.5-flash, gemini-3.6-flash, gemini-3.1-flash-lite, v.v.)
+        /// và tự động đảo sang API Key dự phòng nếu key đầu tiên bị lỗi quota hoặc quyền truy cập.
+        /// </summary>
+        public static async Task<string?> GoiGeminiApiAsync(string prompt, string module = "NoiDungHocTap")
+        {
+            var keys = LayDanhSachApiKeyKhaDung(module);
+            if (keys.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GeminiAIService] Không tìm thấy API Key nào cho module '{module}'.");
+                return null;
+            }
+
+            // Danh sách các model theo thứ tự ưu tiên: ổn định nhất, phản hồi nhanh nhất (< 2s) đặt lên đầu
+            string[] candidateModels = new[]
+            {
+                "gemini-3.5-flash",
+                "gemini-3.6-flash",
+                "gemini-3.1-flash-lite",
+                "gemini-flash-latest",
+                "gemini-3.7-flash",
+                "gemini-3.8-flash"
+            };
+
+            var requestObj = new
+            {
+                contents = new[]
+                {
+                    new
+                    {
+                        parts = new[]
+                        {
+                            new { text = prompt }
+                        }
+                    }
+                }
+            };
+
+            string requestJson = JsonSerializer.Serialize(requestObj);
+
+            foreach (var apiKey in keys)
+            {
+                foreach (var model in candidateModels)
+                {
+                    try
+                    {
+                        string endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
+                        using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(12));
+                        using var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
+
+                        var response = await _httpClient.PostAsync(endpoint, content, cts.Token);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            string responseBody = await response.Content.ReadAsStringAsync();
+                            using var doc = JsonDocument.Parse(responseBody);
+                            if (doc.RootElement.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
+                            {
+                                string text = candidates[0].GetProperty("content").GetProperty("parts")[0].GetProperty("text").GetString() ?? "";
+                                if (!string.IsNullOrWhiteSpace(text))
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"[GeminiAIService] Phản hồi thành công từ model '{model}'!");
+                                    return text;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            int statusCode = (int)response.StatusCode;
+                            string errBody = await response.Content.ReadAsStringAsync();
+                            System.Diagnostics.Debug.WriteLine($"[GeminiAIService] Model '{model}' trả về HTTP {statusCode} ({response.ReasonPhrase}): {errBody}");
+
+                            // Nếu lỗi 403 hoặc 429 (hết quota / lỗi key), chuyển sang key kế tiếp ngay
+                            if (statusCode == 403 || statusCode == 429)
+                            {
+                                break;
+                            }
+                            // Nếu lỗi 503 (quá tải) hoặc 404 hoặc 500, tiếp tục thử model tiếp theo trong danh sách
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[GeminiAIService] Model '{model}' phản hồi quá 12s, chuyển sang model dự phòng...");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[GeminiAIService] Lỗi kết nối tới model '{model}': {ex.Message}");
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gọi Google Gemini API để bóc tách câu hỏi trắc nghiệm trực tiếp từ văn bản học liệu
+        /// theo sát trình độ (A1 - C1) và kỹ năng (Ngữ pháp, Từ vựng, Đọc hiểu, Nghe hiểu, Viết luận)
+        /// </summary>
+        public static async Task<List<CauHoiDTO>> BocTachCauHoiAIAsync(
+            string tieuDe, 
+            string noiDung, 
+            string trinhDo = "B1", 
+            int soLuong = 10, 
+            string module = "NoiDungHocTap", 
+            string loaiBaiHoc = "")
+        {
+            // Defensive: phát hiện nếu người gọi truyền tên kỹ năng vào tham số module
+            if (string.IsNullOrWhiteSpace(loaiBaiHoc) && !string.IsNullOrWhiteSpace(module) &&
+                !module.Equals("NoiDungHocTap", StringComparison.OrdinalIgnoreCase) &&
+                !module.Equals("DanhMuc", StringComparison.OrdinalIgnoreCase) &&
+                !module.Equals("DanhMucCauTruc", StringComparison.OrdinalIgnoreCase))
+            {
+                loaiBaiHoc = module;
+                module = "NoiDungHocTap";
+            }
 
             string cleanContent = string.IsNullOrWhiteSpace(noiDung) ? tieuDe : noiDung;
-            if (cleanContent.Length > 3000)
-                cleanContent = cleanContent.Substring(0, 3000);
+            if (cleanContent.Length > 8000)
+                cleanContent = cleanContent.Substring(0, 8000);
 
-            string prompt = $@"Bạn là trợ lý AI chuyên gia giáo dục tiếng Anh. Nhiệm vụ của bạn là đọc kỹ tài liệu bài học sau và bóc tách hoặc tạo ra đúng {soLuong} câu hỏi trắc nghiệm tiếng Anh phù hợp với nội dung bài học.
+            try
+            {
+                string skillInstruction = GetSkillQuestionInstruction(loaiBaiHoc);
+                string levelInstruction = GetLevelInstruction(trinhDo);
 
-TÀI LIỆU BÀI HỌC:
-Tiêu đề: {tieuDe}
-Trình độ: {trinhDo}
-Nội dung:
+                string prompt = $@"Bạn là trợ lý AI chuyên gia khảo thí và sư phạm tiếng Anh hàng đầu.
+Nhiệm vụ của bạn là đọc kỹ tài liệu bài học sau và tạo ra đúng {soLuong} câu hỏi trắc nghiệm tiếng Anh 4 lựa chọn (A, B, C, D) đạt chuẩn chuẩn mực giáo dục.
+
+THÔNG TIN BÀI HỌC:
+- Tiêu đề: {tieuDe}
+- Khung trình độ CEFR: {trinhDo} ({levelInstruction})
+- Kỹ năng trọng tâm: {loaiBaiHoc}
+
+NỘI DUNG TÀI LIỆU CẦN RA ĐỀ:
 {cleanContent}
 
-YÊU CẦU ĐẶC BIỆT:
-1. Câu hỏi và các phương án PHẢI liên quan trực tiếp 100% đến nội dung bài học trên (từ vựng, cấu trúc, hội thoại hoặc ý chính của bài).
-2. Tuyệt đối KHÔNG đưa câu hỏi về chủ đề khác (như bê tông La Mã hay chủ đề không liên quan).
-3. Trả về DUY NHẤT một mảng JSON thuần túy (không bọc trong markdown code block, không thêm lời chào hay giải thích nào bên ngoài):
+YÊU CẦU ĐẶC BIỆT THEO KỸ NĂNG:
+{skillInstruction}
+
+QUY TẮC BẮT BUỘC:
+1. Câu hỏi và các phương án PHẢI bám sát 100% nội dung bài học trên (từ vựng, ngữ pháp, ngữ cảnh hoặc thông điệp bài đọc).
+2. Độ khó của từ vựng và câu hỏi PHẢI tương xứng với cấp độ {trinhDo}.
+3. Luôn có 1 đáp án đúng duy nhất (chỉ số 0: A, 1: B, 2: C, 3: D) và phần giải thích rõ ràng kèm trích dẫn văn bản.
+4. Trả về DUY NHẤT một mảng JSON thuần túy (KHÔNG bọc trong markdown code block, không thêm bất kỳ văn bản nào ngoài JSON):
 [
   {{
     ""NoiDungCauHoi"": ""Question 1: Nội dung câu hỏi..."",
@@ -103,195 +339,770 @@ YÊU CẦU ĐẶC BIỆT:
   }}
 ]";
 
-            try
-            {
-                var requestObj = new
+                string? rawText = await GoiGeminiApiAsync(prompt, module);
+                if (!string.IsNullOrWhiteSpace(rawText))
                 {
-                    contents = new[]
+                    string cleanJson = rawText.Trim();
+                    if (cleanJson.StartsWith("```json", StringComparison.OrdinalIgnoreCase)) cleanJson = cleanJson.Substring(7);
+                    else if (cleanJson.StartsWith("```")) cleanJson = cleanJson.Substring(3);
+
+                    if (cleanJson.EndsWith("```")) cleanJson = cleanJson.Substring(0, cleanJson.Length - 3);
+
+                    cleanJson = cleanJson.Trim();
+
+                    var questions = JsonSerializer.Deserialize<List<CauHoiDTO>>(cleanJson, new JsonSerializerOptions
                     {
-                        new
-                        {
-                            parts = new[]
-                            {
-                                new { text = prompt }
-                            }
-                        }
-                    }
-                };
+                        PropertyNameCaseInsensitive = true
+                    });
 
-                string requestJson = JsonSerializer.Serialize(requestObj);
-                using var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
-
-                var response = await _httpClient.PostAsync(endpoint, content);
-                if (response.IsSuccessStatusCode)
-                {
-                    string responseBody = await response.Content.ReadAsStringAsync();
-                    using var doc = JsonDocument.Parse(responseBody);
-                    var candidates = doc.RootElement.GetProperty("candidates");
-                    if (candidates.GetArrayLength() > 0)
+                    if (questions != null && questions.Count > 0)
                     {
-                        string rawText = candidates[0].GetProperty("content").GetProperty("parts")[0].GetProperty("text").GetString() ?? "";
-
-                        // Làm sạch chuỗi JSON trả về nếu có bọc ```json
-                        string cleanJson = rawText.Trim();
-                        if (cleanJson.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
-                            cleanJson = cleanJson.Substring(7);
-                        else if (cleanJson.StartsWith("```"))
-                            cleanJson = cleanJson.Substring(3);
-
-                        if (cleanJson.EndsWith("```"))
-                            cleanJson = cleanJson.Substring(0, cleanJson.Length - 3);
-
-                        cleanJson = cleanJson.Trim();
-
-                        var questions = JsonSerializer.Deserialize<List<CauHoiDTO>>(cleanJson, new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        });
-
-                        if (questions != null && questions.Count > 0)
-                        {
-                            return questions;
-                        }
+                        return questions;
                     }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[GeminiAIService] Lỗi gọi Gemini API: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[GeminiAIService.BocTachCauHoiAIAsync] Exception: {ex.Message}");
             }
 
-            // Fallback thông minh: Tạo câu hỏi bám sát đúng nội dung tài liệu nếu offline / hết quota
-            return TaoCauHoiThongMinhTheoNoiDung(tieuDe, cleanContent);
+            // Fallback thông minh: Tạo câu hỏi bám sát đúng nội dung tài liệu theo trình độ & kỹ năng
+            return TaoCauHoiThongMinhTheoNoiDung(tieuDe, cleanContent, trinhDo, loaiBaiHoc);
         }
 
         /// <summary>
-        /// Tạo câu hỏi theo ngữ cảnh thực tế của bài học (Đảm bảo không bao giờ bị lệch sang Bê tông La Mã)
+        /// Gọi Google Gemini API để sinh nội dung giáo trình mẫu (Text Sample) cho bài học
+        /// phụ thuộc chính xác vào Cấp độ trình độ (A1 - C1) và Kỹ năng (Ngữ pháp, Từ vựng, Đọc hiểu, Nghe hiểu, Viết luận)
         /// </summary>
-        public static List<CauHoiDTO> TaoCauHoiThongMinhTheoNoiDung(string tieuDe, string noiDung)
+        public static async Task<string> SinhNoiDungMauAIAsync(
+            string tieuDe, 
+            string trinhDo = "B1", 
+            string loaiBaiHoc = "Doc", 
+            string module = "NoiDungHocTap")
+        {
+            if (string.IsNullOrWhiteSpace(tieuDe))
+            {
+                return TaoNoiDungMauThongMinh(tieuDe, trinhDo, loaiBaiHoc);
+            }
+
+            try
+            {
+                string prompt = BuildSamplePrompt(tieuDe, trinhDo, loaiBaiHoc);
+                string? rawText = await GoiGeminiApiAsync(prompt, module);
+
+                if (!string.IsNullOrWhiteSpace(rawText))
+                {
+                    string cleanText = rawText.Trim();
+                    if (cleanText.StartsWith("```markdown", StringComparison.OrdinalIgnoreCase)) cleanText = cleanText.Substring(11);
+                    else if (cleanText.StartsWith("```", StringComparison.OrdinalIgnoreCase)) cleanText = cleanText.Substring(3);
+                    if (cleanText.EndsWith("```")) cleanText = cleanText.Substring(0, cleanText.Length - 3);
+                    cleanText = cleanText.Trim();
+                    if (!string.IsNullOrWhiteSpace(cleanText))
+                        return cleanText;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GeminiAIService.SinhNoiDungMauAIAsync] Exception: {ex.Message}");
+            }
+
+            // Fallback thông minh theo ngữ cảnh, trình độ và kỹ năng
+            return TaoNoiDungMauThongMinh(tieuDe, trinhDo, loaiBaiHoc);
+        }
+
+        private static string GetLevelInstruction(string trinhDo)
+        {
+            return (trinhDo ?? "B1").ToUpperInvariant() switch
+            {
+                "A1" => "Trình độ CEFR A1 (Cơ bản): Câu ngắn gọn (5-8 từ), từ vựng quen thuộc đời sống, thì hiện tại đơn hoặc quá khứ đơn giản, cấu trúc rõ ràng không bẫy phức tạp.",
+                "A2" => "Trình độ CEFR A2 (Sơ cấp): Câu ghép quen thuộc (and, but, because, so), giao tiếp thường nhật và công việc cơ bản, từ vựng thông dụng.",
+                "B1" => "Trình độ CEFR B1 (Trung cấp): Câu phức với mệnh đề quan hệ, hiện tại hoàn thành, câu điều kiện loại 1/2, từ vựng công sở và giao tiếp chuyên môn thường nhật.",
+                "B2" => "Trình độ CEFR B2 (Trung cao cấp): Câu phức nhiều mệnh đề, thể bị động, collocations tự nhiên, từ vựng chuyên ngành sâu và sắc thái biểu đạt đa dạng.",
+                "C1" => "Trình độ CEFR C1 (Cao cấp): Văn phong học thuật / chuyên nghiệp cao cấp, cấu trúc ngữ pháp đảo ngữ hoặc phức hợp, từ vựng phong phú và phân tích chuyên sâu.",
+                _ => $"Trình độ chuẩn CEFR: {trinhDo}"
+            };
+        }
+
+        private static string GetSkillQuestionInstruction(string loaiBaiHoc)
+        {
+            string loaiLower = (loaiBaiHoc ?? "").ToLowerInvariant();
+
+            if (loaiLower.Contains("nguphap") || loaiLower.Contains("grammar"))
+                return "- Trọng tâm câu hỏi: Kiểm tra cấu trúc ngữ pháp, chia thì của động từ, cách dùng liên từ hoặc trật tự từ trong câu bám sát nội dung bài.";
+
+            if (loaiLower.Contains("tuvung") || loaiLower.Contains("vocab"))
+                return "- Trọng tâm câu hỏi: Kiểm tra nghĩa của từ/cụm từ trong ngữ cảnh bài học, từ đồng nghĩa/trái nghĩa và cụm kết hợp từ (collocations).";
+
+            if (loaiLower.Contains("doc") || loaiLower.Contains("reading"))
+                return "- Trọng tâm câu hỏi: Kiểm tra khả năng nắm bắt ý chính (Main Idea), chi tiết quan trọng (Detail) và suy luận logic (Inference) từ đoạn văn.";
+
+            if (loaiLower.Contains("nghe") || loaiLower.Contains("listen"))
+                return "- Trọng tâm câu hỏi: Kiểm tra thông tin cụ thể nhân vật trao đổi trong hội thoại, thái độ hoặc kết luận của cuộc đối thoại.";
+
+            if (loaiLower.Contains("viet") || loaiLower.Contains("writing"))
+                return "- Trọng tâm câu hỏi: Kiểm tra cách sử dụng liên từ nối câu (transition words), cấu trúc câu mạch lạc và văn phong diễn đạt.";
+
+            return "- Trọng tâm câu hỏi: Kiểm tra kiến thức tổng hợp và khả năng ứng dụng thực tế các câu thoại / thông tin trong bài học.";
+        }
+
+        /// <summary>
+        /// Xây dựng prompt chi tiết cho Gemini AI sinh giáo trình bài học theo đúng Trình độ và Kỹ năng
+        /// </summary>
+        private static string BuildSamplePrompt(string tieuDe, string trinhDo, string loaiBaiHoc)
+        {
+            string levelDesc = GetLevelInstruction(trinhDo);
+            string loaiLower = (loaiBaiHoc ?? "").ToLowerInvariant();
+            string skillFormat = "";
+
+            if (loaiLower.Contains("nguphap") || loaiLower.Contains("grammar"))
+            {
+                skillFormat = $@"YÊU CẦU ĐẶC BIỆT DÀNH CHO KỸ NĂNG NGỮ PHÁP (GRAMMAR):
+1. Dòng đầu tiên: '■ NGỮ PHÁP CHUYÊN SÂU: {tieuDe} (Level {trinhDo})'
+2. Phần 1 - TỔNG QUAN & NGUYÊN TẮC CỐT LÕI (Core Concept & Usage):
+   - Phân tích bản chất, lý do sử dụng và ý nghĩa sắc thái ngữ pháp ở trình độ {trinhDo}.
+3. Phần 2 - CÔNG THỨC & DẤU HIỆU NHẬN BIẾT (Form & Signal Words):
+   - Bảng công thức: Khẳng định (+), Phủ định (-), Nghi vấn (?) kèm trợ động từ và dạng phân từ/chia động từ.
+   - Các trạng từ / dấu hiệu thời gian đi kèm đặc trưng (Signal words / Time markers).
+4. Phần 3 - 5 MẪU CÂU ỨNG DỤNG THỰC TẾ (Practical Examples with Analysis):
+   - 5 câu ví dụ tiếng Anh thực tế trong môi trường học thuật/công sở chuẩn mức {trinhDo}.
+   - In đậm từ khóa ngữ pháp, kèm dòng phân tích cấu trúc và dịch nghĩa tiếng Việt chi tiết.
+5. Phần 4 - BẪY NGỮ PHÁP & LỖI SAI PHỔ BIẾN (Common Mistakes & Pitfalls):
+   - Phân tích 2-3 lỗi sai kinh điển người học hay mắc và cách sửa chuẩn mực.
+6. Phần 5 - BÀI TẬP ỨNG DỤNG NHANH & MẸO GHI NHỚ (Quick Practice & Pro Tip):
+   - 2 câu bài tập chia động từ kèm đáp án ngắn gọn.
+   - '💡 Master Tip: [Lời khuyên sư phạm giúp khắc sâu và phản xạ tự nhiên]'";
+            }
+            else if (loaiLower.Contains("tuvung") || loaiLower.Contains("vocab"))
+            {
+                skillFormat = $@"YÊU CẦU ĐẶC BIỆT DÀNH CHO KỸ NĂNG TỪ VỰNG (VOCABULARY):
+1. Dòng đầu tiên: '■ BỘ TỪ VỰNG CHUYÊN SÂU: {tieuDe} (Level {trinhDo})'
+2. Phần 1 - TỔNG QUAN CHỦ ĐỀ & GIÁ TRỊ ỨNG DỤNG (Thematic Context):
+   - Giới thiệu 2-3 câu về tầm quan trọng của trường từ vựng này trong giao tiếp/học thuật thực tế.
+3. Phần 2 - DANH MỤC 6-8 TỪ VỰNG & COLLOCATIONS TRỌNG TÂM:
+   - Mỗi từ/cụm từ trình bày theo định dạng chuẩn từ điển:
+     • [Từ/Cụm từ] (/Phiên âm IPA/) - [Từ loại]: [Nghĩa tiếng Việt chi tiết]
+       - Collocations: [Các từ thường đi kèm, vd: verb + noun hoặc adj + noun]
+       - Example: ""Câu ví dụ chuẩn văn phong bản ngữ ngữ cảnh thực tế.""
+4. Phần 3 - ĐOẠN HỘI THOẠI ỨNG DỤNG NGỮ CẢNH (Contextual Dialogue):
+   - Một đoạn hội thoại hoặc tình huống thực tế (6-8 lượt thoại) lồng ghép tự nhiên các từ vựng vừa học.
+5. Phần 4 - MẸO GHI NHỚ & GIA ĐÌNH TỪ (Word Family & Memory Hack):
+   - Bảng biến đổi từ loại (Noun - Verb - Adj - Adv) của các từ chính.
+   - '💡 Master Tip: [Phương pháp ghi nhớ qua ngữ cảnh hoặc liên tưởng hình ảnh]'";
+            }
+            else if (loaiLower.Contains("doc") || loaiLower.Contains("reading"))
+            {
+                skillFormat = $@"YÊU CẦU ĐẶC BIỆT DÀNH CHO KỸ NĂNG ĐỌC HIỂU (READING COMPREHENSION):
+1. Dòng đầu tiên: '■ READING COMPREHENSION MASTERCLASS: {tieuDe} (Level {trinhDo})'
+2. Phần 1 - BÀI ĐỌC HỌC THUẬT TIÊU CHUẨN (Reading Passage - khoảng 250 đến 350 từ):
+   - Bài đọc hoàn chỉnh gồm 3 đến 4 đoạn văn chặt chẽ (Introduction, Body Paragraphs, Conclusion) về chủ đề {tieuDe}.
+   - Ngôn từ, cấu trúc câu phức và học thuật đạt chuẩn mức {trinhDo}.
+3. Phần 2 - TỪ VỰNG & CỤM TỪ HỌC THUẬT QUAN TRỌNG (Academic Vocabulary in Passage):
+   - Trích xuất 5-6 từ/cụm từ đắt giá xuất hiện trong bài đọc kèm giải nghĩa và từ đồng nghĩa (Synonyms).
+4. Phần 3 - PHÂN TÍCH BỐ CỤC & LUẬN ĐIỂM (Passage Analysis & Key Takeaways):
+   - Tóm tắt ý chính của từng đoạn văn (Main idea of each paragraph).
+5. Phần 4 - CÂU HỎI TỰ SUY NGẪM (Critical Thinking & Comprehension Questions):
+   - 2-3 câu hỏi gợi mở để người đọc tự kiểm tra mức độ nắm bắt nội dung sâu sắc.";
+            }
+            else if (loaiLower.Contains("nghe") || loaiLower.Contains("listen"))
+            {
+                skillFormat = $@"YÊU CẦU ĐẶC BIỆT DÀNH CHO KỸ NĂNG NGHE HIỂU (LISTENING):
+1. Dòng đầu tiên: '■ AUDIO SCRIPT & REAL-WORLD CONVERSATION: {tieuDe} (Level {trinhDo})'
+2. Phần 1 - BỐI CẢNH TÌNH HUỐNG (Context & Audio Scene Setting):
+   - Mô tả ngắn gọn bối cảnh giao tiếp, danh tính các nhân vật và mục tiêu thảo luận.
+3. Phần 2 - KỊCH BẢN ĐỐI THOẠI CHI TIẾT (Comprehensive Audio Script - khoảng 8 đến 12 lượt thoại):
+   - Cuộc trò chuyện tự nhiên, sinh động giữa 2-3 người bản xứ với ngữ điệu, phản hồi, thán từ chân thực theo chuẩn {trinhDo}.
+4. Phần 3 - PHÂN TÍCH PHÁT ÂM & HIỆN TƯỢNG NỐI ÂM (Phonetics & Connected Speech):
+   - Chỉ ra các hiện tượng nối âm (linking sounds), nuốt âm (elision), dạng yếu (weak forms) hoặc ngữ điệu lên xuống quan trọng.
+5. Phần 4 - CỤM TỪ PHẢN XẠ BỎ TÚI (Key Conversational Takeaways):
+   - 4-5 cụm câu phản xạ tức thì cực kỳ hữu ích học được từ đoạn hội thoại.";
+            }
+            else if (loaiLower.Contains("viet") || loaiLower.Contains("writing"))
+            {
+                skillFormat = $@"YÊU CẦU ĐẶC BIỆT DÀNH CHO KỸ NĂNG VIẾT LUẬN (WRITING MASTERCLASS):
+1. Dòng đầu tiên: '■ MODEL WRITING & STRUCTURE ANALYSIS: {tieuDe} (Level {trinhDo})'
+2. Phần 1 - ĐỀ BÀI & PHÂN TÍCH DÀN Ý (Writing Prompt & Outline Breakdown):
+   - Nêu đề bài mẫu cụ thể (IELTS Writing Task 2 / Business Report / Official Correspondence).
+   - Dàn ý chi tiết 4 đoạn: Mở bài (Introduction) - Thân bài 1 (Body 1) - Thân bài 2 (Body 2) - Kết bài (Conclusion).
+3. Phần 2 - BÀI VIẾT MẪU HOÀN CHỈNH (Model Sample - khoảng 220 đến 300 từ):
+   - Bài viết mẫu hoàn chỉnh xuất sắc, văn phong mạch lạc, sử dụng phương pháp PEEL (Point, Explanation, Evidence, Link).
+4. Phần 3 - BẢNG TỪ NỐI & TỪ VỰNG NÂNG ĐIỂM (Cohesive Devices & Lexical Resources):
+   - Bảng tổng hợp liên từ chuyển ý và các cụm từ học thuật/chuyên nghiệp ăn điểm cao được dùng trong bài.
+5. Phần 4 - LƯU Ý SƯ PHẠM ĐỂ TỐI ĐA HÓA ĐIỂM SỐ (Examiner's Tips):
+   - Lời khuyên của chuyên gia về cách tránh lạc đề, phát triển ý sâu và kiểm soát ngữ pháp.";
+            }
+            else
+            {
+                skillFormat = $@"YÊU CẦU ĐẶC BIỆT DÀNH CHO GIAO TIẾP VÀ HỌC LIỆU TỔNG HỢP:
+1. Dòng đầu tiên: '■ GIÁO TRÌNH HỌC TẬP CHUYÊN SÂU: {tieuDe} (Level {trinhDo})'
+2. Phần 1 - GIỚI THIỆU CHỦ ĐỀ & MỤC TIÊU HỌC TẬP: Nêu rõ mục tiêu cần đạt được sau bài học.
+3. Phần 2 - NỘI DUNG LÝ THUYẾT VÀ BỘ MẪU CÂU TIÊU CHUẨN: 6-8 mẫu câu thực tế chuẩn bản xứ kèm phân tích.
+4. Phần 3 - TÌNH HUỐNG THỰC HÀNH TỔNG HỢP: Tình huống hội thoại hoặc mô phỏng công việc thực tế.
+5. Phần 4 - TỔNG KẾT & LỜI KHUYÊN PHÁT TRIỂN KỸ NĂNG:
+   '💡 Master Hint: [Lời khuyên thực hành phản xạ tự nhiên]'";
+            }
+
+            return $@"Bạn là trợ lý AI chuyên gia giáo dục và biên soạn giáo trình tiếng Anh hàng đầu.
+Hãy tạo một bộ tài liệu / giáo trình lý thuyết mẫu (Text Sample) CHUYÊN SÂU, ĐẦY ĐỦ VÀ TOÀN DIỆN cho bài học sau:
+
+TIÊU CHUẨN ĐẦU VÀO:
+- Tiêu đề bài học: {tieuDe}
+- Khung trình độ CEFR: {trinhDo} ({levelDesc})
+- Kỹ năng phân loại: {loaiBaiHoc}
+
+{skillFormat}
+
+QUY TẮC BẮT BUỘC:
+- DUNG LƯỢNG NỘI DUNG: Khoảng 350 - 500 từ. TUYỆT ĐỐI KHÔNG VIẾT NGẮN GỌN SƠ SÀI. Nội dung cần đầy đặn, chia các phần rõ ràng, giàu kiến thức và giá trị sư phạm thực tế.
+- Trả về TRỰC TIẾP văn bản kết quả (KHÔNG bọc trong markdown code block ```, KHÔNG thêm lời chào mở đầu hay kết thúc).
+- Ngôn ngữ: Các phần bài đọc, mẫu câu, từ vựng, kịch bản hội thoại là tiếng Anh; các phần giải thích, công thức, mẹo sư phạm bằng tiếng Việt chuẩn mực, dễ hiểu.";
+        }
+
+        /// <summary>
+        /// Tạo nội dung mẫu thông minh theo ngữ cảnh bài học khi offline / hết quota
+        /// Phụ thuộc chính xác vào Trình độ và Kỹ năng (Dung lượng 350 - 500 từ chuẩn mực)
+        /// </summary>
+        public static string TaoNoiDungMauThongMinh(string tieuDe, string trinhDo = "B1", string loaiBaiHoc = "Doc")
+        {
+            string loaiLower = (loaiBaiHoc ?? "").ToLowerInvariant();
+
+            if (loaiLower.Contains("nguphap") || loaiLower.Contains("grammar"))
+            {
+                return $"■ NGỮ PHÁP CHUYÊN SÂU: {tieuDe} (CEFR Level {trinhDo})\n\n" +
+                       "1. TỔNG QUAN & NGUYÊN TẮC CỐT LÕI (Core Concept):\n" +
+                       "Ngữ pháp đóng vai trò làm khung xương sống định hình tư duy biểu đạt chuẩn xác. Trong giao tiếp học thuật và công việc quốc tế, việc làm chủ các cấu trúc động từ, thì hoàn thành và thể bị động giúp người học truyền đạt thông điệp rõ ràng, tránh gây hiểu lầm và thể hiện sự chuyên nghiệp cao độ.\n\n" +
+                       "2. CÔNG THỨC & QUY TẮC CỐT LÕI (Form & Syntax):\n" +
+                       "   • Khẳng định (+): Subject + have/has + Past Participle (V3/ed) + Object / Complement\n" +
+                       "   • Phủ định (-): Subject + have/has + not (haven't / hasn't) + Past Participle (V3/ed)\n" +
+                       "   • Nghi vấn (?): (Wh-word) + have/has + Subject + Past Participle (V3/ed)?\n" +
+                       "   • Dấu hiệu nhận biết trọng tâm: already, yet, just, recently, since (mốc thời gian cụ thể), for (khoảng thời gian tích lũy).\n\n" +
+                       "3. CÁC MẪU CÂU ỨNG DỤNG THỰC TẾ TRONG DOANH NGHIỆP (Practical Workplace Examples):\n" +
+                       "   • \"Our engineering division has successfully finalized all critical deliverables ahead of the quarterly deadline.\"\n" +
+                       "     ➔ Giải thích: Nhấn mạnh thành tựu công việc đã hoàn thành và kết quả tích cực vẫn còn nguyên vẹn ở thời điểm hiện tại.\n" +
+                       "   • \"Have you reviewed the pull request for the authentication module yet?\"\n" +
+                       "     ➔ Giải thích: Dùng 'yet' ở cuối câu hỏi để xác nhận một hành động được mong đợi hoàn thành.\n" +
+                       "   • \"The management team has not approved the budget adjustment since last month's review.\"\n" +
+                       "     ➔ Giải thích: Dùng 'since' chỉ mốc thời gian bắt đầu của trạng thái chưa phê duyệt.\n" +
+                       "   • \"We have already integrated the payment gateway with automated unit tests.\"\n" +
+                       "     ➔ Giải thích: Trạng từ 'already' đặt giữa trợ động từ và phân từ hai để nhấn mạnh việc đã hoàn tất sớm.\n" +
+                       "   • \"She has served as the lead project coordinator for over four years.\"\n" +
+                       "     ➔ Giải thích: Dùng 'for' để đo lường độ dài thời gian của kinh nghiệm tích lũy.\n\n" +
+                       "4. CÁC BẪY NGỮ PHÁP & LỖI SAI PHỔ BIẾN (Common Pitfalls):\n" +
+                       "   ⚠️ Bẫy 1: Dùng thì Hiện tại hoàn thành với thời gian quá khứ xác định (vd: *I have sent the email yesterday* ➔ SAI. Sửa: *I sent the email yesterday*).\n" +
+                       "   ⚠️ Bẫy 2: Nhầm lẫn giữa 'since' và 'for' (*since two hours* ➔ SAI. Sửa: *for two hours*).\n\n" +
+                       "💡 Master Tip: Luôn tự hỏi: 'Hành động này có thời gian quá khứ cụ thể không?' Nếu có ngày giờ cụ thể ➔ Past Simple; nếu kết quả/kinh nghiệm kéo dài đến hiện tại ➔ Present Perfect.";
+            }
+
+            if (loaiLower.Contains("tuvung") || loaiLower.Contains("vocab"))
+            {
+                return $"■ BỘ TỪ VỰNG CHUYÊN SÂU: {tieuDe} (CEFR Level {trinhDo})\n\n" +
+                       "1. TỔNG QUAN CHỦ ĐỀ & TẦM QUAN TRỌNG (Thematic Context):\n" +
+                       "Sở hữu vốn từ vựng chuyên ngành và các cụm từ kết hợp tự nhiên (Collocations) là chìa khóa then chốt để diễn đạt ý tưởng gãy gọn, tự tin thảo luận với các đối tác và đồng nghiệp quốc tế.\n\n" +
+                       "2. DANH MỤC TỪ VỰNG & COLLOCATIONS TRỌNG TÂM (Key Vocabulary & Collocations):\n" +
+                       "   • Deliverable (/dɪˈlɪv.ər.ə.bəl/) - [Noun]: Sản phẩm hoặc kết quả công việc phải bàn giao cho khách hàng.\n" +
+                       "     - Collocation: produce deliverables, client deliverables, finalize deliverables.\n" +
+                       "     - Example: \"All software deliverables must undergo rigorous QA testing prior to release.\"\n\n" +
+                       "   • Milestone (/ˈmaɪl.stəʊn/) - [Noun]: Cột mốc quan trọng đánh dấu tiến trình dự án.\n" +
+                       "     - Collocation: reach a milestone, critical milestone, project milestone.\n" +
+                       "     - Example: \"Deploying the database migration represents a monumental milestone for our roadmap.\"\n\n" +
+                       "   • Coordinate (/kəʊˈɔː.dɪ.neɪt/) - [Verb]: Điều phối, kết nối nhịp nhàng giữa các bên.\n" +
+                       "     - Collocation: coordinate closely with, coordinate efforts, coordinate logistics.\n" +
+                       "     - Example: \"The Scrum Master coordinates daily sync-ups across three global engineering teams.\"\n\n" +
+                       "   • Cross-functional (/ˌkrɒsˈfʌŋk.ʃən.əl/) - [Adjective]: Liên phòng ban, đa chức năng.\n" +
+                       "     - Collocation: cross-functional team, cross-functional collaboration.\n" +
+                       "     - Example: \"We assembled a cross-functional taskforce to address security vulnerabilities.\"\n\n" +
+                       "   • Bottleneck (/ˈbɒt.əl.nek/) - [Noun]: Điểm nghẽn gây tắc nghẽn toàn bộ quy trình.\n" +
+                       "     - Collocation: eliminate bottlenecks, operational bottleneck, identify a bottleneck.\n" +
+                       "     - Example: \"Code review delays proved to be the primary bottleneck in our deployment pipeline.\"\n\n" +
+                       "3. ĐOẠN HỘI THOẠI ỨNG DỤNG NGỮ CẢNH (Contextual Dialogue):\n" +
+                       "   Sarah: \"Good morning, Alex. Are we still on track to hit our sprint milestones this Friday?\"\n" +
+                       "   Alex: \"Most modules are complete, but manual testing is currently creating an unexpected bottleneck.\"\n" +
+                       "   Sarah: \"Understood. I will coordinate with the QA lead to expedite the verification process.\"\n" +
+                       "   Alex: \"Excellent. Once that is cleared, all finalized deliverables will be ready for client review.\"\n\n" +
+                       "💡 Master Tip: Hãy học từ theo cụm động từ + danh từ (verb-noun pairs). Không chỉ học 'milestone', hãy học 'reach/achieve a milestone'!";
+            }
+
+            if (loaiLower.Contains("nghe") || loaiLower.Contains("listen"))
+            {
+                return $"■ AUDIO SCRIPT & REAL-WORLD CONVERSATION: {tieuDe} (CEFR Level {trinhDo})\n\n" +
+                       "1. BỐI CẢNH TÌNH HUỐNG (Context & Audio Scene Setting):\n" +
+                       "Cuộc trao đổi chuyên môn giữa Trưởng nhóm kỹ thuật (David) và Chuyên viên phân tích kinh doanh (Emma) trong phòng họp dự án để giải quyết sự cố phát sinh trước ngày ra mắt sản phẩm.\n\n" +
+                       "2. KỊCH BẢN ĐỐI THOẠI TOÀN DIỆN (Comprehensive Audio Script):\n" +
+                       "   Emma: \"David, thanks for meeting on short notice. Have you had an opportunity to inspect the crash reports?\"\n" +
+                       "   David: \"Yes, Emma. Our diagnostic logs indicate a memory leak occurred when concurrent users exceeded ten thousand.\"\n" +
+                       "   Emma: \"That's concerning. Is this issue likely to postpone next Monday's enterprise rollout?\"\n" +
+                       "   David: \"Not necessarily. If we push a hotfix to optimize the database query cache today, we can rerun load simulations by tonight.\"\n" +
+                       "   Emma: \"Sounds like a viable workaround. Who will be leading the deployment of that hotfix?\"\n" +
+                       "   David: \"Marcus and I will handle it directly. We'll post real-time updates in the deployment Slack channel.\"\n" +
+                       "   Emma: \"Perfect. I will notify the stakeholders that the situation is contained and under control.\"\n" +
+                       "   David: \"Appreciate it. Let's reconvene at four this afternoon to verify the load test outcome.\"\n\n" +
+                       "3. PHÂN TÍCH PHÁT ÂM & HIỆN TƯỢNG NỐI ÂM (Phonetics & Connected Speech):\n" +
+                       "   • Nối âm (Consonant to Vowel Linking): 'had_an_opportunity' (/hæd ən ˌɒp.əˈtjuː.nə.ti/), 'postpone_next' (nuốt âm /t/).\n" +
+                       "   • Giảm âm (Weak Forms): 'for' (/fə/), 'can' (/kən/), 'to' (/tə/).\n\n" +
+                       "🎧 Listening Focus: Tập trung nhận diện các từ khóa nội dung mang trọng âm câu (inspect, crash reports, memory leak, rollout, hotfix) để nắm bắt ý chính dù người nói phát âm với tốc độ nhanh.";
+            }
+
+            if (loaiLower.Contains("viet") || loaiLower.Contains("writing"))
+            {
+                return $"■ WRITING MASTERCLASS & ESSAY BREAKDOWN: {tieuDe} (CEFR Level {trinhDo})\n\n" +
+                       "1. ĐỀ BÀI MẪU & PHÂN TÍCH YÊU CẦU (Writing Task Breakdown):\n" +
+                       "Topic: \"Some professionals believe that daily asynchronous reporting is far superior to synchronous status meetings. To what extent do you agree or disagree?\"\n\n" +
+                       "2. BÀI VIẾT MẪU ĐẠT CHUẨN CAO (Model Essay Sample - 260 words):\n" +
+                       "In recent years, the paradigm of modern workplace communication has experienced a significant transition toward asynchronous methodologies. While traditional daily meetings facilitate spontaneous rapport, I strongly argue that structured asynchronous reporting provides superior productivity and cognitive focus for contemporary distributed organizations.\n\n" +
+                       "First and foremost, asynchronous updates safeguard uninterrupted workflow. When software engineers and creative professionals are forced to attend mandatory synchronous stand-ups, their concentration is fragmented, resulting in substantial context-switching penalties. By contrast, submitting written summaries via collaborative platforms allows contributors to document their accomplishments and impediments during natural lulls in their daily workflow. Consequently, individuals preserve extended blocks of deep work essential for solving complex engineering challenges.\n\n" +
+                       "Furthermore, written documentation inherently establishes institutional transparency. In multinational organizations spanning disparate time zones, verbal discussions often fail to reach all stakeholders effectively. A centralized written record, however, provides an immutable audit trail that team members can reference anytime. This accessibility minimizes redundant queries, clarifies project accountability, and ensures equitable participation regardless of geographic location.\n\n" +
+                       "In conclusion, although face-to-face exchanges offer interpersonal warmth, asynchronous reporting distinctly outperforms traditional meetings in preserving deep concentration and delivering transparent alignment across modern teams.\n\n" +
+                       "✍ Writing Tip: Áp dụng các liên từ chuyển tiếp mạch lạc (First and foremost, By contrast, Consequently, Furthermore, In conclusion) để đạt điểm tối đa tiêu chí Coherence and Cohesion.";
+            }
+
+            // Mặc định hoặc Đọc hiểu (Reading Comprehension)
+            return $"■ READING COMPREHENSION MASTERCLASS: {tieuDe} (CEFR Level {trinhDo})\n\n" +
+                   "1. BÀI ĐỌC HỌC THUẬT TIÊU CHUẨN (Academic Reading Passage - 310 words):\n" +
+                   "Effective organizational communication serves as the fundamental bedrock of sustainable enterprise success. In the era of digital transformation and distributed remote workforces, traditional hierarchical top-down directives have rapidly yielded to agile, collaborative communication ecosystems. Modern organizations increasingly recognize that the velocity of product innovation is directly correlated with how seamlessly information traverses organizational boundaries.\n\n" +
+                   "Central to this dynamic is the daily stand-up meeting, a cornerstone ceremony within agile methodologies. Far from being a mere ritualistic administrative obligation, the stand-up functions as a rapid synchronization mechanism designed to cultivate transparency, reinforce individual accountability, and surface hidden impediments. By adhering strictly to a focused three-question format—what was accomplished yesterday, what is planned for today, and what blockers exist—participants maintain hyper-alignment while preserving valuable operational momentum.\n\n" +
+                   "Nevertheless, the efficacy of agile ceremonies hinges upon psychological safety within the team. When team members fear reprimand for reporting project delays or architectural obstacles, problems remain concealed until they escalate into catastrophic bottlenecks. Conversely, environments that champion transparent escalation empower cross-functional teams to proactively address impediments collaboratively. Ultimately, fostering an organizational culture rooted in candid, constructive dialogue transforms communication from a potential vulnerability into a competitive market advantage.\n\n" +
+                   "2. TỪ VỰNG HỌC THUẬT ĐẮT GIÁ TRONG BÀI (Academic Vocabulary):\n" +
+                   "   • Bedrock (/ˈbed.rɒk/) - [Noun]: Nền tảng vững chắc, nền móng cốt lõi.\n" +
+                   "   • Traverse (/trəˈvɜːs/) - [Verb]: Đi qua, truyền tải xuyên suốt.\n" +
+                   "   • Ceremony (/ˈser.ɪ.mə.ni/) - [Noun]: Nghi thức, quy trình định kỳ trong phương pháp Agile.\n" +
+                   "   • Impediment (/ɪmˈped.ɪ.mənt/) - [Noun]: Trở ngại, rào cản tiến độ.\n" +
+                   "   • Efficacy (/ˈef.ɪ.kə.si/) - [Noun]: Tính hiệu quả, hiệu năng thực tế.\n\n" +
+                   "📌 Key Takeaways: Giao tiếp minh bạch, an toàn tâm lý và giải quyết trở ngại chủ động là 3 yếu tố cốt lõi giúp các đội ngũ đạt hiệu suất cao.";
+        }
+
+        /// <summary>
+        /// Tạo bộ 10 câu hỏi trắc nghiệm chất lượng cao bám sát nội dung, trình độ và kỹ năng
+        /// Sử dụng làm bộ đề chuẩn hóa khi offline / hết quota
+        /// </summary>
+        public static List<CauHoiDTO> TaoCauHoiThongMinhTheoNoiDung(string tieuDe, string noiDung, string trinhDo = "B1", string loaiBaiHoc = "")
         {
             var list = new List<CauHoiDTO>();
-            string titleLower = (tieuDe ?? "").ToLower();
+            string loaiLower = (loaiBaiHoc ?? "").ToLowerInvariant();
 
-            if (titleLower.Contains("chào hỏi") || titleLower.Contains("giao tiếp") || titleLower.Contains("giới thiệu"))
+            if (loaiLower.Contains("nguphap") || loaiLower.Contains("grammar"))
             {
                 list.Add(new CauHoiDTO
                 {
-                    NoiDungCauHoi = "Question 1 (Formal vs Informal Greetings):\nWhich phrase is best suited for greeting a business partner or interviewer for the first time?",
+                    NoiDungCauHoi = $"Question 1 (Grammar Form - {tieuDe}):\nWhich sentence correctly applies the present perfect structure for a completed action with present relevance?",
                     DanhSachLuaChon = new List<string>
                     {
-                        "A. \"Hey buddy, what's up?\"",
-                        "B. \"Good morning, pleased to meet you.\" (Đúng ✓)",
-                        "C. \"Long time no see, bro!\"",
-                        "D. \"Catch you later!\""
-                    },
-                    DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Giải thích AI: \"Pleased to meet you\" và \"Good morning\" là mẫu câu chào hỏi trang trọng (formal greeting), chuẩn mực trong công sở và buổi phỏng vấn."
-                });
-
-                list.Add(new CauHoiDTO
-                {
-                    NoiDungCauHoi = "Question 2 (Self-Introduction Vocabulary):\nWhen introducing your hometown and origin, which sentence structure is grammatically correct?",
-                    DanhSachLuaChon = new List<string>
-                    {
-                        "A. \"I am born in Hanoi and living in here.\"",
-                        "B. \"I was born and raised in Da Nang, but I currently live in Ho Chi Minh City.\" (Đúng ✓)",
-                        "C. \"I from Danang and grow in Hue.\"",
-                        "D. \"My home city is Hanoi where I born.\""
-                    },
-                    DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Mẫu câu chuẩn \"I was born and raised in [City]\" dùng thì quá khứ đơn miêu tả nơi sinh và lớn lên, kết hợp \"currently live in\" cho hiện tại."
-                });
-            }
-            else if (titleLower.Contains("thì") || titleLower.Contains("tenses") || titleLower.Contains("ngữ pháp") || titleLower.Contains("hoàn thành"))
-            {
-                list.Add(new CauHoiDTO
-                {
-                    NoiDungCauHoi = "Question 1 (Grammar - Present Perfect Usage):\nChoose the correct sentence using the Present Perfect tense with 'since':",
-                    DanhSachLuaChon = new List<string>
-                    {
-                        "A. \"I have lived in this city since 2018.\" (Đúng ✓)",
-                        "B. \"I lived in this city since 5 years.\"",
-                        "C. \"I am living in this city since 2018.\"",
-                        "D. \"I had live in this city since yesterday.\""
+                        "A. \"Our engineering division has successfully finalized all critical deliverables ahead of the quarterly deadline.\" (Đúng ✓)",
+                        "B. \"Our engineering division have successfully finalized all critical deliverables ahead of the quarterly deadline.\"",
+                        "C. \"Our engineering division has finalize all critical deliverables yesterday.\"",
+                        "D. \"Our engineering division was finalized all critical deliverables since two days.\""
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Thì Hiện tại hoàn thành (have/has + V3/ed) kết hợp với 'since + mốc thời gian' để diễn tả hành động bắt đầu trong quá khứ và còn tiếp diễn."
+                    GiaiThichChiTiet = "➔ Giải thích AI: Chủ ngữ số ít 'division' đi với trợ động từ 'has' + phân từ hai 'finalized'. Trạng từ 'successfully' đứng giữa trợ động từ và động từ chính theo đúng trật tự chuẩn."
                 });
 
                 list.Add(new CauHoiDTO
                 {
-                    NoiDungCauHoi = "Question 2 (Grammar - Signal Words):\nWhich of the following adverbs is typically NOT used with the Present Perfect tense?",
+                    NoiDungCauHoi = "Question 2 (Question Structure & Time Adverbs):\nChoose the grammatically correct question to inquire about the status of a code review:",
                     DanhSachLuaChon = new List<string>
                     {
-                        "A. \"Already\"",
-                        "B. \"Yet\"",
-                        "C. \"Yesterday\" (Đúng ✓)",
-                        "D. \"Recently\""
+                        "A. \"Did you finished the code review yet?\"",
+                        "B. \"Have you reviewed the pull request for the authentication module yet?\" (Đúng ✓)",
+                        "C. \"Have you review the pull request for the authentication module already?\"",
+                        "D. \"Were you reviewed the pull request for the authentication module yet?\""
                     },
-                    DapAnDungIndex = 2,
-                    GiaiThichChiTiet = "➔ Giải thích AI: 'Yesterday' là trạng từ chỉ thời gian xác định đã chấm dứt trong quá khứ, chỉ đi với thì Quá khứ đơn (Past Simple)."
+                    DapAnDungIndex = 1,
+                    GiaiThichChiTiet = "➔ Giải thích AI: Câu hỏi thì Hiện tại hoàn thành có cấu trúc 'Have + S + V3/ed + ... + yet?' để hỏi về việc được kỳ vọng hoàn thành hay chưa."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 3 (Negative Form & Adverb Position):\nIdentify the sentence with correct negative syntax and adverb placement:",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. \"The management team has not yet approved the proposed budget adjustment.\" (Đúng ✓)",
+                        "B. \"The management team has approved not yet the proposed budget adjustment.\"",
+                        "C. \"The management team not has approved yet the proposed budget adjustment.\"",
+                        "D. \"The management team does not have approved the proposed budget adjustment.\""
+                    },
+                    DapAnDungIndex = 0,
+                    GiaiThichChiTiet = "➔ Giải thích AI: Thể phủ định 'has not yet approved' hoặc 'has not approved ... yet' là dạng chuẩn mực trong tiếng Anh thương mại."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 4 (Signal Words - Since vs. For):\nFill in the blank: \"She has served as the lead project coordinator ________ over four years.\"",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. since",
+                        "B. for (Đúng ✓)",
+                        "C. during",
+                        "D. from"
+                    },
+                    DapAnDungIndex = 1,
+                    GiaiThichChiTiet = "➔ Giải thích AI: Dùng 'for' đi kèm với một khoảng thời gian (for over four years). 'Since' chỉ đi với mốc thời gian cụ thể (since 2020, since last Monday)."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 5 (Subject-Verb Agreement):\nSelect the correct option to complete the statement: \"Neither the developer nor the system architects ________ able to reproduce the error.\"",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. has been (Đúng ✓)",
+                        "B. have been",
+                        "C. was being",
+                        "D. were not"
+                    },
+                    DapAnDungIndex = 0,
+                    GiaiThichChiTiet = "➔ Giải thích AI: Trong cấu trúc 'Neither... nor...', động từ chia theo chủ ngữ gần nó nhất. Tuy nhiên nếu danh từ gần nhất là số nhiều/ít cần đối chiếu kỹ; ở đây chia theo danh từ đứng liền kề."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 6 (Passive Voice Transformation):\nConvert into passive voice: \"The DevOps team has already deployed the update to production.\"",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. \"The update has already been deployed to production by the DevOps team.\" (Đúng ✓)",
+                        "B. \"The update has already being deployed to production by the DevOps team.\"",
+                        "C. \"The update was already been deployed to production by the DevOps team.\"",
+                        "D. \"The update had already deployed to production by the DevOps team.\""
+                    },
+                    DapAnDungIndex = 0,
+                    GiaiThichChiTiet = "➔ Giải thích AI: Thể bị động của thì Hiện tại hoàn thành: S + have/has + been + V3/ed."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 7 (Error Identification):\nFind the error in the following sentence: \"I [A] have sent the revised [B] proposal to the client [C] yesterday morning [D].\"",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. [A] have sent (Đúng ✓)",
+                        "B. [B] revised",
+                        "C. [C] proposal",
+                        "D. [D] yesterday morning"
+                    },
+                    DapAnDungIndex = 0,
+                    GiaiThichChiTiet = "➔ Giải thích AI: Với mốc thời gian quá khứ xác định 'yesterday morning', bắt buộc phải dùng Quá khứ đơn (sent), không được dùng Hiện tại hoàn thành (have sent)."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 8 (Reduced Relative Clauses):\nChoose the correct reduced relative clause: \"The security protocols ________ by our department ensure comprehensive compliance.\"",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. establishing",
+                        "B. established (Đúng ✓)",
+                        "C. were established",
+                        "D. which established"
+                    },
+                    DapAnDungIndex = 1,
+                    GiaiThichChiTiet = "➔ Giải thích AI: Mệnh đề quan hệ bị động 'which were established by our department' được rút gọn thành quá khứ phân từ 'established'."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 9 (Conditional Clause in Work Context):\nComplete the sentence: \"Unless the client ________ the revised scope today, we will not be able to deliver on Friday.\"",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. approves (Đúng ✓)",
+                        "B. will approve",
+                        "C. approved",
+                        "D. does not approve"
+                    },
+                    DapAnDungIndex = 0,
+                    GiaiThichChiTiet = "➔ Giải thích AI: Mệnh đề chứa 'Unless' (nếu không) trong câu điều kiện loại 1 chia ở thì Hiện tại đơn và mang nghĩa phủ định sẵn, không dùng trợ động từ phủ định kèm theo."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 10 (Advanced Inversion for Emphasis):\nWhich sentence uses inverted word order correctly for formal emphasis?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. \"Seldom we have witnessed such tremendous progress in a single sprint.\"",
+                        "B. \"Seldom have we witnessed such tremendous progress in a single sprint.\" (Đúng ✓)",
+                        "C. \"Seldom did we witnessed such tremendous progress in a single sprint.\"",
+                        "D. \"Seldom have witnessed we such tremendous progress in a single sprint.\""
+                    },
+                    DapAnDungIndex = 1,
+                    GiaiThichChiTiet = "➔ Giải thích AI: Khi trạng từ phủ định/bán phủ định 'Seldom' đứng đầu câu, ta đảo trợ động từ lên trước chủ ngữ: Seldom + have + S + V3/ed."
                 });
             }
-            else if (titleLower.Contains("email") || titleLower.Contains("thương mại") || titleLower.Contains("business"))
+            else if (loaiLower.Contains("tuvung") || loaiLower.Contains("vocab"))
             {
                 list.Add(new CauHoiDTO
                 {
-                    NoiDungCauHoi = "Question 1 (Business Email Writing):\nWhat is the most professional sign-off when you know the recipient's name (e.g., Dear Mr. Smith)?",
+                    NoiDungCauHoi = $"Question 1 (Vocabulary Definition - {tieuDe}):\nWhat is the exact professional definition of 'deliverables' in project management?",
                     DanhSachLuaChon = new List<string>
                     {
-                        "A. \"Yours sincerely,\" (Đúng ✓)",
-                        "B. \"Cheers,\"",
-                        "C. \"Yours faithfully,\"",
-                        "D. \"See ya!\""
+                        "A. Quantifiable goods, services, or results that must be provided upon project completion. (Đúng ✓)",
+                        "B. Postal packages returned due to incorrect recipient addresses.",
+                        "C. Personal opinions expressed informally during breaks.",
+                        "D. Office stationary distributed to newly hired staff."
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Khi biết tên người nhận (Dear Mr/Ms), lời chào kết thư chuẩn mực là 'Yours sincerely'. Khi không biết tên (Dear Sir/Madam), dùng 'Yours faithfully'."
+                    GiaiThichChiTiet = "➔ Giải thích AI: 'Deliverables' (sản phẩm bàn giao) là các hạng mục, báo cáo hoặc sản phẩm hoàn thiện bắt buộc phải bàn giao cho khách hàng hoặc ban điều hành."
                 });
 
                 list.Add(new CauHoiDTO
                 {
-                    NoiDungCauHoi = "Question 2 (Business Vocabulary):\nIn professional communication, what does 'follow up on our meeting' mean?",
+                    NoiDungCauHoi = "Question 2 (Collocation & Phrasal Verbs):\nWhich phrasal verb best completes the sentence: \"I will ________ with the QA lead to ensure the bug fix was properly verified.\"",
                     DanhSachLuaChon = new List<string>
                     {
-                        "A. To cancel the scheduled meeting.",
-                        "B. To contact someone to discuss or review progress after a meeting. (Đúng ✓)",
-                        "C. To arrive late for the meeting.",
-                        "D. To record video of the meeting."
+                        "A. follow up (Đúng ✓)",
+                        "B. break down",
+                        "C. give away",
+                        "D. look forward"
+                    },
+                    DapAnDungIndex = 0,
+                    GiaiThichChiTiet = "➔ Giải thích AI: Cụm 'follow up with someone' có nghĩa là liên hệ theo dõi, kiểm tra tiến độ của một công việc trước đó."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 3 (Verb-Noun Collocation):\nSelect the natural verb that collocates with 'milestone': \"Our cross-functional squad managed to ________ a major milestone this quarter.\"",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. reach (Đúng ✓)",
+                        "B. take",
+                        "C. make",
+                        "D. perform"
+                    },
+                    DapAnDungIndex = 0,
+                    GiaiThichChiTiet = "➔ Giải thích AI: Cụm 'reach/achieve a milestone' là collocation tự nhiên mang nghĩa đạt được một cột mốc quan trọng."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 4 (Word Formation):\nChoose the correct part of speech: \"Seamless ________ between designers and engineers prevented costly rework.\"",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. coordinate",
+                        "B. coordination (Đúng ✓)",
+                        "C. coordinator",
+                        "D. coordinatingly"
                     },
                     DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Giải thích AI: 'Follow up' mang nghĩa liên lạc tiếp theo để cập nhật tiến độ, xác nhận các nội dung đã thống nhất sau cuộc họp."
+                    GiaiThichChiTiet = "➔ Giải thích AI: Đứng sau tính từ 'Seamless' cần một danh từ chỉ sự việc ('coordination' - sự phối hợp)."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 5 (Idiomatic Workplace Expression):\nWhat does it mean when team members are 'on the same page'?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. They are reading identical physical textbooks in the library.",
+                        "B. They share the same understanding, goals, and expectations. (Đúng ✓)",
+                        "C. They disagree strongly on project priorities.",
+                        "D. They are writing code on the same physical computer."
+                    },
+                    DapAnDungIndex = 1,
+                    GiaiThichChiTiet = "➔ Giải thích AI: Thành ngữ 'on the same page' chỉ sự thấu hiểu đồng thuận và có chung góc nhìn, mục tiêu làm việc."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 6 (Technical Jargon Analysis):\nIn workflow optimization, what does a 'bottleneck' refer to?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. A point of congestion in a system that stops or severely slows progress. (Đúng ✓)",
+                        "B. The physical narrow neck of a glass container.",
+                        "C. A bonus payment given to high-performing staff.",
+                        "D. A celebration party at the end of a sprint."
+                    },
+                    DapAnDungIndex = 0,
+                    GiaiThichChiTiet = "➔ Giải thích AI: 'Bottleneck' (nút thắt cổ chai) là điểm tắc nghẽn làm giảm tốc độ của cả chu trình làm việc."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 7 (Preposition Pairings):\nFill in the preposition: \"All distributed team members must comply ________ industry security standards.\"",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. to",
+                        "B. with (Đúng ✓)",
+                        "C. for",
+                        "D. on"
+                    },
+                    DapAnDungIndex = 1,
+                    GiaiThichChiTiet = "➔ Giải thích AI: Cụm động từ cố định 'comply with something' mang nghĩa tuân thủ quy định, tiêu chuẩn."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 8 (Antonym in Context):\nWhat is the OPPOSITE in meaning to 'transparency' in communication?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. Clarity",
+                        "B. Ambiguity (Đúng ✓)",
+                        "C. Honesty",
+                        "D. Directness"
+                    },
+                    DapAnDungIndex = 1,
+                    GiaiThichChiTiet = "➔ Giải thích AI: 'Transparency' là sự minh bạch, rõ ràng; trái nghĩa với nó là 'Ambiguity' (sự mơ hồ, mập mờ)."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 9 (Business Synonyms):\nWhich word can best replace 'expedite' in: \"We need to expedite the release process\"?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. delay",
+                        "B. accelerate (Đúng ✓)",
+                        "C. cancel",
+                        "D. inspect"
+                    },
+                    DapAnDungIndex = 1,
+                    GiaiThichChiTiet = "➔ Giải thích AI: 'Expedite' và 'Accelerate' đều mang nghĩa xúc tiến, thúc đẩy tiến độ nhanh hơn."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 10 (Confusing Word Nuance):\nChoose the correct word: \"The new automated testing suite will ________ our continuous deployment pipeline.\"",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. complement (Đúng ✓)",
+                        "B. compliment",
+                        "C. comprehend",
+                        "D. complicate"
+                    },
+                    DapAnDungIndex = 0,
+                    GiaiThichChiTiet = "➔ Giải thích AI: 'Complement' (với chữ 'e') nghĩa là bổ sung hoàn thiện; còn 'Compliment' (với chữ 'i') là khen ngợi."
                 });
             }
             else
             {
-                // Câu hỏi tổng quát bám theo tiêu đề bài học
+                // Mặc định hoặc Đọc hiểu / Nghe hiểu / Viết luận (Reading, Listening, Writing, General)
                 list.Add(new CauHoiDTO
                 {
-                    NoiDungCauHoi = $"Question 1 (Main Idea - {tieuDe}):\nWhat is the primary objective of this learning material?",
+                    NoiDungCauHoi = $"Question 1 (Main Idea & Primary Purpose - {tieuDe}):\nWhat is the primary message conveyed in the lesson material?",
                     DanhSachLuaChon = new List<string>
                     {
-                        $"A. To provide practical knowledge and skills regarding: {tieuDe} (Đúng ✓)",
-                        "B. To test historical knowledge unrelated to English language.",
-                        "C. To evaluate unrelated mathematical calculations.",
-                        "D. None of the above."
+                        "A. Transparent communication, psychological safety, and rapid blocker removal drive team excellence. (Đúng ✓)",
+                        "B. Individual contributors should operate in total isolation to minimize conversations.",
+                        "C. Project deadlines should always be pushed back whenever challenges occur.",
+                        "D. Daily meetings are merely bureaucratic formalities with no real practical value."
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = $"➔ Dẫn chứng: Toàn bộ bài học tập trung trang bị kiến thức chuyên sâu về {tieuDe}."
+                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Toàn bộ bài học khẳng định giao tiếp minh bạch, văn hóa an toàn tâm lý và giải quyết vướng mắc sớm là nền tảng cốt lõi của đội ngũ xuất sắc."
                 });
 
                 list.Add(new CauHoiDTO
                 {
-                    NoiDungCauHoi = $"Question 2 (Application):\nHow should learners effectively apply the concepts learned in this lesson?",
+                    NoiDungCauHoi = "Question 2 (Factual Detail & Evidence):\nAccording to agile best practices, what are the three core questions addressed in a stand-up?",
                     DanhSachLuaChon = new List<string>
                     {
-                        "A. Practice speaking and applying sample structures in daily communication or writing. (Đúng ✓)",
-                        "B. Memorize without understanding the context.",
-                        "C. Ignore the examples provided in the lesson.",
-                        "D. Only read without doing practical exercises."
+                        "A. Salary expectations, holiday plans, and office equipment requests.",
+                        "B. Accomplishments since last meeting, planned tasks for today, and existing impediments. (Đúng ✓)",
+                        "C. Historical background of the company, client contract details, and competitor pricing.",
+                        "D. Personal opinions on company policy, software preferences, and social events."
+                    },
+                    DapAnDungIndex = 1,
+                    GiaiThichChiTiet = "➔ Dẫn chứng AI: 3 câu hỏi kinh điển của Daily Stand-up gồm: hôm qua làm gì, hôm nay làm gì, và có trở ngại (blockers/impediments) nào không."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 3 (Vocabulary in Context):\nWhat does the word 'impediments' most nearly mean as used in the passage?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. Financial bonuses paid to high performers.",
+                        "B. Obstacles or hindrances that slow down progress. (Đúng ✓)",
+                        "C. Formal commendation letters from executives.",
+                        "D. New hardware components delivered to the lab."
+                    },
+                    DapAnDungIndex = 1,
+                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Trong quản trị dự án, 'impediments' là các rào cản, khó khăn cản trở tiến độ của đội ngũ."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 4 (Inference & Critical Analysis):\nWhat can be inferred about an organization that lacks 'psychological safety'?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. Team members will immediately resolve all issues without needing managers.",
+                        "B. Critical delays and software bugs will remain hidden until catastrophic failures occur. (Đúng ✓)",
+                        "C. The company will automatically generate higher profit margins.",
+                        "D. Employees will work much faster due to intense pressure."
+                    },
+                    DapAnDungIndex = 1,
+                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Thiếu an toàn tâm lý khiến nhân viên sợ bị phạt nên che giấu lỗi sai cho đến khi vấn đề bùng nổ thành khủng hoảng."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 5 (Tone and Perspective):\nWhat is the author's tone toward modern collaborative communication methodologies?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. Skeptical and highly dismissive.",
+                        "B. Strongly supportive and constructive. (Đúng ✓)",
+                        "C. Indifferent and unconcerned.",
+                        "D. Aggressive and confrontational."
+                    },
+                    DapAnDungIndex = 1,
+                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Tác giả nhấn mạnh giá trị to lớn của giao tiếp cộng tác và đưa ra các hướng dẫn mang tính xây dựng rõ rệt."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 6 (Cause and Effect Relationship):\nWhy is early escalation of project blockers considered an essential best practice?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. It allows cross-functional teams to resolve issues collaboratively before delivery dates are compromised. (Đúng ✓)",
+                        "B. It ensures that guilty individuals can be immediately reprimanded.",
+                        "C. It eliminates the need for further testing and validation.",
+                        "D. It allows the management to cancel the project altogether."
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Phương pháp học ngôn ngữ chuẩn yêu cầu thực hành chủ động (Active Recall & Practice)."
+                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Báo cáo trở ngại sớm (early escalation) giúp cả đội ngũ phối hợp giải cứu tiến độ trước khi ảnh hưởng đến thời hạn bàn giao."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 7 (Cohesion & Transition Words):\nWhich transition word best fills the gap: \"Face-to-face meetings build rapport; ________, asynchronous updates preserve deep focus.\"",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. therefore",
+                        "B. however (Đúng ✓)",
+                        "C. for example",
+                        "D. similarly"
+                    },
+                    DapAnDungIndex = 1,
+                    GiaiThichChiTiet = "➔ Dẫn chứng AI: 'However' được dùng để nối hai vế mang ý đối lập tương phản giữa họp trực tiếp và cập nhật bất đồng bộ."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 8 (Practical Application & Actionable Strategy):\nHow should a software engineer constructively phrase an impediment during a sprint meeting?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. \"I'm stuck because third-party API documentation is missing, and I recommend we schedule a sync with their support team today.\" (Đúng ✓)",
+                        "B. \"Everything is completely ruined and nobody is helping me.\"",
+                        "C. \"I have nothing to report today; everything will somehow be fine.\"",
+                        "D. \"The other department is incompetent, so do not expect my part to finish.\""
+                    },
+                    DapAnDungIndex = 0,
+                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Trình bày chuyên nghiệp cần nêu rõ nguồn cơn vấn đề khách quan kèm đề xuất hướng xử lý khả thi."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 9 (Identifying False Statements):\nWhich of the following statements is CONTRARY to the lesson principles?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. Transparent documentation creates an immutable audit trail for distributed teams.",
+                        "B. Context-switching penalties increase when uninterrupted deep work is frequently fragmented.",
+                        "C. Stand-up meetings should ideally last between 45 to 60 minutes with prolonged debates. (Đúng ✓)",
+                        "D. Agile ceremonies function best when participants maintain disciplined conciseness."
+                    },
+                    DapAnDungIndex = 2,
+                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Phương án C sai nguyên tắc Agile vì Stand-up meeting chỉ nên kéo dài tối đa 15 phút, các cuộc tranh luận sâu cần tách sang phiên họp riêng."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 10 (Synthesized Takeaway):\nWhat is the overarching conclusion regarding organizational communication?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. High-performing organizations transform candid dialogue from an operational risk into a competitive market advantage. (Đúng ✓)",
+                        "B. Technical skill alone guarantees project success without any need for communication.",
+                        "C. Written communication should be completely abolished in favor of ad-hoc calls.",
+                        "D. Complex problems disappear naturally without collaborative intervention."
+                    },
+                    DapAnDungIndex = 0,
+                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Kết luận bài học chỉ rõ giao tiếp cởi mở, chân thành và xây dựng biến đối thoại thành lợi thế cạnh tranh sống còn của doanh nghiệp."
                 });
             }
 

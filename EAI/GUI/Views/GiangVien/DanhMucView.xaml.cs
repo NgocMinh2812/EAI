@@ -223,7 +223,9 @@ namespace GUI.Views.GiangVien
                     _currentPreviewLesson.TieuDe ?? "", 
                     contentToAnalyze, 
                     _currentPreviewLesson.MaTrinhDo ?? "B1", 
-                    2);
+                    10,
+                    module: "DanhMucCauTruc",
+                    loaiBaiHoc: _currentPreviewLesson.LoaiBaiHoc ?? "");
 
                 if (aiQuestions != null && aiQuestions.Count > 0)
                 {
@@ -239,7 +241,7 @@ namespace GUI.Views.GiangVien
                         icExtractedQuestions.ItemsSource = _currentPreviewLesson.DanhSachCauHoi;
                     }
 
-                    ThongBaoDialog.ThanhCong(Window.GetWindow(this), "Gemini AI đã phân tích nội dung tệp và bóc tách thành công 2 câu hỏi trắc nghiệm mới!", "AI bóc tách thành công");
+                    ThongBaoDialog.ThanhCong(Window.GetWindow(this), $"Gemini AI đã phân tích nội dung tệp và bóc tách thành công {aiQuestions.Count} câu hỏi trắc nghiệm chất lượng cao!", "AI bóc tách thành công");
                 }
             }
             catch (Exception ex)
@@ -452,24 +454,11 @@ namespace GUI.Views.GiangVien
 
             try
             {
-                string srcFile = _currentPreviewLesson.DuongDanTepVatLy;
-                // Nếu đường dẫn vật lý trong DB không tồn tại, thử tìm trong thư mục KhoHocLieu theo tên file
-                if (string.IsNullOrEmpty(srcFile) || !System.IO.File.Exists(srcFile))
-                {
-                    string khoRoot = KhoHocLieuSyncHelper.GetKhoHocLieuRoot();
-                    if (!string.IsNullOrEmpty(_currentPreviewLesson.TenTepVatLy) && System.IO.Directory.Exists(khoRoot))
-                    {
-                        var files = System.IO.Directory.GetFiles(khoRoot, _currentPreviewLesson.TenTepVatLy, System.IO.SearchOption.AllDirectories);
-                        if (files != null && files.Length > 0)
-                        {
-                            srcFile = files[0];
-                        }
-                    }
-                }
+                string? srcFile = KhoHocLieuSyncHelper.TimTepVatLyChoBaiHoc(_currentPreviewLesson);
 
                 string ext = !string.IsNullOrEmpty(srcFile) 
                     ? System.IO.Path.GetExtension(srcFile)
-                    : (!string.IsNullOrEmpty(_currentPreviewLesson.DuongDanTepVatLy) ? System.IO.Path.GetExtension(_currentPreviewLesson.DuongDanTepVatLy) : ".docx");
+                    : ((_currentPreviewLesson.DinhDangTep == "PDF") ? ".pdf" : ".docx");
                 if (string.IsNullOrEmpty(ext)) ext = ".docx";
 
                 string defaultName = !string.IsNullOrEmpty(_currentPreviewLesson.TenTepVatLy)
@@ -490,20 +479,14 @@ namespace GUI.Views.GiangVien
                     }
                     else
                     {
-                        string content = $"{_currentPreviewLesson.TieuDe}\n\nChủ đề: {_currentPreviewLesson.TenChuDe} | Trình độ: {_currentPreviewLesson.MaTrinhDo}\n\n{_currentPreviewLesson.TomTat}\n\n{_currentPreviewLesson.NoiDung}";
-                        if (_currentPreviewLesson.DanhSachCauHoi != null && _currentPreviewLesson.DanhSachCauHoi.Count > 0)
+                        if (ext.Equals(".docx", StringComparison.OrdinalIgnoreCase))
                         {
-                            content += "\n\n" + new string('=', 50) + "\nCÂU HỎI TRẮC NGHIỆM ÔN TẬP (GEMINI AI)\n" + new string('=', 50) + "\n";
-                            int qIdx = 1;
-                            foreach (var q in _currentPreviewLesson.DanhSachCauHoi)
-                            {
-                                content += $"\nCâu {qIdx++}: {q.NoiDungCauHoi}\n";
-                                foreach (var opt in q.DanhSachLuaChon) content += $"   {opt}\n";
-                                string ansChar = (q.DapAnDungIndex >= 0 && q.DapAnDungIndex < 4) ? ((char)('A' + q.DapAnDungIndex)).ToString() : "A";
-                                content += $"Đáp án đúng: {ansChar}\n";
-                            }
+                            KhoHocLieuSyncHelper.TaoTepDocxTuBaiHoc(sfd.FileName, _currentPreviewLesson);
                         }
-                        System.IO.File.WriteAllText(sfd.FileName, content, System.Text.Encoding.UTF8);
+                        else
+                        {
+                            KhoHocLieuSyncHelper.TaoTepHtmlInAn(sfd.FileName, _currentPreviewLesson);
+                        }
                     }
 
                     ThongBaoDialog.ThanhCong(Window.GetWindow(this), $"Đã lưu tệp về máy tính thành công:\n{sfd.FileName}", "Tải về hoàn tất");
@@ -525,23 +508,10 @@ namespace GUI.Views.GiangVien
 
             try
             {
-                string targetFilePath = _currentPreviewLesson.DuongDanTepVatLy;
+                // 1. Thử tìm tệp vật lý thực tế trên ổ đĩa (trong TaiLieu_TestUpload hoặc KhoHocLieu)
+                string? targetFilePath = KhoHocLieuSyncHelper.TimTepVatLyChoBaiHoc(_currentPreviewLesson);
 
-                // Nếu đường dẫn lưu trong DB không tồn tại, thử tìm trong thư mục KhoHocLieu theo tên file
-                if (string.IsNullOrEmpty(targetFilePath) || !System.IO.File.Exists(targetFilePath))
-                {
-                    string khoRoot = KhoHocLieuSyncHelper.GetKhoHocLieuRoot();
-                    if (!string.IsNullOrEmpty(_currentPreviewLesson.TenTepVatLy) && System.IO.Directory.Exists(khoRoot))
-                    {
-                        var files = System.IO.Directory.GetFiles(khoRoot, _currentPreviewLesson.TenTepVatLy, System.IO.SearchOption.AllDirectories);
-                        if (files != null && files.Length > 0)
-                        {
-                            targetFilePath = files[0];
-                        }
-                    }
-                }
-
-                // Nếu file vật lý tồn tại, khởi chạy trực tiếp với phần mềm mặc định của Windows
+                // 2. Nếu file vật lý thực tế tồn tại, khởi chạy trực tiếp với phần mềm mặc định của Windows (Word cho .docx, Edge/Reader cho .pdf)
                 if (!string.IsNullOrEmpty(targetFilePath) && System.IO.File.Exists(targetFilePath))
                 {
                     var psi = new System.Diagnostics.ProcessStartInfo
@@ -553,7 +523,7 @@ namespace GUI.Views.GiangVien
                     return;
                 }
 
-                // Nếu không có tệp vật lý, trích xuất nội dung bài học ra tệp tạm để mở
+                // 3. Nếu bài học trong DB chưa có tệp vật lý, trích xuất tệp theo ĐÚNG định dạng được gán (DOCX hoặc PDF/HTML)
                 string tempDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "EAI_HocLieu");
                 if (!System.IO.Directory.Exists(tempDir))
                 {
@@ -561,38 +531,34 @@ namespace GUI.Views.GiangVien
                 }
 
                 string safeTitle = KhoHocLieuSyncHelper.SanitizeFolderName(_currentPreviewLesson.TieuDe ?? "TaiLieu");
-                string tempFile = System.IO.Path.Combine(tempDir, $"{safeTitle}.txt");
+                string format = (_currentPreviewLesson.DinhDangTep ?? "").ToUpperInvariant();
 
-                string fullContent = $"{_currentPreviewLesson.TieuDe}\n" +
-                                     $"Chủ đề: {_currentPreviewLesson.TenChuDe} | Trình độ: {_currentPreviewLesson.MaTrinhDo}\n" +
-                                     new string('=', 50) + "\n\n" +
-                                     $"{_currentPreviewLesson.TomTat}\n\n" +
-                                     $"{_currentPreviewLesson.NoiDung}";
-
-                if (_currentPreviewLesson.DanhSachCauHoi != null && _currentPreviewLesson.DanhSachCauHoi.Count > 0)
+                if (format == "PDF")
                 {
-                    fullContent += "\n\n" + new string('=', 50) + "\nCÂU HỎI TRẮC NGHIỆM ÔN TẬP (GEMINI AI)\n" + new string('=', 50) + "\n";
-                    int qIndex = 1;
-                    foreach (var q in _currentPreviewLesson.DanhSachCauHoi)
+                    // Tạo tệp HTML giao diện in ấn / tài liệu chuẩn PDF và mở bằng trình duyệt mặc định (Edge/Chrome)
+                    string tempHtml = System.IO.Path.Combine(tempDir, $"{safeTitle}.html");
+                    KhoHocLieuSyncHelper.TaoTepHtmlInAn(tempHtml, _currentPreviewLesson);
+
+                    var tempPsi = new System.Diagnostics.ProcessStartInfo
                     {
-                        fullContent += $"\nCâu {qIndex++}: {q.NoiDungCauHoi}\n";
-                        foreach (var opt in q.DanhSachLuaChon)
-                        {
-                            fullContent += $"   {opt}\n";
-                        }
-                        string ans = (q.DapAnDungIndex >= 0 && q.DapAnDungIndex < 4) ? ((char)('A' + q.DapAnDungIndex)).ToString() : "A";
-                        fullContent += $"Đáp án đúng: {ans}\n";
-                    }
+                        FileName = tempHtml,
+                        UseShellExecute = true
+                    };
+                    System.Diagnostics.Process.Start(tempPsi);
                 }
-
-                System.IO.File.WriteAllText(tempFile, fullContent, System.Text.Encoding.UTF8);
-
-                var tempPsi = new System.Diagnostics.ProcessStartInfo
+                else
                 {
-                    FileName = tempFile,
-                    UseShellExecute = true
-                };
-                System.Diagnostics.Process.Start(tempPsi);
+                    // Tạo tệp DOCX thực thụ (Microsoft Word Document chuẩn OpenXML)
+                    string tempDocx = System.IO.Path.Combine(tempDir, $"{safeTitle}.docx");
+                    KhoHocLieuSyncHelper.TaoTepDocxTuBaiHoc(tempDocx, _currentPreviewLesson);
+
+                    var tempPsi = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = tempDocx,
+                        UseShellExecute = true
+                    };
+                    System.Diagnostics.Process.Start(tempPsi);
+                }
             }
             catch (Exception ex)
             {
