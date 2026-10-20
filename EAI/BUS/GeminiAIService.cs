@@ -17,8 +17,10 @@ namespace BUS
         private static readonly ConcurrentDictionary<string, string> _cachedApiKeys = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
+        /// <summary>
         /// Đọc API Key Gemini cho từng module chuyên biệt (ví dụ: "NoiDungHocTap", "LuyenNoi", v.v.)
-        /// từ secrets.json theo mô hình User Secrets hoặc từ biến môi trường hệ thống.
+        /// từ .NET User Secrets hoặc biến môi trường hệ thống thông qua AIConfigHelper.
+        /// Tuyệt đối không đọc từ file secrets.json trong repository!
         /// </summary>
         public static string GetApiKey(string module = "NoiDungHocTap")
         {
@@ -28,142 +30,32 @@ namespace BUS
             if (_cachedApiKeys.TryGetValue(module, out var cachedKey) && !string.IsNullOrWhiteSpace(cachedKey))
                 return cachedKey;
 
-            // 1. Kiểm tra biến môi trường đặc thù của module: ví dụ GEMINI_API_KEY_NOIDUNGHOCTAP
-            string modEnvVar = $"GEMINI_API_KEY_{module.ToUpperInvariant()}";
-            string? envKey = Environment.GetEnvironmentVariable(modEnvVar);
-            if (!string.IsNullOrWhiteSpace(envKey))
+            string key = BUS.AI.Configuration.AIConfigHelper.GetGeminiKey(module);
+            if (!string.IsNullOrWhiteSpace(key))
             {
-                _cachedApiKeys[module] = envKey.Trim();
-                return _cachedApiKeys[module];
+                _cachedApiKeys[module] = key;
+                return key;
             }
 
-            // 2. Tìm tệp secrets.json theo các đường dẫn tương đối chuẩn
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string[] candidatePaths = new[]
-            {
-                Path.Combine(baseDir, "secrets.json"),                                    // Cùng cấp với file .exe khi chạy thật
-                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\secrets.json")),        // Khi chạy Debug trong VS
-                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\GUI\secrets.json")),    // Thư mục mã nguồn GUI
-                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\GUI\secrets.json")),
-                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\secrets.json"))
-            };
-
-            foreach (var path in candidatePaths)
-            {
-                try
-                {
-                    if (File.Exists(path))
-                    {
-                        string json = File.ReadAllText(path);
-                        using var doc = JsonDocument.Parse(json);
-                        if (doc.RootElement.TryGetProperty("Gemini", out var geminiProp))
-                        {
-                            // 2a. Ưu tiên đọc key riêng của module (ví dụ "NoiDungHocTap", "DanhMuc", "DanhMucCauTruc")
-                            if (geminiProp.TryGetProperty(module, out var modKeyProp))
-                            {
-                                string key = modKeyProp.GetString() ?? "";
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    _cachedApiKeys[module] = key.Trim();
-                                    return _cachedApiKeys[module];
-                                }
-                            }
-
-                            // Hỗ trợ alias tên gọi tương thích giữa DanhMuc và DanhMucCauTruc
-                            if (module.Equals("DanhMuc", StringComparison.OrdinalIgnoreCase) && geminiProp.TryGetProperty("DanhMucCauTruc", out var dmKeyProp))
-                            {
-                                string key = dmKeyProp.GetString() ?? "";
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    _cachedApiKeys[module] = key.Trim();
-                                    return _cachedApiKeys[module];
-                                }
-                            }
-                            if (module.Equals("DanhMucCauTruc", StringComparison.OrdinalIgnoreCase) && geminiProp.TryGetProperty("DanhMuc", out var dmKeyProp2))
-                            {
-                                string key = dmKeyProp2.GetString() ?? "";
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    _cachedApiKeys[module] = key.Trim();
-                                    return _cachedApiKeys[module];
-                                }
-                            }
-
-                            // 2b. Fallback về key chung "ApiKey" nếu chưa cấu hình key riêng cho module
-                            if (geminiProp.TryGetProperty("ApiKey", out var fallbackKeyProp))
-                            {
-                                string key = fallbackKeyProp.GetString() ?? "";
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    _cachedApiKeys[module] = key.Trim();
-                                    return _cachedApiKeys[module];
-                                }
-                            }
-                        }
-                    }
-                }
-                catch { }
-            }
-
-            // 3. Fallback biến môi trường hệ thống chung
-            string generalEnvKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") 
-                            ?? Environment.GetEnvironmentVariable("GOOGLE_API_KEY") ?? "";
-            if (!string.IsNullOrWhiteSpace(generalEnvKey))
-            {
-                _cachedApiKeys[module] = generalEnvKey.Trim();
-                return _cachedApiKeys[module];
-            }
-
-            // 4. Bảo mật: Tuyệt đối không hardcode API Key trong mã nguồn C#!
             return string.Empty;
         }
 
         /// <summary>
-        /// Đọc API Key chung "ApiKey" từ secrets.json làm dự phòng khi key riêng của module gặp sự cố hoặc hết quota
+        /// Đọc API Key Gemini chung từ .NET User Secrets / biến môi trường làm dự phòng
         /// </summary>
         public static string LayApiKeyChung()
         {
             if (_cachedApiKeys.TryGetValue("__GENERAL_APIKEY__", out var cached) && !string.IsNullOrWhiteSpace(cached))
                 return cached;
 
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string[] candidatePaths = new[]
+            string key = BUS.AI.Configuration.AIConfigHelper.GetGeminiKey();
+            if (!string.IsNullOrWhiteSpace(key))
             {
-                Path.Combine(baseDir, "secrets.json"),
-                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\secrets.json")),
-                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\GUI\secrets.json")),
-                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\GUI\secrets.json")),
-                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\secrets.json"))
-            };
-
-            foreach (var path in candidatePaths)
-            {
-                try
-                {
-                    if (File.Exists(path))
-                    {
-                        string json = File.ReadAllText(path);
-                        using var doc = JsonDocument.Parse(json);
-                        if (doc.RootElement.TryGetProperty("Gemini", out var geminiProp))
-                        {
-                            if (geminiProp.TryGetProperty("ApiKey", out var fallbackKeyProp))
-                            {
-                                string key = fallbackKeyProp.GetString() ?? "";
-                                if (!string.IsNullOrWhiteSpace(key))
-                                {
-                                    _cachedApiKeys["__GENERAL_APIKEY__"] = key.Trim();
-                                    return key.Trim();
-                                }
-                            }
-                        }
-                    }
-                }
-                catch { }
+                _cachedApiKeys["__GENERAL_APIKEY__"] = key;
+                return key;
             }
 
-            string envKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") 
-                         ?? Environment.GetEnvironmentVariable("GOOGLE_API_KEY") ?? "";
-            return envKey.Trim();
+            return string.Empty;
         }
 
         /// <summary>

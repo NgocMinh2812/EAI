@@ -23,6 +23,10 @@ namespace GUI.Views
 
         public bool IsFirstTime { get; set; } = false;
 
+        public DanhGiaNangLucView() : this(false, false)
+        {
+        }
+
         public DanhGiaNangLucView(bool isFirstTime = false, bool forceNewSurvey = false)
         {
             InitializeComponent();

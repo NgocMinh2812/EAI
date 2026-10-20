@@ -13,14 +13,39 @@ namespace GUI.Views.GiangVien
         private TextBlock[] _navLabels = Array.Empty<TextBlock>();
         private StackPanel[] _navPanels = Array.Empty<StackPanel>();
 
+        public static GiangVienWindow? Instance { get; private set; }
+        private readonly System.Collections.Generic.Dictionary<Type, Page> _pageCache = new();
+
+        public Page GetOrCreatePage<T>() where T : Page, new()
+        {
+            var type = typeof(T);
+            if (!_pageCache.TryGetValue(type, out var page))
+            {
+                page = new T();
+                _pageCache[type] = page;
+            }
+            return page;
+        }
+
+        public void NavigateToCached<T>() where T : Page, new()
+        {
+            var page = GetOrCreatePage<T>();
+            if (AdminMainFrame.Content != page)
+            {
+                AdminMainFrame.Navigate(page);
+            }
+        }
+
         public GiangVienWindow()
         {
             InitializeComponent();
+            Instance = this;
             InitSidebarElements();
             ApplyRolePermissions();
             AdminMainFrame.Navigated += AdminMainFrame_Navigated;
-            // Mở mặc định trang Tổng quan
-            AdminMainFrame.Navigate(new TongQuanView());
+            // Mở mặc định trang Tổng quan sử dụng page cache để bảo toàn tiến trình
+            AdminMainFrame.Navigate(GetOrCreatePage<TongQuanView>());
+            Closed += (s, e) => _pageCache.Clear();
         }
 
         private void InitSidebarElements()
@@ -267,49 +292,49 @@ namespace GUI.Views.GiangVien
         private void NavTongQuan_Click(object sender, RoutedEventArgs e)
         {
             if (AdminMainFrame.Content is not TongQuanView)
-                AdminMainFrame.Navigate(new TongQuanView());
+                AdminMainFrame.Navigate(GetOrCreatePage<TongQuanView>());
         }
 
         private void NavNguoiDung_Click(object sender, RoutedEventArgs e)
         {
             if (AdminMainFrame.Content is not NguoiDungView)
-                AdminMainFrame.Navigate(new NguoiDungView());
+                AdminMainFrame.Navigate(GetOrCreatePage<NguoiDungView>());
         }
 
         private void NavDanhMuc_Click(object sender, RoutedEventArgs e)
         {
             if (AdminMainFrame.Content is not DanhMucView)
-                AdminMainFrame.Navigate(new DanhMucView());
+                AdminMainFrame.Navigate(GetOrCreatePage<DanhMucView>());
         }
 
         private void NavNoiDung_Click(object sender, RoutedEventArgs e)
         {
             if (AdminMainFrame.Content is not NoiDungHocTapView)
-                AdminMainFrame.Navigate(new NoiDungHocTapView());
+                AdminMainFrame.Navigate(GetOrCreatePage<NoiDungHocTapView>());
         }
 
         private void NavNganHang_Click(object sender, RoutedEventArgs e)
         {
             if (AdminMainFrame.Content is not NganHangCauHoiView)
-                AdminMainFrame.Navigate(new NganHangCauHoiView());
+                AdminMainFrame.Navigate(GetOrCreatePage<NganHangCauHoiView>());
         }
 
         private void NavDeThi_Click(object sender, RoutedEventArgs e)
         {
             if (AdminMainFrame.Content is not DeThiLuyenTapView)
-                AdminMainFrame.Navigate(new DeThiLuyenTapView());
+                AdminMainFrame.Navigate(GetOrCreatePage<DeThiLuyenTapView>());
         }
 
         private void NavKhaoSat_Click(object sender, RoutedEventArgs e)
         {
             if (AdminMainFrame.Content is not KhaoSatDauVaoView)
-                AdminMainFrame.Navigate(new KhaoSatDauVaoView());
+                AdminMainFrame.Navigate(GetOrCreatePage<KhaoSatDauVaoView>());
         }
 
         private void NavAISinhDe_Click(object sender, RoutedEventArgs e)
         {
             if (AdminMainFrame.Content is not AISinhDeView)
-                AdminMainFrame.Navigate(new AISinhDeView());
+                AdminMainFrame.Navigate(GetOrCreatePage<AISinhDeView>());
         }
 
         private void NavGiamSat_Click(object sender, RoutedEventArgs e)
@@ -325,7 +350,7 @@ namespace GUI.Views.GiangVien
             }
 
             if (AdminMainFrame.Content is not GiamSatHeThongView)
-                AdminMainFrame.Navigate(new GiamSatHeThongView());
+                AdminMainFrame.Navigate(GetOrCreatePage<GiamSatHeThongView>());
         }
 
         private void TopNavTroLyAI_Click(object sender, RoutedEventArgs e)

@@ -36,11 +36,13 @@ namespace BUS.AI.Providers
         {
             "qwen/qwen3.5-flash:free",
             "qwen/qwen3.8-max:free",
-            "google/gemini-2.5-flash",
-            "google/gemini-3.5-flash",
-            "deepseek/deepseek-v4.1-flash",
-            "openai/gpt-5.4-mini",
-            "mistralai/ministral-8b"
+            "qwen/qwen3.7-plus:free",
+            "qwen/qwen3.7-flash:free",
+            "cohere/command-r7b-12-2024",
+            "nvidia/nemotron-3-ultra",
+            "stealth/big-pickle",
+            "mistralai/ministral-8b",
+            "z-ai/glm-5.3"
         };
 
         public string DefaultModel => "qwen/qwen3.5-flash:free";
@@ -210,6 +212,122 @@ namespace BUS.AI.Providers
                     LastChecked = DateTime.Now
                 };
             }
+        }
+
+        private static List<AIModelInfo>? _cachedModels;
+        private static DateTime _lastCacheTime = DateTime.MinValue;
+        private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(10);
+
+        public bool IsCatalogDynamic { get; private set; } = false;
+        public string CatalogStatusMessage { get; private set; } = "Chưa tải danh mục";
+
+        public async Task<IReadOnlyList<AIModelInfo>> GetModelsAsync(bool forceRefresh = false, CancellationToken ct = default)
+        {
+            if (!forceRefresh && _cachedModels != null && (DateTime.Now - _lastCacheTime) < CacheDuration)
+            {
+                return _cachedModels;
+            }
+
+            var (apiKey, baseUrl) = AIConfigHelper.GetXkioConfig();
+            string endpoint = AIConfigHelper.BuildEndpoint(baseUrl, "models");
+
+            try
+            {
+                // GET /v1/models là public endpoint theo tài liệu xKiro (có thể gửi kèm key nếu có)
+                using var req = new HttpRequestMessage(HttpMethod.Get, endpoint);
+                if (!string.IsNullOrWhiteSpace(apiKey))
+                {
+                    req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+                }
+
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(7));
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, cts.Token);
+
+                var res = await _httpClient.SendAsync(req, linkedCts.Token);
+                if (res.IsSuccessStatusCode)
+                {
+                    string body = await res.Content.ReadAsStringAsync(ct);
+                    using var doc = JsonDocument.Parse(body);
+                    if (doc.RootElement.TryGetProperty("data", out var dataArr) && dataArr.ValueKind == JsonValueKind.Array)
+                    {
+                        var dynamicList = new List<AIModelInfo>();
+                        foreach (var item in dataArr.EnumerateArray())
+                        {
+                            string id = item.TryGetProperty("id", out var idProp) ? (idProp.GetString() ?? "") : "";
+                            if (string.IsNullOrWhiteSpace(id)) continue;
+
+                            string modality = item.TryGetProperty("modality", out var modProp) ? (modProp.GetString() ?? "chat") : "chat";
+                            // Loại bỏ các mô hình hình ảnh (image), giọng nói (tts, stt) hoặc embedding
+                            if (!string.Equals(modality, "chat", StringComparison.OrdinalIgnoreCase))
+                                continue;
+
+                            string displayName = item.TryGetProperty("display_name", out var dnProp) ? (dnProp.GetString() ?? id) : id;
+                            string ownedBy = item.TryGetProperty("owned_by", out var obProp) ? (obProp.GetString() ?? "xkiro") : "xkiro";
+                            string accessTier = item.TryGetProperty("access_tier", out var atProp) ? (atProp.GetString() ?? "free") : "free";
+                            int? contextLength = item.TryGetProperty("context_length", out var clProp) ? clProp.GetInt32() : (int?)null;
+
+                            bool isDefault = (id == DefaultModel) || (id == "qwen/qwen3.5-flash:free");
+                            bool isFree = id.EndsWith(":free", StringComparison.OrdinalIgnoreCase) || string.Equals(accessTier, "free", StringComparison.OrdinalIgnoreCase);
+
+                            dynamicList.Add(new AIModelInfo
+                            {
+                                Id = id, // Giữ nguyên đầy đủ tiền tố vendor/model
+                                DisplayName = isDefault && !displayName.Contains("Khuyên dùng") ? $"{displayName} (Khuyên dùng)" : displayName,
+                                ProviderName = ProviderName,
+                                ProviderType = ProviderType,
+                                OwnedBy = ownedBy,
+                                AccessTier = isFree ? "free" : accessTier,
+                                Modality = modality,
+                                ContextLength = contextLength,
+                                IsDynamic = true,
+                                DefaultModel = isDefault
+                            });
+                        }
+
+                        if (dynamicList.Count > 0)
+                        {
+                            // Sắp xếp mô hình mặc định (Khuyên dùng) và các mô hình Free lên đầu
+                            _cachedModels = dynamicList
+                                .OrderByDescending(x => x.DefaultModel)
+                                .ThenByDescending(x => x.AccessTier == "free")
+                                .ThenBy(x => x.DisplayName)
+                                .ToList();
+                            _lastCacheTime = DateTime.Now;
+                            IsCatalogDynamic = true;
+                            CatalogStatusMessage = $"Đồng bộ trực tiếp từ xKiro Gateway API ({_cachedModels.Count} mô hình chat)";
+                            return _cachedModels;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[XkioProvider.GetModelsAsync] Lỗi gọi catalog động: {ex.Message}");
+            }
+
+            // Fallback danh sách mô hình xKiro chuẩn hóa đã xác minh
+            var fallback = GetFallbackModels();
+            _cachedModels = fallback;
+            _lastCacheTime = DateTime.Now;
+            IsCatalogDynamic = false;
+            CatalogStatusMessage = "Không thể kết nối API catalog — Dùng danh mục dự phòng đã xác minh từ xKiro Docs";
+            return fallback;
+        }
+
+        private List<AIModelInfo> GetFallbackModels()
+        {
+            return new List<AIModelInfo>
+            {
+                new AIModelInfo { Id = "qwen/qwen3.5-flash:free", DisplayName = "Qwen 3.5 Flash (Miễn phí • Khuyên dùng)", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "qwen", AccessTier = "free", Modality = "chat", ContextLength = 1000000, DefaultModel = true, IsDynamic = false },
+                new AIModelInfo { Id = "qwen/qwen3.8-max:free", DisplayName = "Qwen 3.8 Max (Miễn phí)", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "qwen", AccessTier = "free", Modality = "chat", ContextLength = 1000000, IsDynamic = false },
+                new AIModelInfo { Id = "qwen/qwen3.7-plus:free", DisplayName = "Qwen 3.7 Plus (Miễn phí)", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "qwen", AccessTier = "free", Modality = "chat", ContextLength = 1000000, IsDynamic = false },
+                new AIModelInfo { Id = "qwen/qwen3.7-flash:free", DisplayName = "Qwen 3.7 Flash (Miễn phí)", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "qwen", AccessTier = "free", Modality = "chat", ContextLength = 1000000, IsDynamic = false },
+                new AIModelInfo { Id = "cohere/command-r7b-12-2024", DisplayName = "Cohere Command R7B (Miễn phí)", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "cohere", AccessTier = "free", Modality = "chat", ContextLength = 132000, IsDynamic = false },
+                new AIModelInfo { Id = "nvidia/nemotron-3-ultra", DisplayName = "Nvidia Nemotron 3 Ultra (Trả phí)", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "nvidia", AccessTier = "paid", Modality = "chat", ContextLength = 1000000, IsDynamic = false },
+                new AIModelInfo { Id = "stealth/big-pickle", DisplayName = "Big Pickle (Miễn phí)", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "stealth", AccessTier = "free", Modality = "chat", ContextLength = 200000, IsDynamic = false },
+                new AIModelInfo { Id = "mistralai/ministral-8b", DisplayName = "Mistralai Ministral 8B (Trả phí)", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "mistralai", AccessTier = "paid", Modality = "chat", ContextLength = 128000, IsDynamic = false },
+                new AIModelInfo { Id = "z-ai/glm-5.3", DisplayName = "Z-AI GLM 5.3 (Trả phí)", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "z-ai", AccessTier = "paid", Modality = "chat", ContextLength = 200000, IsDynamic = false }
+            };
         }
     }
 }

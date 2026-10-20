@@ -22,14 +22,14 @@ namespace BUS.AI.Providers
 
         public IReadOnlyList<string> SupportedModels => new[]
         {
-            "gemini-3.5-flash",
             "gemini-3.1-flash-lite",
-            "gemini-flash-latest",
+            "gemini-3.8-flash",
+            "gemini-3.5-flash",
             "gemini-3.7-flash",
-            "gemini-3.6-flash"
+            "gemini-flash-latest"
         };
 
-        public string DefaultModel => "gemini-3.5-flash";
+        public string DefaultModel => "gemini-3.1-flash-lite";
 
         public async Task<AIResponse> GenerateContentAsync(string prompt, string? model = null, CancellationToken ct = default)
         {
@@ -234,6 +234,23 @@ namespace BUS.AI.Providers
                     LastChecked = DateTime.Now
                 };
             }
+        }
+
+        public bool IsCatalogDynamic => false;
+        public string CatalogStatusMessage { get; private set; } = "Danh mục chuẩn Google Gemini";
+
+        public Task<IReadOnlyList<AIModelInfo>> GetModelsAsync(bool forceRefresh = false, CancellationToken ct = default)
+        {
+            var list = new List<AIModelInfo>
+            {
+                new AIModelInfo { Id = "gemini-3.1-flash-lite", DisplayName = "Gemini 3.1 Flash-Lite (Khuyên dùng - Siêu tốc)", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "google", AccessTier = "standard", Modality = "chat", ContextLength = 1048576, DefaultModel = true },
+                new AIModelInfo { Id = "gemini-3.8-flash", DisplayName = "Gemini 3.8 Flash (Thế hệ mới nhất)", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "google", AccessTier = "standard", Modality = "chat", ContextLength = 1048576 },
+                new AIModelInfo { Id = "gemini-3.5-flash", DisplayName = "Gemini 3.5 Flash", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "google", AccessTier = "standard", Modality = "chat", ContextLength = 1048576 },
+                new AIModelInfo { Id = "gemini-3.7-flash", DisplayName = "Gemini 3.7 Flash", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "google", AccessTier = "standard", Modality = "chat", ContextLength = 1048576 },
+                new AIModelInfo { Id = "gemini-flash-latest", DisplayName = "Gemini Flash Latest", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "google", AccessTier = "standard", Modality = "chat", ContextLength = 1048576 }
+            };
+            CatalogStatusMessage = $"Đang sử dụng danh mục chuẩn Google Gemini ({list.Count} mô hình)";
+            return Task.FromResult<IReadOnlyList<AIModelInfo>>(list);
         }
     }
 }

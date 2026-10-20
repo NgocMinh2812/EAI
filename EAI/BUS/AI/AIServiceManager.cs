@@ -66,6 +66,12 @@ namespace BUS.AI
             return _providers.Values;
         }
 
+        public async Task<IReadOnlyList<AIModelInfo>> GetModelsForProviderAsync(AIProviderType type, bool forceRefresh = false, CancellationToken ct = default)
+        {
+            var provider = GetProvider(type);
+            return await provider.GetModelsAsync(forceRefresh, ct);
+        }
+
         public async Task<AIResponse> ExecutePromptAsync(
             string prompt, 
             string? preferredProvider = null, 
@@ -130,7 +136,9 @@ namespace BUS.AI
             string tieuDe, 
             string trinhDo = "B1", 
             string loaiBaiHoc = "Doc", 
-            string? preferredProvider = null)
+            string? preferredProvider = null,
+            string? preferredModel = null,
+            CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(tieuDe))
             {
@@ -140,7 +148,7 @@ namespace BUS.AI
             try
             {
                 string prompt = GeminiAIService.BuildSamplePrompt(tieuDe, trinhDo, loaiBaiHoc);
-                var response = await ExecutePromptAsync(prompt, preferredProvider, null, "Tạo bài học bằng AI");
+                var response = await ExecutePromptAsync(prompt, preferredProvider, preferredModel, "Tạo bài học bằng AI", ct);
 
                 if (response.Success && !string.IsNullOrWhiteSpace(response.Text))
                 {
@@ -164,15 +172,15 @@ namespace BUS.AI
         }
 
         /// <summary>
-        /// Bóc tách bộ câu hỏi trắc nghiệm bằng hệ thống đa mô hình AI
-        /// </summary>
-        public async Task<List<CauHoiDTO>> BocTachCauHoiAsync(
+            public async Task<List<CauHoiDTO>> BocTachCauHoiAsync(
             string tieuDe, 
             string noiDung, 
             string trinhDo = "B1", 
             int soLuong = 10, 
             string loaiBaiHoc = "", 
-            string? preferredProvider = null)
+            string? preferredProvider = null,
+            string? preferredModel = null,
+            CancellationToken ct = default)
         {
             string cleanContent = string.IsNullOrWhiteSpace(noiDung) ? tieuDe : noiDung;
             if (cleanContent.Length > 8000)
@@ -211,7 +219,7 @@ QUY TẮC BẮT BUỘC:
   }}
 ]";
 
-                var response = await ExecutePromptAsync(prompt, preferredProvider, null, "Tạo câu hỏi bằng AI");
+                var response = await ExecutePromptAsync(prompt, preferredProvider, preferredModel, "Tạo câu hỏi bằng AI", ct);
                 if (response.Success && !string.IsNullOrWhiteSpace(response.Text))
                 {
                     string cleanJson = response.Text.Trim();

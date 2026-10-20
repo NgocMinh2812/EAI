@@ -1,17 +1,34 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using BUS.AI;
+using DTO;
 
 namespace GUI.Views.GiangVien
 {
     public partial class AISinhDeView : Page
     {
         private int _pendingCount = 2;
+        private CancellationTokenSource? _generationCts;
 
         public AISinhDeView()
         {
             InitializeComponent();
+            Loaded += AISinhDeView_Loaded;
+        }
+
+        private void AISinhDeView_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Đồng bộ mô hình mặc định từ AIServiceManager nếu chưa chọn
+            if (cboModel != null && cboModel.SelectedIndex < 0 && cboModel.Items.Count > 0)
+            {
+                cboModel.SelectedIndex = 0;
+            }
         }
 
         private void TabAISinhDe_Click(object sender, RoutedEventArgs e)
@@ -38,7 +55,7 @@ namespace GUI.Views.GiangVien
             tabAISinhDe.Foreground = (Brush)FindResource("TextDark");
         }
 
-        private void BtnSinhCauHoi_Click(object sender, RoutedEventArgs e)
+        private async void BtnSinhCauHoi_Click(object sender, RoutedEventArgs e)
         {
             string prompt = txtPrompt.Text.Trim();
             if (string.IsNullOrEmpty(prompt))
@@ -47,12 +64,243 @@ namespace GUI.Views.GiangVien
                 return;
             }
 
-            Common.ThongBaoDialog.ThanhCong(
-                $"AI đã phân tích và tạo bộ câu hỏi trắc nghiệm theo yêu cầu: \"{prompt}\".\nĐã tạo thành công câu hỏi mới và đưa vào danh sách kiểm duyệt!", 
-                "Tạo câu hỏi bằng AI thành công");
+            string level = (cboLevel.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "B1";
+            if (level.Contains("—")) level = level.Split('—')[0].Trim();
 
-            _pendingCount++;
-            txtPendingCount.Text = $"{_pendingCount} chờ duyệt";
+            string countStr = (cboCount.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "5";
+            int.TryParse(countStr, out int count);
+            if (count <= 0) count = 5;
+
+            string modelSelection = (cboModel.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Google Gemini";
+
+            // Khởi tạo CancellationToken cho tác vụ chạy nền
+            _generationCts = new CancellationTokenSource();
+            var ct = _generationCts.Token;
+
+            btnSinhCauHoi.Visibility = Visibility.Collapsed;
+            pnlGeneratingProgress.Visibility = Visibility.Visible;
+            btnCancelGeneration.IsEnabled = true;
+            txtGeneratingStatus.Text = $"Đang phân tích và sinh câu hỏi bằng AI ({modelSelection})...";
+
+            try
+            {
+                // Thực thi sinh câu hỏi trên nền Task.Run để không khóa UI, 
+                // tác vụ vẫn chạy độc lập ngay cả khi người dùng chuyển sang màn hình khác
+                var questions = await Task.Run(async () =>
+                {
+                    return await AIServiceManager.Instance.BocTachCauHoiAsync(
+                        tieuDe: prompt,
+                        noiDung: prompt,
+                        trinhDo: level,
+                        soLuong: count,
+                        loaiBaiHoc: "Ngữ pháp & Từ vựng",
+                        ct: ct
+                    );
+                }, ct);
+
+                // Khi hoàn thành, trở về UI Thread để cập nhật
+                Dispatcher.Invoke(() =>
+                {
+                    if (questions != null && questions.Count > 0)
+                    {
+                        foreach (var q in questions)
+                        {
+                            var card = TaoTheCauHoiMoi(q, prompt, modelSelection);
+                            pnlQuestionsList.Children.Insert(0, card);
+                            _pendingCount++;
+                        }
+                        UpdatePendingCount();
+                        Common.ThongBaoDialog.ThanhCong(
+                            $"AI ({modelSelection}) đã tạo thành công {questions.Count} câu hỏi trắc nghiệm theo yêu cầu: \"{prompt}\"!\nCâu hỏi đã được đưa vào danh sách chờ duyệt.", 
+                            "Tạo câu hỏi thành công");
+                    }
+                    else
+                    {
+                        Common.ThongBaoDialog.CanhBao("Không nhận được dữ liệu câu hỏi từ AI. Vui lòng thử lại với mô hình khác.", "Thông báo");
+                    }
+                });
+            }
+            catch (OperationCanceledException)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    Common.ThongBaoDialog.ThongTin("Đã hủy quá trình tạo câu hỏi theo yêu cầu của bạn.", "Đã hủy tác vụ");
+                });
+            }
+            catch (Exception ex)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    Common.ThongBaoDialog.Loi($"Có lỗi xảy ra khi tạo câu hỏi: {ex.Message}", "Lỗi tác vụ AI");
+                });
+            }
+            finally
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    pnlGeneratingProgress.Visibility = Visibility.Collapsed;
+                    btnSinhCauHoi.Visibility = Visibility.Visible;
+                    _generationCts?.Dispose();
+                    _generationCts = null;
+                });
+            }
+        }
+
+        private void BtnCancelGeneration_Click(object sender, RoutedEventArgs e)
+        {
+            if (_generationCts != null && !_generationCts.IsCancellationRequested)
+            {
+                txtGeneratingStatus.Text = "Đang hủy tác vụ AI...";
+                btnCancelGeneration.IsEnabled = false;
+                _generationCts.Cancel();
+            }
+        }
+
+        private Border TaoTheCauHoiMoi(CauHoiDTO q, string topic, string modelName)
+        {
+            var cardBorder = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(248, 250, 252)),
+                BorderBrush = (Brush)FindResource("BorderLight"),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(10),
+                Padding = new Thickness(16),
+                Margin = new Thickness(0, 0, 0, 16)
+            };
+
+            var mainStack = new StackPanel();
+
+            // Header card
+            var headerGrid = new Grid { Margin = new Thickness(0, 0, 0, 10) };
+            var headerLeft = new StackPanel { Orientation = Orientation.Horizontal };
+            headerLeft.Children.Add(new TextBlock
+            {
+                Text = $"{topic}",
+                FontWeight = FontWeights.Bold,
+                FontSize = 13.5,
+                Foreground = (Brush)FindResource("TextDark"),
+                Margin = new Thickness(0, 0, 8, 0)
+            });
+            headerLeft.Children.Add(new TextBlock
+            {
+                Text = $"{DateTime.Now:dd/MM HH:mm} • {modelName}",
+                FontSize = 12,
+                Foreground = (Brush)FindResource("TextGray"),
+                VerticalAlignment = VerticalAlignment.Center
+            });
+            headerGrid.Children.Add(headerLeft);
+
+            var badgeBorder = new Border
+            {
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Background = new SolidColorBrush(Color.FromRgb(254, 243, 199)),
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(6, 2, 6, 2)
+            };
+            badgeBorder.Child = new TextBlock
+            {
+                Text = "Chờ duyệt",
+                FontSize = 11,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(Color.FromRgb(180, 83, 9))
+            };
+            headerGrid.Children.Add(badgeBorder);
+            mainStack.Children.Add(headerGrid);
+
+            // Nội dung câu hỏi + các lựa chọn
+            var contentBorder = new Border
+            {
+                Background = Brushes.White,
+                BorderBrush = (Brush)FindResource("BorderLight"),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(12),
+                Margin = new Thickness(0, 0, 0, 12)
+            };
+
+            string choicesText = "";
+            if (q.DanhSachLuaChon != null && q.DanhSachLuaChon.Count > 0)
+            {
+                choicesText = "\n" + string.Join("\n", q.DanhSachLuaChon);
+            }
+            if (!string.IsNullOrWhiteSpace(q.GiaiThichChiTiet))
+            {
+                choicesText += $"\n\n💡 Giải thích: {q.GiaiThichChiTiet}";
+            }
+
+            contentBorder.Child = new TextBlock
+            {
+                FontFamily = new FontFamily("Consolas, Segoe UI"),
+                FontSize = 12.5,
+                Foreground = (Brush)FindResource("TextDark"),
+                TextWrapping = TextWrapping.Wrap,
+                LineHeight = 20,
+                Text = $"{q.NoiDungCauHoi}{choicesText}"
+            };
+            mainStack.Children.Add(contentBorder);
+
+            // Nút hành động
+            var actionStack = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+
+            var btnSua = new Button
+            {
+                Background = Brushes.White,
+                BorderBrush = (Brush)FindResource("BorderLight"),
+                BorderThickness = new Thickness(1),
+                FontWeight = FontWeights.SemiBold,
+                FontSize = 12,
+                Padding = new Thickness(12, 6, 12, 6),
+                Margin = new Thickness(0, 0, 8, 0),
+                Cursor = Cursors.Hand,
+                Content = "Sửa"
+            };
+            btnSua.Click += (s, e) => Common.ThongBaoDialog.ThongTin("Mở trình biên tập câu hỏi để chỉnh sửa câu hỏi, đáp án hoặc giải thích chi tiết.", "Chỉnh sửa câu hỏi");
+            actionStack.Children.Add(btnSua);
+
+            var btnTuChoi = new Button
+            {
+                Background = new SolidColorBrush(Color.FromRgb(254, 242, 242)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(254, 202, 202)),
+                BorderThickness = new Thickness(1),
+                Foreground = new SolidColorBrush(Color.FromRgb(239, 68, 68)),
+                FontWeight = FontWeights.SemiBold,
+                FontSize = 12,
+                Padding = new Thickness(12, 6, 12, 6),
+                Margin = new Thickness(0, 0, 8, 0),
+                Cursor = Cursors.Hand,
+                Content = "Từ chối"
+            };
+            btnTuChoi.Click += (s, e) =>
+            {
+                cardBorder.Visibility = Visibility.Collapsed;
+                _pendingCount--;
+                UpdatePendingCount();
+            };
+            actionStack.Children.Add(btnTuChoi);
+
+            var btnDuyet = new Button
+            {
+                Background = (Brush)FindResource("AdminDarkGreen"),
+                Foreground = Brushes.White,
+                FontWeight = FontWeights.SemiBold,
+                FontSize = 12,
+                Padding = new Thickness(16, 6, 16, 6),
+                BorderThickness = new Thickness(0),
+                Cursor = Cursors.Hand,
+                Content = "Phê duyệt"
+            };
+            btnDuyet.Click += (s, e) =>
+            {
+                cardBorder.Visibility = Visibility.Collapsed;
+                _pendingCount--;
+                UpdatePendingCount();
+                Common.ThongBaoDialog.ThanhCong($"✓ Câu hỏi '{topic}' đã được phê duyệt và lưu vào Ngân hàng câu hỏi!", "Phê duyệt thành công");
+            };
+            actionStack.Children.Add(btnDuyet);
+
+            mainStack.Children.Add(actionStack);
+            cardBorder.Child = mainStack;
+            return cardBorder;
         }
 
         private void BtnDuyetQ1_Click(object sender, RoutedEventArgs e)

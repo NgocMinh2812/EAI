@@ -9,6 +9,9 @@
 
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+        <converters:InverseBooleanConverter x:Key="InverseBoolConverter"/>
+        <converters:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVisConverter"/>
+        <converters:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter"/>
         <converters:HealthToForegroundConverter x:Key="HealthFgConverter"/>
         <converters:HealthToBackgroundConverter x:Key="HealthBgConverter"/>
         <converters:HealthToVietnameseTextConverter x:Key="HealthTextConverter"/>
@@ -36,6 +39,32 @@
             </Setter>
         </Style>
 
+        <Style x:Key="SpinningRefreshIconStyle" TargetType="{x:Type local:LucideIcon}">
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <RotateTransform Angle="0"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsRefreshing}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard x:Name="SpinStory">
+                            <Storyboard>
+                                <DoubleAnimation
+                                    Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                    From="0" To="360" Duration="0:0:1"
+                                    RepeatBehavior="Forever"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <StopStoryboard BeginStoryboardName="SpinStory"/>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="RefreshButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#0F4C3A"/>
             <Setter Property="Foreground" Value="White"/>
@@ -56,6 +85,11 @@
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#135D47"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#2A5C4D"/>
+                    <Setter Property="Opacity" Value="0.85"/>
+                    <Setter Property="Cursor" Value="Wait"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -134,12 +168,30 @@
                     </Border>
 
                     <!-- Refresh Button -->
-                    <Button Style="{StaticResource RefreshButtonStyle}" Command="{Binding RefreshCommand}">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <local:LucideIcon Kind="RefreshCw" Size="14" Foreground="White" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Làm mới" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                    <StackPanel Orientation="Vertical">
+                        <Button Style="{StaticResource RefreshButtonStyle}" 
+                                Command="{Binding RefreshCommand}"
+                                IsEnabled="{Binding IsRefreshing, Converter={StaticResource InverseBoolConverter}}"
+                                ToolTip="Làm mới trạng thái kết nối, độ trễ và số liệu giám sát">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <local:LucideIcon Style="{StaticResource SpinningRefreshIconStyle}" Kind="RefreshCw" Size="14" Foreground="White" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="Làm mới"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsRefreshing}" Value="True">
+                                                    <Setter Property="Text" Value="Đang làm mới..."/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                        </Button>
+                        <ProgressBar IsIndeterminate="True" Height="2" Foreground="#0F4C3A" Background="Transparent" BorderThickness="0"
+                                     Visibility="{Binding IsRefreshing, Converter={StaticResource BoolToVisConverter}}" Margin="0,3,0,0"/>
+                    </StackPanel>
                 </StackPanel>
             </Grid>
 
@@ -369,12 +421,29 @@
             <!-- SECTION 2: AI ROUTING & MODEL SWITCHING -->
             <Border Style="{StaticResource AdminCardStyle}">
                 <StackPanel>
-                    <TextBlock Text="ĐIỀU PHỐI &amp; CHUYỂN ĐỔI MÔ HÌNH AI" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="ĐIỀU PHỐI &amp; CHUYỂN ĐỔI MÔ HÌNH AI" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
+                        
+                        <!-- Catalog Status & Sync Button -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding CatalogStatusMessage}" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <Button Style="{StaticResource SecondaryTestButtonStyle}" Command="{Binding ReloadCatalogCommand}" ToolTip="Tải lại danh sách mô hình trực tiếp từ API của nhà cung cấp">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <local:LucideIcon Kind="RefreshCw" Size="12" Foreground="#334155" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Đồng bộ danh mục" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
 
                     <Grid Margin="0,0,0,14">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="1.2*"/>
+                            <ColumnDefinition Width="2*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
@@ -386,8 +455,40 @@
 
                         <!-- Mô hình chính -->
                         <StackPanel Grid.Column="1" Margin="0,0,14,0">
-                            <TextBlock Text="Mô hình LLM được lựa chọn (Active Model)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
-                            <ComboBox ItemsSource="{Binding AvailableModels}" SelectedItem="{Binding SelectedModel}" Height="38" Padding="10,6" FontSize="13" VerticalContentAlignment="Center"/>
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="Mô hình LLM được lựa chọn (Active Model)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextDark}"/>
+                                <ProgressBar IsIndeterminate="True" Height="2" HorizontalAlignment="Right" Width="80" VerticalAlignment="Center"
+                                             Visibility="{Binding IsLoadingModels, Converter={StaticResource BoolToVisConverter}}"/>
+                            </Grid>
+                            <ComboBox ItemsSource="{Binding AvailableModelInfos}" 
+                                      SelectedIndex="{Binding SelectedModelIndex, Mode=TwoWay}" 
+                                      Height="38" Padding="10,2" FontSize="13" VerticalContentAlignment="Center">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,1">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}"/>
+                                                    <Border Background="#F1F5F9" CornerRadius="4" Padding="5,1" Margin="6,0,0,0" VerticalAlignment="Center"
+                                                            Visibility="{Binding AccessTier, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
+                                                        <TextBlock Text="{Binding AccessTier}" FontSize="10.5" FontWeight="SemiBold" Foreground="#0284C7"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Id}" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,1,0,0"/>
+                                            </StackPanel>
+                                            <Border Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                    Visibility="{Binding DefaultModel, Converter={StaticResource BoolToVisConverter}}"
+                                                    Background="#DCFCE7" CornerRadius="4" Padding="5,2">
+                                                <TextBlock Text="Mặc định" FontSize="10" FontWeight="Bold" Foreground="#15803D"/>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                         </StackPanel>
 
                         <!-- Nút Lưu cấu hình mô hình -->

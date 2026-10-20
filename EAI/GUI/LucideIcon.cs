@@ -529,7 +529,7 @@ namespace GUI
                 LucideIconKind.FileEdit => "file-pen-line",
                 LucideIconKind.Trash => "trash-2",
                 LucideIconKind.Trash2 => "trash-2",
-                LucideIconKind.RefreshCw => "loader-circle",
+                LucideIconKind.RefreshCw => "refresh-cw",
                 LucideIconKind.LoaderCircle => "loader-circle",
                 LucideIconKind.Loader2 => "loader-circle",
                 LucideIconKind.RotateCcw => "rotate-ccw",

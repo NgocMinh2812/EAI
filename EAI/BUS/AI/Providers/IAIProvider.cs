@@ -15,5 +15,8 @@ namespace BUS.AI.Providers
 
         Task<AIResponse> GenerateContentAsync(string prompt, string? model = null, CancellationToken ct = default);
         Task<AIHealthStatus> CheckHealthAsync(CancellationToken ct = default);
+        Task<IReadOnlyList<AIModelInfo>> GetModelsAsync(bool forceRefresh = false, CancellationToken ct = default);
+        bool IsCatalogDynamic { get; }
+        string CatalogStatusMessage { get; }
     }
 }

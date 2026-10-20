@@ -9,10 +9,24 @@
 *.user
 *.userosscache
 *.sln.docstates
+# Secret & local credentials
 *.env
+.env
+**/.env
+*.env.*
 secrets.json
+**/secrets.json
 *.secrets.json
+*secret*.json
 appsettings.secrets.json
+
+# Whitelist safe configuration examples
+!*.example.json
+!**/*.example.json
+!.env.example
+!**/.env.example
+!secrets.example.json
+!**/secrets.example.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

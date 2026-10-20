@@ -29,6 +29,10 @@ namespace GUI.Views
         private double _currentSpeed = 1.0;
         private bool _isDraggingSlider = false;
 
+        public HocTapView() : this(null)
+        {
+        }
+
         public HocTapView(int? maBaiHocMoNgay = null)
         {
             InitializeComponent();
@@ -664,7 +668,10 @@ namespace GUI.Views
 
         private void NavAIChat_Click(object sender, RoutedEventArgs e)
         {
-            this.NavigationService?.Navigate(new TroLyAIView());
+            if (MainWindow.Instance != null)
+                MainWindow.Instance.NavigateToCached<TroLyAIView>();
+            else
+                this.NavigationService?.Navigate(new TroLyAIView());
         }
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)

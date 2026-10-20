@@ -1,187 +1,168 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace BUS.AI.Configuration
 {
     public static class AIConfigHelper
     {
-        private static List<string> GetCandidateSecretsPaths()
-        {
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var paths = new List<string>
-            {
-                Path.Combine(baseDir, "secrets.json"),
-                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\secrets.json")),
-                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\GUI\secrets.json")),
-                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\GUI\secrets.json")),
-                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\secrets.json")),
-                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\..\secrets.json"))
-            };
+        public const string UserSecretsId = "eai-desktop-app-secrets";
+        private static IConfiguration? _configuration;
 
-            // 1. Ưu tiên ASP.NET Core User Secrets: %APPDATA%\Microsoft\UserSecrets\<UserSecretsId>\secrets.json
+        /// <summary>
+        /// Configuration pipeline hợp nhất của ứng dụng:
+        /// 1. Nạp .NET User Secrets từ %APPDATA%\Microsoft\UserSecrets\eai-desktop-app-secrets\secrets.json
+        /// 2. Nạp Biến môi trường hệ thống (Environment Variables)
+        /// Tuyệt đối KHÔNG đọc hay fallback tới file secrets.json trong repository!
+        /// </summary>
+        public static IConfiguration Configuration => _configuration ??= BuildConfiguration();
+
+        public static IConfiguration BuildConfiguration()
+        {
+            var builder = new ConfigurationBuilder();
+
+            // 1. Biến môi trường hệ thống (Process scope)
             try
             {
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                string userSecretsRoot = Path.Combine(appData, "Microsoft", "UserSecrets");
-                if (Directory.Exists(userSecretsRoot))
-                {
-                    string eaiSpecificSecret = Path.Combine(userSecretsRoot, "eai-desktop-app-secrets", "secrets.json");
-                    if (File.Exists(eaiSpecificSecret))
-                    {
-                        paths.Insert(0, eaiSpecificSecret);
-                    }
-
-                    foreach (var dir in Directory.GetDirectories(userSecretsRoot))
-                    {
-                        string secretFile = Path.Combine(dir, "secrets.json");
-                        if (File.Exists(secretFile) && !paths.Contains(secretFile))
-                        {
-                            paths.Insert(0, secretFile);
-                        }
-                    }
-                }
+                builder.AddEnvironmentVariables();
             }
             catch { }
 
-            return paths;
+            // 2. .NET User Secrets
+            // Đặt UserSecrets sau để các cấu hình trong Manage User Secrets ghi đè lên các biến Process cũ
+            try
+            {
+                builder.AddUserSecrets(UserSecretsId);
+            }
+            catch { }
+
+            return builder.Build();
         }
 
-        private static JsonDocument? TryLoadSecretsDoc()
+        public static void ReloadConfiguration()
         {
-            foreach (var path in GetCandidateSecretsPaths())
+            _configuration = BuildConfiguration();
+        }
+
+        /// <summary>
+        /// Đọc biến môi trường an toàn từ Windows: Ưu tiên User scope (cập nhật tức thì từ Registry khi đổi trong Windows Settings)
+        /// rồi đến Machine scope, cuối cùng mới tới Process scope (tránh giữ key cũ khi chưa restart IDE/Visual Studio).
+        /// </summary>
+        public static string? GetEnvVar(string name)
+        {
+            try
             {
-                try
-                {
-                    if (File.Exists(path))
-                    {
-                        string json = File.ReadAllText(path);
-                        return JsonDocument.Parse(json);
-                    }
-                }
-                catch { }
+                string? userVal = Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.User);
+                if (!string.IsNullOrWhiteSpace(userVal)) return userVal.Trim();
             }
+            catch { }
+
+            try
+            {
+                string? machineVal = Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Machine);
+                if (!string.IsNullOrWhiteSpace(machineVal)) return machineVal.Trim();
+            }
+            catch { }
+
+            try
+            {
+                string? procVal = Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Process);
+                if (!string.IsNullOrWhiteSpace(procVal)) return procVal.Trim();
+            }
+            catch { }
+
             return null;
         }
 
-        public static string GetGeminiKey()
+        public static string GetGeminiKey(string? module = null)
         {
-            // 1. Biến môi trường chuẩn hóa: GEMINI_API_KEY
-            string envKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") 
-                         ?? Environment.GetEnvironmentVariable("GOOGLE_API_KEY") ?? "";
-            if (!string.IsNullOrWhiteSpace(envKey))
-                return envKey.Trim();
+            var config = Configuration;
 
-            // 2. File secrets.json hoặc ASP.NET Core User Secrets
-            using var doc = TryLoadSecretsDoc();
-            if (doc != null)
+            // 1. Ưu tiên cấu hình User Secrets (Manage User Secrets)
+            // 1a. Cấu trúc lồng chuẩn: Gemini:ApiKey
+            string? key = config["Gemini:ApiKey"];
+            if (!string.IsNullOrWhiteSpace(key)) return key.Trim();
+
+            // 1b. Module key nếu có (Gemini:NoiDungHocTap, Gemini:DanhMuc...)
+            if (!string.IsNullOrWhiteSpace(module))
             {
-                var root = doc.RootElement;
-                // Flat key: "GEMINI_API_KEY" (theo dotnet user-secrets set)
-                if (root.TryGetProperty("GEMINI_API_KEY", out var flatKey))
-                {
-                    string k = flatKey.GetString() ?? "";
-                    if (!string.IsNullOrWhiteSpace(k)) return k.Trim();
-                }
-
-                // Nested key: "Gemini": { "ApiKey": "..." }
-                if (root.TryGetProperty("Gemini", out var geminiProp))
-                {
-                    if (geminiProp.TryGetProperty("ApiKey", out var keyProp))
-                    {
-                        string k = keyProp.GetString() ?? "";
-                        if (!string.IsNullOrWhiteSpace(k)) return k.Trim();
-                    }
-                    if (geminiProp.TryGetProperty("NoiDungHocTap", out var modProp))
-                    {
-                        string k = modProp.GetString() ?? "";
-                        if (!string.IsNullOrWhiteSpace(k)) return k.Trim();
-                    }
-                    if (geminiProp.TryGetProperty("DanhMucCauTruc", out var dmProp))
-                    {
-                        string k = dmProp.GetString() ?? "";
-                        if (!string.IsNullOrWhiteSpace(k)) return k.Trim();
-                    }
-                }
+                key = config[$"Gemini:{module}"];
+                if (!string.IsNullOrWhiteSpace(key)) return key.Trim();
             }
+
+            key = config["Gemini:NoiDungHocTap"];
+            if (!string.IsNullOrWhiteSpace(key)) return key.Trim();
+
+            key = config["Gemini:DanhMucCauTruc"] ?? config["Gemini:DanhMuc"];
+            if (!string.IsNullOrWhiteSpace(key)) return key.Trim();
+
+            // 1c. Flat key: GEMINI_API_KEY hoặc GOOGLE_API_KEY
+            key = config["GEMINI_API_KEY"] ?? config["GOOGLE_API_KEY"];
+            if (!string.IsNullOrWhiteSpace(key)) return key.Trim();
+
+            // 2. Biến môi trường hệ thống (User target -> Machine target -> Process target)
+            if (!string.IsNullOrWhiteSpace(module))
+            {
+                string modEnvVar = $"GEMINI_API_KEY_{module.ToUpperInvariant()}";
+                string? modEnvVal = GetEnvVar(modEnvVar);
+                if (!string.IsNullOrWhiteSpace(modEnvVal)) return modEnvVal.Trim();
+            }
+
+            string? envKey = GetEnvVar("GEMINI_API_KEY") ?? GetEnvVar("GOOGLE_API_KEY");
+            if (!string.IsNullOrWhiteSpace(envKey)) return envKey.Trim();
 
             return string.Empty;
         }
 
         public static string GetGroqKey()
         {
-            // 1. Biến môi trường: GROQ_API_KEY
-            string envKey = Environment.GetEnvironmentVariable("GROQ_API_KEY") ?? "";
-            if (!string.IsNullOrWhiteSpace(envKey))
-                return envKey.Trim();
+            var config = Configuration;
 
-            // 2. File secrets.json hoặc ASP.NET Core User Secrets
-            using var doc = TryLoadSecretsDoc();
-            if (doc != null)
-            {
-                var root = doc.RootElement;
-                if (root.TryGetProperty("GROQ_API_KEY", out var flatKey))
-                {
-                    string k = flatKey.GetString() ?? "";
-                    if (!string.IsNullOrWhiteSpace(k)) return k.Trim();
-                }
+            // 1. Ưu tiên .NET User Secrets (chuẩn lồng Groq:ApiKey hoặc flat GROQ_API_KEY)
+            string? key = config["Groq:ApiKey"] ?? config["GROQ_API_KEY"];
+            if (!string.IsNullOrWhiteSpace(key)) return key.Trim();
 
-                if (root.TryGetProperty("Groq", out var groqProp))
-                {
-                    if (groqProp.TryGetProperty("ApiKey", out var keyProp))
-                    {
-                        string k = keyProp.GetString() ?? "";
-                        if (!string.IsNullOrWhiteSpace(k)) return k.Trim();
-                    }
-                }
-            }
+            // 2. Biến môi trường hệ thống (User -> Machine -> Process)
+            string? envKey = GetEnvVar("GROQ_API_KEY");
+            if (!string.IsNullOrWhiteSpace(envKey)) return envKey.Trim();
 
             return string.Empty;
         }
 
         public static (string ApiKey, string BaseUrl) GetXkioConfig()
         {
-            // 1. Biến môi trường: Hỗ trợ cả XKIO_API_KEY và XKIRO_API_KEY
-            string key = Environment.GetEnvironmentVariable("XKIO_API_KEY")
-                      ?? Environment.GetEnvironmentVariable("XKIRO_API_KEY") ?? "";
-            string url = Environment.GetEnvironmentVariable("XKIO_API_ENDPOINT") 
-                      ?? Environment.GetEnvironmentVariable("XKIRO_API_ENDPOINT")
-                      ?? Environment.GetEnvironmentVariable("XKIO_BASE_URL")
-                      ?? Environment.GetEnvironmentVariable("XKIRO_BASE_URL") ?? "";
+            var config = Configuration;
 
-            // 2. User Secrets hoặc secrets.json
-            using var doc = TryLoadSecretsDoc();
-            if (doc != null)
+            // 1. Ưu tiên .NET User Secrets
+            string? key = config["Xkio:ApiKey"] 
+                       ?? config["xKiro:ApiKey"] 
+                       ?? config["XKIO_API_KEY"] 
+                       ?? config["XKIRO_API_KEY"];
+
+            string? url = config["Xkio:BaseUrl"] 
+                       ?? config["xKiro:BaseUrl"] 
+                       ?? config["XKIO_API_ENDPOINT"] 
+                       ?? config["XKIRO_API_ENDPOINT"]
+                       ?? config["XKIO_BASE_URL"] 
+                       ?? config["XKIRO_BASE_URL"];
+
+            // 2. Biến môi trường hệ thống (User -> Machine -> Process)
+            if (string.IsNullOrWhiteSpace(key))
             {
-                var root = doc.RootElement;
-                if (string.IsNullOrWhiteSpace(key))
-                {
-                    if (root.TryGetProperty("XKIO_API_KEY", out var flatKey) || root.TryGetProperty("XKIRO_API_KEY", out flatKey))
-                        key = flatKey.GetString() ?? "";
-                }
-                if (string.IsNullOrWhiteSpace(url))
-                {
-                    if (root.TryGetProperty("XKIO_API_ENDPOINT", out var flatUrl) || root.TryGetProperty("XKIRO_API_ENDPOINT", out flatUrl))
-                        url = flatUrl.GetString() ?? "";
-                }
-
-                // Nested property: "Xkio" hoặc "xKiro"
-                JsonElement xkioProp = default;
-                if (root.TryGetProperty("Xkio", out var p1)) xkioProp = p1;
-                else if (root.TryGetProperty("xKiro", out var p2)) xkioProp = p2;
-
-                if (xkioProp.ValueKind == JsonValueKind.Object)
-                {
-                    if (string.IsNullOrWhiteSpace(key) && xkioProp.TryGetProperty("ApiKey", out var keyProp))
-                    {
-                        key = keyProp.GetString() ?? "";
-                    }
-                    if (string.IsNullOrWhiteSpace(url) && xkioProp.TryGetProperty("BaseUrl", out var urlProp))
-                    {
-                        url = urlProp.GetString() ?? "";
-                    }
-                }
+                key = GetEnvVar("XKIO_API_KEY") ?? GetEnvVar("XKIRO_API_KEY");
             }
+
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                url = GetEnvVar("XKIO_API_ENDPOINT") 
+                   ?? GetEnvVar("XKIRO_API_ENDPOINT") 
+                   ?? GetEnvVar("XKIO_BASE_URL") 
+                   ?? GetEnvVar("XKIRO_BASE_URL");
+            }
+
+            key ??= "";
+            url ??= "";
 
             // Mặc định tên miền chính thức của dịch vụ xKiro AI Gateway
             if (string.IsNullOrWhiteSpace(url) || url.Contains("api.xkio.ai", StringComparison.OrdinalIgnoreCase))

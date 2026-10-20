@@ -117,27 +117,42 @@ namespace GUI.Views
 
         private void BtnLuyenTap_Click(object sender, RoutedEventArgs e)
         {
-            this.NavigationService?.Navigate(new LuyenTapView());
+            if (MainWindow.Instance != null)
+                MainWindow.Instance.NavigateToCached<LuyenTapView>();
+            else
+                this.NavigationService?.Navigate(new LuyenTapView());
         }
 
         private void BtnLuyenTap_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            this.NavigationService?.Navigate(new LuyenTapView());
+            if (MainWindow.Instance != null)
+                MainWindow.Instance.NavigateToCached<LuyenTapView>();
+            else
+                this.NavigationService?.Navigate(new LuyenTapView());
         }
 
         private void BtnThiThu_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            this.NavigationService?.Navigate(new ThiThuView());
+            if (MainWindow.Instance != null)
+                MainWindow.Instance.NavigateToCached<ThiThuView>();
+            else
+                this.NavigationService?.Navigate(new ThiThuView());
         }
 
         private void BtnBaiVietAI_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            this.NavigationService?.Navigate(new BaiVietAIView());
+            if (MainWindow.Instance != null)
+                MainWindow.Instance.NavigateToCached<BaiVietAIView>();
+            else
+                this.NavigationService?.Navigate(new BaiVietAIView());
         }
 
         private void BtnAIChat_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            this.NavigationService?.Navigate(new TroLyAIView());
+            if (MainWindow.Instance != null)
+                MainWindow.Instance.NavigateToCached<TroLyAIView>();
+            else
+                this.NavigationService?.Navigate(new TroLyAIView());
         }
 
         private void ItemRecentLesson_MouseDown(object sender, MouseButtonEventArgs e)
@@ -150,7 +165,10 @@ namespace GUI.Views
 
         private void AIChatButton_Click(object sender, RoutedEventArgs e)
         {
-            this.NavigationService?.Navigate(new TroLyAIView());
+            if (MainWindow.Instance != null)
+                MainWindow.Instance.NavigateToCached<TroLyAIView>();
+            else
+                this.NavigationService?.Navigate(new TroLyAIView());
         }
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)

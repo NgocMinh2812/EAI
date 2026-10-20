@@ -14,6 +14,27 @@ namespace GUI
     public partial class MainWindow : Window
     {
         public static MainWindow? Instance { get; private set; }
+        private readonly System.Collections.Generic.Dictionary<Type, Page> _pageCache = new();
+
+        public Page GetOrCreatePage<T>() where T : Page, new()
+        {
+            var type = typeof(T);
+            if (!_pageCache.TryGetValue(type, out var page))
+            {
+                page = new T();
+                _pageCache[type] = page;
+            }
+            return page;
+        }
+
+        public void NavigateToCached<T>() where T : Page, new()
+        {
+            var page = GetOrCreatePage<T>();
+            if (MainFrame.Content != page)
+            {
+                MainFrame.Navigate(page);
+            }
+        }
 
         public MainWindow(bool isFirstLogin = false)
         {
@@ -35,10 +56,11 @@ namespace GUI
             }
             else
             {
-                // Thành viên đã đăng ký: Vào thẳng Trang chủ, hiển thị Sidebar bình thường
+                // Thành viên đã đăng ký: Vào thẳng Trang chủ sử dụng page cache
                 ShowSidebar();
-                MainFrame.Navigate(new TrangChuView());
+                MainFrame.Navigate(GetOrCreatePage<TrangChuView>());
             }
+            Closed += (s, e) => _pageCache.Clear();
         }
 
         public void HideSidebar()
@@ -154,7 +176,7 @@ namespace GUI
         {
             if (MainFrame.Content is not TrangChuView)
             {
-                MainFrame.Navigate(new TrangChuView());
+                MainFrame.Navigate(GetOrCreatePage<TrangChuView>());
             }
         }
 
@@ -162,7 +184,7 @@ namespace GUI
         {
             if (MainFrame.Content is not DanhGiaNangLucView)
             {
-                MainFrame.Navigate(new DanhGiaNangLucView());
+                MainFrame.Navigate(GetOrCreatePage<DanhGiaNangLucView>());
             }
         }
 
@@ -177,7 +199,7 @@ namespace GUI
         {
             if (MainFrame.Content is not HocTapView)
             {
-                MainFrame.Navigate(new HocTapView());
+                MainFrame.Navigate(GetOrCreatePage<HocTapView>());
             }
         }
 
@@ -185,7 +207,7 @@ namespace GUI
         {
             if (MainFrame.Content is not LuyenTapView)
             {
-                MainFrame.Navigate(new LuyenTapView());
+                MainFrame.Navigate(GetOrCreatePage<LuyenTapView>());
             }
         }
 
@@ -193,7 +215,7 @@ namespace GUI
         {
             if (MainFrame.Content is not ThiThuView)
             {
-                MainFrame.Navigate(new ThiThuView());
+                MainFrame.Navigate(GetOrCreatePage<ThiThuView>());
             }
         }
 
@@ -201,7 +223,7 @@ namespace GUI
         {
             if (MainFrame.Content is not BaiVietAIView)
             {
-                MainFrame.Navigate(new BaiVietAIView());
+                MainFrame.Navigate(GetOrCreatePage<BaiVietAIView>());
             }
         }
 
@@ -209,7 +231,7 @@ namespace GUI
         {
             if (MainFrame.Content is not TienDoHocView)
             {
-                MainFrame.Navigate(new TienDoHocView());
+                MainFrame.Navigate(GetOrCreatePage<TienDoHocView>());
             }
         }
 
@@ -217,7 +239,7 @@ namespace GUI
         {
             if (MainFrame.Content is not TroLyAIView)
             {
-                MainFrame.Navigate(new TroLyAIView());
+                MainFrame.Navigate(GetOrCreatePage<TroLyAIView>());
             }
         }
 
@@ -225,7 +247,7 @@ namespace GUI
         {
             if (MainFrame.Content is not HoSoCaNhanView)
             {
-                MainFrame.Navigate(new HoSoCaNhanView());
+                MainFrame.Navigate(GetOrCreatePage<HoSoCaNhanView>());
             }
         }
 

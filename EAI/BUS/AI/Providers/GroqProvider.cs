@@ -27,7 +27,8 @@ namespace BUS.AI.Providers
             "qwen/qwen3.8-27b",
             "openai/gpt-oss-120b",
             "openai/gpt-oss-20b",
-            "allam-2-7b"
+            "allam-2-7b",
+            "llama-3.3-70b-versatile"
         };
 
         public string DefaultModel => "qwen/qwen3.8-27b";
@@ -192,6 +193,130 @@ namespace BUS.AI.Providers
                     LastChecked = DateTime.Now
                 };
             }
+        }
+
+        private static List<AIModelInfo>? _cachedModels;
+        private static DateTime _lastCacheTime = DateTime.MinValue;
+        private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(10);
+
+        public bool IsCatalogDynamic { get; private set; } = false;
+        public string CatalogStatusMessage { get; private set; } = "Chưa tải danh mục";
+
+        public async Task<IReadOnlyList<AIModelInfo>> GetModelsAsync(bool forceRefresh = false, CancellationToken ct = default)
+        {
+            if (!forceRefresh && _cachedModels != null && (DateTime.Now - _lastCacheTime) < CacheDuration)
+            {
+                return _cachedModels;
+            }
+
+            string apiKey = AIConfigHelper.GetGroqKey();
+            if (!string.IsNullOrWhiteSpace(apiKey))
+            {
+                try
+                {
+                    string endpoint = $"{GroqBaseUrl}/models";
+                    using var req = new HttpRequestMessage(HttpMethod.Get, endpoint);
+                    req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
+                    using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, cts.Token);
+
+                    var res = await _httpClient.SendAsync(req, linkedCts.Token);
+                    if (res.IsSuccessStatusCode)
+                    {
+                        string body = await res.Content.ReadAsStringAsync(ct);
+                        using var doc = JsonDocument.Parse(body);
+                        if (doc.RootElement.TryGetProperty("data", out var dataArr) && dataArr.ValueKind == JsonValueKind.Array)
+                        {
+                            var dynamicList = new List<AIModelInfo>();
+                            foreach (var item in dataArr.EnumerateArray())
+                            {
+                                string id = item.TryGetProperty("id", out var idProp) ? (idProp.GetString() ?? "") : "";
+                                if (string.IsNullOrWhiteSpace(id)) continue;
+
+                                string idLower = id.ToLowerInvariant();
+                                // Lọc bỏ các mô hình không phục vụ chat/text generation (whisper, audio, guard, moderation, orpheus, canopylabs, tts, voice)
+                                if (idLower.Contains("whisper") || idLower.Contains("audio") || idLower.Contains("guard") || 
+                                    idLower.Contains("moderation") || idLower.Contains("orpheus") || idLower.Contains("canopylabs") ||
+                                    idLower.Contains("tts") || idLower.Contains("voice"))
+                                    continue;
+
+                                string ownedBy = item.TryGetProperty("owned_by", out var obProp) ? (obProp.GetString() ?? "") : "groq";
+                                int? ctx = item.TryGetProperty("context_window", out var ctxProp) ? ctxProp.GetInt32() : (int?)null;
+                                bool isDefault = (id == DefaultModel) || (id == "qwen/qwen3.8-27b");
+
+                                dynamicList.Add(new AIModelInfo
+                                {
+                                    Id = id,
+                                    DisplayName = FormatGroqDisplayName(id),
+                                    ProviderName = ProviderName,
+                                    ProviderType = ProviderType,
+                                    OwnedBy = ownedBy,
+                                    AccessTier = "standard",
+                                    Modality = "chat",
+                                    ContextLength = ctx,
+                                    IsDynamic = true,
+                                    DefaultModel = isDefault
+                                });
+                            }
+
+                            if (dynamicList.Count > 0)
+                            {
+                                // Sắp xếp mô hình mặc định (Khuyên dùng) lên đầu tiên
+                                _cachedModels = dynamicList
+                                    .OrderByDescending(x => x.DefaultModel)
+                                    .ThenBy(x => x.DisplayName)
+                                    .ToList();
+                                _lastCacheTime = DateTime.Now;
+                                IsCatalogDynamic = true;
+                                CatalogStatusMessage = $"Đồng bộ trực tiếp từ Groq API ({_cachedModels.Count} mô hình chat)";
+                                return _cachedModels;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[GroqProvider.GetModelsAsync] Không thể lấy catalog động: {ex.Message}");
+                }
+            }
+
+            // Fallback danh sách cấu hình sẵn đã xác minh chính thức từ Groq Console Docs
+            var fallback = GetFallbackModels();
+            _cachedModels = fallback;
+            _lastCacheTime = DateTime.Now;
+            IsCatalogDynamic = false;
+            CatalogStatusMessage = string.IsNullOrWhiteSpace(apiKey)
+                ? "Chưa có API Key — Dùng danh mục cấu hình sẵn đã xác minh từ Groq Docs"
+                : "Không thể kết nối API catalog — Dùng danh mục cấu hình sẵn đã xác minh từ Groq Docs";
+            return fallback;
+        }
+
+        private static string FormatGroqDisplayName(string modelId)
+        {
+            return modelId switch
+            {
+                "qwen/qwen3.8-27b" => "Qwen 3.8 27B (Khuyên dùng - Siêu tốc)",
+                "openai/gpt-oss-120b" => "OpenAI GPT-OSS 120B (Lập luận sâu)",
+                "openai/gpt-oss-20b" => "OpenAI GPT-OSS 20B (Nhanh & Ổn định)",
+                "allam-2-7b" => "Allam 2 7B (Đa ngôn ngữ)",
+                "llama-3.3-70b-versatile" => "Meta Llama 3.3 70B Versatile",
+                "llama-3.1-8b-instant" => "Meta Llama 3.1 8B Instant",
+                "gemma2-9b-it" => "Google Gemma 2 9B IT",
+                "deepseek-r1-distill-llama-70b" => "DeepSeek R1 Distill Llama 70B",
+                _ => modelId
+            };
+        }
+
+        private List<AIModelInfo> GetFallbackModels()
+        {
+            return new List<AIModelInfo>
+            {
+                new AIModelInfo { Id = "qwen/qwen3.8-27b", DisplayName = "Qwen 3.8 27B (Khuyên dùng - Siêu tốc)", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "qwen", AccessTier = "standard", Modality = "chat", ContextLength = 32768, DefaultModel = true, IsDynamic = false },
+                new AIModelInfo { Id = "openai/gpt-oss-120b", DisplayName = "OpenAI GPT-OSS 120B (Lập luận sâu)", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "openai", AccessTier = "standard", Modality = "chat", ContextLength = 128000, IsDynamic = false },
+                new AIModelInfo { Id = "openai/gpt-oss-20b", DisplayName = "OpenAI GPT-OSS 20B (Nhanh & Ổn định)", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "openai", AccessTier = "standard", Modality = "chat", ContextLength = 128000, IsDynamic = false },
+                new AIModelInfo { Id = "allam-2-7b", DisplayName = "Allam 2 7B (Đa ngôn ngữ)", ProviderName = ProviderName, ProviderType = ProviderType, OwnedBy = "sdaia", AccessTier = "standard", Modality = "chat", ContextLength = 8192, IsDynamic = false }
+            };
         }
     }
 }
