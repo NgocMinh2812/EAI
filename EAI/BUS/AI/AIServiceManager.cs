@@ -188,34 +188,54 @@ namespace BUS.AI
 
             try
             {
-                string skillInstruction = GeminiAIService.GetSkillQuestionInstruction(loaiBaiHoc);
+                string normSkill = BoCauHoiBUS.ChuankHoaKyNang(loaiBaiHoc);
+                string skillInstruction = GeminiAIService.GetSkillQuestionInstruction(normSkill);
                 string levelInstruction = GeminiAIService.GetLevelInstruction(trinhDo);
 
-                string prompt = $@"Bạn là trợ lý AI chuyên gia khảo thí và sư phạm tiếng Anh hàng đầu.
-Nhiệm vụ của bạn là đọc kỹ tài liệu bài học sau và tạo ra đúng {soLuong} câu hỏi trắc nghiệm tiếng Anh 4 lựa chọn (A, B, C, D) đạt chuẩn chuẩn mực giáo dục.
+                string prompt = $@"Bạn là chuyên gia khảo thí và sư phạm tiếng Anh hàng đầu chuẩn quốc tế (CEFR / Cambridge / IELTS).
+Nhiệm vụ của bạn là phân tích tài liệu bài học sau và tạo ra đúng {soLuong} câu hỏi trắc nghiệm tiếng Anh 4 lựa chọn (A, B, C, D) chất lượng cao đạt chuẩn khảo thí.
 
 THÔNG TIN BÀI HỌC:
 - Tiêu đề: {tieuDe}
-- Khung trình độ CEFR: {trinhDo} ({levelInstruction})
-- Kỹ năng trọng tâm: {loaiBaiHoc}
+- Trình độ CEFR: {trinhDo} ({levelInstruction})
+- Kỹ năng trọng tâm: {normSkill}
 
 NỘI DUNG TÀI LIỆU CẦN RA ĐỀ:
 {cleanContent}
 
-YÊU CẦU ĐẶC BIỆT THEO KỸ NĂNG:
+YÊU CẦU THEO KỸ NĂNG:
 {skillInstruction}
 
-QUY TẮC BẮT BUỘC:
-1. Câu hỏi và các phương án PHẢI bám sát 100% nội dung bài học trên.
-2. Độ khó tương xứng với cấp độ {trinhDo}.
-3. Luôn có 1 đáp án đúng duy nhất (chỉ số 0: A, 1: B, 2: C, 3: D) và phần giải thích rõ ràng kèm trích dẫn văn bản.
-4. Trả về DUY NHẤT một mảng JSON thuần túy:
+QUY TẮC BẮT BUỘC ĐỂ ĐA DẠNG HÓA CÂU HỎI:
+1. ĐA DẠNG HÓA LOẠI CÂU HỎI VÀ GÓC ĐỘ ĐÁNH GIÁ:
+   - TUYỆT ĐỐI KHÔNG tạo toàn bộ câu hỏi về nghĩa từ vựng.
+   - Phải phân bổ đa dạng qua các khía cạnh:
+     + Ý chính bài học / bối cảnh tổng quan (Main Idea / Context)
+     + Dẫn chứng và thông tin chi tiết (Factual Details & Evidence)
+     + Từ vựng và Cụm từ kết hợp tự nhiên trong ngữ cảnh (Vocabulary & Collocations in context)
+     + Ngữ pháp, cấu trúc câu hoặc chia thì (Grammar in context / Sentence structure)
+     + Suy luận logic và thái độ/mục đích của tác giả/người nói (Inference & Author's Tone)
+   - Đa dạng loại câu hỏi ('LoaiCauHoi'): 'TracNghiem' (Trắc nghiệm chuẩn), 'DienTu' (Điền từ khuyết), 'TimLoiSai' (Tìm lỗi sai trong câu), 'HoanThanhCau' (Hoàn thành câu).
+2. ĐỘ KHÓ PHÂN BỔ THEO CEFR {trinhDo}:
+   - ~20-30% câu Dễ ('De')
+   - ~50-60% câu Trung bình ('TrungBinh')
+   - ~20% câu Khó phân hóa ('Kho')
+3. NẾU KỸ NĂNG LÀ ĐỌC HIỂU ('Doc'):
+   - Bắt buộc trích xuất đoạn văn đọc hiểu hoặc ngữ cảnh cụ thể từ tài liệu vào trường 'DoanVanDoc'.
+4. MỖI CÂU HỎI PHẢI CÓ 4 PHƯƠNG ÁN TRẢ LỜI ĐỘC LẬP (A, B, C, D):
+   - Không được lặp lại cùng các phương án giữa các câu hỏi khác nhau.
+   - Luôn có đúng 1 đáp án đúng duy nhất (DapAnDungIndex: 0 cho A, 1 cho B, 2 cho C, 3 cho D).
+5. Trả về DUY NHẤT một mảng JSON thuần túy (không kèm markdown văn bản bên ngoài):
 [
   {{
-    ""NoiDungCauHoi"": ""Question 1: Nội dung câu hỏi..."",
-    ""DanhSachLuaChon"": [""A. Phương án 1"", ""B. Phương án 2"", ""C. Phương án 3"", ""D. Phương án 4""],
+    ""NoiDungCauHoi"": ""Question 1: ..."",
+    ""DanhSachLuaChon"": [""A. ..."", ""B. ..."", ""C. ..."", ""D. ...""],
     ""DapAnDungIndex"": 0,
-    ""GiaiThichChiTiet"": ""Giải thích chi tiết...""
+    ""GiaiThichChiTiet"": ""Giải thích chi tiết kèm trích dẫn văn bản..."",
+    ""KyNang"": ""{normSkill}"",
+    ""DoKho"": ""TrungBinh"",
+    ""LoaiCauHoi"": ""TracNghiem"",
+    ""DoanVanDoc"": ""Đoạn văn đọc hiểu trích xuất từ bài học (nếu là kỹ năng Đọc hiểu)""
   }}
 ]";
 
@@ -235,6 +255,18 @@ QUY TẮC BẮT BUỘC:
 
                     if (questions != null && questions.Count > 0)
                     {
+                        string passage = BoCauHoiBUS.TrichXuatDoanVanDocHieu(cleanContent);
+                        for (int i = 0; i < questions.Count; i++)
+                        {
+                            var q = questions[i];
+                            if (string.IsNullOrWhiteSpace(q.KyNang)) q.KyNang = normSkill;
+                            if (string.IsNullOrWhiteSpace(q.DoKho)) q.DoKho = i < 2 ? "De" : (i >= 8 ? "Kho" : "TrungBinh");
+                            if (string.IsNullOrWhiteSpace(q.LoaiCauHoi)) q.LoaiCauHoi = "TracNghiem";
+                            if (string.IsNullOrWhiteSpace(q.DoanVanDoc) && (q.KyNang == "Doc" || normSkill == "Doc"))
+                            {
+                                q.DoanVanDoc = passage;
+                            }
+                        }
                         return questions;
                     }
                 }

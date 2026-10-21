@@ -38,7 +38,7 @@
         </Border>
 
         <!-- Khung nội dung hộp thoại (Không có Effect -> Render Vector & ClearType sắc nét 100%) -->
-        <Border Background="#F2F9F7" CornerRadius="18" BorderBrush="#5EEAD4" BorderThickness="1.5" ClipToBounds="True">
+        <Border x:Name="borderMain" Background="White" CornerRadius="18" BorderBrush="#E2E8F0" BorderThickness="1.5" ClipToBounds="True">
             <Grid Margin="24,18,24,22">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -52,15 +52,15 @@
                     Width="28" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Đóng" Click="BtnCancel_Click">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="b" Background="#FEE2E2" CornerRadius="14" BorderBrush="#FECACA" BorderThickness="1">
-                            <TextBlock x:Name="t" Text="✕" FontSize="13" FontWeight="Bold" Foreground="#DC2626" 
+                        <Border x:Name="b" Background="#F1F5F9" CornerRadius="14" BorderBrush="#E2E8F0" BorderThickness="1">
+                            <TextBlock x:Name="t" Text="✕" FontSize="12" FontWeight="Bold" Foreground="#64748B" 
                                        HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="b" Property="Background" Value="#DC2626"/>
-                                <Setter TargetName="b" Property="BorderBrush" Value="#B91C1C"/>
-                                <Setter TargetName="t" Property="Foreground" Value="White"/>
+                                <Setter TargetName="b" Property="Background" Value="#FEE2E2"/>
+                                <Setter TargetName="b" Property="BorderBrush" Value="#FECACA"/>
+                                <Setter TargetName="t" Property="Foreground" Value="#DC2626"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -69,8 +69,8 @@
 
             <!-- Icon Header + Badge -->
             <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,2,0,14">
-                <Border x:Name="borderIconBadge" Width="64" Height="64" CornerRadius="32" Background="#FEF3C7" HorizontalAlignment="Center">
-                    <local:LucideIcon x:Name="icoSymbol" Kind="AlertTriangle" Size="30" Foreground="#D97706" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Border x:Name="borderIconBadge" Width="64" Height="64" CornerRadius="32" Background="#DCFCE7" HorizontalAlignment="Center">
+                    <local:LucideIcon x:Name="icoSymbol" Kind="Check" Size="34" StrokeThickness="3.0" Foreground="#16A34A" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
             </StackPanel>
 

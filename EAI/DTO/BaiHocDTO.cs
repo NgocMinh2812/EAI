@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace DTO
 {
@@ -12,29 +14,228 @@ namespace DTO
         public string GiaiThichChiTiet { get; set; } = string.Empty;
         public int LuaChonCuaNguoiDung { get; set; } = -1; // -1: Chưa chọn
         public bool? DaTraLoiDung { get; set; } = null;
+        public bool IsSelected { get; set; } = true;
+        public string? KyNang { get; set; }
+        public string? DoKho { get; set; }
+        public string? LoaiCauHoi { get; set; }
+        public string? DoanVanDoc { get; set; }
     }
 
-    public class BaiHocDTO
+    public class BaiHocDTO : INotifyPropertyChanged
     {
-        public int MaBaiHoc { get; set; }
-        public int MaChuDe { get; set; }
-        public int MaTrinhDoId { get; set; } = 3;
-        public int? NguoiTao { get; set; }
-        public string TieuDe { get; set; } = string.Empty;
-        public string LoaiBaiHoc { get; set; } = string.Empty; // TuVung, NguPhap, DocHieu, NgheHieu, VietLuan
-        public string TenLoaiHienThi { get; set; } = string.Empty;
-        public string MaTrinhDo { get; set; } = string.Empty; // A1, A2, B1, B2, C1
-        public string TenChuDe { get; set; } = string.Empty;
-        public string TomTat { get; set; } = string.Empty;
-        public string NoiDung { get; set; } = string.Empty;
-        public int ThoiGianUocTinhPhut { get; set; } = 15;
-        public int ThoiLuongUocTinh { get => ThoiGianUocTinhPhut; set => ThoiGianUocTinhPhut = value; }
-        public bool DaXuatBan { get; set; } = true;
-        public string? DuongDanAudio { get; set; }
-        public string? DuongDanHinhAnh { get; set; }
-        public string? AudioPath { get => DuongDanAudio; set => DuongDanAudio = value; }
-        public string? AnhMinhHoaPath { get => DuongDanHinhAnh; set => DuongDanHinhAnh = value; }
-        public double PhanTramTienDo { get; set; } = 0;
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(storage, value))
+                return false;
+
+            storage = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+
+        private int _maBaiHoc;
+        public int MaBaiHoc
+        {
+            get => _maBaiHoc;
+            set => SetProperty(ref _maBaiHoc, value);
+        }
+
+        private int _maChuDe;
+        public int MaChuDe
+        {
+            get => _maChuDe;
+            set => SetProperty(ref _maChuDe, value);
+        }
+
+        private int _maTrinhDoId = 3;
+        public int MaTrinhDoId
+        {
+            get => _maTrinhDoId;
+            set => SetProperty(ref _maTrinhDoId, value);
+        }
+
+        private int? _nguoiTao;
+        public int? NguoiTao
+        {
+            get => _nguoiTao;
+            set => SetProperty(ref _nguoiTao, value);
+        }
+
+        private string _tieuDe = string.Empty;
+        public string TieuDe
+        {
+            get => _tieuDe;
+            set => SetProperty(ref _tieuDe, value);
+        }
+
+        private string _loaiBaiHoc = string.Empty; // TuVung, NguPhap, Doc, Nghe, Viet
+        public string LoaiBaiHoc
+        {
+            get => _loaiBaiHoc;
+            set
+            {
+                if (SetProperty(ref _loaiBaiHoc, value))
+                {
+                    OnPropertyChanged(nameof(IsKyNangNghe));
+                }
+            }
+        }
+
+        private string _tenLoaiHienThi = string.Empty;
+        public string TenLoaiHienThi
+        {
+            get => _tenLoaiHienThi;
+            set => SetProperty(ref _tenLoaiHienThi, value);
+        }
+
+        private string _maTrinhDo = string.Empty; // A1, A2, B1, B2, C1
+        public string MaTrinhDo
+        {
+            get => _maTrinhDo;
+            set => SetProperty(ref _maTrinhDo, value);
+        }
+
+        private string _tenChuDe = string.Empty;
+        public string TenChuDe
+        {
+            get => _tenChuDe;
+            set => SetProperty(ref _tenChuDe, value);
+        }
+
+        private string _tomTat = string.Empty;
+        public string TomTat
+        {
+            get => _tomTat;
+            set => SetProperty(ref _tomTat, value);
+        }
+
+        private string _noiDung = string.Empty;
+        public string NoiDung
+        {
+            get => _noiDung;
+            set => SetProperty(ref _noiDung, value);
+        }
+
+        private int _thoiGianUocTinhPhut = 15;
+        public int ThoiGianUocTinhPhut
+        {
+            get => _thoiGianUocTinhPhut;
+            set
+            {
+                if (SetProperty(ref _thoiGianUocTinhPhut, value))
+                {
+                    OnPropertyChanged(nameof(ThoiLuongUocTinh));
+                }
+            }
+        }
+
+        public int ThoiLuongUocTinh
+        {
+            get => ThoiGianUocTinhPhut;
+            set => ThoiGianUocTinhPhut = value;
+        }
+
+        private bool _daXuatBan = false;
+        public bool DaXuatBan
+        {
+            get => _daXuatBan;
+            set
+            {
+                if (SetProperty(ref _daXuatBan, value))
+                {
+                    DongBoTrangThaiXuatBan();
+                }
+            }
+        }
+
+        public void DongBoTrangThaiXuatBan()
+        {
+            TrangThai = _daXuatBan ? "Đã xuất bản" : "Bản nháp";
+            StatusBackground = _daXuatBan ? "#DCFCE7" : "#F1F5F9";
+            StatusColor = _daXuatBan ? "#15803D" : "#64748B";
+            OnPropertyChanged(nameof(TrangThai));
+            OnPropertyChanged(nameof(StatusBackground));
+            OnPropertyChanged(nameof(StatusColor));
+        }
+
+        private string? _duongDanAudio;
+        public string? DuongDanAudio
+        {
+            get => _duongDanAudio;
+            set
+            {
+                if (SetProperty(ref _duongDanAudio, value))
+                {
+                    OnPropertyChanged(nameof(AudioPath));
+                    OnPropertyChanged(nameof(HasAudio));
+                }
+            }
+        }
+
+        private string? _duongDanHinhAnh;
+        public string? DuongDanHinhAnh
+        {
+            get => _duongDanHinhAnh;
+            set
+            {
+                if (SetProperty(ref _duongDanHinhAnh, value))
+                {
+                    OnPropertyChanged(nameof(AnhMinhHoaPath));
+                }
+            }
+        }
+
+        public string? AudioPath
+        {
+            get => DuongDanAudio;
+            set => DuongDanAudio = value;
+        }
+
+        public string? AnhMinhHoaPath
+        {
+            get => DuongDanHinhAnh;
+            set => DuongDanHinhAnh = value;
+        }
+
+        public bool HasAudio => !string.IsNullOrWhiteSpace(DuongDanAudio);
+
+        public bool IsKyNangNghe => KiemTraKyNangNghe(LoaiBaiHoc);
+
+        public static bool KiemTraKyNangNghe(string? loai)
+        {
+            if (string.IsNullOrWhiteSpace(loai)) return false;
+            string l = loai.Trim().ToLowerInvariant();
+            return l == "nghe" || l == "nghehieu" || l.Contains("nghe") || l.Contains("listening");
+        }
+
+        public static string XacDinhKyNangTuTenHoacChuDe(string? tieuDe, string? tenChuDe = null, string? duongDanTep = null)
+        {
+            string combined = $"{tieuDe} {tenChuDe} {duongDanTep}".ToLowerInvariant();
+            if (combined.Contains("nghe") || combined.Contains("listen") || combined.Contains(".mp3") || combined.Contains(".wav") || combined.Contains(".m4a"))
+                return "Nghe";
+            if (combined.Contains("ngữ pháp") || combined.Contains("ngu phap") || combined.Contains("grammar") || combined.Contains("tenses") || combined.Contains("mệnh đề") || combined.Contains("bị động"))
+                return "NguPhap";
+            if (combined.Contains("từ vựng") || combined.Contains("tu vung") || combined.Contains("vocab") || combined.Contains("flashcard"))
+                return "TuVung";
+            if (combined.Contains("viết") || combined.Contains("viet") || combined.Contains("writing") || combined.Contains("essay"))
+                return "Viet";
+            return "Doc";
+        }
+
+        private double _phanTramTienDo = 0;
+        public double PhanTramTienDo
+        {
+            get => _phanTramTienDo;
+            set => SetProperty(ref _phanTramTienDo, value);
+        }
+
         public string TrangThai { get; set; } = "Chưa học"; // Chưa học, Đang học, Hoàn thành
         public string DiemSo { get; set; } = "--";
         public string NgayHocGanNhat { get; set; } = "Chưa học";

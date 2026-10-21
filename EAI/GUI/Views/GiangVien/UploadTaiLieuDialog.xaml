@@ -219,7 +219,7 @@
 
                             <!-- Danh mục chủ đề -->
                             <TextBlock Text="Thuộc Danh mục &amp; Chủ đề *" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
-                            <ComboBox x:Name="cboChuDe" Height="36" Margin="0,0,0,10" DisplayMemberPath="TenChuDe" SelectedValuePath="MaChuDe"/>
+                            <ComboBox x:Name="cboChuDe" Height="36" Margin="0,0,0,10" DisplayMemberPath="TenHienThi" SelectedValuePath="MaChuDe"/>
 
                             <!-- Trình độ & Kỹ năng (2 cột song song) -->
                             <Grid Margin="0,0,0,10">

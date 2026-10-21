@@ -18,6 +18,8 @@ namespace DAL
             string query = @"
                 SELECT bh.MaBaiHoc, bh.TieuDe, bh.LoaiBaiHoc, td.MaCapDo AS MaTrinhDo, 
                        cd.TenChuDe, bh.TomTat, bh.NoiDung, bh.ThoiGianUocTinhPhut,
+                       ISNULL(bh.DaXuatBan, 0) AS DaXuatBan,
+                       ISNULL(bh.AudioPath, bh.DuongDanAudio) AS AudioPath,
                        ISNULL(tdbh.PhanTramTienDo, 0) AS PhanTramTienDo,
                        ISNULL(tdbh.TrangThai, N'ChuaHoc') AS TrangThai
                 FROM BaiHoc bh
@@ -54,6 +56,9 @@ namespace DAL
                         _ => loai
                     };
 
+                    bool daXuatBan = row["DaXuatBan"] != DBNull.Value && Convert.ToBoolean(row["DaXuatBan"]);
+                    string? audio = row["AudioPath"] == DBNull.Value ? null : row["AudioPath"]?.ToString();
+
                     var dto = new BaiHocDTO
                     {
                         MaBaiHoc = Convert.ToInt32(row["MaBaiHoc"]),
@@ -65,6 +70,9 @@ namespace DAL
                         TomTat = row["TomTat"]?.ToString() ?? "",
                         NoiDung = row["NoiDung"]?.ToString() ?? "",
                         ThoiGianUocTinhPhut = row["ThoiGianUocTinhPhut"] == DBNull.Value ? 15 : Convert.ToInt32(row["ThoiGianUocTinhPhut"]),
+                        DaXuatBan = daXuatBan,
+                        AudioPath = audio,
+                        DuongDanAudio = audio,
                         PhanTramTienDo = phanTram,
                         TrangThai = trangThaiHienThi
                     };
@@ -583,7 +591,8 @@ namespace DAL
                         bh.TomTat,
                         bh.NoiDung,
                         bh.ThoiGianUocTinhPhut,
-                        bh.DaXuatBan,
+                        ISNULL(bh.DaXuatBan, 0) AS DaXuatBan,
+                        ISNULL(bh.AudioPath, bh.DuongDanAudio) AS AudioPath,
                         bh.NgayTao
                     FROM BaiHoc bh
                     INNER JOIN ChuDe cd ON bh.MaChuDe = cd.MaChuDe
@@ -606,7 +615,8 @@ namespace DAL
                         bh.TomTat,
                         bh.NoiDung,
                         bh.ThoiGianUocTinhPhut,
-                        bh.DaXuatBan,
+                        ISNULL(bh.DaXuatBan, 0) AS DaXuatBan,
+                        ISNULL(bh.AudioPath, bh.DuongDanAudio) AS AudioPath,
                         bh.NgayTao
                     FROM BaiHoc bh
                     INNER JOIN ChuDe cd ON bh.MaChuDe = cd.MaChuDe
@@ -661,7 +671,8 @@ namespace DAL
                     _ => "#15803D"
                 };
 
-                bool daXuatBan = Convert.ToBoolean(row["DaXuatBan"]);
+                bool daXuatBan = row["DaXuatBan"] != DBNull.Value && Convert.ToBoolean(row["DaXuatBan"]);
+                string? audio = row.Table.Columns.Contains("AudioPath") && row["AudioPath"] != DBNull.Value ? row["AudioPath"]?.ToString() : null;
 
                 list.Add(new BaiHocDTO
                 {
@@ -676,6 +687,9 @@ namespace DAL
                     TomTat = row["TomTat"] == DBNull.Value ? "" : (row["TomTat"]?.ToString() ?? ""),
                     NoiDung = row["NoiDung"] == DBNull.Value ? "" : (row["NoiDung"]?.ToString() ?? ""),
                     ThoiGianUocTinhPhut = Convert.ToInt32(row["ThoiGianUocTinhPhut"]),
+                    DaXuatBan = daXuatBan,
+                    AudioPath = audio,
+                    DuongDanAudio = audio,
                     TrangThai = daXuatBan ? "Đã xuất bản" : "Bản nháp",
                     IconSkill = icon,
                     BadgeBackground = badgeBg,

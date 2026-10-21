@@ -381,7 +381,7 @@ namespace DAL
                         ISNULL(bh.TomTat, N'Nội dung tổng hợp rèn luyện kỹ năng ngữ pháp, từ vựng và bài tập áp dụng thực tế.') AS TomTat, 
                         ISNULL(bh.LoaiBaiHoc, N'Ngữ pháp') AS LoaiBaiHoc, 
                         ISNULL(td.MaCapDo, N'B1') AS MaCapDo, 
-                        ISNULL(bh.DaXuatBan, 1) AS DaXuatBan
+                        ISNULL(bh.DaXuatBan, 0) AS DaXuatBan
                     FROM BaiHoc bh
                     LEFT JOIN TrinhDo td ON bh.MaTrinhDo = td.MaTrinhDo
                     ORDER BY bh.MaBaiHoc DESC";
@@ -398,7 +398,7 @@ namespace DAL
                         TomTat = r0["TomTat"]?.ToString() ?? "",
                         LoaiHinh = r0["LoaiBaiHoc"]?.ToString() ?? "Ngữ pháp",
                         TrinhDo = r0["MaCapDo"]?.ToString() ?? "B1",
-                        TrangThai = Convert.ToInt32(r0["DaXuatBan"] == DBNull.Value ? 1 : r0["DaXuatBan"]) == 1 ? "Đã xuất bản" : "Bản nháp",
+                        TrangThai = Convert.ToInt32(r0["DaXuatBan"] == DBNull.Value ? 0 : r0["DaXuatBan"]) == 1 ? "Đã xuất bản" : "Bản nháp",
                         LoaiBadgeColor = "#10B981"
                     };
 
@@ -413,7 +413,7 @@ namespace DAL
                             TomTat = r1["TomTat"]?.ToString() ?? "",
                             LoaiHinh = r1["LoaiBaiHoc"]?.ToString() ?? "Từ vựng",
                             TrinhDo = r1["MaCapDo"]?.ToString() ?? "B2",
-                            TrangThai = Convert.ToInt32(r1["DaXuatBan"] == DBNull.Value ? 1 : r1["DaXuatBan"]) == 1 ? "Đã xuất bản" : "Bản nháp",
+                            TrangThai = Convert.ToInt32(r1["DaXuatBan"] == DBNull.Value ? 0 : r1["DaXuatBan"]) == 1 ? "Đã xuất bản" : "Bản nháp",
                             LoaiBadgeColor = "#0284C7"
                         };
                     }

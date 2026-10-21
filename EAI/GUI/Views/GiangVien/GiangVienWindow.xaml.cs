@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
 using BUS;
+using GUI.ViewModels.GiangVien;
 
 namespace GUI.Views.GiangVien
 {
@@ -42,7 +43,9 @@ namespace GUI.Views.GiangVien
             Instance = this;
             InitSidebarElements();
             ApplyRolePermissions();
+            AdminMainFrame.Navigating += AdminMainFrame_Navigating;
             AdminMainFrame.Navigated += AdminMainFrame_Navigated;
+            Closing += GiangVienWindow_Closing;
             // Mở mặc định trang Tổng quan sử dụng page cache để bảo toàn tiến trình
             AdminMainFrame.Navigate(GetOrCreatePage<TongQuanView>());
             Closed += (s, e) => _pageCache.Clear();
@@ -358,8 +361,49 @@ namespace GUI.Views.GiangVien
             NavAISinhDe_Click(sender, e);
         }
 
+        private void AdminMainFrame_Navigating(object sender, NavigatingCancelEventArgs e)
+        {
+            if (AdminMainFrame.Content is NoiDungHocTapView page &&
+                page.DataContext is NoiDungHocTapViewModel vm &&
+                vm.IsCreatingNewLesson &&
+                vm.CoDuLieuBaiHocMoiChuaLuu())
+            {
+                bool xacNhan = Common.ThongBaoDialog.XacNhan(
+                    this,
+                    "Bạn đang soạn bài học mới và có nội dung chưa lưu.\nNếu chuyển sang chức năng khác, nội dung bài học đang tạo sẽ bị mất.\n\nBạn có chắc chắn muốn rời khỏi không?",
+                    "Xác nhận rời khỏi trang",
+                    confirmText: "Rời khỏi",
+                    cancelText: "Ở lại chỉnh sửa");
+
+                if (!xacNhan)
+                {
+                    e.Cancel = true;
+                    return;
+                }
+
+                // Người dùng đồng ý rời đi: reset cờ tạo bài mới để không kẹt trạng thái khi quay lại
+                vm.IsCreatingNewLesson = false;
+            }
+        }
+
         private void NavToStudentHome_Click(object sender, RoutedEventArgs e)
         {
+            if (AdminMainFrame.Content is NoiDungHocTapView page &&
+                page.DataContext is NoiDungHocTapViewModel vm &&
+                vm.IsCreatingNewLesson &&
+                vm.CoDuLieuBaiHocMoiChuaLuu())
+            {
+                bool xacNhan = Common.ThongBaoDialog.XacNhan(
+                    this,
+                    "Bạn đang soạn bài học mới và có nội dung chưa lưu.\nNếu chuyển về Trang chủ Học viên, nội dung bài học đang tạo sẽ bị mất.\n\nBạn có chắc chắn muốn rời khỏi không?",
+                    "Xác nhận chuyển trang",
+                    confirmText: "Rời khỏi",
+                    cancelText: "Ở lại chỉnh sửa");
+
+                if (!xacNhan) return;
+                vm.IsCreatingNewLesson = false;
+            }
+
             var mainWindow = new MainWindow();
             mainWindow.Show();
             this.Close();
@@ -404,6 +448,28 @@ namespace GUI.Views.GiangVien
         private void BtnCloseWindow_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
+        }
+
+        private void GiangVienWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (AdminMainFrame.Content is NoiDungHocTapView page &&
+                page.DataContext is NoiDungHocTapViewModel vm &&
+                vm.IsCreatingNewLesson &&
+                vm.CoDuLieuBaiHocMoiChuaLuu())
+            {
+                bool xacNhan = Common.ThongBaoDialog.XacNhan(
+                    this,
+                    "Bạn đang soạn bài học mới và có nội dung chưa lưu.\nNếu đóng ứng dụng, nội dung bài học đang tạo sẽ bị mất.\n\nBạn có chắc chắn muốn thoát không?",
+                    "Xác nhận thoát",
+                    confirmText: "Thoát và bỏ thay đổi",
+                    cancelText: "Ở lại chỉnh sửa");
+
+                if (!xacNhan)
+                {
+                    e.Cancel = true;
+                    return;
+                }
+            }
         }
     }
 }

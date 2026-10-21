@@ -885,28 +885,48 @@
                             <!-- Loading Progress Bar -->
                             <ProgressBar x:Name="pbAILoading" Height="4" IsIndeterminate="True" Margin="0,0,0,12" Visibility="Collapsed" Foreground="#10B981" Background="#DCFCE7"/>
 
-                            <!-- Trạng thái 2: Đã tạo câu hỏi -> Hiển thị danh sách câu hỏi trắc nghiệm -->
-                            <Border x:Name="pnlExtractedQuestionsBox" Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1.5" CornerRadius="10" Padding="16,14" Margin="0,0,0,16" Visibility="Collapsed">
-                                <StackPanel>
-                                    <Grid Margin="0,0,0,12">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                            <local:LucideIcon Kind="Bot" Size="17" Foreground="#15803D" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Câu hỏi trắc nghiệm đã tạo từ tài liệu bằng AI" FontWeight="Bold" FontSize="13" Foreground="#15803D" VerticalAlignment="Center"/>
-                                        </StackPanel>
+                            <!-- Trạng thái 2: Đã tạo câu hỏi -> Hiển thị hộp thông báo gọn gàng kèm nút mở xem/quản lý bộ câu hỏi trong khu vực riêng -->
+                            <Border x:Name="pnlAIGeneratedStatusBox" Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1.5" CornerRadius="10" Padding="14,12" Margin="0,0,0,14" Visibility="Collapsed">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-                                        <!-- Nút Tạo lại câu hỏi bằng AI -->
-                                        <Button x:Name="btnReExtractAI" Grid.Column="1" Background="#DCFCE7" Foreground="#166534" BorderBrush="#86EFAC" BorderThickness="1"
-                                                FontSize="11" FontWeight="SemiBold" Padding="10,5" Cursor="Hand" Click="BtnReExtractAI_Click" ToolTip="Phân tích lại nội dung tài liệu và tạo mới câu hỏi bằng AI">
+                                    <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18" Background="#DCFCE7" Margin="0,0,12,0" VerticalAlignment="Center">
+                                        <local:LucideIcon Kind="CheckCircle2" Size="18" Foreground="#15803D" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                        <TextBlock x:Name="txtAIGeneratedTitle" Text="Đã tạo bộ câu hỏi AI cho tài liệu này" FontWeight="Bold" FontSize="13" Foreground="#15803D"/>
+                                        <TextBlock x:Name="txtAIGeneratedDesc" Text="Bộ câu hỏi đã được tạo trong phiên làm việc. Nhấn để mở giao diện quản lý riêng, xem chi tiết, chọn lọc và lưu vào Ngân hàng câu hỏi." 
+                                                   FontSize="11.5" Foreground="#166534" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button x:Name="btnOpenAIDialog" Background="#059669" Foreground="White" BorderThickness="0"
+                                                Padding="12,7" Cursor="Hand" Click="BtnOpenAIDialog_Click" ToolTip="Mở khu vực quản lý riêng để xem, sửa và lưu bộ câu hỏi" Margin="0,0,8,0">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" CornerRadius="7" Padding="{TemplateBinding Padding}">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <local:LucideIcon Kind="Sliders" Size="13" Foreground="White" Margin="0,0,5,0"/>
+                                                            <TextBlock Text="Xem &amp; Duyệt bộ câu hỏi" FontWeight="SemiBold" FontSize="11.5" Foreground="White"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+
+                                        <Button x:Name="btnReExtractAI" Background="#DCFCE7" Foreground="#166534" BorderBrush="#86EFAC" BorderThickness="1"
+                                                FontSize="11" FontWeight="SemiBold" Padding="10,6" Cursor="Hand" Click="BtnReExtractAI_Click" ToolTip="Phân tích lại nội dung tài liệu và tạo mới câu hỏi bằng AI">
                                             <Button.Template>
                                                 <ControlTemplate TargetType="Button">
                                                     <Border x:Name="bdBtn" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
                                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                             <local:LucideIcon Kind="Sparkles" Size="12" Foreground="#166534" Margin="0,0,5,0"/>
-                                                            <TextBlock Text="Tạo lại câu hỏi bằng AI"/>
+                                                            <TextBlock Text="Tạo lại"/>
                                                         </StackPanel>
                                                     </Border>
                                                     <ControlTemplate.Triggers>
@@ -917,31 +937,8 @@
                                                 </ControlTemplate>
                                             </Button.Template>
                                         </Button>
-                                    </Grid>
-
-                                    <!-- Dynamic Questions List -->
-                                    <ItemsControl x:Name="icExtractedQuestions">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Background="White" BorderBrush="#DCFCE7" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
-                                                    <StackPanel>
-                                                        <TextBlock Text="{Binding NoiDungCauHoi}" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}" TextWrapping="Wrap"/>
-                                                        <ItemsControl ItemsSource="{Binding DanhSachLuaChon}" Margin="0,6,0,6">
-                                                            <ItemsControl.ItemTemplate>
-                                                                <DataTemplate>
-                                                                    <TextBlock Text="{Binding}" FontSize="12" Foreground="#334155" Margin="4,2,0,2" TextWrapping="Wrap"/>
-                                                                </DataTemplate>
-                                                            </ItemsControl.ItemTemplate>
-                                                        </ItemsControl>
-                                                        <Border Background="#F0FDF4" CornerRadius="6" Padding="8,5" Margin="0,4,0,0">
-                                                            <TextBlock Text="{Binding GiaiThichChiTiet}" FontSize="11" Foreground="#15803D" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                                                        </Border>
-                                                    </StackPanel>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
+                                    </StackPanel>
+                                </Grid>
                             </Border>
 
                         </StackPanel>

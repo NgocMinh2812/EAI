@@ -7,6 +7,7 @@ using System.Windows.Input;
 using BUS;
 using DTO;
 using GUI.Views.Common;
+using GUI.ViewModels.GiangVien;
 
 namespace GUI.Views.GiangVien
 {
@@ -35,7 +36,56 @@ namespace GUI.Views.GiangVien
             };
 
             _isLoaded = true;
+            Loaded += DanhMucView_Loaded;
             LoadTreeAndLessons();
+        }
+
+        private void DanhMucView_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (!_isLoaded) return;
+            try
+            {
+                int previousTopicId = _selectedNode?.Id ?? -1;
+                int previousLessonId = _currentPreviewLesson?.MaBaiHoc ?? -1;
+
+                var treeNodes = _danhMucBUS.LayCayTreeNode();
+                tvDanhMuc.ItemsSource = treeNodes;
+
+                if (previousTopicId > 0)
+                {
+                    _selectedNode = FindNodeById(treeNodes, previousTopicId) ?? (treeNodes.Count > 0 ? treeNodes[0] : null);
+                }
+                else if (treeNodes.Count > 0 && _selectedNode == null)
+                {
+                    _selectedNode = treeNodes[0];
+                }
+
+                LoadLessonsForSelectedTopic();
+
+                if (previousLessonId > 0 && _allLessons != null && _allLessons.Count > 0)
+                {
+                    var match = _allLessons.FirstOrDefault(x => x.MaBaiHoc == previousLessonId);
+                    if (match != null)
+                    {
+                        ShowLessonPreview(match);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DanhMucView.Loaded] {ex.Message}");
+            }
+        }
+
+        private static TreeNodeDTO? FindNodeById(IEnumerable<TreeNodeDTO> nodes, int id)
+        {
+            foreach (var node in nodes)
+            {
+                if (node.Id == id) return node;
+                var found = FindNodeById(node.Children, id);
+                if (found != null) return found;
+            }
+            return null;
         }
 
         private void LoadTreeAndLessons()
@@ -155,23 +205,23 @@ namespace GUI.Views.GiangVien
                 ? "Nội dung bài học chưa được cập nhật chi tiết." 
                 : actualContent;
 
-            // KIỂM SOÁT HIỂN THỊ CÂU HỎI AI: Chưa bấm yêu cầu thì KHÔNG hiển thị câu hỏi, chỉ hiển thị nút tạo
-            bool hasQuestions = lesson.DanhSachCauHoi != null && lesson.DanhSachCauHoi.Count > 0;
+            // KIỂM SOÁT HIỂN THỊ CÂU HỎI AI: Tách thành quản lý riêng, không chèn vào tài liệu
+            bool hasDraft = _sessionAIDrafts.TryGetValue(lesson.MaBaiHoc, out var draftList) && draftList != null && draftList.Count > 0;
             if (pnlAIGeneratePrompt != null)
             {
-                pnlAIGeneratePrompt.Visibility = hasQuestions ? Visibility.Collapsed : Visibility.Visible;
+                pnlAIGeneratePrompt.Visibility = hasDraft ? Visibility.Collapsed : Visibility.Visible;
             }
-            if (pnlExtractedQuestionsBox != null)
+            if (pnlAIGeneratedStatusBox != null)
             {
-                pnlExtractedQuestionsBox.Visibility = hasQuestions ? Visibility.Visible : Visibility.Collapsed;
-            }
-            if (icExtractedQuestions != null)
-            {
-                icExtractedQuestions.ItemsSource = hasQuestions ? lesson.DanhSachCauHoi : null;
+                pnlAIGeneratedStatusBox.Visibility = hasDraft ? Visibility.Visible : Visibility.Collapsed;
+                if (hasDraft && txtAIGeneratedTitle != null)
+                {
+                    txtAIGeneratedTitle.Text = $"Đã tạo bộ câu hỏi AI ({draftList!.Count} câu) cho tài liệu này";
+                }
             }
 
             // Cập nhật trạng thái động ở Footer Preview
-            bool isPublished = string.Equals(lesson.TrangThai, "Đã xuất bản", StringComparison.OrdinalIgnoreCase);
+            bool isPublished = lesson.DaXuatBan || string.Equals(lesson.TrangThai, "Đã xuất bản", StringComparison.OrdinalIgnoreCase);
             if (icoPreviewStatus != null)
             {
                 icoPreviewStatus.Kind = isPublished ? LucideIconKind.Check : LucideIconKind.Pencil;
@@ -184,7 +234,7 @@ namespace GUI.Views.GiangVien
                 : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF1, 0xF5, 0xF9));
             if (txtPreviewStatusPill != null)
             {
-                txtPreviewStatusPill.Text = lesson.TrangThai;
+                txtPreviewStatusPill.Text = isPublished ? "Đã xuất bản" : "Bản nháp";
                 txtPreviewStatusPill.Foreground = isPublished 
                     ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x15, 0x80, 0x3D)) 
                     : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x64, 0x74, 0x8B));
@@ -206,6 +256,8 @@ namespace GUI.Views.GiangVien
             }
         }
 
+        private readonly System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<CauHoiKhaoSatDTO>> _sessionAIDrafts = new();
+
         private async void BtnReExtractAI_Click(object sender, RoutedEventArgs e)
         {
             if (_currentPreviewLesson == null) return;
@@ -219,29 +271,43 @@ namespace GUI.Views.GiangVien
                 // Sử dụng nội dung thực tế vừa được đọc từ tệp vật lý để AI phân tích
                 string contentToAnalyze = KhoHocLieuSyncHelper.DocNoiDungTep(_currentPreviewLesson.DuongDanTepVatLy, _currentPreviewLesson.NoiDung);
 
+                string exactKyNang = _currentPreviewLesson.LoaiBaiHoc;
+                if (string.IsNullOrWhiteSpace(exactKyNang))
+                {
+                    exactKyNang = BaiHocDTO.XacDinhKyNangTuTenHoacChuDe(_currentPreviewLesson.TieuDe, _currentPreviewLesson.TenChuDe, _currentPreviewLesson.DuongDanTepVatLy);
+                }
+                string exactTrinhDo = string.IsNullOrWhiteSpace(_currentPreviewLesson.MaTrinhDo) ? "B1" : _currentPreviewLesson.MaTrinhDo;
+
                 var aiQuestions = await GeminiAIService.BocTachCauHoiAIAsync(
                     _currentPreviewLesson.TieuDe ?? "", 
                     contentToAnalyze, 
-                    _currentPreviewLesson.MaTrinhDo ?? "B1", 
+                    exactTrinhDo, 
                     10,
                     module: "DanhMucCauTruc",
-                    loaiBaiHoc: _currentPreviewLesson.LoaiBaiHoc ?? "");
+                    loaiBaiHoc: exactKyNang);
 
                 if (aiQuestions != null && aiQuestions.Count > 0)
                 {
-                    _currentPreviewLesson.DanhSachCauHoi = aiQuestions;
+                    var convertedQuestions = BoCauHoiBUS.ChuyenDoiTuCauHoiAI(
+                        aiQuestions,
+                        kyNang: exactKyNang,
+                        maTrinhDo: exactTrinhDo,
+                        maChuDe: _currentPreviewLesson.MaChuDe,
+                        maTrinhDoId: _currentPreviewLesson.MaTrinhDoId,
+                        audioPath: _currentPreviewLesson.AudioPath ?? _currentPreviewLesson.DuongDanAudio,
+                        noiDungBaiHoc: contentToAnalyze);
 
-                    // Hiển thị khung câu hỏi và ẩn khung mời tạo
+                    _sessionAIDrafts[_currentPreviewLesson.MaBaiHoc] = convertedQuestions;
+
                     if (pnlAIGeneratePrompt != null) pnlAIGeneratePrompt.Visibility = Visibility.Collapsed;
-                    if (pnlExtractedQuestionsBox != null) pnlExtractedQuestionsBox.Visibility = Visibility.Visible;
-
-                    if (icExtractedQuestions != null)
+                    if (pnlAIGeneratedStatusBox != null)
                     {
-                        icExtractedQuestions.ItemsSource = null;
-                        icExtractedQuestions.ItemsSource = _currentPreviewLesson.DanhSachCauHoi;
+                        pnlAIGeneratedStatusBox.Visibility = Visibility.Visible;
+                        if (txtAIGeneratedTitle != null)
+                            txtAIGeneratedTitle.Text = $"Đã tạo bộ câu hỏi AI ({convertedQuestions.Count} câu) cho tài liệu này";
                     }
 
-                    ThongBaoDialog.ThanhCong(Window.GetWindow(this), $"AI đã phân tích nội dung tài liệu và tạo thành công {aiQuestions.Count} câu hỏi trắc nghiệm kèm giải thích chi tiết!", "Tạo câu hỏi bằng AI thành công");
+                    OpenDuyetBoCauHoiModal(_currentPreviewLesson, convertedQuestions);
                 }
             }
             catch (Exception ex)
@@ -256,6 +322,43 @@ namespace GUI.Views.GiangVien
             }
         }
 
+        private void BtnOpenAIDialog_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentPreviewLesson == null) return;
+            if (_sessionAIDrafts.TryGetValue(_currentPreviewLesson.MaBaiHoc, out var draftQuestions) && draftQuestions.Count > 0)
+            {
+                OpenDuyetBoCauHoiModal(_currentPreviewLesson, draftQuestions);
+            }
+            else
+            {
+                BtnReExtractAI_Click(sender, e);
+            }
+        }
+
+        private void OpenDuyetBoCauHoiModal(BaiHocDTO lesson, System.Collections.Generic.List<CauHoiKhaoSatDTO> questions)
+        {
+            var vm = new DuyetBoCauHoiAIViewModel();
+            vm.NapDuLieu(
+                tenNguon: lesson.TieuDe ?? "Tài liệu học tập",
+                nguonTao: "AI_DanhMuc",
+                cauHois: questions,
+                maBaiHoc: lesson.MaBaiHoc,
+                maChuDe: lesson.MaChuDe,
+                maTrinhDo: lesson.MaTrinhDoId,
+                capDo: lesson.MaTrinhDo ?? "B1",
+                kyNang: lesson.LoaiBaiHoc ?? "Doc",
+                audioPath: lesson.AudioPath ?? lesson.DuongDanAudio);
+
+            var dlg = new DuyetBoCauHoiAIDialog(vm);
+            ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this));
+
+            if (vm.DaLuuThanhCong)
+            {
+                if (txtAIGeneratedTitle != null)
+                    txtAIGeneratedTitle.Text = $"✓ Đã lưu thành công bộ câu hỏi vào Ngân hàng câu hỏi!";
+            }
+        }
+
         private void ClearPreview()
         {
             _currentPreviewLesson = null;
@@ -265,8 +368,7 @@ namespace GUI.Views.GiangVien
             txtPreviewDocMeta.Text = "Vui lòng chọn bài học từ danh sách để xem trước";
             txtSimulationModule.Text = "HỌC LIỆU";
             if (pnlAIGeneratePrompt != null) pnlAIGeneratePrompt.Visibility = Visibility.Collapsed;
-            if (pnlExtractedQuestionsBox != null) pnlExtractedQuestionsBox.Visibility = Visibility.Collapsed;
-            if (icExtractedQuestions != null) icExtractedQuestions.ItemsSource = null;
+            if (pnlAIGeneratedStatusBox != null) pnlAIGeneratedStatusBox.Visibility = Visibility.Collapsed;
             txtSimulationPassage.Text = "";
             txtPassageTitle.Text = "Không có dữ liệu bài học";
             txtPassageBody.Text = "Chủ đề này hiện chưa có bài học nào được tạo.";

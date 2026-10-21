@@ -227,21 +227,21 @@ namespace BUS
             string loaiLower = (loaiBaiHoc ?? "").ToLowerInvariant();
 
             if (loaiLower.Contains("nguphap") || loaiLower.Contains("grammar"))
-                return "- Trọng tâm câu hỏi: Kiểm tra cấu trúc ngữ pháp, chia thì của động từ, cách dùng liên từ hoặc trật tự từ trong câu bám sát nội dung bài.";
+                return "- Trọng tâm câu hỏi Ngữ pháp (Grammar): Đa dạng hóa các dạng câu hỏi: chia thì động từ (Tenses & Verb Forms), tìm lỗi sai ngữ pháp trong câu ('TimLoiSai'), cấu trúc câu điều kiện / bị động / mệnh đề quan hệ ('HoanThanhCau'), điền liên từ hoặc giới từ chuẩn xác ('DienTu'). Bám sát văn cảnh bài học.";
 
             if (loaiLower.Contains("tuvung") || loaiLower.Contains("vocab"))
-                return "- Trọng tâm câu hỏi: Kiểm tra nghĩa của từ/cụm từ trong ngữ cảnh bài học, từ đồng nghĩa/trái nghĩa và cụm kết hợp từ (collocations).";
+                return "- Trọng tâm câu hỏi Từ vựng (Vocabulary): KHÔNG tạo 100% câu hỏi định nghĩa từ thuần túy. Phải đa dạng: nghĩa từ trong ngữ cảnh văn bản, cụm kết hợp từ tự nhiên (Collocations & Phrasal Verbs), họ từ / từ loại (Word Family: Noun/Verb/Adj/Adv), từ đồng nghĩa / trái nghĩa (Synonyms/Antonyms), và hoàn thành câu tình huống thực tế ('HoanThanhCau' / 'DienTu').";
 
             if (loaiLower.Contains("doc") || loaiLower.Contains("reading"))
-                return "- Trọng tâm câu hỏi: Kiểm tra khả năng nắm bắt ý chính (Main Idea), chi tiết quan trọng (Detail) và suy luận logic (Inference) từ đoạn văn.";
+                return "- Trọng tâm câu hỏi Đọc hiểu (Reading Comprehension): Bắt buộc ra đề đọc hiểu toàn diện chuẩn quốc tế: câu hỏi ý chính / tiêu đề (Main Idea), chi tiết quan trọng và dẫn chứng (Factual Detail), từ vựng trong ngữ cảnh (Vocabulary in Context), suy luận logic (Inference), thái độ / mục đích của tác giả (Author's Tone & Purpose). Bắt buộc trích xuất đoạn văn đọc hiểu tương ứng vào trường 'DoanVanDoc'.";
 
             if (loaiLower.Contains("nghe") || loaiLower.Contains("listen"))
-                return "- Trọng tâm câu hỏi: Kiểm tra thông tin cụ thể nhân vật trao đổi trong hội thoại, thái độ hoặc kết luận của cuộc đối thoại.";
+                return "- Trọng tâm câu hỏi Nghe hiểu (Listening Comprehension): Bắt buộc kiểm tra kỹ năng nghe toàn diện: bối cảnh tình huống hội thoại (Setting/Purpose), chi tiết thông tin các nhân vật trao đổi (Speaker Details), thái độ / cảm xúc của người nói (Speaker Attitude/Feelings), quyết định hoặc hành động tiếp theo (Outcome/Action).";
 
             if (loaiLower.Contains("viet") || loaiLower.Contains("writing"))
-                return "- Trọng tâm câu hỏi: Kiểm tra cách sử dụng liên từ nối câu (transition words), cấu trúc câu mạch lạc và văn phong diễn đạt.";
+                return "- Trọng tâm câu hỏi Viết luận (Writing): Kiểm tra cách sử dụng liên từ nối câu (Transition words/Cohesive devices), cấu trúc câu mạch lạc, phát hiện lỗi diễn đạt và phong cách viết học thuật.";
 
-            return "- Trọng tâm câu hỏi: Kiểm tra kiến thức tổng hợp và khả năng ứng dụng thực tế các câu thoại / thông tin trong bài học.";
+            return "- Trọng tâm câu hỏi: Đa dạng hóa các dạng câu hỏi và khía cạnh đánh giá (ý chính, chi tiết, từ vựng, ngữ pháp, suy luận), không lặp lại một mẫu câu hỏi từ vựng đơn điệu.";
         }
 
         /// <summary>
@@ -903,6 +903,29 @@ QUY TẮC BẮT BUỘC:
                     DapAnDungIndex = 0,
                     GiaiThichChiTiet = "➔ Dẫn chứng AI: Kết luận bài học chỉ rõ giao tiếp cởi mở, chân thành và xây dựng biến đối thoại thành lợi thế cạnh tranh sống còn của doanh nghiệp."
                 });
+            }
+
+            string determinedKyNang = BoCauHoiBUS.ChuankHoaKyNang(loaiBaiHoc);
+            string passage = BoCauHoiBUS.TrichXuatDoanVanDocHieu(noiDung);
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                var q = list[i];
+                if (string.IsNullOrWhiteSpace(q.KyNang)) q.KyNang = determinedKyNang;
+                if (string.IsNullOrWhiteSpace(q.DoKho)) q.DoKho = (i < 2) ? "De" : ((i >= 7) ? "Kho" : "TrungBinh");
+                if (string.IsNullOrWhiteSpace(q.LoaiCauHoi))
+                {
+                    if (q.NoiDungCauHoi.Contains("Error Identification") || q.NoiDungCauHoi.Contains("Find the error"))
+                        q.LoaiCauHoi = "TimLoiSai";
+                    else if (q.NoiDungCauHoi.Contains("Fill in the") || q.NoiDungCauHoi.Contains("Complete the sentence"))
+                        q.LoaiCauHoi = "DienTu";
+                    else
+                        q.LoaiCauHoi = "TracNghiem";
+                }
+                if (string.IsNullOrWhiteSpace(q.DoanVanDoc) && (q.KyNang == "Doc" || determinedKyNang == "Doc"))
+                {
+                    q.DoanVanDoc = passage;
+                }
             }
 
             return list;

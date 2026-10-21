@@ -37,8 +37,13 @@ namespace GUI.Views.Common
             {
                 case ThongBaoType.DangerConfirm:
                     icoSymbol.Kind = LucideIconKind.Trash2;
+                    icoSymbol.Icon = null;
+                    icoSymbol.Size = 30;
+                    icoSymbol.StrokeThickness = 2.2;
                     icoSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#DC2626")!;
                     borderIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#FEE2E2")!;
+                    borderMain.BorderBrush = (Brush)new BrushConverter().ConvertFrom("#FCA5A5")!;
+                    txtTitle.Foreground = (Brush)new BrushConverter().ConvertFrom("#7F1D1D")!;
                     btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#DC2626")!;
                     btnConfirm.Content = string.IsNullOrEmpty(btnConfirm.Content?.ToString()) ? "Xóa vĩnh viễn" : btnConfirm.Content;
                     btnCancel.Visibility = Visibility.Visible;
@@ -47,9 +52,14 @@ namespace GUI.Views.Common
                     break;
 
                 case ThongBaoType.Confirm:
-                    icoSymbol.Kind = LucideIconKind.HelpCircle;
-                    icoSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#D97706")!;
-                    borderIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#FEF3C7")!;
+                    icoSymbol.Kind = LucideIconKind.None;
+                    icoSymbol.Icon = "question-mark";
+                    icoSymbol.Size = 32;
+                    icoSymbol.StrokeThickness = 2.8;
+                    icoSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#0F766E")!;
+                    borderIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#CCFBF1")!;
+                    borderMain.BorderBrush = (Brush)new BrushConverter().ConvertFrom("#99F6E4")!;
+                    txtTitle.Foreground = (Brush)new BrushConverter().ConvertFrom("#134E4A")!;
                     btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#0F766E")!;
                     btnCancel.Visibility = Visibility.Visible;
                     Grid.SetColumn(btnConfirm, 2);
@@ -57,10 +67,15 @@ namespace GUI.Views.Common
                     break;
 
                 case ThongBaoType.Success:
-                    icoSymbol.Kind = LucideIconKind.CheckCircle2;
+                    icoSymbol.Kind = LucideIconKind.Check;
+                    icoSymbol.Icon = null;
+                    icoSymbol.Size = 34;
+                    icoSymbol.StrokeThickness = 3.2;
                     borderIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#DCFCE7")!;
-                    icoSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#15803D")!;
-                    btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#10B981")!;
+                    icoSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#16A34A")!;
+                    borderMain.BorderBrush = (Brush)new BrushConverter().ConvertFrom("#86EFAC")!;
+                    txtTitle.Foreground = (Brush)new BrushConverter().ConvertFrom("#14532D")!;
+                    btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#16A34A")!;
                     btnConfirm.Content = "Đã hiểu";
                     btnCancel.Visibility = Visibility.Collapsed;
                     Grid.SetColumn(btnConfirm, 0);
@@ -69,8 +84,13 @@ namespace GUI.Views.Common
 
                 case ThongBaoType.Warning:
                     icoSymbol.Kind = LucideIconKind.AlertTriangle;
+                    icoSymbol.Icon = null;
+                    icoSymbol.Size = 34;
+                    icoSymbol.StrokeThickness = 2.4;
                     icoSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#D97706")!;
                     borderIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#FEF3C7")!;
+                    borderMain.BorderBrush = (Brush)new BrushConverter().ConvertFrom("#FDE68A")!;
+                    txtTitle.Foreground = (Brush)new BrushConverter().ConvertFrom("#78350F")!;
                     btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#D97706")!;
                     btnConfirm.Content = "Đóng";
                     btnCancel.Visibility = Visibility.Collapsed;
@@ -79,10 +99,15 @@ namespace GUI.Views.Common
                     break;
 
                 case ThongBaoType.Error:
-                    icoSymbol.Kind = LucideIconKind.XCircle;
+                    icoSymbol.Kind = LucideIconKind.X;
+                    icoSymbol.Icon = null;
+                    icoSymbol.Size = 30;
+                    icoSymbol.StrokeThickness = 3.2;
                     borderIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#FEE2E2")!;
                     icoSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#DC2626")!;
-                    btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#EF4444")!;
+                    borderMain.BorderBrush = (Brush)new BrushConverter().ConvertFrom("#FCA5A5")!;
+                    txtTitle.Foreground = (Brush)new BrushConverter().ConvertFrom("#7F1D1D")!;
+                    btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#DC2626")!;
                     btnConfirm.Content = "Đóng";
                     btnCancel.Visibility = Visibility.Collapsed;
                     Grid.SetColumn(btnConfirm, 0);
@@ -91,10 +116,15 @@ namespace GUI.Views.Common
 
                 case ThongBaoType.Info:
                 default:
-                    icoSymbol.Kind = LucideIconKind.Info;
+                    icoSymbol.Kind = LucideIconKind.None;
+                    icoSymbol.Icon = "info-mark";
+                    icoSymbol.Size = 32;
+                    icoSymbol.StrokeThickness = 2.8;
                     icoSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#0284C7")!;
                     borderIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#E0F2FE")!;
-                    btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#0F766E")!;
+                    borderMain.BorderBrush = (Brush)new BrushConverter().ConvertFrom("#BAE6FD")!;
+                    txtTitle.Foreground = (Brush)new BrushConverter().ConvertFrom("#0C4A6E")!;
+                    btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#0284C7")!;
                     btnConfirm.Content = "Đồng ý";
                     btnCancel.Visibility = Visibility.Collapsed;
                     Grid.SetColumn(btnConfirm, 0);

@@ -149,6 +149,43 @@ namespace DAL
                             ALTER TABLE BaiTapDeThi ADD TongSoCau INT NOT NULL DEFAULT 0;
                     END;
 
+                    -- QUẢN LÝ BỘ CÂU HỎI (QUESTION SETS)
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'BoCauHoi')
+                    BEGIN
+                        CREATE TABLE BoCauHoi (
+                            MaBoCauHoi INT IDENTITY(1,1) PRIMARY KEY,
+                            TenBoCauHoi NVARCHAR(250) NOT NULL,
+                            MoTa NVARCHAR(MAX) NULL,
+                            NguonTao NVARCHAR(50) NOT NULL DEFAULT N'AI',
+                            TenNguon NVARCHAR(250) NULL,
+                            MaBaiHoc INT NULL,
+                            MaChuDe INT NULL,
+                            MaTrinhDo INT NULL,
+                            NguoiTao INT NULL,
+                            NgayTao DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+                            NgayCapNhat DATETIME2 NULL
+                        );
+                    END
+                    ELSE
+                    BEGIN
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'TenNguon' AND Object_ID = OBJECT_ID('BoCauHoi'))
+                            ALTER TABLE BoCauHoi ADD TenNguon NVARCHAR(250) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'NguonTao' AND Object_ID = OBJECT_ID('BoCauHoi'))
+                            ALTER TABLE BoCauHoi ADD NguonTao NVARCHAR(50) NOT NULL DEFAULT N'AI';
+                    END;
+
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'BoCauHoi_CauHoi')
+                    BEGIN
+                        CREATE TABLE BoCauHoi_CauHoi (
+                            MaBoCauHoi INT NOT NULL,
+                            MaCauHoi INT NOT NULL,
+                            ThuTu INT NOT NULL DEFAULT 1,
+                            PRIMARY KEY (MaBoCauHoi, MaCauHoi),
+                            CONSTRAINT FK_BoCauHoi_CauHoi_Bo FOREIGN KEY (MaBoCauHoi) REFERENCES BoCauHoi(MaBoCauHoi) ON DELETE CASCADE,
+                            CONSTRAINT FK_BoCauHoi_CauHoi_CH FOREIGN KEY (MaCauHoi) REFERENCES CauHoi(MaCauHoi) ON DELETE CASCADE
+                        );
+                    END;
+
                     -- LÀM SẠCH DỮ LIỆU HTML CŨ TRONG BẢNG BAIHOC
                     IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'BaiHoc')
                     BEGIN

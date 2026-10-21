@@ -27,10 +27,26 @@ namespace GUI.Views.GiangVien
             {
                 vm.PropertyChanged -= ViewModel_PropertyChanged;
                 vm.PropertyChanged += ViewModel_PropertyChanged;
-                LoadDocumentFromBaiHoc(vm.SelectedBaiHoc?.NoiDung);
-                if (lstBaiHoc != null && (vm.SelectedBaiHoc == null || !vm.DanhSachBaiHoc.Contains(vm.SelectedBaiHoc)))
+
+                // 1. Luôn đồng bộ danh mục chủ đề & trình độ để có ngay chủ đề mới thêm từ Danh mục & Cấu trúc
+                vm.CapNhatDanhSachChuDe();
+                vm.CapNhatDanhSachTrinhDo();
+
+                // 2. Không gọi LocDanhSach() nếu người dùng đang tạo bài mới hoặc đang sinh AI
+                if (!vm.IsCreatingNewLesson && !vm.IsAiGeneratingSample && !vm.IsAiGeneratingQuestions)
                 {
-                    lstBaiHoc.SelectedIndex = -1;
+                    if (vm.DanhSachBaiHoc.Count == 0)
+                    {
+                        vm.LocDanhSach();
+                    }
+                }
+
+                // 3. Khôi phục nội dung văn bản trong RichTextBox nếu ViewModel có nội dung mới hơn
+                // (ví dụ AI vừa hoàn thành sinh nội dung trong lúc người dùng đang ở tab khác)
+                string currentDocText = RichTextHelper.FlowDocumentToString(rtbEditorContent?.Document);
+                if (!string.Equals(currentDocText?.Trim(), vm.SelectedBaiHoc?.NoiDung?.Trim()))
+                {
+                    LoadDocumentFromBaiHoc(vm.SelectedBaiHoc?.NoiDung);
                 }
             }
         }
@@ -45,11 +61,9 @@ namespace GUI.Views.GiangVien
             {
                 newVm.PropertyChanged -= ViewModel_PropertyChanged;
                 newVm.PropertyChanged += ViewModel_PropertyChanged;
+                newVm.CapNhatDanhSachChuDe();
+                newVm.CapNhatDanhSachTrinhDo();
                 LoadDocumentFromBaiHoc(newVm.SelectedBaiHoc?.NoiDung);
-                if (lstBaiHoc != null && (newVm.SelectedBaiHoc == null || !newVm.DanhSachBaiHoc.Contains(newVm.SelectedBaiHoc)))
-                {
-                    lstBaiHoc.SelectedIndex = -1;
-                }
             }
         }
 
@@ -60,12 +74,6 @@ namespace GUI.Views.GiangVien
                 if (DataContext is NoiDungHocTapViewModel vm)
                 {
                     LoadDocumentFromBaiHoc(vm.SelectedBaiHoc?.NoiDung);
-
-                    // Khi thêm bài học mới (không nằm trong danh sách), bỏ chọn mục trên danh sách bài học bên trái
-                    if (lstBaiHoc != null && (vm.SelectedBaiHoc == null || !vm.DanhSachBaiHoc.Contains(vm.SelectedBaiHoc)))
-                    {
-                        lstBaiHoc.SelectedIndex = -1;
-                    }
                 }
             }
         }
@@ -248,16 +256,12 @@ namespace GUI.Views.GiangVien
             var dlg = new OpenFileDialog
             {
                 Filter = "Hình ảnh minh họa (*.png;*.jpg;*.jpeg;*.webp)|*.png;*.jpg;*.jpeg;*.webp",
-                Title = "Chọn ảnh minh họa giáo trình"
+                Title = "Chọn hình ảnh chèn vào giáo trình"
             };
             if (dlg.ShowDialog() == true)
             {
                 string fileName = Path.GetFileName(dlg.FileName);
-                InsertTextAtCursor($"🖼 [Ảnh minh họa: {fileName}]\n");
-                if (DataContext is NoiDungHocTapViewModel vm && vm.SelectedBaiHoc != null)
-                {
-                    vm.SelectedBaiHoc.AnhMinhHoaPath = dlg.FileName;
-                }
+                InsertTextAtCursor($"🖼 [Hình ảnh: {fileName}]\n");
             }
         }
 
@@ -361,7 +365,7 @@ namespace GUI.Views.GiangVien
                 {
                     if (DataContext is NoiDungHocTapViewModel vm)
                     {
-                        if (vm.SelectedBaiHoc != null && !string.IsNullOrWhiteSpace(vm.SelectedBaiHoc.TieuDe))
+                        if (vm.CanTaoBangAI)
                         {
                             e.Handled = true;
                             vm.SinhNoiDungMauAICommand.Execute(null);
@@ -377,21 +381,55 @@ namespace GUI.Views.GiangVien
             }
         }
 
-        private void BtnTaoCauHoiAI_Click(object sender, RoutedEventArgs e)
+        private async void BtnTaoCauHoiAI_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is NoiDungHocTapViewModel vm)
             {
+                if (!vm.CanTaoBangAI) return;
                 if (vm.SelectedBaiHoc == null) return;
-                if (string.IsNullOrWhiteSpace(vm.SelectedBaiHoc.TieuDe) && string.IsNullOrWhiteSpace(vm.SelectedBaiHoc.NoiDung))
+                if (string.IsNullOrWhiteSpace(vm.SelectedBaiHoc.TieuDe))
                 {
-                    vm.ThongBaoLoi = "Vui lòng nhập tiêu đề hoặc nội dung bài học trước khi tạo câu hỏi bằng AI.";
+                    vm.ThongBaoLoi = "Vui lòng nhập tiêu đề bài học trước khi tạo câu hỏi bằng AI.";
                     return;
                 }
 
-                var dlg = new TaoCauHoiAIDialog(vm);
-                if (ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this)) == true)
+                vm.IsAiGeneratingQuestions = true;
+                vm.AiQuestionsStatusMessage = "AI đang phân tích bài học và tạo câu hỏi...";
+
+                try
                 {
-                    LoadDocumentFromBaiHoc(vm.SelectedBaiHoc?.NoiDung);
+                    var questions = await vm.LayHoacTaoCauHoiAIAsync();
+                    if (questions != null && questions.Count > 0)
+                    {
+                        var duyetVm = new DuyetBoCauHoiAIViewModel();
+                        duyetVm.NapDuLieu(
+                            tenNguon: vm.SelectedBaiHoc.TieuDe ?? "Bài học tiếng Anh",
+                            nguonTao: "AI_BaiHoc",
+                            cauHois: questions,
+                            maBaiHoc: vm.SelectedBaiHoc.MaBaiHoc,
+                            maChuDe: vm.SelectedBaiHoc.MaChuDe,
+                            maTrinhDo: vm.SelectedBaiHoc.MaTrinhDoId,
+                            capDo: vm.SelectedBaiHoc.MaTrinhDo ?? "B1",
+                            kyNang: vm.SelectedBaiHoc.LoaiBaiHoc ?? "Doc",
+                            audioPath: vm.SelectedBaiHoc.AudioPath ?? vm.SelectedBaiHoc.DuongDanAudio
+                        );
+
+                        var dlg = new DuyetBoCauHoiAIDialog(duyetVm);
+                        ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this));
+
+                        if (duyetVm.DaLuuThanhCong)
+                        {
+                            ThongBaoDialog.ThanhCong(Window.GetWindow(this), $"Bộ câu hỏi cho bài học \"{vm.SelectedBaiHoc.TieuDe}\" đã được lưu thành công vào Ngân hàng câu hỏi!", "Thành công");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ThongBaoDialog.Loi(Window.GetWindow(this), $"Lỗi khi tạo câu hỏi bằng AI:\n{ex.Message}", "Lỗi tạo câu hỏi");
+                }
+                finally
+                {
+                    vm.IsAiGeneratingQuestions = false;
                 }
             }
         }
