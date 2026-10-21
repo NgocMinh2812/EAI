@@ -28,6 +28,10 @@ namespace DTO
         public string LoaiCauHoi { get; set; } = "TracNghiem"; // TracNghiem, DienKhuyet
         public string DoKho { get; set; } = "TrungBinh"; // De, TrungBinh, Kho
         public string? AudioPath { get; set; }
+        public string? DuongDanAudio { get => AudioPath; set => AudioPath = value; }
+        public string? DoanVanNghe { get => DoanVanDoc; set => DoanVanDoc = value; }
+        public bool CoAudio => !string.IsNullOrWhiteSpace(AudioPath) || string.Equals(KyNang, "Nghe", StringComparison.OrdinalIgnoreCase) || string.Equals(KyNang, "Listening", StringComparison.OrdinalIgnoreCase);
+
         public bool DaKiemDuyet { get; set; } = true;
         public int? NguoiTaoId { get; set; }
         public DateTime? NgayTao { get; set; }
@@ -47,7 +51,9 @@ namespace DTO
                     "NguPhap" => "NGỮ PHÁP",
                     "TuVung" => "TỪ VỰNG",
                     "Doc" => "ĐỌC HIỂU",
-                    _ => KyNang.ToUpper()
+                    "Nghe" => "NGHE HIỂU",
+                    "Listening" => "NGHE HIỂU",
+                    _ => KyNang?.ToUpper() ?? "CHUNG"
                 };
                 return $"{kyNangStr} • TRÌNH ĐỘ {MaTrinhDo}";
             }

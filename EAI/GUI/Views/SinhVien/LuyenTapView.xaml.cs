@@ -27,19 +27,196 @@ namespace GUI.Views
         private List<string> _dictationSentences = new List<string>();
         private int _currentDictationIndex = 0;
 
-        // Overall Score
+        // Overall Score & Init Flag
         private int _score = 150;
         private bool _isInitialized = false;
+
+        // =========================================================================
+        // AUDIO ENGINE STATE (MediaPlayer + AI Speech Synthesizer Dual Mode)
+        // =========================================================================
+        private readonly MediaPlayer _mediaPlayer = new MediaPlayer();
+        private DispatcherTimer? _audioTimer;
+        private dynamic? _speechSynth = null;
+        private bool _isSpeechSynthesizerActive = false;
+
+        // Quiz Audio Player State
+        private bool _isPlayingQuizAudio = false;
+        private double _quizAudioCurrentSeconds = 0;
+        private double _quizAudioTotalSeconds = 30;
+        private double _quizAudioSpeed = 1.0;
+        private bool _isDraggingQuizSlider = false;
+
+        // Dictation Audio Player State
+        private bool _isPlayingDictationAudio = false;
+        private double _dictationAudioCurrentSeconds = 0;
+        private double _dictationAudioTotalSeconds = 8;
+        private double _dictationAudioSpeed = 1.0;
+        private bool _isDraggingDictationSlider = false;
 
         public LuyenTapView()
         {
             InitializeComponent();
             _isInitialized = true;
+            InitAudioEngine();
             LoadFlashcards();
             LoadQuizQuestions();
             InitDictationSentences();
             DisplayCurrentQuiz();
             DisplayCurrentDictation();
+        }
+
+        // =========================================================================
+        // AUDIO ENGINE INITIALIZATION & TIMER
+        // =========================================================================
+        private void InitAudioEngine()
+        {
+            _mediaPlayer.MediaOpened += (s, e) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (_mediaPlayer.NaturalDuration.HasTimeSpan && _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds > 0)
+                    {
+                        double duration = _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                        if (_isPlayingQuizAudio)
+                        {
+                            _quizAudioTotalSeconds = duration;
+                            if (txtQuizAudioTotalTime != null)
+                                txtQuizAudioTotalTime.Text = $"{(int)duration / 60:D2}:{(int)duration % 60:D2}";
+                        }
+                        else if (_isPlayingDictationAudio)
+                        {
+                            _dictationAudioTotalSeconds = duration;
+                            if (txtDictationTotalTime != null)
+                                txtDictationTotalTime.Text = $"{(int)duration / 60:D2}:{(int)duration % 60:D2}";
+                        }
+                    }
+                });
+            };
+
+            _mediaPlayer.MediaEnded += (s, e) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (_isPlayingQuizAudio)
+                        StopQuizAudio();
+                    if (_isPlayingDictationAudio)
+                        StopDictationAudio();
+                });
+            };
+
+            _mediaPlayer.MediaFailed += (s, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine($"[MediaPlayer] Lỗi media: {e.ErrorException?.Message}");
+            };
+
+            try
+            {
+                var type = Type.GetType("System.Speech.Synthesis.SpeechSynthesizer, System.Speech");
+                if (type != null)
+                {
+                    _speechSynth = Activator.CreateInstance(type);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Speech] Không khởi tạo được synthesizer: {ex.Message}");
+            }
+
+            // DispatcherTimer cập nhật thanh tua audio mượt mà
+            _audioTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(250)
+            };
+            _audioTimer.Tick += AudioTimer_Tick;
+        }
+
+        private void AudioTimer_Tick(object? sender, EventArgs e)
+        {
+            // Cập nhật tiến độ Quiz Audio
+            if (_isPlayingQuizAudio && !_isDraggingQuizSlider)
+            {
+                if (!_isSpeechSynthesizerActive)
+                {
+                    try
+                    {
+                        if (_mediaPlayer.NaturalDuration.HasTimeSpan && _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds > 0)
+                        {
+                            _quizAudioCurrentSeconds = _mediaPlayer.Position.TotalSeconds;
+                            _quizAudioTotalSeconds = _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                        }
+                        else
+                        {
+                            _quizAudioCurrentSeconds += 0.25 * _quizAudioSpeed;
+                        }
+                    }
+                    catch
+                    {
+                        _quizAudioCurrentSeconds += 0.25 * _quizAudioSpeed;
+                    }
+                }
+                else
+                {
+                    _quizAudioCurrentSeconds += 0.25 * _quizAudioSpeed;
+                }
+
+                if (_quizAudioCurrentSeconds >= _quizAudioTotalSeconds)
+                {
+                    StopQuizAudio();
+                    return;
+                }
+
+                if (sldQuizAudioProgress != null && _quizAudioTotalSeconds > 0)
+                {
+                    sldQuizAudioProgress.Value = (_quizAudioCurrentSeconds / _quizAudioTotalSeconds) * 100.0;
+                }
+                if (txtQuizAudioCurrentTime != null)
+                {
+                    txtQuizAudioCurrentTime.Text = $"{(int)_quizAudioCurrentSeconds / 60:D2}:{(int)_quizAudioCurrentSeconds % 60:D2}";
+                }
+            }
+
+            // Cập nhật tiến độ Dictation Audio
+            if (_isPlayingDictationAudio && !_isDraggingDictationSlider)
+            {
+                if (!_isSpeechSynthesizerActive)
+                {
+                    try
+                    {
+                        if (_mediaPlayer.NaturalDuration.HasTimeSpan && _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds > 0)
+                        {
+                            _dictationAudioCurrentSeconds = _mediaPlayer.Position.TotalSeconds;
+                            _dictationAudioTotalSeconds = _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                        }
+                        else
+                        {
+                            _dictationAudioCurrentSeconds += 0.25 * _dictationAudioSpeed;
+                        }
+                    }
+                    catch
+                    {
+                        _dictationAudioCurrentSeconds += 0.25 * _dictationAudioSpeed;
+                    }
+                }
+                else
+                {
+                    _dictationAudioCurrentSeconds += 0.25 * _dictationAudioSpeed;
+                }
+
+                if (_dictationAudioCurrentSeconds >= _dictationAudioTotalSeconds)
+                {
+                    StopDictationAudio();
+                    return;
+                }
+
+                if (sldDictationProgress != null && _dictationAudioTotalSeconds > 0)
+                {
+                    sldDictationProgress.Value = (_dictationAudioCurrentSeconds / _dictationAudioTotalSeconds) * 100.0;
+                }
+                if (txtDictationCurrentTime != null)
+                {
+                    txtDictationCurrentTime.Text = $"{(int)_dictationAudioCurrentSeconds / 60:D2}:{(int)_dictationAudioCurrentSeconds % 60:D2}";
+                }
+            }
         }
 
         // =========================================================================
@@ -58,7 +235,7 @@ namespace GUI.Views
                     {
                         dynamic synth = Activator.CreateInstance(type)!;
                         synth.Volume = 100;
-                        synth.Rate = (int)((speed - 1.0) * 4); // Map speed 0.75 -> -1, 1.0 -> 0
+                        synth.Rate = (int)((speed - 1.0) * 4);
                         synth.Speak(text);
                     }
                 }
@@ -75,11 +252,14 @@ namespace GUI.Views
         private void TabFlashcard_Click(object sender, RoutedEventArgs e)
         {
             _quizTimer?.Stop();
+            StopQuizAudio();
+            StopDictationAudio();
             SetActiveTab(tabFlashcard, pnlFlashcard);
         }
 
         private void TabQuiz_Click(object sender, RoutedEventArgs e)
         {
+            StopDictationAudio();
             SetActiveTab(tabQuiz, pnlQuiz);
             StartQuizTimer();
             DisplayCurrentQuiz();
@@ -88,6 +268,7 @@ namespace GUI.Views
         private void TabDictation_Click(object sender, RoutedEventArgs e)
         {
             _quizTimer?.Stop();
+            StopQuizAudio();
             SetActiveTab(tabDictation, pnlDictation);
             DisplayCurrentDictation();
         }
@@ -138,7 +319,6 @@ namespace GUI.Views
 
             if (_flashcards.Count == 0)
             {
-                // Fallback nếu chưa có từ theo cấp độ
                 _flashcards = TuVungBUS.Instance.LayDanhSachFlashcard(null);
             }
 
@@ -206,14 +386,11 @@ namespace GUI.Views
                 bool.TryParse(btn.Tag.ToString(), out daNho);
             }
 
-            // Ghi nhận xuống Database
             TuVungBUS.Instance.CapNhatKetQuaFlashcard(card.MaTuVung, daNho);
 
-            // Tăng điểm thưởng phản xạ
             _score += daNho ? 15 : 5;
             txtUserScore.Text = $"Điểm: {_score} pts";
 
-            // Chuyển thẻ tiếp theo
             _currentCardIndex = (_currentCardIndex + 1) % _flashcards.Count;
             UpdateCardView();
         }
@@ -273,6 +450,7 @@ namespace GUI.Views
                 else if (text.Contains("Vocab") || text.Contains("Từ vựng")) kyNang = "TuVung";
                 else if (text.Contains("Listening") || text.Contains("Nghe")) kyNang = "Nghe";
 
+                StopQuizAudio();
                 LoadQuizQuestions(kyNang);
                 StartQuizTimer();
                 DisplayCurrentQuiz();
@@ -312,6 +490,7 @@ namespace GUI.Views
             if (_quizQuestions == null || _quizQuestions.Count == 0)
             {
                 txtQuizQuestion.Text = "Hiện chưa có câu hỏi trắc nghiệm trong cơ sở dữ liệu.";
+                pnlQuizAudioPlayer.Visibility = Visibility.Collapsed;
                 return;
             }
 
@@ -324,14 +503,47 @@ namespace GUI.Views
             txtQuizScore.Text = $"• Câu {_currentQuizIndex + 1} / {_quizQuestions.Count}";
             txtQuizQuestion.Text = q.NoiDungCauHoi;
 
-            if (!string.IsNullOrWhiteSpace(q.DoanVanDoc))
+            // KIỂM TRA HIỂN THỊ AUDIO PLAYER CHO BÀI NGHE
+            bool isListeningQuestion = q.CoAudio 
+                || string.Equals(q.KyNang, "Nghe", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(q.KyNang, "Listening", StringComparison.OrdinalIgnoreCase)
+                || !string.IsNullOrWhiteSpace(q.DuongDanAudio)
+                || !string.IsNullOrWhiteSpace(q.AudioPath);
+
+            StopQuizAudio();
+
+            if (isListeningQuestion)
             {
-                pnlQuizPassage.Visibility = Visibility.Visible;
-                txtQuizPassage.Text = q.DoanVanDoc;
+                pnlQuizAudioPlayer.Visibility = Visibility.Visible;
+                string transcript = !string.IsNullOrWhiteSpace(q.DoanVanNghe) 
+                    ? q.DoanVanNghe 
+                    : (!string.IsNullOrWhiteSpace(q.DoanVanDoc) ? q.DoanVanDoc : q.NoiDungCauHoi);
+                txtQuizTranscript.Text = transcript;
+                pnlQuizTranscript.Visibility = Visibility.Collapsed;
+                btnToggleQuizTranscript.Content = "📝 Transcript";
+
+                // Tính thời lượng ước lượng
+                int wordCount = transcript.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+                _quizAudioTotalSeconds = Math.Max(8.0, wordCount / 2.3);
+                txtQuizAudioTotalTime.Text = $"{(int)_quizAudioTotalSeconds / 60:D2}:{(int)_quizAudioTotalSeconds % 60:D2}";
+                txtQuizAudioCurrentTime.Text = "00:00";
+                sldQuizAudioProgress.Value = 0;
+
+                // Ẩn box đoạn văn đọc vì bài nghe hiển thị qua trình phát và transcript
+                pnlQuizPassage.Visibility = Visibility.Collapsed;
             }
             else
             {
-                pnlQuizPassage.Visibility = Visibility.Collapsed;
+                pnlQuizAudioPlayer.Visibility = Visibility.Collapsed;
+                if (!string.IsNullOrWhiteSpace(q.DoanVanDoc))
+                {
+                    pnlQuizPassage.Visibility = Visibility.Visible;
+                    txtQuizPassage.Text = q.DoanVanDoc;
+                }
+                else
+                {
+                    pnlQuizPassage.Visibility = Visibility.Collapsed;
+                }
             }
 
             // Gán lựa chọn cho 4 nút A, B, C, D
@@ -382,7 +594,7 @@ namespace GUI.Views
 
             if (selectedOpt.LaDapAnDung)
             {
-                clickedBtn.Background = new SolidColorBrush(Color.FromRgb(209, 250, 229)); // Xanh nhạt
+                clickedBtn.Background = new SolidColorBrush(Color.FromRgb(209, 250, 229));
                 clickedBtn.BorderBrush = new SolidColorBrush(Color.FromRgb(16, 185, 129));
                 _score += 20;
                 txtUserScore.Text = $"Điểm: {_score} pts";
@@ -390,7 +602,7 @@ namespace GUI.Views
             }
             else
             {
-                clickedBtn.Background = new SolidColorBrush(Color.FromRgb(254, 226, 226)); // Đỏ nhạt
+                clickedBtn.Background = new SolidColorBrush(Color.FromRgb(254, 226, 226));
                 clickedBtn.BorderBrush = new SolidColorBrush(Color.FromRgb(239, 68, 68));
 
                 if (correctBtn != null)
@@ -406,6 +618,7 @@ namespace GUI.Views
 
         private void BtnNextQuiz_Click(object sender, RoutedEventArgs e)
         {
+            StopQuizAudio();
             _currentQuizIndex++;
             if (_currentQuizIndex >= _quizQuestions.Count)
             {
@@ -417,11 +630,257 @@ namespace GUI.Views
         }
 
         // =========================================================================
+        // QUIZ AUDIO PLAYER EVENT HANDLERS
+        // =========================================================================
+        private void BtnQuizAudioPlayPause_Click(object sender, RoutedEventArgs e)
+        {
+            if (_quizQuestions == null || _quizQuestions.Count == 0) return;
+            var q = _quizQuestions[_currentQuizIndex];
+
+            // Dừng dictation nếu đang phát
+            if (_isPlayingDictationAudio) StopDictationAudio();
+
+            _isPlayingQuizAudio = !_isPlayingQuizAudio;
+            if (_isPlayingQuizAudio)
+            {
+                string? audioPath = !string.IsNullOrWhiteSpace(q.DuongDanAudio) ? q.DuongDanAudio : q.AudioPath;
+                bool fileExists = !string.IsNullOrWhiteSpace(audioPath) && (System.IO.File.Exists(audioPath) || Uri.TryCreate(audioPath, UriKind.Absolute, out _));
+
+                if (fileExists)
+                {
+                    _isSpeechSynthesizerActive = false;
+                    try
+                    {
+                        _mediaPlayer.Open(new Uri(audioPath!, UriKind.RelativeOrAbsolute));
+                        _mediaPlayer.Volume = sldQuizAudioVolume?.Value ?? 0.8;
+                        _mediaPlayer.SpeedRatio = _quizAudioSpeed;
+                        _mediaPlayer.Position = TimeSpan.FromSeconds(_quizAudioCurrentSeconds);
+                        _mediaPlayer.Play();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[MediaPlayer] Lỗi mở tệp: {ex.Message}");
+                        PlayQuizSpeechFallback(q);
+                    }
+                }
+                else
+                {
+                    PlayQuizSpeechFallback(q);
+                }
+
+                btnQuizAudioPlayPause.Content = "⏸️ Tạm dừng";
+                txtQuizAudioStatus.Text = "🎧 ĐANG PHÁT BÀI NGHE (AI NATIVE SPEAKER • IPA)";
+                _audioTimer?.Start();
+            }
+            else
+            {
+                PauseQuizAudio();
+            }
+        }
+
+        private void PlayQuizSpeechFallback(CauHoiKhaoSatDTO q)
+        {
+            _isSpeechSynthesizerActive = true;
+            string text = !string.IsNullOrWhiteSpace(q.DoanVanNghe) 
+                ? q.DoanVanNghe 
+                : (!string.IsNullOrWhiteSpace(q.DoanVanDoc) ? q.DoanVanDoc : q.NoiDungCauHoi);
+
+            text = text.Replace("Audio Transcript:", "").Replace("Audio Transcript", "").Trim();
+
+            int wordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+            _quizAudioTotalSeconds = Math.Max(6.0, (wordCount / 2.3) / _quizAudioSpeed);
+            if (txtQuizAudioTotalTime != null)
+            {
+                txtQuizAudioTotalTime.Text = $"{(int)_quizAudioTotalSeconds / 60:D2}:{(int)_quizAudioTotalSeconds % 60:D2}";
+            }
+
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    if (_speechSynth != null)
+                    {
+                        _speechSynth.SpeakAsyncCancelAll();
+                        _speechSynth.Volume = (int)((sldQuizAudioVolume?.Value ?? 0.8) * 100);
+                        _speechSynth.Rate = (int)((_quizAudioSpeed - 1.0) * 4);
+                        _speechSynth.SpeakAsync(text);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[Speech] Lỗi: {ex.Message}");
+                }
+            });
+        }
+
+        private void PauseQuizAudio()
+        {
+            _isPlayingQuizAudio = false;
+            try
+            {
+                _mediaPlayer.Pause();
+            }
+            catch { }
+            try
+            {
+                if (_speechSynth != null)
+                {
+                    _speechSynth.SpeakAsyncCancelAll();
+                }
+            }
+            catch { }
+            btnQuizAudioPlayPause.Content = "▶️ Tiếp tục nghe";
+            txtQuizAudioStatus.Text = "⏸️ Đã tạm dừng bài nghe";
+        }
+
+        private void StopQuizAudio()
+        {
+            _isPlayingQuizAudio = false;
+            try
+            {
+                _mediaPlayer.Stop();
+                _mediaPlayer.Position = TimeSpan.Zero;
+            }
+            catch { }
+            try
+            {
+                if (_speechSynth != null)
+                {
+                    _speechSynth.SpeakAsyncCancelAll();
+                }
+            }
+            catch { }
+
+            _quizAudioCurrentSeconds = 0;
+            if (sldQuizAudioProgress != null) sldQuizAudioProgress.Value = 0;
+            if (txtQuizAudioCurrentTime != null) txtQuizAudioCurrentTime.Text = "00:00";
+            if (btnQuizAudioPlayPause != null) btnQuizAudioPlayPause.Content = "▶️ Nghe bài tập";
+            if (txtQuizAudioStatus != null) txtQuizAudioStatus.Text = "🎧 BÀI TẬP NGHE HIỂU (LISTENING COMPREHENSION)";
+        }
+
+        private void BtnQuizAudioStop_Click(object sender, RoutedEventArgs e)
+        {
+            StopQuizAudio();
+        }
+
+        private void BtnQuizAudioRewind_Click(object sender, RoutedEventArgs e)
+        {
+            _quizAudioCurrentSeconds = Math.Max(0, _quizAudioCurrentSeconds - 5);
+            try
+            {
+                _mediaPlayer.Position = TimeSpan.FromSeconds(_quizAudioCurrentSeconds);
+            }
+            catch { }
+            if (sldQuizAudioProgress != null && _quizAudioTotalSeconds > 0)
+            {
+                sldQuizAudioProgress.Value = (_quizAudioCurrentSeconds / _quizAudioTotalSeconds) * 100.0;
+            }
+            if (txtQuizAudioCurrentTime != null)
+            {
+                txtQuizAudioCurrentTime.Text = $"{(int)_quizAudioCurrentSeconds / 60:D2}:{(int)_quizAudioCurrentSeconds % 60:D2}";
+            }
+        }
+
+        private void BtnQuizAudioForward_Click(object sender, RoutedEventArgs e)
+        {
+            _quizAudioCurrentSeconds = Math.Min(_quizAudioTotalSeconds, _quizAudioCurrentSeconds + 5);
+            try
+            {
+                _mediaPlayer.Position = TimeSpan.FromSeconds(_quizAudioCurrentSeconds);
+            }
+            catch { }
+            if (sldQuizAudioProgress != null && _quizAudioTotalSeconds > 0)
+            {
+                sldQuizAudioProgress.Value = (_quizAudioCurrentSeconds / _quizAudioTotalSeconds) * 100.0;
+            }
+            if (txtQuizAudioCurrentTime != null)
+            {
+                txtQuizAudioCurrentTime.Text = $"{(int)_quizAudioCurrentSeconds / 60:D2}:{(int)_quizAudioCurrentSeconds % 60:D2}";
+            }
+        }
+
+        private void SldQuizAudioVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (sldQuizAudioVolume != null)
+            {
+                try
+                {
+                    _mediaPlayer.Volume = Math.Clamp(sldQuizAudioVolume.Value, 0.0, 1.0);
+                }
+                catch { }
+            }
+        }
+
+        private void BtnQuizAudioSpeed_Click(object sender, RoutedEventArgs e)
+        {
+            if (_quizAudioSpeed == 1.0) _quizAudioSpeed = 1.25;
+            else if (_quizAudioSpeed == 1.25) _quizAudioSpeed = 0.75;
+            else if (_quizAudioSpeed == 0.75) _quizAudioSpeed = 0.5;
+            else _quizAudioSpeed = 1.0;
+
+            try
+            {
+                _mediaPlayer.SpeedRatio = _quizAudioSpeed;
+            }
+            catch { }
+
+            if (btnQuizAudioSpeed != null)
+                btnQuizAudioSpeed.Content = $"{_quizAudioSpeed:0.00}x";
+
+            if (_isPlayingQuizAudio)
+            {
+                PauseQuizAudio();
+                BtnQuizAudioPlayPause_Click(sender, e);
+            }
+        }
+
+        private void BtnToggleQuizTranscript_Click(object sender, RoutedEventArgs e)
+        {
+            if (pnlQuizTranscript.Visibility == Visibility.Visible)
+            {
+                pnlQuizTranscript.Visibility = Visibility.Collapsed;
+                btnToggleQuizTranscript.Content = "📝 Transcript";
+            }
+            else
+            {
+                pnlQuizTranscript.Visibility = Visibility.Visible;
+                btnToggleQuizTranscript.Content = "🙈 Ẩn Transcript";
+            }
+        }
+
+        private void SldQuizAudioProgress_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            _isDraggingQuizSlider = true;
+        }
+
+        private void SldQuizAudioProgress_PreviewMouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            _isDraggingQuizSlider = false;
+            _quizAudioCurrentSeconds = (sldQuizAudioProgress.Value / 100.0) * _quizAudioTotalSeconds;
+            try
+            {
+                _mediaPlayer.Position = TimeSpan.FromSeconds(_quizAudioCurrentSeconds);
+            }
+            catch { }
+        }
+
+        private void SldQuizAudioProgress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_isDraggingQuizSlider)
+            {
+                _quizAudioCurrentSeconds = (sldQuizAudioProgress.Value / 100.0) * _quizAudioTotalSeconds;
+                if (txtQuizAudioCurrentTime != null)
+                {
+                    txtQuizAudioCurrentTime.Text = $"{(int)_quizAudioCurrentSeconds / 60:D2}:{(int)_quizAudioCurrentSeconds % 60:D2}";
+                }
+            }
+        }
+
+        // =========================================================================
         // TAB 3: DICTATION - NGHE CHÉP CHÍNH TẢ
         // =========================================================================
         private void InitDictationSentences()
         {
-            // Lấy từ vựng thực tế và ví dụ từ DB
             _dictationSentences = new List<string>
             {
                 "Smartphones have become ubiquitous in daily modern life.",
@@ -432,7 +891,6 @@ namespace GUI.Views
                 "The government introduced strict policies to mitigate the adverse impacts of pollution."
             };
 
-            // Nếu DB có thêm câu ví dụ từ flashcards, bổ sung vào
             if (_flashcards != null && _flashcards.Count > 0)
             {
                 foreach (var f in _flashcards)
@@ -453,23 +911,160 @@ namespace GUI.Views
             if (_dictationSentences.Count == 0) return;
             if (_currentDictationIndex >= _dictationSentences.Count) _currentDictationIndex = 0;
 
+            StopDictationAudio();
+
             txtDictationIndex.Text = $"Câu {_currentDictationIndex + 1} / {_dictationSentences.Count}";
             txtDictationInput.Text = string.Empty;
             bdrDictationResult.Visibility = Visibility.Collapsed;
+
+            string sentence = _dictationSentences[_currentDictationIndex];
+            int wordCount = sentence.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+            _dictationAudioTotalSeconds = Math.Max(4.0, wordCount / 1.8);
+            if (txtDictationTotalTime != null)
+            {
+                txtDictationTotalTime.Text = $"{(int)_dictationAudioTotalSeconds / 60:D2}:{(int)_dictationAudioTotalSeconds % 60:D2}";
+            }
+            if (txtDictationCurrentTime != null) txtDictationCurrentTime.Text = "00:00";
+            if (sldDictationProgress != null) sldDictationProgress.Value = 0;
         }
 
-        private void BtnPlayDictationNormal_Click(object sender, RoutedEventArgs e)
+        // =========================================================================
+        // DICTATION AUDIO PLAYER EVENT HANDLERS
+        // =========================================================================
+        private void BtnDictationPlayPause_Click(object sender, RoutedEventArgs e)
         {
-            if (_dictationSentences.Count == 0) return;
-            string sentence = _dictationSentences[_currentDictationIndex];
-            SpeakText(sentence, 1.0);
+            if (_isPlayingDictationAudio)
+            {
+                StopDictationAudio();
+            }
+            else
+            {
+                PlayDictationWithSpeed(1.0);
+            }
         }
 
-        private void BtnPlayDictationSlow_Click(object sender, RoutedEventArgs e)
+        private void BtnDictationSlow_Click(object sender, RoutedEventArgs e)
         {
-            if (_dictationSentences.Count == 0) return;
+            PlayDictationWithSpeed(0.75);
+        }
+
+        private void BtnDictationSlower_Click(object sender, RoutedEventArgs e)
+        {
+            PlayDictationWithSpeed(0.5);
+        }
+
+        private void PlayDictationWithSpeed(double speed)
+        {
+            if (_dictationSentences == null || _dictationSentences.Count == 0) return;
+            if (_isPlayingQuizAudio) StopQuizAudio();
+
+            _dictationAudioSpeed = speed;
             string sentence = _dictationSentences[_currentDictationIndex];
-            SpeakText(sentence, 0.75);
+
+            StopDictationAudio();
+
+            _isPlayingDictationAudio = true;
+            _isSpeechSynthesizerActive = true;
+
+            int wordCount = sentence.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+            _dictationAudioTotalSeconds = Math.Max(4.0, (wordCount / 1.8) / speed);
+            if (txtDictationTotalTime != null)
+            {
+                txtDictationTotalTime.Text = $"{(int)_dictationAudioTotalSeconds / 60:D2}:{(int)_dictationAudioTotalSeconds % 60:D2}";
+            }
+
+            btnDictationPlayPause.Content = "⏸️ Tạm dừng";
+            txtDictationAudioStatus.Text = $"🎧 ĐANG PHÁT CÂU MẪU ({speed:0.00}X • IPA CHUẨN)";
+
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    if (_speechSynth != null)
+                    {
+                        _speechSynth.SpeakAsyncCancelAll();
+                        _speechSynth.Volume = (int)((sldDictationVolume?.Value ?? 0.85) * 100);
+                        _speechSynth.Rate = (int)((speed - 1.0) * 4);
+                        _speechSynth.SpeakAsync(sentence);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[Dictation Speech] Lỗi: {ex.Message}");
+                }
+            });
+
+            _audioTimer?.Start();
+        }
+
+        private void StopDictationAudio()
+        {
+            _isPlayingDictationAudio = false;
+            try
+            {
+                _mediaPlayer.Stop();
+                _mediaPlayer.Position = TimeSpan.Zero;
+            }
+            catch { }
+            try
+            {
+                if (_speechSynth != null)
+                {
+                    _speechSynth.SpeakAsyncCancelAll();
+                }
+            }
+            catch { }
+
+            _dictationAudioCurrentSeconds = 0;
+            if (sldDictationProgress != null) sldDictationProgress.Value = 0;
+            if (txtDictationCurrentTime != null) txtDictationCurrentTime.Text = "00:00";
+            if (btnDictationPlayPause != null) btnDictationPlayPause.Content = "▶️ Nghe câu mẫu";
+            if (txtDictationAudioStatus != null) txtDictationAudioStatus.Text = "🎧 AUDIO DICTATION (GIỌNG ĐỌC BẢN XỨ CHUẨN IPA)";
+        }
+
+        private void BtnDictationStop_Click(object sender, RoutedEventArgs e)
+        {
+            StopDictationAudio();
+        }
+
+        private void BtnDictationRepeat_Click(object sender, RoutedEventArgs e)
+        {
+            PlayDictationWithSpeed(_dictationAudioSpeed);
+        }
+
+        private void SldDictationVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (sldDictationVolume != null)
+            {
+                try
+                {
+                    _mediaPlayer.Volume = Math.Clamp(sldDictationVolume.Value, 0.0, 1.0);
+                }
+                catch { }
+            }
+        }
+
+        private void SldDictationProgress_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            _isDraggingDictationSlider = true;
+        }
+
+        private void SldDictationProgress_PreviewMouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            _isDraggingDictationSlider = false;
+            _dictationAudioCurrentSeconds = (sldDictationProgress.Value / 100.0) * _dictationAudioTotalSeconds;
+        }
+
+        private void SldDictationProgress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_isDraggingDictationSlider)
+            {
+                _dictationAudioCurrentSeconds = (sldDictationProgress.Value / 100.0) * _dictationAudioTotalSeconds;
+                if (txtDictationCurrentTime != null)
+                {
+                    txtDictationCurrentTime.Text = $"{(int)_dictationAudioCurrentSeconds / 60:D2}:{(int)_dictationAudioCurrentSeconds % 60:D2}";
+                }
+            }
         }
 
         private void BtnCheckDictation_Click(object sender, RoutedEventArgs e)
@@ -520,6 +1115,7 @@ namespace GUI.Views
 
         private void BtnNextDictation_Click(object sender, RoutedEventArgs e)
         {
+            StopDictationAudio();
             _currentDictationIndex++;
             if (_currentDictationIndex >= _dictationSentences.Count)
             {

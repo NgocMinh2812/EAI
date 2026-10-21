@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using BUS;
 using DTO;
+using GUI.Services;
 
 namespace GUI.Views
 {
@@ -14,14 +15,29 @@ namespace GUI.Views
         private const string SearchPlaceholder = "Tìm bài học, chủ đề, từ vựng...";
         private List<BaiHocDTO> _danhSachBaiHoc = new List<BaiHocDTO>();
         private string _selectedSkill = "All";
+        private TreeFilterNodeTag? _currentTreeFilter;
         private BaiHocDTO? _currentBaiHoc;
         private bool _isInitialized = false;
+        private readonly DAL.DanhMucDAL _danhMucDAL = new DAL.DanhMucDAL();
+
+        // TASK-202: Cấu trúc dữ liệu thẻ lọc đại diện cho mỗi nút trên Cây Danh Mục Lộ Trình
+        public class TreeFilterNodeTag
+        {
+            public string FilterType { get; set; } = string.Empty; // "ALL", "SKILL", "TOPIC_PARENT", "TOPIC_CHILD", "LEVEL", "FOLDER_SKILLS", "FOLDER_TOPICS", "FOLDER_LEVELS"
+            public string? Code { get; set; }
+            public int Id { get; set; }
+            public List<int> ChildTopicIds { get; set; } = new List<int>();
+            public string Title { get; set; } = string.Empty;
+            public string? Description { get; set; }
+            public int LessonCount { get; set; }
+        }
 
         // TASK-204: Biến theo dõi thời gian học tập thực tế
         private System.Windows.Threading.DispatcherTimer? _studyTimer;
         private int _studySeconds = 0;
 
         // TASK-203: Biến điều khiển bộ phát MediaPlayer / Audio Tutor
+        private readonly MediaPlayer _mediaPlayer = new MediaPlayer();
         private System.Windows.Threading.DispatcherTimer? _audioTimer;
         private bool _isPlayingAudio = false;
         private double _audioCurrentSeconds = 0;
@@ -32,6 +48,7 @@ namespace GUI.Views
         public HocTapView(int? maBaiHocMoNgay = null)
         {
             InitializeComponent();
+            InitMediaPlayer();
             InitTimers();
             LoadData();
             _isInitialized = true;
@@ -41,6 +58,29 @@ namespace GUI.Views
             {
                 HienThiChiTietBaiHoc(maBaiHocMoNgay.Value);
             }
+        }
+
+        private void InitMediaPlayer()
+        {
+            _mediaPlayer.MediaOpened += (s, e) =>
+            {
+                if (_mediaPlayer.NaturalDuration.HasTimeSpan && _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds > 0)
+                {
+                    _audioTotalSeconds = _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                    if (txtAudioTotalTime != null)
+                    {
+                        txtAudioTotalTime.Text = $"{(int)_audioTotalSeconds / 60:D2}:{(int)_audioTotalSeconds % 60:D2}";
+                    }
+                }
+            };
+            _mediaPlayer.MediaEnded += (s, e) =>
+            {
+                BtnAudioStop_Click(this, new RoutedEventArgs());
+            };
+            _mediaPlayer.MediaFailed += (s, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine("MediaPlayer MediaFailed: " + e.ErrorException?.Message);
+            };
         }
 
         private void InitTimers()
@@ -66,14 +106,30 @@ namespace GUI.Views
             {
                 if (_isPlayingAudio && !_isDraggingSlider)
                 {
-                    _audioCurrentSeconds += 0.5 * _currentSpeed;
+                    try
+                    {
+                        if (_mediaPlayer.NaturalDuration.HasTimeSpan && _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds > 0)
+                        {
+                            _audioCurrentSeconds = _mediaPlayer.Position.TotalSeconds;
+                            _audioTotalSeconds = _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                        }
+                        else
+                        {
+                            _audioCurrentSeconds += 0.5 * _currentSpeed;
+                        }
+                    }
+                    catch
+                    {
+                        _audioCurrentSeconds += 0.5 * _currentSpeed;
+                    }
+
                     if (_audioCurrentSeconds >= _audioTotalSeconds)
                     {
                         BtnAudioStop_Click(this, new RoutedEventArgs());
                         return;
                     }
 
-                    if (sldAudioProgress != null)
+                    if (sldAudioProgress != null && _audioTotalSeconds > 0)
                     {
                         sldAudioProgress.Value = (_audioCurrentSeconds / _audioTotalSeconds) * 100.0;
                     }
@@ -112,15 +168,310 @@ namespace GUI.Views
                     cboTrangThai.SelectedIndex = 0;
                 }
 
-                if (txtTimKiem != null)
+                if (txtTimKiem != null && string.IsNullOrEmpty(txtTimKiem.Text))
                 {
                     txtTimKiem.Text = SearchPlaceholder;
                     txtTimKiem.Foreground = GetBrush("TextGray", Brushes.Gray);
                 }
+
+                // Xây dựng cây danh mục lộ trình trực tiếp từ CSDL
+                BuildRoadmapTree();
             }
             catch (Exception ex)
             {
                 Common.ThongBaoDialog.CanhBao("Lỗi nạp dữ liệu bài học: " + ex.Message, "Thông báo");
+            }
+        }
+
+        /// <summary>
+        /// Nạp và xây dựng CÂY DANH MỤC LỘ TRÌNH tự động từ CSDL (Bảng ChuDe, TrinhDo & BaiHoc)
+        /// Kèm badge đếm số lượng bài học theo thời gian thực
+        /// </summary>
+        private void BuildRoadmapTree()
+        {
+            if (trvDanhMuc == null) return;
+            trvDanhMuc.Items.Clear();
+
+            int totalLessons = _danhSachBaiHoc.Count;
+
+            // =========================================================================
+            // NHÁNH 1: PHÂN THEO KỸ NĂNG (SKILLS)
+            // =========================================================================
+            var skillDefinitions = new (string Code, string Name, string Icon)[]
+            {
+                ("TuVung", "Từ vựng (Vocabulary)", "📖"),
+                ("NguPhap", "Ngữ pháp (Grammar)", "📝"),
+                ("Doc", "Đọc hiểu (Reading)", "📚"),
+                ("Nghe", "Nghe hiểu (Listening)", "🎧"),
+                ("Viet", "Viết luận (Writing)", "✍️")
+            };
+
+            int totalSkillLessons = 0;
+            var skillItemTags = new List<(TreeViewItem Item, TreeFilterNodeTag Tag)>();
+
+            foreach (var sk in skillDefinitions)
+            {
+                int count = _danhSachBaiHoc.Count(b => b.LoaiBaiHoc.Equals(sk.Code, StringComparison.OrdinalIgnoreCase));
+                totalSkillLessons += count;
+
+                var tag = new TreeFilterNodeTag
+                {
+                    FilterType = "SKILL",
+                    Code = sk.Code,
+                    Title = sk.Name,
+                    Description = $"Rèn luyện chuyên sâu kỹ năng {sk.Name} với học liệu chuẩn hóa và AI chấm điểm chi tiết.",
+                    LessonCount = count
+                };
+
+                var item = CreateTreeItem(sk.Icon, sk.Name, count, tag, tag.Description);
+                skillItemTags.Add((item, tag));
+            }
+
+            var folderSkillsTag = new TreeFilterNodeTag
+            {
+                FilterType = "FOLDER_SKILLS",
+                Title = "Phân theo Kỹ năng",
+                Description = "Lộ trình học tập đa kỹ năng: Từ vựng, Ngữ pháp, Đọc hiểu, Nghe hiểu và Viết luận.",
+                LessonCount = totalSkillLessons
+            };
+            var branchSkills = CreateTreeItem("📂", "Phân theo Kỹ năng", totalSkillLessons, folderSkillsTag, folderSkillsTag.Description, isBold: true, isExpanded: true);
+            foreach (var s in skillItemTags)
+            {
+                branchSkills.Items.Add(s.Item);
+            }
+            trvDanhMuc.Items.Add(branchSkills);
+
+            // =========================================================================
+            // NHÁNH 2: CÂY CHỦ ĐỀ HỌC TẬP (TOPICS - Nạp động từ bảng ChuDe)
+            // =========================================================================
+            List<ChuDeDTO> allChuDe;
+            try
+            {
+                allChuDe = _danhMucDAL.GetAllChuDe();
+            }
+            catch
+            {
+                allChuDe = new List<ChuDeDTO>();
+            }
+
+            var rootTopics = allChuDe.Where(x => !x.MaChuDeCha.HasValue || x.MaChuDeCha <= 0).ToList();
+            int totalTopicLessons = 0;
+            var branchTopicItems = new List<TreeViewItem>();
+
+            foreach (var parent in rootTopics)
+            {
+                // Tìm toàn bộ chủ đề con trực tiếp
+                var children = allChuDe.Where(x => x.MaChuDeCha == parent.MaChuDe).ToList();
+                var childIds = children.Select(c => c.MaChuDe).ToList();
+
+                // Tính tổng số bài học của chủ đề cha + tất cả con
+                int parentLessonCount = _danhSachBaiHoc.Count(b => b.MaChuDe == parent.MaChuDe || childIds.Contains(b.MaChuDe));
+                totalTopicLessons += parentLessonCount;
+
+                string parentIcon = GetTopicIcon(parent.TenChuDe, isParent: true);
+
+                var parentTag = new TreeFilterNodeTag
+                {
+                    FilterType = "TOPIC_PARENT",
+                    Id = parent.MaChuDe,
+                    ChildTopicIds = childIds,
+                    Title = parent.TenChuDe,
+                    Description = !string.IsNullOrWhiteSpace(parent.MoTa) ? parent.MoTa : $"Kho bài học chủ đề {parent.TenChuDe}",
+                    LessonCount = parentLessonCount
+                };
+
+                var parentItem = CreateTreeItem(parentIcon, parent.TenChuDe, parentLessonCount, parentTag, parentTag.Description, isBold: true, isExpanded: true);
+
+                foreach (var child in children)
+                {
+                    int childCount = _danhSachBaiHoc.Count(b => b.MaChuDe == child.MaChuDe);
+                    string childIcon = GetTopicIcon(child.TenChuDe, isParent: false);
+
+                    var childTag = new TreeFilterNodeTag
+                    {
+                        FilterType = "TOPIC_CHILD",
+                        Id = child.MaChuDe,
+                        Title = child.TenChuDe,
+                        Description = !string.IsNullOrWhiteSpace(child.MoTa) ? child.MoTa : $"Chủ đề chi tiết: {child.TenChuDe}",
+                        LessonCount = childCount
+                    };
+
+                    var childItem = CreateTreeItem(childIcon, child.TenChuDe, childCount, childTag, childTag.Description);
+                    parentItem.Items.Add(childItem);
+                }
+
+                branchTopicItems.Add(parentItem);
+            }
+
+            var folderTopicsTag = new TreeFilterNodeTag
+            {
+                FilterType = "FOLDER_TOPICS",
+                Title = "Cây Chủ đề học tập",
+                Description = "Cây danh mục chủ đề phân cấp từ thực tế đời sống, học thuật IELTS đến CNTT và Thương mại.",
+                LessonCount = totalTopicLessons
+            };
+            var branchTopics = CreateTreeItem("📂", "Cây Chủ đề học tập", totalTopicLessons, folderTopicsTag, folderTopicsTag.Description, isBold: true, isExpanded: true);
+            foreach (var t in branchTopicItems)
+            {
+                branchTopics.Items.Add(t);
+            }
+            trvDanhMuc.Items.Add(branchTopics);
+
+            // =========================================================================
+            // NHÁNH 3: TRÌNH ĐỘ CHUẨN CEFR (LEVELS - Nạp động từ bảng TrinhDo)
+            // =========================================================================
+            List<TrinhDoDTO> allTrinhDo;
+            try
+            {
+                allTrinhDo = _danhMucDAL.GetAllTrinhDo();
+            }
+            catch
+            {
+                allTrinhDo = new List<TrinhDoDTO>();
+            }
+
+            int totalLevelLessons = 0;
+            var branchLevelItems = new List<TreeViewItem>();
+
+            foreach (var td in allTrinhDo)
+            {
+                int count = _danhSachBaiHoc.Count(b => b.MaTrinhDo.Equals(td.MaCapDo, StringComparison.OrdinalIgnoreCase));
+                totalLevelLessons += count;
+
+                string bullet = td.MaCapDo.ToUpper() switch
+                {
+                    "A1" => "🟢",
+                    "A2" => "🔵",
+                    "B1" => "🟣",
+                    "B2" => "🟠",
+                    "C1" => "🔴",
+                    _ => "⭐"
+                };
+
+                string title = $"{bullet} {td.MaCapDo} — {td.TenTrinhDo}";
+                var tag = new TreeFilterNodeTag
+                {
+                    FilterType = "LEVEL",
+                    Code = td.MaCapDo,
+                    Id = td.MaTrinhDo,
+                    Title = title,
+                    Description = !string.IsNullOrWhiteSpace(td.MoTa) ? td.MoTa : $"Khung năng lực tiếng Anh trình độ {td.MaCapDo}",
+                    LessonCount = count
+                };
+
+                var item = CreateTreeItem(string.Empty, title, count, tag, tag.Description);
+                branchLevelItems.Add(item);
+            }
+
+            var folderLevelsTag = new TreeFilterNodeTag
+            {
+                FilterType = "FOLDER_LEVELS",
+                Title = "Trình độ chuẩn CEFR",
+                Description = "Khung tham chiếu ngôn ngữ chung Châu Âu từ A1 (Căn bản) đến C1 (Nâng cao).",
+                LessonCount = totalLevelLessons
+            };
+            var branchLevels = CreateTreeItem("📂", "Trình độ chuẩn CEFR", totalLevelLessons, folderLevelsTag, folderLevelsTag.Description, isBold: true, isExpanded: true);
+            foreach (var l in branchLevelItems)
+            {
+                branchLevels.Items.Add(l);
+            }
+            trvDanhMuc.Items.Add(branchLevels);
+
+            // Cập nhật nhãn nút Reset trên cùng
+            if (btnTreeReset != null)
+            {
+                btnTreeReset.Content = $"🌐 Xem toàn bộ bài học ({totalLessons})";
+            }
+        }
+
+        /// <summary>
+        /// Tạo TreeViewItem hiện đại có biểu tượng, tên danh mục và huy hiệu (pill badge) số lượng bài học
+        /// </summary>
+        private TreeViewItem CreateTreeItem(string icon, string title, int count, TreeFilterNodeTag tag, string? tooltip = null, bool isBold = false, bool isExpanded = true)
+        {
+            var item = new TreeViewItem
+            {
+                Tag = tag,
+                IsExpanded = isExpanded,
+                ToolTip = !string.IsNullOrWhiteSpace(tooltip) ? tooltip : title
+            };
+
+            var stack = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 1, 0, 1)
+            };
+
+            if (!string.IsNullOrEmpty(icon))
+            {
+                stack.Children.Add(new TextBlock
+                {
+                    Text = icon,
+                    FontSize = 13,
+                    Margin = new Thickness(0, 0, 6, 0),
+                    VerticalAlignment = VerticalAlignment.Center
+                });
+            }
+
+            stack.Children.Add(new TextBlock
+            {
+                Text = title,
+                FontSize = 12.5,
+                FontWeight = isBold ? FontWeights.SemiBold : FontWeights.Normal,
+                VerticalAlignment = VerticalAlignment.Center
+            });
+
+            // Huy hiệu số bài học
+            var badgeBorder = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(241, 245, 249)),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(6, 1, 6, 1),
+                Margin = new Thickness(6, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            badgeBorder.Child = new TextBlock
+            {
+                Text = count.ToString(),
+                FontSize = 10.5,
+                FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush(Color.FromRgb(100, 116, 139))
+            };
+
+            stack.Children.Add(badgeBorder);
+            item.Header = stack;
+            return item;
+        }
+
+        private string GetTopicIcon(string topicName, bool isParent)
+        {
+            string n = topicName.ToLower();
+            if (isParent)
+            {
+                if (n.Contains("giao tiếp")) return "☕";
+                if (n.Contains("ielts") || n.Contains("học thuật")) return "🎓";
+                if (n.Contains("ngữ pháp")) return "📐";
+                if (n.Contains("thương mại") || n.Contains("công sở")) return "💼";
+                if (n.Contains("công nghệ") || n.Contains("it") || n.Contains("phần mềm")) return "💻";
+                return "📁";
+            }
+            else
+            {
+                if (n.Contains("chào hỏi") || n.Contains("giới thiệu")) return "👋";
+                if (n.Contains("mua sắm") || n.Contains("nhà hàng") || n.Contains("ẩm thực")) return "🛍️";
+                if (n.Contains("du lịch") || n.Contains("giao thông") || n.Contains("sân bay")) return "✈️";
+                if (n.Contains("reading") || n.Contains("skimming")) return "📑";
+                if (n.Contains("writing") || n.Contains("luận")) return "✍️";
+                if (n.Contains("listening")) return "🎧";
+                if (n.Contains("thì") || n.Contains("tenses")) return "⏳";
+                if (n.Contains("mệnh đề") || n.Contains("bị động")) return "🔗";
+                if (n.Contains("điều kiện") || n.Contains("đảo ngữ")) return "⚖️";
+                if (n.Contains("email") || n.Contains("thư")) return "✉️";
+                if (n.Contains("đàm phán") || n.Contains("thuyết trình")) return "🤝";
+                if (n.Contains("lập trình") || n.Contains("thuật ngữ")) return "💻";
+                if (n.Contains("agile") || n.Contains("scrum")) return "🗣️";
+                return "📄";
             }
         }
 
@@ -133,13 +484,55 @@ namespace GUI.Views
             {
                 var query = _danhSachBaiHoc.AsEnumerable();
 
-                // Lọc theo Skill
+                // 1. Lọc theo Cây danh mục lộ trình (TreeView - TASK-202)
+                if (_currentTreeFilter != null)
+                {
+                    switch (_currentTreeFilter.FilterType)
+                    {
+                        case "SKILL":
+                            if (!string.IsNullOrEmpty(_currentTreeFilter.Code))
+                            {
+                                query = query.Where(b => b.LoaiBaiHoc.Equals(_currentTreeFilter.Code, StringComparison.OrdinalIgnoreCase));
+                            }
+                            break;
+
+                        case "TOPIC_CHILD":
+                            query = query.Where(b => b.MaChuDe == _currentTreeFilter.Id);
+                            break;
+
+                        case "TOPIC_PARENT":
+                            var allIds = new HashSet<int>(_currentTreeFilter.ChildTopicIds) { _currentTreeFilter.Id };
+                            query = query.Where(b => allIds.Contains(b.MaChuDe));
+                            break;
+
+                        case "LEVEL":
+                            if (!string.IsNullOrEmpty(_currentTreeFilter.Code))
+                            {
+                                query = query.Where(b => b.MaTrinhDo.Equals(_currentTreeFilter.Code, StringComparison.OrdinalIgnoreCase));
+                            }
+                            break;
+
+                        case "FOLDER_TOPICS":
+                            query = query.Where(b => b.MaChuDe > 0);
+                            break;
+
+                        case "FOLDER_LEVELS":
+                            query = query.Where(b => !string.IsNullOrEmpty(b.MaTrinhDo));
+                            break;
+
+                        case "FOLDER_SKILLS":
+                        default:
+                            break;
+                    }
+                }
+
+                // 2. Lọc theo Skill Chip Bar (nếu khác All)
                 if (!string.IsNullOrEmpty(_selectedSkill) && _selectedSkill != "All")
                 {
                     query = query.Where(b => b.LoaiBaiHoc.Equals(_selectedSkill, StringComparison.OrdinalIgnoreCase));
                 }
 
-                // Lọc theo Trình độ
+                // 3. Lọc theo Trình độ (ComboBox)
                 if (cboTrinhDo != null && cboTrinhDo.SelectedItem is ComboBoxItem itemTrinhDo)
                 {
                     string trinhDo = itemTrinhDo.Content?.ToString() ?? "Tất cả";
@@ -149,7 +542,7 @@ namespace GUI.Views
                     }
                 }
 
-                // Lọc theo Trạng thái
+                // 4. Lọc theo Trạng thái (ComboBox)
                 if (cboTrangThai != null && cboTrangThai.SelectedItem is ComboBoxItem itemTrangThai)
                 {
                     string trangThai = itemTrangThai.Content?.ToString() ?? "Tất cả";
@@ -159,24 +552,40 @@ namespace GUI.Views
                     }
                 }
 
-                // Lọc theo từ khóa tìm kiếm
+                // 5. Lọc theo từ khóa tìm kiếm
                 if (txtTimKiem != null)
                 {
                     string keyword = txtTimKiem.Text.Trim();
                     if (!string.IsNullOrEmpty(keyword) && keyword != SearchPlaceholder)
                     {
-                        query = query.Where(b => b.TieuDe.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                                                 b.TenChuDe.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                                                 b.TomTat.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+                        query = query.Where(b => (b.TieuDe != null && b.TieuDe.Contains(keyword, StringComparison.OrdinalIgnoreCase)) ||
+                                                 (b.TenChuDe != null && b.TenChuDe.Contains(keyword, StringComparison.OrdinalIgnoreCase)) ||
+                                                 (b.TomTat != null && b.TomTat.Contains(keyword, StringComparison.OrdinalIgnoreCase)));
                     }
                 }
 
                 var filteredList = query.ToList();
                 icDanhSachBaiHoc.ItemsSource = filteredList;
 
-                // Cập nhật số liệu thống kê
-                int tong = _danhSachBaiHoc.Count;
-                int hoanThanh = _danhSachBaiHoc.Count(b => b.TrangThai == "Hoàn thành");
+                // Xử lý Empty State
+                if (pnlEmptyLessons != null)
+                {
+                    pnlEmptyLessons.Visibility = filteredList.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+                    icDanhSachBaiHoc.Visibility = filteredList.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+                    if (txtEmptyReason != null && _currentTreeFilter != null)
+                    {
+                        txtEmptyReason.Text = $"Chưa có bài học nào thuộc '{_currentTreeFilter.Title}' phù hợp với bộ lọc hiện tại.";
+                    }
+                    else if (txtEmptyReason != null)
+                    {
+                        txtEmptyReason.Text = "Không có bài học nào trong danh mục hoặc bộ lọc hiện tại.";
+                    }
+                }
+
+                // Cập nhật số liệu thống kê theo danh sách đang hiển thị
+                int tong = filteredList.Count;
+                int hoanThanh = filteredList.Count(b => b.TrangThai == "Hoàn thành");
                 txtTongSoBai.Text = tong.ToString();
                 txtSoBaiHoanThanh.Text = $"{hoanThanh} ({(tong > 0 ? hoanThanh * 100 / tong : 0)}%)";
             }
@@ -186,38 +595,159 @@ namespace GUI.Views
             }
         }
 
+        private void TrvDanhMuc_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (e.NewValue is TreeViewItem item && item.Tag is TreeFilterNodeTag nodeTag)
+            {
+                _currentTreeFilter = nodeTag;
+
+                // Cập nhật giao diện Banner Tiêu đề & Mô tả
+                UpdateBannerForTreeSelection(nodeTag);
+
+                // Đồng bộ bộ lọc ngoài nếu chọn Kỹ năng hoặc Trình độ
+                if (nodeTag.FilterType == "SKILL" && !string.IsNullOrEmpty(nodeTag.Code))
+                {
+                    SyncSkillButtonsVisual(nodeTag.Code);
+                }
+                else if (nodeTag.FilterType == "LEVEL" && !string.IsNullOrEmpty(nodeTag.Code))
+                {
+                    SyncTrinhDoComboBoxVisual(nodeTag.Code);
+                }
+
+                ApplyFilter();
+            }
+        }
+
+        private void UpdateBannerForTreeSelection(TreeFilterNodeTag tag)
+        {
+            if (txtCurrentNavCategory != null)
+            {
+                txtCurrentNavCategory.Text = tag.FilterType switch
+                {
+                    "SKILL" => $"KỸ NĂNG: {tag.Title.ToUpper()}",
+                    "TOPIC_PARENT" => $"LỘ TRÌNH: {tag.Title.ToUpper()}",
+                    "TOPIC_CHILD" => $"CHỦ ĐỀ: {tag.Title.ToUpper()}",
+                    "LEVEL" => $"TRÌNH ĐỘ: {tag.Title.ToUpper()}",
+                    "FOLDER_SKILLS" => "TẤT CẢ KỸ NĂNG HỌC TẬP",
+                    "FOLDER_TOPICS" => "CÂY CHỦ ĐỀ HỌC TẬP TOÀN DIỆN",
+                    "FOLDER_LEVELS" => "KHUNG NĂNG LỰC CHUẨN CEFR",
+                    _ => tag.Title.ToUpper()
+                };
+            }
+
+            if (txtBannerTitle != null)
+            {
+                txtBannerTitle.Text = tag.FilterType switch
+                {
+                    "SKILL" => $"Học liệu Kỹ năng: {tag.Title}",
+                    "TOPIC_PARENT" => tag.Title,
+                    "TOPIC_CHILD" => tag.Title,
+                    "LEVEL" => $"Lộ trình trình độ: {tag.Title}",
+                    _ => tag.Title
+                };
+            }
+
+            if (txtBannerSubtitle != null && !string.IsNullOrWhiteSpace(tag.Description))
+            {
+                txtBannerSubtitle.Text = tag.Description;
+            }
+        }
+
+        private void SyncSkillButtonsVisual(string skillCode)
+        {
+            _selectedSkill = skillCode;
+
+            if (pnlSkillChips == null) return;
+            var textGray = GetBrush("TextGray", Brushes.Gray);
+            var borderLight = GetBrush("BorderLight", Brushes.LightGray);
+            var tealLight = GetBrush("BrandTealLight", new SolidColorBrush(Color.FromRgb(230, 247, 243)));
+            var teal = GetBrush("BrandTeal", new SolidColorBrush(Color.FromRgb(15, 118, 110)));
+
+            foreach (var child in pnlSkillChips.Children)
+            {
+                if (child is Button b)
+                {
+                    bool isMatch = string.Equals(b.Tag?.ToString(), skillCode, StringComparison.OrdinalIgnoreCase);
+                    b.Background = isMatch ? tealLight : Brushes.White;
+                    b.Foreground = isMatch ? teal : textGray;
+                    b.FontWeight = isMatch ? FontWeights.SemiBold : FontWeights.Medium;
+                    b.BorderBrush = isMatch ? teal : borderLight;
+                }
+            }
+        }
+
+        private void SyncTrinhDoComboBoxVisual(string levelCode)
+        {
+            if (cboTrinhDo == null) return;
+            for (int i = 0; i < cboTrinhDo.Items.Count; i++)
+            {
+                if (cboTrinhDo.Items[i] is ComboBoxItem item && 
+                    string.Equals(item.Content?.ToString(), levelCode, StringComparison.OrdinalIgnoreCase))
+                {
+                    cboTrinhDo.SelectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        private void BtnRefreshTree_Click(object sender, RoutedEventArgs e)
+        {
+            LoadData();
+            ApplyFilter();
+        }
+
+        private void BtnTreeReset_Click(object sender, RoutedEventArgs e)
+        {
+            _currentTreeFilter = null;
+            _selectedSkill = "All";
+
+            // Bỏ chọn nút trên TreeView nếu có
+            if (trvDanhMuc != null && trvDanhMuc.SelectedItem is TreeViewItem selItem)
+            {
+                selItem.IsSelected = false;
+            }
+
+            if (cboTrinhDo != null) cboTrinhDo.SelectedIndex = 0;
+            if (cboTrangThai != null) cboTrangThai.SelectedIndex = 0;
+            if (txtTimKiem != null)
+            {
+                txtTimKiem.Text = SearchPlaceholder;
+                txtTimKiem.Foreground = GetBrush("TextGray", Brushes.Gray);
+            }
+
+            SyncSkillButtonsVisual("All");
+
+            if (txtCurrentNavCategory != null)
+            {
+                txtCurrentNavCategory.Text = "LỘ TRÌNH TẤT CẢ BÀI HỌC";
+            }
+            if (txtBannerTitle != null)
+            {
+                txtBannerTitle.Text = "Kho Bài Học Tương Tác & Cá Nhân Hóa";
+            }
+            if (txtBannerSubtitle != null)
+            {
+                txtBannerSubtitle.Text = "Luyện tập đa kỹ năng: Từ vựng, Ngữ pháp, Đọc hiểu, Nghe và Viết luận có AI hướng dẫn chi tiết từng câu.";
+            }
+
+            ApplyFilter();
+        }
+
         private void FilterSkill_Click(object sender, RoutedEventArgs e)
         {
             if (!_isInitialized) return;
 
             if (sender is Button btn && btn.Tag is string tag)
             {
-                _selectedSkill = tag;
-
-                var textGray = GetBrush("TextGray", Brushes.Gray);
-                var borderLight = GetBrush("BorderLight", Brushes.LightGray);
-                var tealLight = GetBrush("BrandTealLight", new SolidColorBrush(Color.FromRgb(230, 247, 243)));
-                var teal = GetBrush("BrandTeal", new SolidColorBrush(Color.FromRgb(15, 118, 110)));
-
-                if (btn.Parent is Panel panel)
+                string mappedSkill = tag switch
                 {
-                    foreach (var child in panel.Children)
-                    {
-                        if (child is Button b)
-                        {
-                            b.Background = Brushes.White;
-                            b.Foreground = textGray;
-                            b.FontWeight = FontWeights.Medium;
-                            b.BorderBrush = borderLight;
-                        }
-                    }
-                }
+                    "DocHieu" => "Doc",
+                    "NgheHieu" => "Nghe",
+                    "VietLuan" => "Viet",
+                    _ => tag
+                };
 
-                btn.Background = tealLight;
-                btn.Foreground = teal;
-                btn.FontWeight = FontWeights.SemiBold;
-                btn.BorderBrush = teal;
-
+                SyncSkillButtonsVisual(mappedSkill);
                 ApplyFilter();
             }
         }
@@ -273,15 +803,51 @@ namespace GUI.Views
                 txtStudyTimeElapsed.Text = "⏱️ Đã học: 00:00";
             }
 
-            // TASK-203: Chuẩn bị trình phát âm thanh
-            BtnAudioStop_Click(this, new RoutedEventArgs());
-            _audioTotalSeconds = Math.Max(60, (_currentBaiHoc.ThoiGianUocTinhPhut > 0 ? _currentBaiHoc.ThoiGianUocTinhPhut : 15) * 6);
-            if (txtAudioTotalTime != null)
+            // TASK-203: Kiểm tra loại bài học: CHỈ HIỂN THỊ BỘ PHÁT AUDIO KHI HỌC NGHE HIỂU
+            bool isListening = string.Equals(_currentBaiHoc.LoaiBaiHoc, "Nghe", StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(_currentBaiHoc.LoaiBaiHoc, "NgheHieu", StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(_currentBaiHoc.TenLoaiHienThi, "Nghe hiểu", StringComparison.OrdinalIgnoreCase)
+                            || (_currentBaiHoc.LoaiBaiHoc != null && _currentBaiHoc.LoaiBaiHoc.IndexOf("Nghe", StringComparison.OrdinalIgnoreCase) >= 0);
+
+            if (pnlAudioPlayerController != null)
             {
-                txtAudioTotalTime.Text = $"{(int)_audioTotalSeconds / 60:D2}:{(int)_audioTotalSeconds % 60:D2}";
+                pnlAudioPlayerController.Visibility = isListening ? Visibility.Visible : Visibility.Collapsed;
             }
 
-            // Update info
+            // Dừng phát âm thanh khi chuyển bài học hoặc khi bài học không phải là Nghe
+            BtnAudioStop_Click(this, new RoutedEventArgs());
+
+            if (isListening)
+            {
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(_currentBaiHoc.DuongDanAudio))
+                    {
+                        Uri audioUri;
+                        if (Uri.IsWellFormedUriString(_currentBaiHoc.DuongDanAudio, UriKind.Absolute))
+                        {
+                            audioUri = new Uri(_currentBaiHoc.DuongDanAudio, UriKind.Absolute);
+                        }
+                        else
+                        {
+                            string fullPath = System.IO.Path.IsPathRooted(_currentBaiHoc.DuongDanAudio)
+                                ? _currentBaiHoc.DuongDanAudio
+                                : System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _currentBaiHoc.DuongDanAudio);
+                            audioUri = new Uri(fullPath);
+                        }
+                        _mediaPlayer.Open(audioUri);
+                    }
+                }
+                catch { }
+
+                _audioTotalSeconds = Math.Max(60, (_currentBaiHoc.ThoiGianUocTinhPhut > 0 ? _currentBaiHoc.ThoiGianUocTinhPhut : 15) * 6);
+                if (txtAudioTotalTime != null)
+                {
+                    txtAudioTotalTime.Text = $"{(int)_audioTotalSeconds / 60:D2}:{(int)_audioTotalSeconds % 60:D2}";
+                }
+            }
+
+            // Cập nhật thông tin tiêu đề, thể loại, chủ đề
             txtChiTietTieuDe.Text = _currentBaiHoc.TieuDe;
             txtChiTietTomTat.Text = _currentBaiHoc.TomTat;
             txtChiTietLoai.Text = _currentBaiHoc.TenLoaiHienThi;
@@ -290,14 +856,47 @@ namespace GUI.Views
             txtChiTietTienDo.Text = $"{_currentBaiHoc.PhanTramTienDo:0}%";
             txtChiTietTrangThai.Text = _currentBaiHoc.TrangThai;
 
-            // Format Theory (TASK-202)
-            txtLectureObjective.Text = $"Nắm vững bản chất kiến thức trọng tâm về '{_currentBaiHoc.TieuDe}', phản xạ chính xác trong bài thi {_currentBaiHoc.MaTrinhDo} và ngữ cảnh giao tiếp học thuật.";
-            txtLectureFormula.Text = $"Quy tắc & Cấu trúc trọng tâm ({_currentBaiHoc.TenLoaiHienThi}):\n• Công thức cơ bản: Subject + Main Verb + Object/Complement\n• Biến thể nâng cao: Inversion / Reduced Clause / Passive Academic Structure";
-            txtLectureExample.Text = !string.IsNullOrWhiteSpace(_currentBaiHoc.TomTat) 
-                ? $"\"Ví dụ ngữ cảnh thực tế: {_currentBaiHoc.TomTat}\"" 
-                : "\"Example: The implementation of comprehensive environmental policies is essential for sustainable development.\"";
-            txtLectureTips.Text = $"Lưu ý bài thi chuẩn hóa ({_currentBaiHoc.MaTrinhDo}): Hãy chú ý các bẫy về sự hòa hợp thì, từ đồng nghĩa (synonyms) và cấu trúc song hành.";
-            txtChiTietNoiDung.Text = _currentBaiHoc.NoiDung;
+            // TASK-202: Nạp nội dung chi tiết bài học đầy đủ, cụ thể cho từng ngữ pháp, từ vựng
+            var detailed = BaiHocDetailProvider.GetDetailedContent(_currentBaiHoc);
+            txtLectureObjective.Text = detailed.Objective;
+
+            if (txtLectureFormulaTitle != null && !string.IsNullOrEmpty(detailed.FormulaTitle))
+                txtLectureFormulaTitle.Text = detailed.FormulaTitle;
+            txtLectureFormula.Text = detailed.Formula;
+
+            if (txtLectureExampleTitle != null && !string.IsNullOrEmpty(detailed.ExampleTitle))
+                txtLectureExampleTitle.Text = detailed.ExampleTitle;
+            txtLectureExample.Text = detailed.Example;
+
+            if (txtLectureTipsTitle != null && !string.IsNullOrEmpty(detailed.TipsTitle))
+                txtLectureTipsTitle.Text = detailed.TipsTitle;
+            txtLectureTips.Text = detailed.Tips;
+
+            // Bổ sung đoạn văn tiếng Anh cho phần Đọc hiểu (Reading Passage)
+            if (bdrReadingPassage != null)
+            {
+                bool isReading = string.Equals(_currentBaiHoc.LoaiBaiHoc, "Doc", StringComparison.OrdinalIgnoreCase)
+                              || string.Equals(_currentBaiHoc.LoaiBaiHoc, "DocHieu", StringComparison.OrdinalIgnoreCase)
+                              || string.Equals(_currentBaiHoc.TenLoaiHienThi, "Đọc hiểu", StringComparison.OrdinalIgnoreCase)
+                              || !string.IsNullOrWhiteSpace(detailed.ReadingPassageContent);
+
+                if (isReading && !string.IsNullOrWhiteSpace(detailed.ReadingPassageContent))
+                {
+                    bdrReadingPassage.Visibility = Visibility.Visible;
+                    if (txtReadingPassageTitle != null)
+                        txtReadingPassageTitle.Text = detailed.ReadingPassageTitle ?? "Reading Comprehension Passage";
+                    if (txtReadingPassageContent != null)
+                        txtReadingPassageContent.Text = detailed.ReadingPassageContent;
+                }
+                else
+                {
+                    bdrReadingPassage.Visibility = Visibility.Collapsed;
+                }
+            }
+
+            txtChiTietNoiDung.Text = !string.IsNullOrWhiteSpace(detailed.FullContent) 
+                ? detailed.FullContent 
+                : BaiHocDetailProvider.CleanHtml(_currentBaiHoc.NoiDung);
 
             // Build Questions UI
             TaoGiaoDienCauHoi(_currentBaiHoc);
@@ -314,11 +913,17 @@ namespace GUI.Views
         {
             pnlDanhSachCauHoi.Children.Clear();
 
+            // Đảm bảo bài tập củng cố được tạo và lấy trực tiếp từ nội dung bài học (quy mô 5-10 câu)
+            if (baiHoc.DanhSachCauHoi == null || baiHoc.DanhSachCauHoi.Count < 5)
+            {
+                baiHoc.DanhSachCauHoi = BaiHocDetailProvider.GetPracticeQuestions(baiHoc);
+            }
+
             if (baiHoc.DanhSachCauHoi == null || baiHoc.DanhSachCauHoi.Count == 0)
             {
                 var emptyNotice = new TextBlock
                 {
-                    Text = "Chưa có câu hỏi trắc nghiệm cho bài học này. Bạn có thể nhấn 'Hoàn thành bài học' để ghi nhận tiến độ.",
+                    Text = "Chưa có câu hỏi trắc nghiệm cho bài học này.",
                     Foreground = Brushes.Gray,
                     FontStyle = FontStyles.Italic,
                     Margin = new Thickness(0, 10, 0, 10)
@@ -421,14 +1026,22 @@ namespace GUI.Views
 
         private void BtnQuayLai_Click(object sender, RoutedEventArgs e)
         {
-            // TASK-204: Ghi nhận thời gian học tích lũy nếu đã học ít nhất 20s
-            if (_studySeconds >= 20)
+            // TASK-204: Ghi nhận thời gian học tích lũy nếu đã học ít nhất 15s
+            if (_studySeconds >= 15 && _currentBaiHoc != null)
             {
                 int minutes = Math.Max(1, _studySeconds / 60);
                 BaiHocBUS.CongDonThoiGianHoc(minutes);
-                if (_currentBaiHoc != null && _currentBaiHoc.PhanTramTienDo < 100)
+
+                int totalQuestions = _currentBaiHoc.DanhSachCauHoi?.Count ?? 0;
+                int answeredCount = _currentBaiHoc.DanhSachCauHoi?.Count(q => q.LuaChonCuaNguoiDung >= 0) ?? 0;
+
+                // Nếu chưa hoàn thành 100% (chưa nộp bài tập củng cố) thì chỉ ghi nhận "Đang học" và tối đa 50-80%
+                if (_currentBaiHoc.PhanTramTienDo < 100)
                 {
-                    BaiHocBUS.CapNhatTienDo(_currentBaiHoc.MaBaiHoc, 50, "Đang học", "5/10");
+                    double tienDo = (answeredCount > 0 && totalQuestions > 0)
+                        ? Math.Min(80, 50 + (double)answeredCount / totalQuestions * 30)
+                        : 50;
+                    BaiHocBUS.CapNhatTienDo(_currentBaiHoc.MaBaiHoc, tienDo, "Đang học", $"{answeredCount}/{totalQuestions}");
                 }
             }
             _studyTimer?.Stop();
@@ -496,12 +1109,22 @@ namespace GUI.Views
             _isPlayingAudio = !_isPlayingAudio;
             if (_isPlayingAudio)
             {
+                try
+                {
+                    _mediaPlayer.Play();
+                }
+                catch { }
                 btnAudioPlayPause.Content = "⏸️ Tạm dừng";
-                txtAudioStatus.Text = "Đang phát âm thanh bài giảng (Audio Tutor)...";
+                txtAudioStatus.Text = "Đang phát âm thanh bài giảng (Audio Tutor • MediaPlayer)...";
                 _audioTimer?.Start();
             }
             else
             {
+                try
+                {
+                    _mediaPlayer.Pause();
+                }
+                catch { }
                 btnAudioPlayPause.Content = "▶️ Tiếp tục nghe";
                 txtAudioStatus.Text = "Đã tạm dừng phát âm thanh.";
                 _audioTimer?.Stop();
@@ -512,6 +1135,12 @@ namespace GUI.Views
         {
             _isPlayingAudio = false;
             _audioTimer?.Stop();
+            try
+            {
+                _mediaPlayer.Stop();
+                _mediaPlayer.Position = TimeSpan.Zero;
+            }
+            catch { }
             _audioCurrentSeconds = 0;
             if (sldAudioProgress != null) sldAudioProgress.Value = 0;
             if (txtAudioCurrentTime != null) txtAudioCurrentTime.Text = "00:00";
@@ -522,6 +1151,11 @@ namespace GUI.Views
         private void BtnAudioRewind_Click(object sender, RoutedEventArgs e)
         {
             _audioCurrentSeconds = Math.Max(0, _audioCurrentSeconds - 5);
+            try
+            {
+                _mediaPlayer.Position = TimeSpan.FromSeconds(_audioCurrentSeconds);
+            }
+            catch { }
             if (sldAudioProgress != null && _audioTotalSeconds > 0)
             {
                 sldAudioProgress.Value = (_audioCurrentSeconds / _audioTotalSeconds) * 100.0;
@@ -535,6 +1169,11 @@ namespace GUI.Views
         private void BtnAudioForward_Click(object sender, RoutedEventArgs e)
         {
             _audioCurrentSeconds = Math.Min(_audioTotalSeconds, _audioCurrentSeconds + 5);
+            try
+            {
+                _mediaPlayer.Position = TimeSpan.FromSeconds(_audioCurrentSeconds);
+            }
+            catch { }
             if (sldAudioProgress != null && _audioTotalSeconds > 0)
             {
                 sldAudioProgress.Value = (_audioCurrentSeconds / _audioTotalSeconds) * 100.0;
@@ -547,7 +1186,14 @@ namespace GUI.Views
 
         private void SldAudioVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            // Cập nhật âm lượng phát
+            if (sldAudioVolume != null)
+            {
+                try
+                {
+                    _mediaPlayer.Volume = Math.Clamp(sldAudioVolume.Value, 0.0, 1.0);
+                }
+                catch { }
+            }
         }
 
         private void BtnAudioSpeed_Click(object sender, RoutedEventArgs e)
@@ -557,6 +1203,11 @@ namespace GUI.Views
             else if (_currentSpeed == 1.5) _currentSpeed = 0.8;
             else _currentSpeed = 1.0;
 
+            try
+            {
+                _mediaPlayer.SpeedRatio = _currentSpeed;
+            }
+            catch { }
             btnAudioSpeed.Content = $"{_currentSpeed:0.0}x";
         }
 
@@ -605,6 +1256,11 @@ namespace GUI.Views
         {
             _isDraggingSlider = false;
             _audioCurrentSeconds = (sldAudioProgress.Value / 100.0) * _audioTotalSeconds;
+            try
+            {
+                _mediaPlayer.Position = TimeSpan.FromSeconds(_audioCurrentSeconds);
+            }
+            catch { }
         }
 
         private void SldAudioProgress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -627,23 +1283,52 @@ namespace GUI.Views
 
         // =========================================================================
         // TASK-204: GHI NHẬN TIẾN ĐỘ & THỜI GIAN HỌC TẬP VÀO DATABASE
+        // YÊU CẦU: PHẢI LÀM BÀI TẬP CỦNG CỐ MỚI ĐƯỢC HOÀN THÀNH 100%
         // =========================================================================
         private void BtnHoanThanhBaiHoc_Click(object sender, RoutedEventArgs e)
         {
             if (_currentBaiHoc == null) return;
 
+            int totalQuestions = _currentBaiHoc.DanhSachCauHoi?.Count ?? 0;
+            int answeredCount = _currentBaiHoc.DanhSachCauHoi?.Count(q => q.LuaChonCuaNguoiDung >= 0) ?? 0;
+
+            // KIỂM TRA ĐIỀU KIỆN: Phải hoàn thành toàn bộ bài tập củng cố thì mới cho hoàn thành 100%
+            if (totalQuestions > 0 && answeredCount < totalQuestions)
+            {
+                Common.ThongBaoDialog.CanhBao(
+                    $"⚠️ BẠN CHƯA HOÀN THÀNH BÀI TẬP CỦNG CỐ!\n\n" +
+                    $"• Bạn mới trả lời: {answeredCount}/{totalQuestions} câu hỏi.\n" +
+                    $"• Quy định: Bạn bắt buộc phải trả lời đầy đủ tất cả câu hỏi bài tập củng cố để kiểm tra kiến thức trước khi được hệ thống ghi nhận hoàn thành 100% bài học.\n\n" +
+                    $"Hệ thống sẽ chuyển bạn sang tab 'Bài tập thực hành' ngay bây giờ.",
+                    "Yêu cầu làm bài tập củng cố");
+
+                SwitchToTab(isLyThuyet: false);
+                return;
+            }
+
+            // Đã hoàn thành toàn bộ câu hỏi: Tính điểm thực tế
+            int correctCount = _currentBaiHoc.DanhSachCauHoi?.Count(q => q.DaTraLoiDung == true) ?? 0;
+            double scoreOutOf10 = totalQuestions > 0 ? Math.Round((double)correctCount / totalQuestions * 10, 1) : 10.0;
+            string diemSo = $"{scoreOutOf10:0.0}/10 ({correctCount}/{totalQuestions} đúng)";
+
             int minutesSpent = Math.Max(1, _studySeconds / 60);
             BaiHocBUS.CongDonThoiGianHoc(minutesSpent);
-            BaiHocBUS.CapNhatTienDo(_currentBaiHoc.MaBaiHoc, 100, "Hoàn thành", "10/10");
+            BaiHocBUS.CapNhatTienDo(_currentBaiHoc.MaBaiHoc, 100, "Hoàn thành", diemSo);
+
+            _currentBaiHoc.PhanTramTienDo = 100;
+            _currentBaiHoc.TrangThai = "Hoàn thành";
+            txtChiTietTienDo.Text = "100%";
+            txtChiTietTrangThai.Text = "Hoàn thành";
 
             _studyTimer?.Stop();
             BtnAudioStop_Click(this, new RoutedEventArgs());
 
             Common.ThongBaoDialog.ThanhCong(
-                $"🎉 Chúc mừng bạn đã hoàn thành bài học '{_currentBaiHoc.TieuDe}'!\n\n" +
-                $"• Thời gian học ghi nhận: {minutesSpent} phút (đã cộng vào Hồ sơ học tập)\n" +
-                $"• Tiến độ: 100% (Hoàn thành)\n" +
-                $"• Điểm số: 10/10", 
+                $"🎉 CHÚC MỪNG BẠN ĐÃ HOÀN THÀNH BÀI HỌC 100%!\n\n" +
+                $"• Bài học: {_currentBaiHoc.TieuDe}\n" +
+                $"• Kết quả bài tập củng cố: {correctCount}/{totalQuestions} câu đúng ({scoreOutOf10:0.0}/10 điểm)\n" +
+                $"• Thời gian học tập thực tế: {minutesSpent} phút (đã cộng vào hồ sơ cá nhân)\n" +
+                $"• Trạng thái ghi nhận: 100% (Hoàn thành)", 
                 "Hoàn thành bài học");
 
             BtnQuayLai_Click(sender, e);

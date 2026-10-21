@@ -82,6 +82,36 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <Style x:Key="FilterChipButton" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource TextGray}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderLight}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="16" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F8FAFC"/>
+                    <Setter Property="BorderBrush" Value="#CBD5E1"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Page.Resources>
 
     <Grid Background="#F4F7F6">
@@ -240,6 +270,79 @@
                                 <TextBlock x:Name="txtQuizTimer" Text="⏱️ 00:60s" FontWeight="Bold" FontSize="14" Foreground="#EF4444" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
 
+                            <!-- Audio Player Controller for Listening Quiz -->
+                            <Border x:Name="pnlQuizAudioPlayer" Background="#F0FDFA" CornerRadius="12" BorderBrush="{StaticResource BrandMintSoft}" BorderThickness="1.5" Padding="18,14" Margin="0,0,0,16" Visibility="Collapsed">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Top Row: Controls & Info -->
+                                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Play/Pause/Stop/Rewind/Forward -->
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button x:Name="btnQuizAudioPlayPause" Content="▶️ Nghe bài tập" 
+                                                    Style="{StaticResource TealActionButton}" Padding="14,7" FontSize="12.5" Click="BtnQuizAudioPlayPause_Click"/>
+                                            <Button x:Name="btnQuizAudioStop" Content="⏹️" 
+                                                    Style="{StaticResource FilterChipButton}" Margin="6,0,0,0" Padding="10,6" Click="BtnQuizAudioStop_Click" ToolTip="Dừng phát"/>
+                                            <Button x:Name="btnQuizAudioRewind" Content="⏪ -5s" 
+                                                    Style="{StaticResource FilterChipButton}" Margin="6,0,0,0" Padding="8,6" Click="BtnQuizAudioRewind_Click" ToolTip="Tua lại 5 giây"/>
+                                            <Button x:Name="btnQuizAudioForward" Content="⏩ +5s" 
+                                                    Style="{StaticResource FilterChipButton}" Margin="6,0,0,0" Padding="8,6" Click="BtnQuizAudioForward_Click" ToolTip="Tua tới 5 giây"/>
+                                        </StackPanel>
+
+                                        <!-- Track Title & Status -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="14,0">
+                                            <TextBlock x:Name="txtQuizAudioStatus" Text="🎧 BÀI TẬP NGHE HIỂU (LISTENING COMPREHENSION)" 
+                                                       FontWeight="Bold" Foreground="{StaticResource BrandTeal}" FontSize="12.5"/>
+                                            <TextBlock x:Name="txtQuizAudioSubtitle" Text="Lắng nghe đoạn hội thoại hoặc bài phát thanh và chọn đáp án chính xác nhất." 
+                                                       Foreground="{StaticResource TextGray}" FontSize="11.5" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <!-- Speed, Volume & Transcript Button -->
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="🔊" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                            <Slider x:Name="sldQuizAudioVolume" Minimum="0" Maximum="1" Value="0.8" Width="60" VerticalAlignment="Center" 
+                                                    ValueChanged="SldQuizAudioVolume_ValueChanged" Margin="0,0,8,0"/>
+                                            <Button x:Name="btnQuizAudioSpeed" Content="1.0x" Style="{StaticResource FilterChipButton}" 
+                                                    Padding="8,4" FontSize="11.5" Click="BtnQuizAudioSpeed_Click" ToolTip="Tốc độ đọc"/>
+                                            <Button x:Name="btnToggleQuizTranscript" Content="📝 Transcript" Style="{StaticResource FilterChipButton}" Background="White" 
+                                                    BorderBrush="{StaticResource BrandTeal}" Foreground="{StaticResource BrandTeal}" 
+                                                    Padding="9,4" FontSize="11.5" Margin="6,0,0,0" Click="BtnToggleQuizTranscript_Click" ToolTip="Xem/Ẩn lời thoại bài nghe"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Middle Row: Timeline & Seek Slider -->
+                                    <Grid Grid.Row="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="txtQuizAudioCurrentTime" Grid.Column="0" Text="00:00" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <Slider x:Name="sldQuizAudioProgress" Grid.Column="1" Minimum="0" Maximum="100" Value="0" VerticalAlignment="Center" 
+                                                PreviewMouseDown="SldQuizAudioProgress_PreviewMouseDown" PreviewMouseUp="SldQuizAudioProgress_PreviewMouseUp" ValueChanged="SldQuizAudioProgress_ValueChanged"/>
+                                        <TextBlock x:Name="txtQuizAudioTotalTime" Grid.Column="2" Text="00:30" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                    </Grid>
+
+                                    <!-- Bottom Row: Transcript View (Collapsible) -->
+                                    <Border x:Name="pnlQuizTranscript" Grid.Row="2" Background="White" CornerRadius="8" Padding="12" Margin="0,12,0,0" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Visibility="Collapsed">
+                                        <StackPanel>
+                                            <TextBlock Text="📝 Audio Transcript (Lời thoại bài nghe):" FontWeight="Bold" FontSize="12" Foreground="{StaticResource BrandTeal}" Margin="0,0,0,6"/>
+                                            <TextBlock x:Name="txtQuizTranscript" Text="" TextWrapping="Wrap" FontSize="13" Foreground="{StaticResource TextDark}" LineHeight="20"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Border>
+
                             <Border x:Name="pnlQuizPassage" Background="#F8FAFC" CornerRadius="8" Padding="14" Margin="0,0,0,15" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Visibility="Collapsed">
                                 <TextBlock x:Name="txtQuizPassage" Text="" TextWrapping="Wrap" FontSize="13.5" Foreground="{StaticResource TextDark}"/>
                             </Border>
@@ -272,11 +375,58 @@
                                 <TextBlock Text="🎧 Nghe đoạn câu tiếng Anh và gõ lại chính xác từng từ bạn nghe được:" FontWeight="SemiBold" FontSize="15" Foreground="{StaticResource TextDark}"/>
                                 <TextBlock x:Name="txtDictationIndex" Text="Câu 1 / 5" FontWeight="Bold" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Right"/>
                             </Grid>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
-                                <Button x:Name="btnPlayDictationNormal" Content="▶️ Nghe Audio (Tốc độ chuẩn 1.0x)" Style="{StaticResource TealActionButton}" Click="BtnPlayDictationNormal_Click"/>
-                                <Button x:Name="btnPlayDictationSlow" Content="🐢 Nghe chậm (0.75x)" Background="#F1F5F9" Foreground="{StaticResource TextDark}" FontWeight="Medium" 
-                                        BorderThickness="0" Padding="14,8" Margin="10,0,0,0" Cursor="Hand" Click="BtnPlayDictationSlow_Click"/>
-                            </StackPanel>
+
+                            <!-- Dictation Audio Player Controller -->
+                            <Border x:Name="pnlDictationAudioPlayer" Background="#F0FDFA" CornerRadius="12" BorderBrush="{StaticResource BrandMintSoft}" BorderThickness="1.5" Padding="18,14" Margin="0,0,0,16">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Top Row: Controls -->
+                                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button x:Name="btnDictationPlayPause" Content="▶️ Nghe câu mẫu" Style="{StaticResource TealActionButton}" Padding="15,7" FontSize="12.5" Click="BtnDictationPlayPause_Click"/>
+                                            <Button x:Name="btnDictationStop" Content="⏹️" Style="{StaticResource FilterChipButton}" Margin="6,0,0,0" Padding="10,6" Click="BtnDictationStop_Click" ToolTip="Dừng phát"/>
+                                            <Button x:Name="btnDictationSlow" Content="🐢 0.75x" Style="{StaticResource FilterChipButton}" Margin="6,0,0,0" Padding="8,6" Click="BtnDictationSlow_Click" ToolTip="Nghe tốc độ chậm"/>
+                                            <Button x:Name="btnDictationSlower" Content="🐌 0.5x" Style="{StaticResource FilterChipButton}" Margin="6,0,0,0" Padding="8,6" Click="BtnDictationSlower_Click" ToolTip="Nghe rất chậm"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="14,0">
+                                            <TextBlock x:Name="txtDictationAudioStatus" Text="🎧 AUDIO DICTATION (GIỌNG ĐỌC BẢN XỨ CHUẨN IPA)" FontWeight="Bold" Foreground="{StaticResource BrandTeal}" FontSize="12.5"/>
+                                            <TextBlock Text="Nghe kỹ từng từ và gõ lại vào ô bên dưới. Có thể tua lại và nghe nhiều lần." Foreground="{StaticResource TextGray}" FontSize="11.5" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="🔊" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                            <Slider x:Name="sldDictationVolume" Minimum="0" Maximum="1" Value="0.85" Width="60" VerticalAlignment="Center" 
+                                                    ValueChanged="SldDictationVolume_ValueChanged" Margin="0,0,8,0"/>
+                                            <Button x:Name="btnDictationRepeat" Content="🔁 Lặp lại" Style="{StaticResource FilterChipButton}" 
+                                                    Padding="8,4" FontSize="11.5" Click="BtnDictationRepeat_Click" ToolTip="Phát lại từ đầu"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Bottom Row: Seek & Timeline -->
+                                    <Grid Grid.Row="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="txtDictationCurrentTime" Grid.Column="0" Text="00:00" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <Slider x:Name="sldDictationProgress" Grid.Column="1" Minimum="0" Maximum="100" Value="0" VerticalAlignment="Center" 
+                                                PreviewMouseDown="SldDictationProgress_PreviewMouseDown" PreviewMouseUp="SldDictationProgress_PreviewMouseUp" ValueChanged="SldDictationProgress_ValueChanged"/>
+                                        <TextBlock x:Name="txtDictationTotalTime" Grid.Column="2" Text="00:10" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                    </Grid>
+                                </Grid>
+                            </Border>
 
                             <TextBox x:Name="txtDictationInput" Height="90" TextWrapping="Wrap" AcceptsReturn="True" 
                                      Padding="12" FontSize="14" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Margin="0,0,0,15"/>

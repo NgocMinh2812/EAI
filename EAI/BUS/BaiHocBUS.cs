@@ -37,11 +37,74 @@ namespace BUS
         {
             var list = LayDanhSachBaiHoc();
             var item = list.FirstOrDefault(b => b.MaBaiHoc == maBaiHoc);
-            if (item != null) return item;
+            if (item != null)
+            {
+                NapCauHoiChoBaiHoc(item);
+                return item;
+            }
 
             var allFallbacks = new[] { "A1", "A2", "B1", "B2", "C1" }
                 .SelectMany(BaiHocDAL.TaoDanhSachBaiHocDuPhongTheoTrinhDo);
-            return allFallbacks.FirstOrDefault(b => b.MaBaiHoc == maBaiHoc);
+            var fb = allFallbacks.FirstOrDefault(b => b.MaBaiHoc == maBaiHoc);
+            if (fb != null) NapCauHoiChoBaiHoc(fb);
+            return fb;
+        }
+
+        private static void NapCauHoiChoBaiHoc(BaiHocDTO baiHoc)
+        {
+            if (baiHoc.DanhSachCauHoi != null && baiHoc.DanhSachCauHoi.Count > 0)
+                return;
+
+            baiHoc.DanhSachCauHoi = new List<CauHoiDTO>();
+            try
+            {
+                string query = @"
+                    SELECT TOP 10 ch.MaCauHoi, ch.NoiDungCauHoi, ch.GiaiThichDapAn
+                    FROM CauHoi ch
+                    WHERE ch.MaBaiHoc = @MaBai
+                    ORDER BY ch.MaCauHoi ASC";
+
+                var dt = SqlDataProvider.Instance.ExecuteQuery(query, new[]
+                {
+                    new Microsoft.Data.SqlClient.SqlParameter("@MaBai", baiHoc.MaBaiHoc)
+                });
+
+                foreach (System.Data.DataRow r in dt.Rows)
+                {
+                    int maCauHoi = Convert.ToInt32(r["MaCauHoi"]);
+                    var chDto = new CauHoiDTO
+                    {
+                        MaCauHoi = maCauHoi,
+                        NoiDungCauHoi = r["NoiDungCauHoi"]?.ToString() ?? "",
+                        GiaiThichChiTiet = r["GiaiThichDapAn"] == DBNull.Value ? "Đáp án đã được kiểm chứng chuẩn xác." : r["GiaiThichDapAn"]?.ToString() ?? ""
+                    };
+
+                    string qOpt = "SELECT KyHieuLuaChon, NoiDungLuaChon, LaDapAnDung FROM LuaChonDapAn WHERE MaCauHoi = @MaCH ORDER BY KyHieuLuaChon ASC";
+                    var dtOpt = SqlDataProvider.Instance.ExecuteQuery(qOpt, new[] { new Microsoft.Data.SqlClient.SqlParameter("@MaCH", maCauHoi) });
+
+                    int optIdx = 0;
+                    foreach (System.Data.DataRow optRow in dtOpt.Rows)
+                    {
+                        string nd = optRow["NoiDungLuaChon"]?.ToString() ?? "";
+                        bool isCorrect = Convert.ToBoolean(optRow["LaDapAnDung"]);
+                        chDto.DanhSachLuaChon.Add(nd);
+                        if (isCorrect)
+                        {
+                            chDto.DapAnDungIndex = optIdx;
+                        }
+                        optIdx++;
+                    }
+
+                    if (chDto.DanhSachLuaChon.Count > 0)
+                    {
+                        baiHoc.DanhSachCauHoi.Add(chDto);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BaiHocBUS.NapCauHoiChoBaiHoc] Lỗi: {ex.Message}");
+            }
         }
 
         public static void CapNhatTienDo(int maBaiHoc, double phanTram, string trangThai, string diemSo)
@@ -85,6 +148,10 @@ namespace BUS
             if (userId > 0 && soPhut > 0)
             {
                 BaiHocDAL.Instance.CongDonThoiGianHoc(userId, soPhut);
+                if (SessionHelper.CurrentHoSo != null)
+                {
+                    SessionHelper.CurrentHoSo.SoPhutHocTichLuy += soPhut;
+                }
             }
         }
 

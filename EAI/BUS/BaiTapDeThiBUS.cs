@@ -67,9 +67,16 @@ namespace BUS
             int maLuot = 0;
             if (userId > 0)
             {
-                maLuot = BaiTapDeThiDAL.Instance.LuuKetQuaThi(
-                    userId, maDeThi, hinhThucLam, thoiDiemBatDau, thoiGianGiay,
-                    tongSoCau, soCauDung, diemSo, chiTietList);
+                try
+                {
+                    maLuot = BaiTapDeThiDAL.Instance.LuuKetQuaThi(
+                        userId, maDeThi, hinhThucLam, thoiDiemBatDau, thoiGianGiay,
+                        tongSoCau, soCauDung, diemSo, chiTietList);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[BaiTapDeThiBUS.ChamVaLuuKetQuaThi] {ex.Message}");
+                }
             }
 
             return (maLuot, diemSo, soCauDung, tongSoCau);

@@ -16,8 +16,8 @@ namespace DAL
             var list = new List<BaiHocDTO>();
 
             string query = @"
-                SELECT bh.MaBaiHoc, bh.TieuDe, bh.LoaiBaiHoc, td.MaCapDo AS MaTrinhDo, 
-                       cd.TenChuDe, bh.TomTat, bh.NoiDung, bh.ThoiGianUocTinhPhut,
+                SELECT bh.MaBaiHoc, bh.MaChuDe, bh.TieuDe, bh.LoaiBaiHoc, td.MaCapDo AS MaTrinhDo, 
+                       cd.TenChuDe, bh.TomTat, bh.NoiDung, bh.ThoiGianUocTinhPhut, bh.DuongDanAudio,
                        ISNULL(tdbh.PhanTramTienDo, 0) AS PhanTramTienDo,
                        ISNULL(tdbh.TrangThai, N'ChuaHoc') AS TrangThai
                 FROM BaiHoc bh
@@ -54,9 +54,40 @@ namespace DAL
                         _ => loai
                     };
 
+                    string iconSkill = loai switch
+                    {
+                        "TuVung" => "📖",
+                        "NguPhap" => "📝",
+                        "Doc" => "📚",
+                        "Nghe" => "🎧",
+                        "Viet" => "✍️",
+                        _ => "📖"
+                    };
+
+                    string badgeBg = loai switch
+                    {
+                        "TuVung" => "#FEF3C7",
+                        "NguPhap" => "#E0E7FF",
+                        "Doc" => "#ECFDF5",
+                        "Nghe" => "#EFF6FF",
+                        "Viet" => "#FDF2F8",
+                        _ => "#E6F7F3"
+                    };
+
+                    string badgeFg = loai switch
+                    {
+                        "TuVung" => "#B45309",
+                        "NguPhap" => "#4338CA",
+                        "Doc" => "#047857",
+                        "Nghe" => "#1D4ED8",
+                        "Viet" => "#BE185D",
+                        _ => "#0F766E"
+                    };
+
                     var dto = new BaiHocDTO
                     {
                         MaBaiHoc = Convert.ToInt32(row["MaBaiHoc"]),
+                        MaChuDe = row["MaChuDe"] == DBNull.Value ? 0 : Convert.ToInt32(row["MaChuDe"]),
                         TieuDe = row["TieuDe"]?.ToString() ?? "",
                         LoaiBaiHoc = loai,
                         TenLoaiHienThi = tenLoai,
@@ -64,22 +95,32 @@ namespace DAL
                         TenChuDe = row["TenChuDe"]?.ToString() ?? "Tổng quát",
                         TomTat = row["TomTat"]?.ToString() ?? "",
                         NoiDung = row["NoiDung"]?.ToString() ?? "",
+                        DuongDanAudio = row["DuongDanAudio"] == DBNull.Value ? null : row["DuongDanAudio"]?.ToString(),
                         ThoiGianUocTinhPhut = row["ThoiGianUocTinhPhut"] == DBNull.Value ? 15 : Convert.ToInt32(row["ThoiGianUocTinhPhut"]),
                         PhanTramTienDo = phanTram,
-                        TrangThai = trangThaiHienThi
+                        TrangThai = trangThaiHienThi,
+                        IconSkill = iconSkill,
+                        BadgeBackground = badgeBg,
+                        BadgeForeground = badgeFg
                     };
 
                     if (phanTram >= 100)
                     {
                         dto.StatusColor = "#0F766E";
                         dto.StatusBackground = "#E6F7F3";
-                        dto.ButtonActionText = "Ôn tập lại";
+                        dto.ButtonActionText = "Ôn tập lại ↺";
                     }
                     else if (phanTram > 0)
                     {
                         dto.StatusColor = "#2563EB";
                         dto.StatusBackground = "#EFF6FF";
-                        dto.ButtonActionText = "Học tiếp";
+                        dto.ButtonActionText = "Học tiếp ▶";
+                    }
+                    else
+                    {
+                        dto.StatusColor = "#64748B";
+                        dto.StatusBackground = "#F1F5F9";
+                        dto.ButtonActionText = "Vào học ngay ▶";
                     }
 
                     list.Add(dto);
@@ -109,6 +150,12 @@ namespace DAL
                 BEGIN
                     INSERT INTO TienDoBaiHoc (MaNguoiDung, MaBaiHoc, TrangThai, PhanTramTienDo, NgayBatDau, LanTruyCapCuoi)
                     VALUES (@MaND, @MaBai, @TrangThai, @PhanTram, SYSDATETIME(), SYSDATETIME());
+                END
+
+                IF @PhanTram >= 100
+                BEGIN
+                    INSERT INTO LichSuHocTap (MaNguoiDung, MaBaiHoc, LoaiHoatDong, SoPhutHoc, DiemSo, NgayGhiNhan)
+                    VALUES (@MaND, @MaBai, N'BaiHoc', 15, 10.0, SYSDATETIME());
                 END";
 
             SqlParameter[] parameters = new[]

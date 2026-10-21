@@ -336,12 +336,14 @@ namespace GUI.Views
                 if (user.TenVaiTro == "GiangVien" || user.TenVaiTro == "QuanTriVien")
                 {
                     var gvWindow = new GUI.Views.GiangVien.GiangVienWindow();
+                    Application.Current.MainWindow = gvWindow;
                     gvWindow.Show();
                     this.Close();
                 }
                 else
                 {
                     MainWindow mainWindow = new MainWindow(isFirstLogin: user.LaLanDauDangNhap);
+                    Application.Current.MainWindow = mainWindow;
                     mainWindow.Show();
                     this.Close();
                 }
@@ -354,6 +356,8 @@ namespace GUI.Views
                 Common.ThongBaoDialog.Loi(this, $"Đã xảy ra sự cố trong quá trình xác thực:\n{ex.Message}", "Lỗi hệ thống");
             }
         }
+
+
 
         // ================= REGISTER LOGIC =================
 
