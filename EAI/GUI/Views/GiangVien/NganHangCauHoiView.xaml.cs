@@ -10,6 +10,7 @@ namespace GUI.Views.GiangVien
         {
             InitializeComponent();
             Loaded += NganHangCauHoiView_Loaded;
+            Unloaded += NganHangCauHoiView_Unloaded;
         }
 
         private void NganHangCauHoiView_Loaded(object sender, RoutedEventArgs e)
@@ -18,6 +19,30 @@ namespace GUI.Views.GiangVien
             {
                 vm.NapDanhMuc();
                 vm.NapDanhSachBoCauHoi();
+            }
+        }
+
+        private void NganHangCauHoiView_Unloaded(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is NganHangCauHoiViewModel vm)
+            {
+                vm.DungAudio();
+            }
+        }
+
+        private void SldAudioTimeline_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (DataContext is NganHangCauHoiViewModel vm)
+            {
+                vm.BatDauTuaAudio();
+            }
+        }
+
+        private void SldAudioTimeline_PreviewMouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is Slider slider && DataContext is NganHangCauHoiViewModel vm)
+            {
+                vm.KetThucTuaAudio(slider.Value);
             }
         }
     }

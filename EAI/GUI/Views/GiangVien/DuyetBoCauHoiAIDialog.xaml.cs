@@ -40,5 +40,18 @@ namespace GUI.Views.GiangVien
         {
             ViewModel.CapNhatThongKe();
         }
+
+        private void SldAudioTimeline_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            ViewModel.BatDauTuaAudio();
+        }
+
+        private void SldAudioTimeline_PreviewMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Slider slider)
+            {
+                ViewModel.KetThucTuaAudio(slider.Value);
+            }
+        }
     }
 }

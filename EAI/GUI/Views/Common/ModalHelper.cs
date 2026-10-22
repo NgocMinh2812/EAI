@@ -8,24 +8,28 @@ namespace GUI.Views.Common
     {
         public static bool? ShowDialogWithDim(Window dialog, Window? owner = null)
         {
-            owner ??= Application.Current.MainWindow;
-            if (owner != null && owner.IsLoaded)
+            owner ??= Application.Current?.MainWindow;
+            if (owner != null && owner.IsLoaded && owner.IsVisible)
             {
-                dialog.Owner = owner;
+                try { dialog.Owner = owner; } catch { }
             }
 
-            GiangVienWindow? gvWindow = owner as GiangVienWindow ?? Application.Current.MainWindow as GiangVienWindow;
+            GiangVienWindow? gvWindow = owner as GiangVienWindow ?? Application.Current?.MainWindow as GiangVienWindow;
 
             bool fallbackBlur = false;
-            if (gvWindow != null)
+            try
             {
-                gvWindow.ShowModalOverlay();
+                if (gvWindow != null && gvWindow.IsLoaded && gvWindow.IsVisible)
+                {
+                    gvWindow.ShowModalOverlay();
+                }
+                else if (owner != null && owner.IsLoaded && owner.IsVisible)
+                {
+                    owner.Effect = new BlurEffect { Radius = 8, RenderingBias = RenderingBias.Performance };
+                    fallbackBlur = true;
+                }
             }
-            else if (owner != null)
-            {
-                owner.Effect = new BlurEffect { Radius = 8, RenderingBias = RenderingBias.Performance };
-                fallbackBlur = true;
-            }
+            catch { }
 
             try
             {
@@ -33,14 +37,18 @@ namespace GUI.Views.Common
             }
             finally
             {
-                if (gvWindow != null)
+                try
                 {
-                    gvWindow.HideModalOverlay();
+                    if (gvWindow != null)
+                    {
+                        gvWindow.HideModalOverlay();
+                    }
+                    else if (owner != null && fallbackBlur)
+                    {
+                        owner.Effect = null;
+                    }
                 }
-                else if (owner != null && fallbackBlur)
-                {
-                    owner.Effect = null;
-                }
+                catch { }
             }
         }
     }

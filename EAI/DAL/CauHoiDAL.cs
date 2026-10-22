@@ -272,19 +272,41 @@ namespace DAL
             {
                 int maCauHoi = cauHoi.MaCauHoi;
 
-                if (maCauHoi <= 0)
+                // Ánh xạ Trình độ (A1 -> 1, A2 -> 2, B1 -> 3, B2 -> 4, C1 -> 5, C2 -> 6)
+                int? maTrinhDoId = cauHoi.MaTrinhDo switch
                 {
-                    // 1. INSERT CÂU HỎI
+                    "A1" => 1,
+                    "A2" => 2,
+                    "B1" => 3,
+                    "B2" => 4,
+                    "C1" => 5,
+                    "C2" => 6,
+                    _ => cauHoi.MaTrinhDoId ?? 3
+                };
+                cauHoi.MaTrinhDoId = maTrinhDoId;
+
+                // Kiểm tra sự tồn tại thực tế của câu hỏi trong DB (hỗ trợ cả trường hợp MaCauHoi = 0)
+                bool isExisting = false;
+                if (maCauHoi >= 0)
+                {
+                    using var checkCmd = new SqlCommand("SELECT COUNT(1) FROM CauHoi WHERE MaCauHoi = @Id", conn, trans);
+                    checkCmd.Parameters.AddWithValue("@Id", maCauHoi);
+                    isExisting = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
+                }
+
+                if (!isExisting)
+                {
+                    // 1. INSERT CÂU HỎI MỚI
                     string insertSql = @"
                         INSERT INTO CauHoi (MaChuDe, MaTrinhDo, LoaiCauHoi, KyNang, DoKho, NoiDungCauHoi, 
-                                            DoanVanDoc, DuongDanAudio, GiaiThichDapAn, LoiGiaiChiTiet, DaKiemDuyet, NguoiTao, NgayTao)
+                                            DoanVanDoc, DuongDanAudio, GiaiThichDapAn, LoiGiaiChiTiet, DaKiemDuyet, NguoiTao, NguonTao, NgayTao)
                         VALUES (@MaChuDe, @MaTrinhDo, @LoaiCauHoi, @KyNang, @DoKho, @NoiDung, 
-                                @DoanVanDoc, @AudioPath, @GiaiThich, @LoiGiai, @DaKiemDuyet, @NguoiTao, SYSDATETIME());
+                                @DoanVanDoc, @AudioPath, @GiaiThich, @LoiGiai, @DaKiemDuyet, @NguoiTao, @NguonTao, SYSDATETIME());
                         SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
                     using var cmd = new SqlCommand(insertSql, conn, trans);
                     cmd.Parameters.AddWithValue("@MaChuDe", (object?)cauHoi.MaChuDe ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@MaTrinhDo", (object?)cauHoi.MaTrinhDoId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@MaTrinhDo", (object?)maTrinhDoId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LoaiCauHoi", string.IsNullOrWhiteSpace(cauHoi.LoaiCauHoi) ? "TracNghiem" : cauHoi.LoaiCauHoi);
                     cmd.Parameters.AddWithValue("@KyNang", string.IsNullOrWhiteSpace(cauHoi.KyNang) ? "Doc" : cauHoi.KyNang);
                     cmd.Parameters.AddWithValue("@DoKho", string.IsNullOrWhiteSpace(cauHoi.DoKho) ? "TrungBinh" : cauHoi.DoKho);
@@ -295,13 +317,14 @@ namespace DAL
                     cmd.Parameters.AddWithValue("@LoiGiai", (object?)cauHoi.GiaiThichDapAn ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@DaKiemDuyet", cauHoi.DaKiemDuyet);
                     cmd.Parameters.AddWithValue("@NguoiTao", nguoiTaoId > 0 ? (object)nguoiTaoId : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@NguonTao", "ThuCong");
 
                     maCauHoi = (int)cmd.ExecuteScalar();
                     cauHoi.MaCauHoi = maCauHoi;
                 }
                 else
                 {
-                    // 2. UPDATE CÂU HỎI
+                    // 2. UPDATE CÂU HỎI HIỆN TẠI
                     string updateSql = @"
                         UPDATE CauHoi
                         SET MaChuDe = @MaChuDe,
@@ -316,12 +339,17 @@ namespace DAL
                             LoiGiaiChiTiet = @LoiGiai,
                             DaKiemDuyet = @DaKiemDuyet
                         WHERE MaCauHoi = @MaCauHoi;
+
+                        -- Gỡ liên kết khóa ngoại tạm thời nếu có lượt làm bài trước đó tham chiếu
+                        UPDATE CauTraLoiKhaoSat SET MaLuaChonDaChon = NULL WHERE MaCauHoi = @MaCauHoi;
+                        UPDATE ChiTietTraLoi SET MaLuaChonDaChon = NULL WHERE MaCauHoi = @MaCauHoi;
+
                         DELETE FROM LuaChonDapAn WHERE MaCauHoi = @MaCauHoi;";
 
                     using var cmd = new SqlCommand(updateSql, conn, trans);
                     cmd.Parameters.AddWithValue("@MaCauHoi", maCauHoi);
                     cmd.Parameters.AddWithValue("@MaChuDe", (object?)cauHoi.MaChuDe ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@MaTrinhDo", (object?)cauHoi.MaTrinhDoId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@MaTrinhDo", (object?)maTrinhDoId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LoaiCauHoi", string.IsNullOrWhiteSpace(cauHoi.LoaiCauHoi) ? "TracNghiem" : cauHoi.LoaiCauHoi);
                     cmd.Parameters.AddWithValue("@KyNang", string.IsNullOrWhiteSpace(cauHoi.KyNang) ? "Doc" : cauHoi.KyNang);
                     cmd.Parameters.AddWithValue("@DoKho", string.IsNullOrWhiteSpace(cauHoi.DoKho) ? "TrungBinh" : cauHoi.DoKho);
@@ -342,9 +370,12 @@ namespace DAL
 
                 foreach (var da in dsDapAn)
                 {
+                    string kyHieu = string.IsNullOrWhiteSpace(da.KyHieuLuaChon) ? "A" : da.KyHieuLuaChon.Trim();
+                    if (kyHieu.Length > 5) kyHieu = kyHieu.Substring(0, 5);
+
                     using var cmdDa = new SqlCommand(insertDaSql, conn, trans);
                     cmdDa.Parameters.AddWithValue("@MaCauHoi", maCauHoi);
-                    cmdDa.Parameters.AddWithValue("@KyHieu", da.KyHieuLuaChon);
+                    cmdDa.Parameters.AddWithValue("@KyHieu", kyHieu);
                     cmdDa.Parameters.AddWithValue("@NoiDung", da.NoiDungLuaChon ?? "");
                     cmdDa.Parameters.AddWithValue("@LaDapAnDung", da.LaDapAnDung);
                     cmdDa.ExecuteNonQuery();

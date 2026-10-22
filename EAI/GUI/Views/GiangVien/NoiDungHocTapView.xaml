@@ -192,6 +192,57 @@
 
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
+        <!-- Style Thanh trượt tua Audio Timeline -->
+        <Style x:Key="ModernAudioSliderStyle" TargetType="{x:Type Slider}">
+            <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Slider}">
+                        <Grid VerticalAlignment="Center">
+                            <!-- Đường ray nền -->
+                            <Border Height="4.5" Background="#E2E8F0" CornerRadius="2.25" VerticalAlignment="Center"/>
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.DecreaseLarge}">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Height="4.5" Background="#10B981" CornerRadius="2.25" VerticalAlignment="Center"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.IncreaseLarge}">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Height="4.5" Background="Transparent" VerticalAlignment="Center"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Cursor="Hand">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Width="13" Height="13" Background="#10B981" BorderBrush="White" BorderThickness="2" CornerRadius="6.5">
+                                                    <Border.Effect>
+                                                        <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.25" Color="#0F172A"/>
+                                                    </Border.Effect>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Nét kẻ ngang tập vở thanh lịch cho khung soạn thảo mẫu (Notebook Ruled Lines) -->
         <DrawingBrush x:Key="NotebookRuledLinesBrush" Viewport="0,0,1,28" ViewportUnits="Absolute" TileMode="Tile">
             <DrawingBrush.Drawing>
@@ -476,8 +527,8 @@
 
                 <!-- Trình độ Filter -->
                 <ComboBox Grid.Column="2" Style="{StaticResource RoundedFormComboBox}"
-                          ItemsSource="{Binding DanhSachTrinhDo}" SelectedItem="{Binding SelectedTrinhDoFilter}"
-                          DisplayMemberPath="TenTrinhDo" VerticalContentAlignment="Center"
+                          ItemsSource="{Binding DanhSachTrinhDoFilter}" SelectedItem="{Binding SelectedTrinhDoFilter}"
+                          DisplayMemberPath="TenHienThi" VerticalContentAlignment="Center"
                           ToolTip="Lọc theo cấp độ trình độ (A1 - C1)"/>
 
                 <!-- Kỹ năng Filter -->
@@ -644,7 +695,7 @@
                                 <TextBlock Text="Cấp độ trình độ" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"/>
                                 <ComboBox Style="{StaticResource RoundedFormComboBox}"
                                           ItemsSource="{Binding DanhSachTrinhDo}" SelectedValue="{Binding SelectedBaiHoc.MaTrinhDo}" 
-                                          SelectedValuePath="MaCapDo" DisplayMemberPath="TenTrinhDo"/>
+                                          SelectedValuePath="MaCapDo" DisplayMemberPath="TenHienThi"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
@@ -690,45 +741,126 @@
                                  AcceptsReturn="True" Height="56" Padding="10,8" Margin="0,0,0,14" TextWrapping="Wrap"/>
 
                         <!-- Tệp đính kèm Audio (Chỉ hiển thị cho bài học có kỹ năng Nghe hiểu) -->
-                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,14"
+                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,0,14"
                                 Visibility="{Binding IsKyNangNghe, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
 
-                                <Button Grid.Column="0" Command="{Binding ChonAudioCommand}" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="12,6" Cursor="Hand">
-                                    <Button.Template>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <local:LucideIcon Kind="Headphones" Size="14" Foreground="#10B981" Margin="0,0,6,0"/>
-                                                    <TextBlock Text="Đính kèm Audio" FontSize="12" FontWeight="SemiBold" Foreground="#0F172A"/>
-                                                </StackPanel>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                </Button>
+                                <!-- Hàng 1: Nút đính kèm, đường dẫn tệp, nút phát & nút gỡ -->
+                                <Grid Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="1" Text="{Binding SelectedBaiHoc.AudioPath}" FontSize="11" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="12,0,8,0"
-                                           ToolTip="{Binding SelectedBaiHoc.AudioPath}"/>
+                                    <Button Grid.Column="0" Command="{Binding ChonAudioCommand}" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="12,6" Cursor="Hand">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <local:LucideIcon Kind="Headphones" Size="14" Foreground="#10B981" Margin="0,0,6,0"/>
+                                                        <TextBlock Text="Đính kèm Audio" FontSize="12" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
 
-                                <Button Grid.Column="2" Command="{Binding XoaAudioCommand}" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Gỡ tệp âm thanh này"
-                                        Visibility="{Binding HasAudioFile, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                        Padding="6,4">
-                                    <Button.Template>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <local:LucideIcon Kind="X" Size="13" Foreground="#EF4444" Margin="0,0,3,0"/>
-                                                    <TextBlock Text="Gỡ file" FontSize="11" Foreground="#EF4444" FontWeight="SemiBold"/>
-                                                </StackPanel>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                </Button>
+                                    <TextBlock Grid.Column="1" FontSize="11.5" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="12,0,8,0">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="{Binding SelectedBaiHoc.AudioPath}"/>
+                                                <Setter Property="ToolTip" Value="{Binding SelectedBaiHoc.AudioPath}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasAudioFile}" Value="False">
+                                                        <Setter Property="Text" Value="Chưa đính kèm tệp âm thanh (Hỗ trợ: .mp3, .wav, .m4a, .aac)"/>
+                                                        <Setter Property="Foreground" Value="#94A3B8"/>
+                                                        <Setter Property="FontStyle" Value="Italic"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <!-- Nút Nghe thử Audio -->
+                                        <Button Command="{Binding TogglePlayAudioCommand}"
+                                                Visibility="{Binding HasAudioFile, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                Background="#10B981" Foreground="White" BorderThickness="0" Padding="10,6" Cursor="Hand" Margin="0,0,8,0"
+                                                ToolTip="Phát hoặc tạm dừng nghe thử tệp âm thanh này">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="bdPlay" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <local:LucideIcon x:Name="icoPlay" Kind="Play" Size="13" Foreground="White" Margin="0,0,5,0"/>
+                                                            <TextBlock x:Name="txtPlay" Text="Nghe thử" FontSize="11.5" FontWeight="SemiBold" Foreground="White"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <DataTrigger Binding="{Binding IsPlayingAudio}" Value="True">
+                                                            <Setter TargetName="bdPlay" Property="Background" Value="#0F766E"/>
+                                                            <Setter TargetName="icoPlay" Property="Kind" Value="Pause"/>
+                                                            <Setter TargetName="txtPlay" Property="Text" Value="Tạm dừng"/>
+                                                        </DataTrigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+
+                                        <!-- Nút Gỡ file Audio -->
+                                        <Button Command="{Binding XoaAudioCommand}" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Gỡ tệp âm thanh này"
+                                                Visibility="{Binding HasAudioFile, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                Padding="6,4">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <local:LucideIcon Kind="X" Size="13" Foreground="#EF4444" Margin="0,0,3,0"/>
+                                                            <TextBlock Text="Gỡ file" FontSize="11" Foreground="#EF4444" FontWeight="SemiBold"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Hàng 2: Thanh tiến trình Audio và tua thời gian (Seek timeline) -->
+                                <Border Grid.Row="1" Margin="0,10,0,0" Padding="10,6" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8"
+                                        Visibility="{Binding HasAudioFile, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Thời gian hiện tại (s) -->
+                                        <TextBlock Grid.Column="0" Text="{Binding AudioCurrentTimeText}" 
+                                                   FontFamily="Segoe UI" FontSize="11.5" FontWeight="Bold" Foreground="#0F766E" 
+                                                   VerticalAlignment="Center" Margin="2,0,10,0" ToolTip="Thời lượng đã phát"/>
+
+                                        <!-- Thanh trượt kéo tua tới / tua lui -->
+                                        <Slider x:Name="sldAudioTimeline" Grid.Column="1" 
+                                                Style="{StaticResource ModernAudioSliderStyle}"
+                                                Minimum="0" Maximum="{Binding AudioTotalSeconds}"
+                                                Value="{Binding AudioCurrentSeconds, Mode=TwoWay}"
+                                                IsMoveToPointEnabled="True"
+                                                VerticalAlignment="Center"
+                                                PreviewMouseDown="SldAudioTimeline_PreviewMouseDown"
+                                                PreviewMouseUp="SldAudioTimeline_PreviewMouseUp"
+                                                ToolTip="Kéo hoặc nhấp chuột trên thanh để tua tới hoặc tua ngược âm thanh"/>
+
+                                        <!-- Tổng thời lượng (s) -->
+                                        <TextBlock Grid.Column="2" Text="{Binding AudioTotalTimeText}" 
+                                                   FontFamily="Segoe UI" FontSize="11.5" FontWeight="SemiBold" Foreground="#64748B" 
+                                                   VerticalAlignment="Center" Margin="10,0,2,0" ToolTip="Tổng thời lượng tệp audio"/>
+                                    </Grid>
+                                </Border>
                             </Grid>
                         </Border>
 

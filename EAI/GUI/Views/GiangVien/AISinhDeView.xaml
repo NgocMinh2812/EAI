@@ -97,6 +97,45 @@
                             <ComboBoxItem Content="xKiro AI Gateway (qwen/qwen3.5-flash:free)"/>
                         </ComboBox>
 
+                        <!-- Skill and Question Type (NÂNG CẤP ĐA DẠNG KỸ NĂNG) -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="KỸ NĂNG MỤC TIÊU" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
+                                <ComboBox x:Name="cboSkill" Height="36" SelectedIndex="0" Cursor="Hand">
+                                    <ComboBoxItem Content="Tự động theo chủ đề" Tag=""/>
+                                    <ComboBoxItem Content="Đọc hiểu (Reading)" Tag="Doc"/>
+                                    <ComboBoxItem Content="Nghe hiểu (Listening)" Tag="Nghe"/>
+                                    <ComboBoxItem Content="Viết (Writing)" Tag="Viet"/>
+                                    <ComboBoxItem Content="Nói (Speaking)" Tag="Noi"/>
+                                    <ComboBoxItem Content="Ngữ pháp (Grammar)" Tag="NguPhap"/>
+                                    <ComboBoxItem Content="Từ vựng (Vocabulary)" Tag="TuVung"/>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="DẠNG CÂU HỎI" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
+                                <ComboBox x:Name="cboQuestionType" Height="36" SelectedIndex="0" Cursor="Hand">
+                                    <ComboBoxItem Content="Tự động đa dạng theo kỹ năng" Tag=""/>
+                                    <ComboBoxItem Content="Trắc nghiệm (Multiple Choice)" Tag="TracNghiem"/>
+                                    <ComboBoxItem Content="Đúng / Sai (True / False)" Tag="DungSai"/>
+                                    <ComboBoxItem Content="True / False / Not Given" Tag="TrueFalseNotGiven"/>
+                                    <ComboBoxItem Content="Điền từ khuyết (Fill-in-blank)" Tag="DienKhuyet"/>
+                                    <ComboBoxItem Content="Trả lời ngắn (Short Answer)" Tag="TraLoiNgan"/>
+                                    <ComboBoxItem Content="Nối cặp (Matching)" Tag="NoiCap"/>
+                                    <ComboBoxItem Content="Sắp xếp (Sequencing)" Tag="SapXep"/>
+                                    <ComboBoxItem Content="Sửa lỗi sai (Error Correction)" Tag="SuaLoiSai"/>
+                                    <ComboBoxItem Content="Viết lại câu (Transformation)" Tag="VietLaiCau"/>
+                                    <ComboBoxItem Content="Viết tự luận (Essay / Paragraph)" Tag="TuLuan"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </Grid>
+
                         <!-- Level and Quantity -->
                         <Grid Margin="0,0,0,14">
                             <Grid.ColumnDefinitions>

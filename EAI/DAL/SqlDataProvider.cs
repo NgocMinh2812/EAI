@@ -147,6 +147,53 @@ namespace DAL
                             ALTER TABLE BaiTapDeThi ADD XaoTronCauHoi BIT NOT NULL DEFAULT 1;
                         IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'TongSoCau' AND Object_ID = OBJECT_ID('BaiTapDeThi'))
                             ALTER TABLE BaiTapDeThi ADD TongSoCau INT NOT NULL DEFAULT 0;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'ChoXemDapAn' AND Object_ID = OBJECT_ID('BaiTapDeThi'))
+                            ALTER TABLE BaiTapDeThi ADD ChoXemDapAn BIT NOT NULL DEFAULT 1;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'ChoXemLoiGiai' AND Object_ID = OBJECT_ID('BaiTapDeThi'))
+                            ALTER TABLE BaiTapDeThi ADD ChoXemLoiGiai BIT NOT NULL DEFAULT 1;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'SoLuotLamToiDa' AND Object_ID = OBJECT_ID('BaiTapDeThi'))
+                            ALTER TABLE BaiTapDeThi ADD SoLuotLamToiDa INT NOT NULL DEFAULT 0;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'TrangThai' AND Object_ID = OBJECT_ID('BaiTapDeThi'))
+                        BEGIN
+                            ALTER TABLE BaiTapDeThi ADD TrangThai NVARCHAR(30) NOT NULL DEFAULT N'BanNhap';
+                            EXEC('UPDATE BaiTapDeThi SET TrangThai = CASE WHEN DaPhatHanh = 1 THEN N''DaXuatBan'' ELSE N''BanNhap'' END WHERE TrangThai = N''BanNhap''');
+                        END;
+                    END;
+
+                    -- BẢO TOÀN NỘI DUNG ĐỀ ĐÃ XUẤT BẢN: SNAPSHOT TRONG BẢNG CauHoiBaiTap
+                    IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'CauHoiBaiTap')
+                    BEGIN
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'NoiDungCauHoiSnapshot' AND Object_ID = OBJECT_ID('CauHoiBaiTap'))
+                            ALTER TABLE CauHoiBaiTap ADD NoiDungCauHoiSnapshot NVARCHAR(MAX) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'DoanVanDocSnapshot' AND Object_ID = OBJECT_ID('CauHoiBaiTap'))
+                            ALTER TABLE CauHoiBaiTap ADD DoanVanDocSnapshot NVARCHAR(MAX) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'GiaiThichDapAnSnapshot' AND Object_ID = OBJECT_ID('CauHoiBaiTap'))
+                            ALTER TABLE CauHoiBaiTap ADD GiaiThichDapAnSnapshot NVARCHAR(MAX) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'AudioPathSnapshot' AND Object_ID = OBJECT_ID('CauHoiBaiTap'))
+                            ALTER TABLE CauHoiBaiTap ADD AudioPathSnapshot NVARCHAR(500) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'LoaiCauHoiSnapshot' AND Object_ID = OBJECT_ID('CauHoiBaiTap'))
+                            ALTER TABLE CauHoiBaiTap ADD LoaiCauHoiSnapshot NVARCHAR(30) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'KyNangSnapshot' AND Object_ID = OBJECT_ID('CauHoiBaiTap'))
+                            ALTER TABLE CauHoiBaiTap ADD KyNangSnapshot NVARCHAR(30) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'DoKhoSnapshot' AND Object_ID = OBJECT_ID('CauHoiBaiTap'))
+                            ALTER TABLE CauHoiBaiTap ADD DoKhoSnapshot NVARCHAR(20) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'DanhSachLuaChonJson' AND Object_ID = OBJECT_ID('CauHoiBaiTap'))
+                            ALTER TABLE CauHoiBaiTap ADD DanhSachLuaChonJson NVARCHAR(MAX) NULL;
+
+                        -- Backfill snapshot cho các câu hỏi hiện có trong CauHoiBaiTap nếu chưa có snapshot
+                        EXEC('
+                            UPDATE chbt
+                            SET chbt.NoiDungCauHoiSnapshot = ch.NoiDungCauHoi,
+                                chbt.DoanVanDocSnapshot = ch.DoanVanDoc,
+                                chbt.GiaiThichDapAnSnapshot = ch.GiaiThichDapAn,
+                                chbt.AudioPathSnapshot = ch.DuongDanAudio,
+                                chbt.LoaiCauHoiSnapshot = ch.LoaiCauHoi,
+                                chbt.KyNangSnapshot = ch.KyNang,
+                                chbt.DoKhoSnapshot = ch.DoKho
+                            FROM CauHoiBaiTap chbt
+                            INNER JOIN CauHoi ch ON chbt.MaCauHoi = ch.MaCauHoi
+                            WHERE chbt.NoiDungCauHoiSnapshot IS NULL;
+                        ');
                     END;
 
                     -- QUẢN LÝ BỘ CÂU HỎI (QUESTION SETS)

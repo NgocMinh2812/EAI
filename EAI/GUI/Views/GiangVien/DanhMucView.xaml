@@ -310,15 +310,8 @@
 
             <!-- Tiêu đề trang -->
             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="8" Width="36" Height="36" Margin="0,0,10,0">
-                        <local:LucideIcon Kind="Folder" Size="18" Foreground="{StaticResource AdminDarkGreen}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Kho Học Liệu &amp; Danh Mục" FontWeight="Bold" FontSize="18" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Text="Quản lý cấu trúc cây chủ đề &amp; danh mục trình độ (A1 - C1)" FontSize="11.5" Foreground="{StaticResource TextGray}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
-                    </StackPanel>
-                </StackPanel>
+                <TextBlock Text="Kho Học Liệu &amp; Danh Mục" FontWeight="Bold" FontSize="18" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Text="Quản lý cấu trúc cây chủ đề &amp; danh mục trình độ (A1 - C1)" FontSize="11.5" Foreground="{StaticResource TextGray}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
             </StackPanel>
 
             <!-- Action Buttons for ChuDe -->
@@ -460,7 +453,8 @@
                     <!-- WPF TreeView Động liên kết CSDL -->
                     <TreeView x:Name="tvDanhMuc" Grid.Row="2" BorderThickness="0" Background="Transparent" 
                               SelectedItemChanged="TvDanhMuc_SelectedItemChanged"
-                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              Padding="0,0,10,0">
                         <TreeView.ItemContainerStyle>
                             <Style TargetType="{x:Type TreeViewItem}">
                                 <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
@@ -588,7 +582,7 @@
                     </Border>
 
                     <!-- Lessons / Materials Items from Database -->
-                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
                         <StackPanel>
                             <!-- Empty State Notice -->
                             <TextBlock x:Name="txtEmptyNotice" Text="Chưa có bài học nào trong chủ đề này." 

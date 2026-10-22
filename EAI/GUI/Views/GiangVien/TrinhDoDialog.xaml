@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:GUI"
         Title="Thông tin Trình độ" 
-        Icon="/Assets/app_icon.ico"
+        Icon="pack://application:,,,/GUI;component/Assets/app_icon.ico"
         Height="470" Width="490"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"

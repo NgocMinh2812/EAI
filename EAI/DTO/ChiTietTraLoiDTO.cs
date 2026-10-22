@@ -17,6 +17,7 @@ namespace DTO
         public int? MaLuaChonDaChon { get; set; }
         public string KyHieuDaChon { get; set; } = string.Empty;
         public string NoiDungDaChon { get; set; } = string.Empty;
+        public string? CauTraLoiVanBan { get; set; }
 
         public int MaLuaChonDung { get; set; }
         public string KyHieuDapAnDung { get; set; } = string.Empty;
@@ -24,12 +25,14 @@ namespace DTO
 
         public bool? KetQuaDungSai { get; set; }
         public decimal DiemSo { get; set; }
+        public decimal DiemDat { get => DiemSo; set => DiemSo = value; }
+        public decimal DiemToiDa { get; set; } = 1.0m;
         public string? GiaiThichDapAn { get; set; }
 
         public List<LuaChonDapAnDTO> DanhSachLuaChon { get; set; } = new List<LuaChonDapAnDTO>();
 
         // Display Helpers
-        public bool IsAnswered => MaLuaChonDaChon.HasValue && MaLuaChonDaChon.Value > 0;
+        public bool IsAnswered => (MaLuaChonDaChon.HasValue && MaLuaChonDaChon.Value > 0) || !string.IsNullOrWhiteSpace(CauTraLoiVanBan);
         public bool IsCorrect => KetQuaDungSai.HasValue && KetQuaDungSai.Value;
     }
 }

@@ -206,7 +206,7 @@ namespace GUI.Views.GiangVien
                 : actualContent;
 
             // KIỂM SOÁT HIỂN THỊ CÂU HỎI AI: Tách thành quản lý riêng, không chèn vào tài liệu
-            bool hasDraft = _sessionAIDrafts.TryGetValue(lesson.MaBaiHoc, out var draftList) && draftList != null && draftList.Count > 0;
+            bool hasDraft = Views.Common.AICauHoiUIHelper.CoBanNhapTrongPhien(lesson.MaBaiHoc);
             if (pnlAIGeneratePrompt != null)
             {
                 pnlAIGeneratePrompt.Visibility = hasDraft ? Visibility.Collapsed : Visibility.Visible;
@@ -216,7 +216,8 @@ namespace GUI.Views.GiangVien
                 pnlAIGeneratedStatusBox.Visibility = hasDraft ? Visibility.Visible : Visibility.Collapsed;
                 if (hasDraft && txtAIGeneratedTitle != null)
                 {
-                    txtAIGeneratedTitle.Text = $"Đã tạo bộ câu hỏi AI ({draftList!.Count} câu) cho tài liệu này";
+                    var draftList = Views.Common.AICauHoiUIHelper.LayBanNhapTrongPhien(lesson.MaBaiHoc);
+                    txtAIGeneratedTitle.Text = $"Đã tạo bộ câu hỏi AI ({draftList?.Count ?? 0} câu) cho tài liệu này";
                 }
             }
 
@@ -256,8 +257,6 @@ namespace GUI.Views.GiangVien
             }
         }
 
-        private readonly System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<CauHoiKhaoSatDTO>> _sessionAIDrafts = new();
-
         private async void BtnReExtractAI_Click(object sender, RoutedEventArgs e)
         {
             if (_currentPreviewLesson == null) return;
@@ -268,51 +267,28 @@ namespace GUI.Views.GiangVien
 
             try
             {
-                // Sử dụng nội dung thực tế vừa được đọc từ tệp vật lý để AI phân tích
-                string contentToAnalyze = KhoHocLieuSyncHelper.DocNoiDungTep(_currentPreviewLesson.DuongDanTepVatLy, _currentPreviewLesson.NoiDung);
+                bool daLuu = await Views.Common.AICauHoiUIHelper.TaoVaDuyetBoCauHoiAsync(
+                    Window.GetWindow(this),
+                    _currentPreviewLesson,
+                    nguonTao: "AI_DanhMuc",
+                    soLuong: 10,
+                    forceRecreate: true);
 
-                string exactKyNang = _currentPreviewLesson.LoaiBaiHoc;
-                if (string.IsNullOrWhiteSpace(exactKyNang))
+                if (Views.Common.AICauHoiUIHelper.CoBanNhapTrongPhien(_currentPreviewLesson.MaBaiHoc))
                 {
-                    exactKyNang = BaiHocDTO.XacDinhKyNangTuTenHoacChuDe(_currentPreviewLesson.TieuDe, _currentPreviewLesson.TenChuDe, _currentPreviewLesson.DuongDanTepVatLy);
-                }
-                string exactTrinhDo = string.IsNullOrWhiteSpace(_currentPreviewLesson.MaTrinhDo) ? "B1" : _currentPreviewLesson.MaTrinhDo;
-
-                var aiQuestions = await GeminiAIService.BocTachCauHoiAIAsync(
-                    _currentPreviewLesson.TieuDe ?? "", 
-                    contentToAnalyze, 
-                    exactTrinhDo, 
-                    10,
-                    module: "DanhMucCauTruc",
-                    loaiBaiHoc: exactKyNang);
-
-                if (aiQuestions != null && aiQuestions.Count > 0)
-                {
-                    var convertedQuestions = BoCauHoiBUS.ChuyenDoiTuCauHoiAI(
-                        aiQuestions,
-                        kyNang: exactKyNang,
-                        maTrinhDo: exactTrinhDo,
-                        maChuDe: _currentPreviewLesson.MaChuDe,
-                        maTrinhDoId: _currentPreviewLesson.MaTrinhDoId,
-                        audioPath: _currentPreviewLesson.AudioPath ?? _currentPreviewLesson.DuongDanAudio,
-                        noiDungBaiHoc: contentToAnalyze);
-
-                    _sessionAIDrafts[_currentPreviewLesson.MaBaiHoc] = convertedQuestions;
-
+                    var draft = Views.Common.AICauHoiUIHelper.LayBanNhapTrongPhien(_currentPreviewLesson.MaBaiHoc);
                     if (pnlAIGeneratePrompt != null) pnlAIGeneratePrompt.Visibility = Visibility.Collapsed;
                     if (pnlAIGeneratedStatusBox != null)
                     {
                         pnlAIGeneratedStatusBox.Visibility = Visibility.Visible;
                         if (txtAIGeneratedTitle != null)
-                            txtAIGeneratedTitle.Text = $"Đã tạo bộ câu hỏi AI ({convertedQuestions.Count} câu) cho tài liệu này";
+                        {
+                            txtAIGeneratedTitle.Text = daLuu
+                                ? "✓ Đã lưu thành công bộ câu hỏi vào Ngân hàng câu hỏi!"
+                                : $"Đã tạo bộ câu hỏi AI ({draft?.Count ?? 0} câu) cho tài liệu này";
+                        }
                     }
-
-                    OpenDuyetBoCauHoiModal(_currentPreviewLesson, convertedQuestions);
                 }
-            }
-            catch (Exception ex)
-            {
-                ThongBaoDialog.Loi(Window.GetWindow(this), $"Lỗi khi tạo câu hỏi bằng AI:\n{ex.Message}", "Lỗi tạo câu hỏi bằng AI");
             }
             finally
             {
@@ -325,37 +301,18 @@ namespace GUI.Views.GiangVien
         private void BtnOpenAIDialog_Click(object sender, RoutedEventArgs e)
         {
             if (_currentPreviewLesson == null) return;
-            if (_sessionAIDrafts.TryGetValue(_currentPreviewLesson.MaBaiHoc, out var draftQuestions) && draftQuestions.Count > 0)
+            if (Views.Common.AICauHoiUIHelper.CoBanNhapTrongPhien(_currentPreviewLesson.MaBaiHoc))
             {
-                OpenDuyetBoCauHoiModal(_currentPreviewLesson, draftQuestions);
+                var draftQuestions = Views.Common.AICauHoiUIHelper.LayBanNhapTrongPhien(_currentPreviewLesson.MaBaiHoc)!;
+                bool daLuu = Views.Common.AICauHoiUIHelper.MoModalDuyetBoCauHoi(Window.GetWindow(this), _currentPreviewLesson, draftQuestions, "AI_DanhMuc");
+                if (daLuu && txtAIGeneratedTitle != null)
+                {
+                    txtAIGeneratedTitle.Text = "✓ Đã lưu thành công bộ câu hỏi vào Ngân hàng câu hỏi!";
+                }
             }
             else
             {
                 BtnReExtractAI_Click(sender, e);
-            }
-        }
-
-        private void OpenDuyetBoCauHoiModal(BaiHocDTO lesson, System.Collections.Generic.List<CauHoiKhaoSatDTO> questions)
-        {
-            var vm = new DuyetBoCauHoiAIViewModel();
-            vm.NapDuLieu(
-                tenNguon: lesson.TieuDe ?? "Tài liệu học tập",
-                nguonTao: "AI_DanhMuc",
-                cauHois: questions,
-                maBaiHoc: lesson.MaBaiHoc,
-                maChuDe: lesson.MaChuDe,
-                maTrinhDo: lesson.MaTrinhDoId,
-                capDo: lesson.MaTrinhDo ?? "B1",
-                kyNang: lesson.LoaiBaiHoc ?? "Doc",
-                audioPath: lesson.AudioPath ?? lesson.DuongDanAudio);
-
-            var dlg = new DuyetBoCauHoiAIDialog(vm);
-            ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this));
-
-            if (vm.DaLuuThanhCong)
-            {
-                if (txtAIGeneratedTitle != null)
-                    txtAIGeneratedTitle.Text = $"✓ Đã lưu thành công bộ câu hỏi vào Ngân hàng câu hỏi!";
             }
         }
 
@@ -488,13 +445,30 @@ namespace GUI.Views.GiangVien
         {
             if (_selectedNode == null || _selectedNode.Id <= 0)
             {
-                ThongBaoDialog.CanhBao(Window.GetWindow(this), "Vui lòng chọn một chủ đề cụ thể để xóa.", "Chưa chọn chủ đề");
+                ThongBaoDialog.CanhBao(Window.GetWindow(this), "Vui lòng chọn một danh mục cụ thể để xóa.", "Chưa chọn danh mục");
                 return;
             }
 
+            // 1. Kiểm tra xem danh mục hoặc các danh mục con trực thuộc có chứa bài học hay không
+            int soBaiHoc = _danhMucBUS.DemTongSoBaiHocTrongCayChuDe(_selectedNode.Id);
+            if (soBaiHoc > 0)
+            {
+                ThongBaoDialog.CanhBao(
+                    Window.GetWindow(this),
+                    $"Không thể xóa danh mục '{_selectedNode.Title}' vì danh mục này (hoặc các danh mục con trực thuộc) đang chứa {soBaiHoc} bài học.\n\nVui lòng di dời hoặc xóa các bài học trước khi xóa danh mục!",
+                    "Ràng buộc bài học");
+                return;
+            }
+
+            // 2. Nếu tất cả đều 0 bài học, hiển thị thông báo xác nhận tương ứng
+            int soChuDeCon = _danhMucBUS.DemSoChuDeConTrongCay(_selectedNode.Id);
+            string confirmMsg = soChuDeCon > 0
+                ? $"Danh mục '{_selectedNode.Title}' và {soChuDeCon} danh mục con trực thuộc đều đang trống (0 bài học).\n\nBạn có chắc chắn muốn xóa vĩnh viễn danh mục cha cùng toàn bộ {soChuDeCon} danh mục con này không?"
+                : $"Bạn có chắc chắn muốn xóa vĩnh viễn danh mục '{_selectedNode.Title}' (0 bài học)?";
+
             bool confirm = ThongBaoDialog.XacNhanXoa(
                 Window.GetWindow(this),
-                $"Bạn có chắc chắn muốn xóa chủ đề: '{_selectedNode.Title}'?\nHệ thống sẽ kiểm tra ràng buộc bài học trước khi xóa.",
+                confirmMsg,
                 "Xác nhận xóa danh mục");
 
             if (confirm)
@@ -505,11 +479,11 @@ namespace GUI.Views.GiangVien
                 {
                     _selectedNode = null;
                     LoadTreeAndLessons();
-                    ThongBaoDialog.ThanhCong(Window.GetWindow(this), msg, "Đã xóa chủ đề");
+                    ThongBaoDialog.ThanhCong(Window.GetWindow(this), msg, "Đã xóa danh mục");
                 }
                 else
                 {
-                    ThongBaoDialog.CanhBao(Window.GetWindow(this), msg, "Ràng buộc dữ liệu");
+                    ThongBaoDialog.CanhBao(Window.GetWindow(this), msg, "Không thể xóa");
                 }
             }
         }
@@ -869,9 +843,21 @@ namespace GUI.Views.GiangVien
 
             if (confirm)
             {
+                // Xóa tệp vật lý tương ứng nếu tồn tại trên ổ đĩa
+                try
+                {
+                    string? phyFile = KhoHocLieuSyncHelper.TimTepVatLyChoBaiHoc(lesson);
+                    if (!string.IsNullOrEmpty(phyFile) && System.IO.File.Exists(phyFile))
+                    {
+                        System.IO.File.Delete(phyFile);
+                    }
+                }
+                catch { }
+
                 var (success, msg) = BaiHocBUS.XoaBaiHoc(lesson.MaBaiHoc);
                 if (success)
                 {
+                    Views.Common.AICauHoiUIHelper.XoaBanNhapTrongPhien(lesson.MaBaiHoc);
                     if (_currentPreviewLesson?.MaBaiHoc == lesson.MaBaiHoc)
                     {
                         _currentPreviewLesson = null;

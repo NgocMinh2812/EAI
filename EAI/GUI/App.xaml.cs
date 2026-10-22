@@ -15,19 +15,25 @@ namespace GUI
             // Bắt lỗi ngoại lệ chưa xử lý trên Dispatcher UI Thread
             this.DispatcherUnhandledException += (s, args) =>
             {
+                args.Handled = true; // Ngăn chặn ứng dụng crash đột ngột ngay lập tức
+
+                string msg = args.Exception.Message;
+                if (args.Exception.InnerException != null)
+                {
+                    msg += $"\n\nChi tiết kỹ thuật: {args.Exception.InnerException.Message}";
+                }
+
                 try
                 {
                     Views.Common.ThongBaoDialog.Loi(
                         null,
-                        $"Hệ thống phát hiện lỗi không mong muốn:\n\n{args.Exception.Message}",
+                        $"Hệ thống phát hiện lỗi không mong muốn:\n\n{msg}",
                         "Thông báo ngoại lệ hệ thống");
                 }
                 catch
                 {
-                    MessageBox.Show($"Đã xảy ra lỗi:\n{args.Exception.Message}", "Lỗi hệ thống", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Đã xảy ra lỗi:\n{msg}", "Lỗi hệ thống", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-
-                args.Handled = true; // Ngăn chặn ứng dụng crash đột ngột
             };
 
             // Bắt lỗi ngoại lệ chưa xử lý trên AppDomain (Background Threads)

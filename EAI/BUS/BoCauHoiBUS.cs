@@ -22,9 +22,14 @@ namespace BUS
             return BoCauHoiDAL.Instance.LayDanhSachCauHoiTheoBo(maBoCauHoi, tuKhoa, kyNang, doKho);
         }
 
-        public List<CauHoiKhaoSatDTO> LayTatCaCauHoi(string? tuKhoa = null, string? kyNang = null, string? doKho = null, int top = 100)
+        public List<CauHoiKhaoSatDTO> LayTatCaCauHoi(string? tuKhoa = null, string? kyNang = null, string? doKho = null, int top = 500)
         {
             return BoCauHoiDAL.Instance.LayTatCaCauHoi(tuKhoa, kyNang, doKho, top);
+        }
+
+        public int DemTongSoCauHoi()
+        {
+            return BoCauHoiDAL.Instance.DemTongSoCauHoi();
         }
 
         public bool LuuBoCauHoi(BoCauHoiDTO bo, List<CauHoiKhaoSatDTO> dsCauHoi, int nguoiTaoId, out string errorMessage)
@@ -211,13 +216,11 @@ namespace BUS
                     ? ChuanHoaDoKho(aiQ.DoKho)
                     : (thuTu <= 2 ? "De" : (thuTu >= 8 ? "Kho" : "TrungBinh"));
 
-                string chLoai = !string.IsNullOrWhiteSpace(aiQ.LoaiCauHoi)
-                    ? aiQ.LoaiCauHoi
-                    : "TracNghiem";
+                string chLoai = CauHoiKhaoSatDTO.ChuanHoaLoaiCauHoi(!string.IsNullOrWhiteSpace(aiQ.LoaiCauHoi) ? aiQ.LoaiCauHoi : "TracNghiem");
 
                 string? chDoanVan = !string.IsNullOrWhiteSpace(aiQ.DoanVanDoc)
                     ? aiQ.DoanVanDoc
-                    : (chKyNang == "Doc" ? extractedPassage : null);
+                    : (!string.IsNullOrWhiteSpace(aiQ.AudioScript) ? aiQ.AudioScript : (chKyNang == "Doc" ? extractedPassage : null));
 
                 var ch = new CauHoiKhaoSatDTO
                 {
@@ -233,12 +236,12 @@ namespace BUS
                     DoanVanDoc = chDoanVan,
                     MaChuDe = maChuDe,
                     MaTrinhDoId = maTrinhDoId,
-                    AudioPath = chKyNang == "Nghe" ? audioPath : null,
+                    AudioPath = !string.IsNullOrWhiteSpace(audioPath) ? audioPath : null,
                     DaKiemDuyet = true,
                     IsSelected = aiQ.IsSelected
                 };
 
-                // Phân tích và tạo danh sách đáp án
+                // Phân tích và tạo danh sách đáp án theo từng loại câu hỏi
                 if (aiQ.DanhSachLuaChon != null && aiQ.DanhSachLuaChon.Count > 0)
                 {
                     for (int i = 0; i < aiQ.DanhSachLuaChon.Count; i++)
@@ -275,6 +278,57 @@ namespace BUS
                     }
                 }
 
+                // Xử lý riêng cho câu hỏi Đúng / Sai nếu chưa có danh sách lựa chọn
+                if (ch.IsDangDungSai && ch.DanhSachLuaChon.Count == 0)
+                {
+                    ch.DanhSachLuaChon.Add(new LuaChonDapAnDTO { KyHieuLuaChon = "A", NoiDungLuaChon = "True (Đúng)", LaDapAnDung = aiQ.DapAnDungIndex == 0 });
+                    ch.DanhSachLuaChon.Add(new LuaChonDapAnDTO { KyHieuLuaChon = "B", NoiDungLuaChon = "False (Sai)", LaDapAnDung = aiQ.DapAnDungIndex == 1 });
+                }
+                // Xử lý riêng cho câu hỏi True / False / Not Given nếu chưa có danh sách lựa chọn
+                else if (ch.IsDangTrueFalseNotGiven && ch.DanhSachLuaChon.Count == 0)
+                {
+                    ch.DanhSachLuaChon.Add(new LuaChonDapAnDTO { KyHieuLuaChon = "A", NoiDungLuaChon = "True", LaDapAnDung = aiQ.DapAnDungIndex == 0 });
+                    ch.DanhSachLuaChon.Add(new LuaChonDapAnDTO { KyHieuLuaChon = "B", NoiDungLuaChon = "False", LaDapAnDung = aiQ.DapAnDungIndex == 1 });
+                    ch.DanhSachLuaChon.Add(new LuaChonDapAnDTO { KyHieuLuaChon = "C", NoiDungLuaChon = "Not Given", LaDapAnDung = aiQ.DapAnDungIndex == 2 });
+                }
+                // Xử lý cho câu hỏi nhập văn bản (Điền khuyết, Trả lời ngắn, Viết lại câu, Sửa lỗi)
+                else if (ch.IsDangNhapVanBan)
+                {
+                    if (!string.IsNullOrWhiteSpace(aiQ.DapAnVanBan))
+                    {
+                        ch.DanhSachLuaChon.Clear();
+                        ch.DanhSachLuaChon.Add(new LuaChonDapAnDTO
+                        {
+                            KyHieuLuaChon = "KEY",
+                            NoiDungLuaChon = aiQ.DapAnVanBan.Trim(),
+                            LaDapAnDung = true
+                        });
+                    }
+                    else if (ch.DanhSachLuaChon.Count == 0 && !string.IsNullOrWhiteSpace(ch.GiaiThichDapAn))
+                    {
+                        ch.DanhSachLuaChon.Add(new LuaChonDapAnDTO
+                        {
+                            KyHieuLuaChon = "KEY",
+                            NoiDungLuaChon = ch.GiaiThichDapAn,
+                            LaDapAnDung = true
+                        });
+                    }
+                }
+                // Xử lý cho câu hỏi Tự luận / Viết bài (TuLuan)
+                else if (ch.IsDangTuLuan)
+                {
+                    string rubric = !string.IsNullOrWhiteSpace(aiQ.TieuChiCham) 
+                        ? aiQ.TieuChiCham 
+                        : "Tiêu chí chấm: Bám sát đề bài, Bố cục mạch lạc, Vốn từ học thuật, Độ chuẩn xác ngữ pháp.";
+                    ch.DanhSachLuaChon.Clear();
+                    ch.DanhSachLuaChon.Add(new LuaChonDapAnDTO
+                    {
+                        KyHieuLuaChon = "RUB",
+                        NoiDungLuaChon = rubric,
+                        LaDapAnDung = true
+                    });
+                }
+
                 // Bảo đảm ít nhất 1 đáp án đúng
                 if (ch.DanhSachLuaChon.Count > 0 && !ch.DanhSachLuaChon.Any(x => x.LaDapAnDung))
                 {
@@ -286,6 +340,55 @@ namespace BUS
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Tạo bộ câu hỏi hoàn chỉnh từ AI cho một bài học (tự động đọc nội dung từ tệp vật lý/văn bản, xác định kỹ năng & trình độ)
+        /// Dùng chung chuẩn hóa cho cả màn hình Danh mục & Cấu trúc và Nội dung học tập.
+        /// </summary>
+        public async Task<(List<CauHoiKhaoSatDTO> Questions, string KyNang, string TrinhDo, string NoiDungDaDoc)> SinhCauHoiChoBaiHocAsync(
+            BaiHocDTO baiHoc, 
+            int soLuong = 10, 
+            string? module = null)
+        {
+            if (baiHoc == null) return (new List<CauHoiKhaoSatDTO>(), "Doc", "B1", "");
+
+            // 1. Trích xuất nội dung thực tế (ưu tiên đọc từ tệp đính kèm vật lý qua KhoHocLieuSyncHelper nếu có)
+            string contentToAnalyze = KhoHocLieuSyncHelper.DocNoiDungTep(baiHoc.DuongDanTepVatLy, baiHoc.NoiDung);
+            if (string.IsNullOrWhiteSpace(contentToAnalyze))
+            {
+                contentToAnalyze = baiHoc.TieuDe ?? "Bài học tiếng Anh";
+            }
+
+            // 2. Tự động chuẩn hóa Kỹ năng và Trình độ
+            string exactKyNang = baiHoc.LoaiBaiHoc;
+            if (string.IsNullOrWhiteSpace(exactKyNang))
+            {
+                exactKyNang = BaiHocDTO.XacDinhKyNangTuTenHoacChuDe(baiHoc.TieuDe, baiHoc.TenChuDe, baiHoc.DuongDanTepVatLy);
+            }
+            string exactTrinhDo = string.IsNullOrWhiteSpace(baiHoc.MaTrinhDo) ? "B1" : baiHoc.MaTrinhDo;
+            string tieuDe = string.IsNullOrWhiteSpace(baiHoc.TieuDe) ? "Bài học tiếng Anh" : baiHoc.TieuDe.Trim();
+
+            // 3. Gọi AI bóc tách câu hỏi
+            var aiQuestions = await GeminiAIService.BocTachCauHoiAIAsync(
+                tieuDe,
+                contentToAnalyze,
+                exactTrinhDo,
+                soLuong,
+                module: module ?? "Chung",
+                loaiBaiHoc: exactKyNang);
+
+            // 4. Chuyển đổi sang danh sách câu hỏi chuẩn DTO
+            var convertedQuestions = ChuyenDoiTuCauHoiAI(
+                aiQuestions,
+                kyNang: exactKyNang,
+                maTrinhDo: exactTrinhDo,
+                maChuDe: baiHoc.MaChuDe,
+                maTrinhDoId: baiHoc.MaTrinhDoId,
+                audioPath: baiHoc.AudioPath ?? baiHoc.DuongDanAudio,
+                noiDungBaiHoc: contentToAnalyze);
+
+            return (convertedQuestions, exactKyNang, exactTrinhDo, contentToAnalyze);
         }
     }
 }

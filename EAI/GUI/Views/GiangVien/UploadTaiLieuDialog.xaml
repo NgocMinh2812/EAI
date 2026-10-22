@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:GUI"
         Title="Tải lên Học liệu &amp; Đề thi" 
-        Icon="/Assets/app_icon.ico"
+        Icon="pack://application:,,,/GUI;component/Assets/app_icon.ico"
         Height="680" Width="580"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
@@ -240,7 +240,7 @@
                                 <!-- Phân loại kỹ năng -->
                                 <StackPanel Grid.Column="2">
                                     <TextBlock Text="Kỹ năng phân loại" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
-                                    <ComboBox x:Name="cboLoaiBaiHoc" Height="36" SelectedIndex="0">
+                                    <ComboBox x:Name="cboLoaiBaiHoc" Height="36" SelectedIndex="0" SelectionChanged="CboLoaiBaiHoc_SelectionChanged">
                                         <ComboBoxItem Content="Đọc hiểu (Reading)" Tag="Doc"/>
                                         <ComboBoxItem Content="Ngữ pháp (Grammar)" Tag="NguPhap"/>
                                         <ComboBoxItem Content="Từ vựng (Vocabulary)" Tag="TuVung"/>
@@ -255,6 +255,72 @@
                                     <TextBox x:Name="txtThoiGian" Text="25" Style="{StaticResource ModernTextBoxStyle}"/>
                                 </StackPanel>
                             </Grid>
+
+                            <!-- VÙNG ĐÍNH KÈM AUDIO DÀNH CHO KỸ NĂNG NGHE (ĐỒNG BỘ NỘI DUNG HỌC TẬP) -->
+                            <Border x:Name="pnlAudioSection" Visibility="Collapsed"
+                                    Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1.5" CornerRadius="10" 
+                                    Padding="14,10" Margin="0,0,0,10">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Tiêu đề Audio Section -->
+                                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <local:LucideIcon Kind="Headphones" Size="15" Foreground="#15803D" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Tệp âm thanh bài nghe (Audio Listening) *" FontWeight="Bold" FontSize="12.5" Foreground="#166534"/>
+                                            <TextBlock Text="(Bắt buộc đối với bài nghe)" FontSize="11" Foreground="#15803D" FontStyle="Italic" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Nội dung chọn tệp Audio -->
+                                    <Grid Grid.Row="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="#DCFCE7" Margin="0,0,10,0" VerticalAlignment="Center">
+                                            <local:LucideIcon Kind="Music" Size="18" Foreground="#16A34A" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                            <TextBlock x:Name="txtAudioNameDisplay" Text="Chưa chọn tệp audio (.mp3, .wav, .m4a)" FontWeight="SemiBold" FontSize="12.5" Foreground="#0F172A" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock x:Name="txtAudioSizeDisplay" Text="Nhấn nút bên phải để chọn tệp âm thanh đồng bộ" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button x:Name="btnBrowseAudio" Background="#16A34A" Foreground="White" 
+                                                    FontWeight="SemiBold" FontSize="12" Padding="12,6" BorderThickness="0" Cursor="Hand" Click="BtnBrowseAudio_Click">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}" CornerRadius="7" Padding="{TemplateBinding Padding}">
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <local:LucideIcon Kind="Upload" Size="13" Foreground="White" Margin="0,0,5,0"/>
+                                                                <TextBlock Text="Chọn Audio..." FontWeight="SemiBold"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+
+                                            <Button x:Name="btnRemoveAudio" Visibility="Collapsed" Background="#FEE2E2" Foreground="#DC2626" 
+                                                    FontWeight="SemiBold" FontSize="12" Padding="8,6" BorderThickness="0" Cursor="Hand" Margin="6,0,0,0" Click="BtnRemoveAudio_Click" ToolTip="Gỡ bỏ tệp audio">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}" CornerRadius="7" Padding="{TemplateBinding Padding}">
+                                                            <local:LucideIcon Kind="Trash2" Size="13" Foreground="#DC2626"/>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
+                            </Border>
 
                             <!-- Tóm tắt ngắn -->
                             <TextBlock Text="Tóm tắt nội dung bài học" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>

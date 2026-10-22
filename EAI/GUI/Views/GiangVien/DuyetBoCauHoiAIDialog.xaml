@@ -5,7 +5,7 @@
         xmlns:vm="clr-namespace:GUI.ViewModels.GiangVien"
         xmlns:conv="clr-namespace:GUI.ViewModels.Common"
         Title="Xem &amp; Duyệt Bộ Câu Hỏi AI"
-        Icon="/Assets/app_icon.ico"
+        Icon="pack://application:,,,/GUI;component/Assets/app_icon.ico"
         Height="700" Width="1020"
         WindowStartupLocation="CenterOwner"
         ResizeMode="CanResizeWithGrip"
@@ -33,6 +33,57 @@
         <SolidColorBrush x:Key="TextGray" Color="#64748B"/>
         <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0"/>
         <SolidColorBrush x:Key="CardBg" Color="#FFFFFF"/>
+
+        <!-- Style Thanh trượt tua Audio Timeline -->
+        <Style x:Key="ModernAudioSliderStyle" TargetType="{x:Type Slider}">
+            <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Slider}">
+                        <Grid VerticalAlignment="Center">
+                            <!-- Đường ray nền -->
+                            <Border Height="4" Background="#E2E8F0" CornerRadius="2" VerticalAlignment="Center"/>
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.DecreaseLarge}">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Height="4" Background="#10B981" CornerRadius="2" VerticalAlignment="Center"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.IncreaseLarge}">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Height="4" Background="Transparent" VerticalAlignment="Center"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Cursor="Hand">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Width="12" Height="12" Background="#10B981" BorderBrush="White" BorderThickness="2" CornerRadius="6">
+                                                    <Border.Effect>
+                                                        <DropShadowEffect BlurRadius="3" ShadowDepth="1" Opacity="0.25" Color="#0F172A"/>
+                                                    </Border.Effect>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid Margin="14">
@@ -128,7 +179,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- LEFT PANE: QUESTIONS LIST -->
-                <Border Grid.Column="0" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="12" Padding="12">
+                <Border Grid.Column="0" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="12" Padding="12,12,3,12">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -136,7 +187,7 @@
                         </Grid.RowDefinitions>
 
                         <!-- Selection actions -->
-                        <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <Grid Grid.Row="0" Margin="0,0,9,10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -168,15 +219,20 @@
                         <!-- List of Questions -->
                         <ListBox Grid.Row="1" ItemsSource="{Binding DanhSachCauHoi}" SelectedItem="{Binding SelectedCauHoi, Mode=TwoWay}"
                                  BorderThickness="0" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                 Padding="0,0,10,0">
+                                 VirtualizingPanel.IsVirtualizing="True"
+                                 VirtualizingPanel.ScrollUnit="Pixel"
+                                 ScrollViewer.CanContentScroll="True"
+                                 Padding="0,0,8,0">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
                                     <Setter Property="Padding" Value="0"/>
-                                    <Setter Property="Margin" Value="0,0,0,8"/>
+                                    <Setter Property="Margin" Value="1,1,2,11"/>
+                                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                                     <Setter Property="Template">
                                         <Setter.Value>
                                             <ControlTemplate TargetType="ListBoxItem">
-                                                <Border x:Name="bdItem" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="10">
+                                                <Border x:Name="bdItem" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="10"
+                                                        SnapsToDevicePixels="True" UseLayoutRounding="True">
                                                     <ContentPresenter/>
                                                 </Border>
                                                 <ControlTemplate.Triggers>
@@ -209,15 +265,18 @@
 
                                         <!-- Question summary -->
                                         <StackPanel Grid.Column="1">
-                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
-                                                <Border Background="#F1F5F9" CornerRadius="4" Padding="5,1" Margin="0,0,6,0">
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                <Border Background="#F1F5F9" CornerRadius="4" Padding="6,1.5" Margin="0,0,6,0">
                                                     <TextBlock Text="{Binding ThuTuCauHoi, StringFormat='Câu {0}'}" FontSize="11" FontWeight="Bold" Foreground="#334155"/>
                                                 </Border>
-                                                <Border Background="#EFF6FF" CornerRadius="4" Padding="5,1" Margin="0,0,6,0">
-                                                    <TextBlock Text="{Binding KyNang}" FontSize="10.5" FontWeight="SemiBold" Foreground="#2563EB"/>
+                                                <Border Background="#EFF6FF" CornerRadius="4" Padding="6,1.5" Margin="0,0,6,0">
+                                                    <TextBlock Text="{Binding KyNangHienThi}" FontSize="10.5" FontWeight="SemiBold" Foreground="#2563EB"/>
                                                 </Border>
-                                                <Border Background="#FEF3C7" CornerRadius="4" Padding="5,1">
-                                                    <TextBlock Text="{Binding DoKho}" FontSize="10.5" FontWeight="SemiBold" Foreground="#D97706"/>
+                                                <Border Background="#F3E8FF" CornerRadius="4" Padding="6,1.5" Margin="0,0,6,0">
+                                                    <TextBlock Text="{Binding LoaiCauHoiHienThi}" FontSize="10.5" FontWeight="SemiBold" Foreground="#7E22CE"/>
+                                                </Border>
+                                                <Border Background="#FEF3C7" CornerRadius="4" Padding="6,1.5">
+                                                    <TextBlock Text="{Binding DoKhoHienThi}" FontSize="10.5" FontWeight="SemiBold" Foreground="#D97706"/>
                                                 </Border>
                                             </StackPanel>
 
@@ -284,35 +343,55 @@
                                 <!-- Attributes Row -->
                                 <Grid Margin="0,0,0,12">
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1.2*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="1.4*"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="1*"/>
-                                        <ColumnDefinition Width="10"/>
-                                        <ColumnDefinition Width="1*"/>
-                                        <ColumnDefinition Width="10"/>
-                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="0.9*"/>
                                     </Grid.ColumnDefinitions>
 
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Text="Kỹ năng:" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                                        <ComboBox SelectedValue="{Binding SelectedCauHoi.KyNang, Mode=TwoWay}" SelectedValuePath="Tag" Padding="8,6">
+                                        <ComboBox SelectedValue="{Binding SelectedCauHoi.KyNang, Mode=TwoWay}" SelectedValuePath="Tag" Padding="6,6">
                                             <ComboBoxItem Content="Đọc hiểu" Tag="Doc"/>
                                             <ComboBoxItem Content="Nghe hiểu" Tag="Nghe"/>
                                             <ComboBoxItem Content="Ngữ pháp" Tag="NguPhap"/>
                                             <ComboBoxItem Content="Từ vựng" Tag="TuVung"/>
+                                            <ComboBoxItem Content="Viết" Tag="Viet"/>
+                                            <ComboBoxItem Content="Nói" Tag="Noi"/>
                                         </ComboBox>
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Dạng câu hỏi:" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
+                                        <ComboBox SelectedValue="{Binding SelectedCauHoi.LoaiCauHoi, Mode=TwoWay}" SelectedValuePath="Tag" Padding="6,6">
+                                            <ComboBoxItem Content="Trắc nghiệm" Tag="TracNghiem"/>
+                                            <ComboBoxItem Content="Đúng / Sai" Tag="DungSai"/>
+                                            <ComboBoxItem Content="True / False / Not Given" Tag="TrueFalseNotGiven"/>
+                                            <ComboBoxItem Content="Điền khuyết" Tag="DienKhuyet"/>
+                                            <ComboBoxItem Content="Trả lời ngắn" Tag="TraLoiNgan"/>
+                                            <ComboBoxItem Content="Nối cặp" Tag="NoiCap"/>
+                                            <ComboBoxItem Content="Sắp xếp" Tag="SapXep"/>
+                                            <ComboBoxItem Content="Sửa lỗi sai" Tag="SuaLoiSai"/>
+                                            <ComboBoxItem Content="Viết lại câu" Tag="VietLaiCau"/>
+                                            <ComboBoxItem Content="Viết tự luận" Tag="TuLuan"/>
+                                        </ComboBox>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="4">
                                         <TextBlock Text="Độ khó:" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                                        <ComboBox SelectedValue="{Binding SelectedCauHoi.DoKho, Mode=TwoWay}" SelectedValuePath="Tag" Padding="8,6">
+                                        <ComboBox SelectedValue="{Binding SelectedCauHoi.DoKho, Mode=TwoWay}" SelectedValuePath="Tag" Padding="6,6">
                                             <ComboBoxItem Content="Dễ" Tag="De"/>
                                             <ComboBoxItem Content="Trung bình" Tag="TrungBinh"/>
                                             <ComboBoxItem Content="Khó" Tag="Kho"/>
                                         </ComboBox>
                                     </StackPanel>
 
-                                    <StackPanel Grid.Column="4">
-                                        <TextBlock Text="Trình độ CEFR:" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                                        <ComboBox SelectedValue="{Binding SelectedCauHoi.MaTrinhDo, Mode=TwoWay}" SelectedValuePath="Tag" Padding="8,6">
+                                    <StackPanel Grid.Column="6">
+                                        <TextBlock Text="Trình độ:" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
+                                        <ComboBox SelectedValue="{Binding SelectedCauHoi.MaTrinhDo, Mode=TwoWay}" SelectedValuePath="Tag" Padding="6,6">
                                             <ComboBoxItem Content="A1" Tag="A1"/>
                                             <ComboBoxItem Content="A2" Tag="A2"/>
                                             <ComboBoxItem Content="B1" Tag="B1"/>
@@ -385,13 +464,38 @@
                                                 </Button.Template>
                                             </Button>
 
-                                            <!-- Audio file path & status text -->
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding SelectedCauHoi.AudioPath, TargetNullValue='Chưa gán tệp âm thanh cho câu hỏi này'}"
-                                                           FontSize="11.5" FontWeight="SemiBold" Foreground="#334155" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding AudioStatusText}" FontSize="11" Foreground="#16A34A" Margin="0,2,0,0"
-                                                           Visibility="{Binding AudioStatusText, Converter={StaticResource StrNotEmptyToVisConverter}}"/>
-                                            </StackPanel>
+                                            <!-- Thanh tiến trình Audio nhỏ gọn (Compact Seekable Audio Timeline) -->
+                                            <Border Grid.Column="1" Background="White" BorderBrush="#BBF7D0" BorderThickness="1" CornerRadius="8" Padding="10,4" VerticalAlignment="Center"
+                                                    ToolTip="{Binding SelectedCauHoi.AudioPath, TargetNullValue='Chưa gán tệp âm thanh cho câu hỏi này'}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <!-- Thời gian đã phát -->
+                                                    <TextBlock Grid.Column="0" Text="{Binding AudioCurrentTimeText}" 
+                                                               FontFamily="Segoe UI" FontSize="11.5" FontWeight="Bold" Foreground="#15803D" 
+                                                               VerticalAlignment="Center" Margin="0,0,8,0" ToolTip="Thời gian đã phát"/>
+
+                                                    <!-- Thanh kéo tua timeline audio -->
+                                                    <Slider x:Name="sldAudioTimeline" Grid.Column="1" 
+                                                            Style="{StaticResource ModernAudioSliderStyle}"
+                                                            Minimum="0" Maximum="{Binding AudioTotalSeconds}"
+                                                            Value="{Binding AudioCurrentSeconds, Mode=TwoWay}"
+                                                            IsMoveToPointEnabled="True"
+                                                            VerticalAlignment="Center"
+                                                            PreviewMouseDown="SldAudioTimeline_PreviewMouseDown"
+                                                            PreviewMouseUp="SldAudioTimeline_PreviewMouseUp"
+                                                            ToolTip="Kéo hoặc bấm vào thanh để tua audio"/>
+
+                                                    <!-- Tổng thời lượng -->
+                                                    <TextBlock Grid.Column="2" Text="{Binding AudioTotalTimeText}" 
+                                                               FontFamily="Segoe UI" FontSize="11.5" FontWeight="SemiBold" Foreground="#64748B" 
+                                                               VerticalAlignment="Center" Margin="8,0,0,0" ToolTip="Tổng thời lượng audio"/>
+                                                </Grid>
+                                            </Border>
                                         </Grid>
                                     </Grid>
                                 </Border>

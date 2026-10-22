@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:GUI"
         Title="Hồ Sơ Giảng Viên" 
-        Icon="/Assets/app_icon.ico"
+        Icon="pack://application:,,,/GUI;component/Assets/app_icon.ico"
         Height="700" Width="560"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"

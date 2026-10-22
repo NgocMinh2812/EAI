@@ -23,6 +23,7 @@ namespace GUI.ViewModels.GiangVien
         private bool _isSuccess;
         private bool _isSaving;
         private bool _daLuuThanhCong;
+        private string? _duongDanAudioMacDinh;
 
         public string TenBoCauHoi
         {
@@ -79,9 +80,19 @@ namespace GUI.ViewModels.GiangVien
             get => _selectedCauHoi;
             set
             {
+                string? oldAudio = _selectedCauHoi?.AudioPath?.Trim() ?? _duongDanAudioMacDinh?.Trim();
                 if (SetProperty(ref _selectedCauHoi, value))
                 {
                     OnPropertyChanged(nameof(HasSelectedCauHoi));
+                    string? newAudio = _selectedCauHoi?.AudioPath?.Trim() ?? _duongDanAudioMacDinh?.Trim();
+
+                    // Nếu câu hỏi mới có audio KHÁC với audio đang phát hoặc không có audio -> mới dừng và reset
+                    if (!string.Equals(oldAudio, newAudio, StringComparison.OrdinalIgnoreCase))
+                    {
+                        DungAudio();
+                        ResetAudioTimeline();
+                    }
+                    // Nếu hai câu hỏi dùng chung file audio (cùng bài học nghe): giữ nguyên bài đang nghe, tiếp tục chạy và đồng bộ thanh tiến trình!
                 }
             }
         }
@@ -117,14 +128,52 @@ namespace GUI.ViewModels.GiangVien
 
         public string ThongKeChonText => $"Đã chọn {SoLuongDaChon}/{TongSoCau} câu hỏi";
 
-        // Audio support
+        // Audio support & Timeline
         private readonly System.Windows.Media.MediaPlayer _mediaPlayer = new();
+        private readonly System.Windows.Threading.DispatcherTimer _audioTimer;
         private bool _isPlayingAudio;
+        private bool _isSeekingAudio;
+        private string? _loadedAudioPath;
+        private double _audioCurrentSeconds;
+        private double _audioTotalSeconds = 100;
+        private string _audioCurrentTimeText = "00:00";
+        private string _audioTotalTimeText = "00:00";
+        private string _audioStatusText = string.Empty;
 
         public bool IsPlayingAudio
         {
             get => _isPlayingAudio;
             set => SetProperty(ref _isPlayingAudio, value);
+        }
+
+        public double AudioCurrentSeconds
+        {
+            get => _audioCurrentSeconds;
+            set => SetProperty(ref _audioCurrentSeconds, value);
+        }
+
+        public double AudioTotalSeconds
+        {
+            get => _audioTotalSeconds;
+            set => SetProperty(ref _audioTotalSeconds, value);
+        }
+
+        public string AudioCurrentTimeText
+        {
+            get => _audioCurrentTimeText;
+            set => SetProperty(ref _audioCurrentTimeText, value);
+        }
+
+        public string AudioTotalTimeText
+        {
+            get => _audioTotalTimeText;
+            set => SetProperty(ref _audioTotalTimeText, value);
+        }
+
+        public string AudioStatusText
+        {
+            get => _audioStatusText;
+            set => SetProperty(ref _audioStatusText, value);
         }
 
         public ICommand ChonTatCaCommand { get; }
@@ -152,19 +201,110 @@ namespace GUI.ViewModels.GiangVien
             LuuVaoNganHangCommand = new RelayCommand(_ => ThucHienLuuVaoNganHang());
             ChonAudioCommand = new RelayCommand(_ => ThucHienChonAudio());
             TogglePlayAudioCommand = new RelayCommand(_ => ThucHienToggleAudio());
+
+            _audioTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(200)
+            };
+            _audioTimer.Tick += (s, e) =>
+            {
+                if (!_isSeekingAudio && _mediaPlayer.NaturalDuration.HasTimeSpan && _isPlayingAudio)
+                {
+                    _audioCurrentSeconds = _mediaPlayer.Position.TotalSeconds;
+                    OnPropertyChanged(nameof(AudioCurrentSeconds));
+                    AudioCurrentTimeText = FormatTimeSpan(_mediaPlayer.Position);
+                }
+            };
+
+            _mediaPlayer.MediaOpened += (s, e) =>
+            {
+                System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (_mediaPlayer.NaturalDuration.HasTimeSpan)
+                    {
+                        double total = _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                        AudioTotalSeconds = total > 0 ? total : 100;
+                        AudioTotalTimeText = FormatTimeSpan(_mediaPlayer.NaturalDuration.TimeSpan);
+                    }
+                }));
+            };
+
+            _mediaPlayer.MediaEnded += (s, e) =>
+            {
+                System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    try { _mediaPlayer.Stop(); } catch { }
+                    try { _mediaPlayer.Position = TimeSpan.Zero; } catch { }
+                    IsPlayingAudio = false;
+                    _audioTimer.Stop();
+                    _audioCurrentSeconds = 0;
+                    OnPropertyChanged(nameof(AudioCurrentSeconds));
+                    AudioCurrentTimeText = "00:00";
+                }));
+            };
+
+            _mediaPlayer.MediaFailed += (s, e) =>
+            {
+                System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    try { _mediaPlayer.Stop(); } catch { }
+                    IsPlayingAudio = false;
+                    _audioTimer.Stop();
+                    ThongBao = $"Không thể phát tệp âm thanh: {e.ErrorException?.Message ?? "Lỗi định dạng tệp."}";
+                    IsSuccess = false;
+                }));
+            };
+        }
+
+        private string FormatTimeSpan(TimeSpan ts)
+        {
+            return $"{ts.Minutes:D2}:{ts.Seconds:D2}";
+        }
+
+        public void BatDauTuaAudio()
+        {
+            _isSeekingAudio = true;
+        }
+
+        public void KetThucTuaAudio(double seconds)
+        {
+            _isSeekingAudio = false;
+            try
+            {
+                _mediaPlayer.Position = TimeSpan.FromSeconds(seconds);
+                _audioCurrentSeconds = seconds;
+                AudioCurrentTimeText = FormatTimeSpan(_mediaPlayer.Position);
+                OnPropertyChanged(nameof(AudioCurrentSeconds));
+            }
+            catch { }
+        }
+
+        public void ResetAudioTimeline()
+        {
+            _loadedAudioPath = null;
+            _audioCurrentSeconds = 0;
+            _audioTotalSeconds = 100;
+            _audioCurrentTimeText = "00:00";
+            _audioTotalTimeText = "00:00";
+            OnPropertyChanged(nameof(AudioCurrentSeconds));
+            OnPropertyChanged(nameof(AudioTotalSeconds));
+            OnPropertyChanged(nameof(AudioCurrentTimeText));
+            OnPropertyChanged(nameof(AudioTotalTimeText));
         }
 
         public void DungAudio()
         {
             try
             {
-                if (IsPlayingAudio)
-                {
-                    _mediaPlayer.Stop();
-                    IsPlayingAudio = false;
-                }
+                _audioTimer?.Stop();
+                _mediaPlayer.Stop();
+                _mediaPlayer.Position = TimeSpan.Zero;
             }
             catch { }
+            finally
+            {
+                IsPlayingAudio = false;
+            }
         }
 
         private void ThucHienChonAudio()
@@ -178,6 +318,8 @@ namespace GUI.ViewModels.GiangVien
 
             if (dlg.ShowDialog() == true)
             {
+                DungAudio();
+                ResetAudioTimeline();
                 SelectedCauHoi.AudioPath = dlg.FileName;
                 OnPropertyChanged(nameof(SelectedCauHoi));
             }
@@ -192,12 +334,39 @@ namespace GUI.ViewModels.GiangVien
                 if (IsPlayingAudio)
                 {
                     _mediaPlayer.Pause();
+                    _audioTimer.Stop();
                     IsPlayingAudio = false;
                 }
                 else
                 {
-                    _mediaPlayer.Open(new Uri(SelectedCauHoi.AudioPath, UriKind.RelativeOrAbsolute));
+                    string path = SelectedCauHoi.AudioPath.Trim();
+                    Uri? uri = null;
+                    if (Uri.TryCreate(path, UriKind.Absolute, out var absUri) && (absUri.Scheme == Uri.UriSchemeHttp || absUri.Scheme == Uri.UriSchemeHttps || absUri.Scheme == Uri.UriSchemeFile))
+                    {
+                        uri = absUri;
+                    }
+                    else if (System.IO.File.Exists(path))
+                    {
+                        uri = new Uri(System.IO.Path.GetFullPath(path));
+                    }
+
+                    if (uri == null)
+                    {
+                        ThongBao = "Không tìm thấy tệp âm thanh này trên hệ thống máy tính.";
+                        IsSuccess = false;
+                        return;
+                    }
+
+                    if (_loadedAudioPath != path)
+                    {
+                        _mediaPlayer.Open(uri);
+                        _loadedAudioPath = path;
+                        _audioCurrentSeconds = 0;
+                        AudioCurrentTimeText = "00:00";
+                    }
+
                     _mediaPlayer.Play();
+                    _audioTimer.Start();
                     IsPlayingAudio = true;
                 }
             }
@@ -205,6 +374,8 @@ namespace GUI.ViewModels.GiangVien
             {
                 ThongBao = $"Lỗi phát audio: {ex.Message}";
                 IsSuccess = false;
+                IsPlayingAudio = false;
+                _audioTimer.Stop();
             }
         }
 
@@ -226,6 +397,7 @@ namespace GUI.ViewModels.GiangVien
             MaTrinhDo = maTrinhDo;
             MaCapDo = capDo;
             KyNang = kyNang;
+            _duongDanAudioMacDinh = audioPath;
 
             TenBoCauHoi = $"Bộ câu hỏi ôn tập: {tenNguon}";
             ThongBao = string.Empty;
@@ -236,6 +408,7 @@ namespace GUI.ViewModels.GiangVien
             int idx = 1;
             foreach (var ch in cauHois)
             {
+                ch.MaCauHoi = 0; // Đảm bảo câu hỏi nháp mới luôn có MaCauHoi = 0 để insert vào CSDL
                 ch.ThuTuCauHoi = idx;
                 ch.ThuTuTrongBo = idx;
                 if (string.IsNullOrWhiteSpace(ch.KyNang)) ch.KyNang = kyNang;
@@ -287,6 +460,7 @@ namespace GUI.ViewModels.GiangVien
                 NoiDungCauHoi = $"Câu hỏi mới #{newIdx}",
                 LoaiCauHoi = "TracNghiem",
                 DoKho = "TrungBinh",
+                AudioPath = _duongDanAudioMacDinh,
                 IsSelected = true,
                 DaKiemDuyet = true
             };
@@ -392,18 +566,44 @@ namespace GUI.ViewModels.GiangVien
                     return;
                 }
 
-                if (q.DanhSachLuaChon.Count < 2)
+                if (q.IsDangLuaChon)
                 {
-                    ThongBao = $"Câu hỏi #{q.ThuTuCauHoi} phải có ít nhất 2 phương án.";
-                    IsSuccess = false;
-                    return;
-                }
+                    if (q.DanhSachLuaChon.Count < 2)
+                    {
+                        ThongBao = $"Câu hỏi trắc nghiệm #{q.ThuTuCauHoi} phải có ít nhất 2 phương án.";
+                        IsSuccess = false;
+                        return;
+                    }
 
-                if (!q.DanhSachLuaChon.Any(x => x.LaDapAnDung))
+                    if (!q.DanhSachLuaChon.Any(x => x.LaDapAnDung))
+                    {
+                        ThongBao = $"Câu hỏi trắc nghiệm #{q.ThuTuCauHoi} chưa chọn đáp án đúng.";
+                        IsSuccess = false;
+                        return;
+                    }
+                }
+                else if (q.IsDangNhapVanBan)
                 {
-                    ThongBao = $"Câu hỏi #{q.ThuTuCauHoi} chưa chọn đáp án đúng.";
-                    IsSuccess = false;
-                    return;
+                    // Với câu hỏi điền từ / trả lời ngắn: đảm bảo có đáp án mẫu
+                    if (q.DanhSachLuaChon.Count == 0 && string.IsNullOrWhiteSpace(q.CauTraLoiVanBan))
+                    {
+                        ThongBao = $"Câu hỏi điền khuyết / trả lời ngắn #{q.ThuTuCauHoi} chưa có đáp án mẫu.";
+                        IsSuccess = false;
+                        return;
+                    }
+                }
+                else if (q.IsDangTuLuan)
+                {
+                    // Tự luận: đảm bảo có tiêu chí chấm hoặc hướng dẫn làm bài
+                    if (q.DanhSachLuaChon.Count == 0)
+                    {
+                        q.DanhSachLuaChon.Add(new LuaChonDapAnDTO
+                        {
+                            KyHieuLuaChon = "RUB",
+                            NoiDungLuaChon = "Chấm theo mức độ hoàn thành nhiệm vụ, từ vựng và ngữ pháp.",
+                            LaDapAnDung = true
+                        });
+                    }
                 }
             }
 

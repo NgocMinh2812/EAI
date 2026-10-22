@@ -18,7 +18,32 @@ namespace GUI.Views.GiangVien
         {
             InitializeComponent();
             Loaded += Page_Loaded;
+            Unloaded += Page_Unloaded;
             DataContextChanged += Page_DataContextChanged;
+        }
+
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is NoiDungHocTapViewModel vm)
+            {
+                vm.DungAudio();
+            }
+        }
+
+        private void SldAudioTimeline_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (DataContext is NoiDungHocTapViewModel vm)
+            {
+                vm.BatDauTuaAudio();
+            }
+        }
+
+        private void SldAudioTimeline_PreviewMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (DataContext is NoiDungHocTapViewModel vm && sender is Slider slider)
+            {
+                vm.KetThucTuaAudio(slider.Value);
+            }
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
@@ -32,13 +57,11 @@ namespace GUI.Views.GiangVien
                 vm.CapNhatDanhSachChuDe();
                 vm.CapNhatDanhSachTrinhDo();
 
-                // 2. Không gọi LocDanhSach() nếu người dùng đang tạo bài mới hoặc đang sinh AI
-                if (!vm.IsCreatingNewLesson && !vm.IsAiGeneratingSample && !vm.IsAiGeneratingQuestions)
+                // 2. Luôn đồng bộ danh sách bài học mới nhất từ CSDL khi chuyển sang trang này
+                // (loại bỏ các bài học/tệp đã bị xóa ở Danh mục & Cấu trúc, bảo toàn bản nháp nếu đang tạo mới)
+                if (!vm.IsAiGeneratingSample && !vm.IsAiGeneratingQuestions)
                 {
-                    if (vm.DanhSachBaiHoc.Count == 0)
-                    {
-                        vm.LocDanhSach();
-                    }
+                    vm.LocDanhSach();
                 }
 
                 // 3. Khôi phục nội dung văn bản trong RichTextBox nếu ViewModel có nội dung mới hơn
@@ -393,39 +416,56 @@ namespace GUI.Views.GiangVien
                     return;
                 }
 
+                // Kiểm tra bài học còn tồn tại trong hệ thống hay không (tránh trường hợp bài đã bị xóa từ Danh mục & Cấu trúc)
+                if (vm.SelectedBaiHoc.MaBaiHoc > 0 && !vm.DanhSachBaiHoc.Any(b => b.MaBaiHoc == vm.SelectedBaiHoc.MaBaiHoc))
+                {
+                    ThongBaoDialog.CanhBao(Window.GetWindow(this), "Bài học này không còn tồn tại trong cơ sở dữ liệu (có thể đã bị xóa từ mục Danh mục & Cấu trúc).", "Bài học không tồn tại");
+                    vm.LocDanhSach();
+                    return;
+                }
+
+                // Ràng buộc đối với bài học Luyện nghe (Listening): Bắt buộc phải có tệp Audio
+                if (vm.IsKyNangNghe && !vm.HasAudioFile)
+                {
+                    bool xacNhan = ThongBaoDialog.XacNhan(
+                        Window.GetWindow(this),
+                        "Bài học này thuộc kỹ năng Luyện nghe (Listening) nhưng hiện tại chưa có tệp âm thanh (Audio).\n\n" +
+                        "Để học viên có thể luyện nghe và hệ thống phát audio cho các câu hỏi trong bài học cũng như trong ngân hàng câu hỏi, bài học bắt buộc phải có tệp Audio.\n\n" +
+                        "Bạn có muốn chọn tệp Audio (.mp3, .wav, .m4a) cho bài học này ngay bây giờ không?",
+                        "Yêu cầu tệp âm thanh Audio");
+
+                    if (xacNhan)
+                    {
+                        vm.ChonAudioCommand.Execute(null);
+                        if (!vm.HasAudioFile)
+                        {
+                            vm.ThongBaoLoi = "Vui lòng đính kèm tệp âm thanh (Audio) cho bài học nghe hiểu trước khi tạo câu hỏi bằng AI.";
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        vm.ThongBaoLoi = "Bài học Luyện nghe bắt buộc phải có tệp Audio để tạo câu hỏi nghe hiểu.";
+                        ThongBaoDialog.CanhBao(
+                            Window.GetWindow(this),
+                            "Bài học Luyện nghe bắt buộc phải có tệp Audio để tạo câu hỏi nghe hiểu và phát âm thanh trong ngân hàng câu hỏi.",
+                            "Chưa có tệp Audio");
+                        return;
+                    }
+                }
+
                 vm.IsAiGeneratingQuestions = true;
                 vm.AiQuestionsStatusMessage = "AI đang phân tích bài học và tạo câu hỏi...";
 
                 try
                 {
-                    var questions = await vm.LayHoacTaoCauHoiAIAsync();
-                    if (questions != null && questions.Count > 0)
-                    {
-                        var duyetVm = new DuyetBoCauHoiAIViewModel();
-                        duyetVm.NapDuLieu(
-                            tenNguon: vm.SelectedBaiHoc.TieuDe ?? "Bài học tiếng Anh",
-                            nguonTao: "AI_BaiHoc",
-                            cauHois: questions,
-                            maBaiHoc: vm.SelectedBaiHoc.MaBaiHoc,
-                            maChuDe: vm.SelectedBaiHoc.MaChuDe,
-                            maTrinhDo: vm.SelectedBaiHoc.MaTrinhDoId,
-                            capDo: vm.SelectedBaiHoc.MaTrinhDo ?? "B1",
-                            kyNang: vm.SelectedBaiHoc.LoaiBaiHoc ?? "Doc",
-                            audioPath: vm.SelectedBaiHoc.AudioPath ?? vm.SelectedBaiHoc.DuongDanAudio
-                        );
-
-                        var dlg = new DuyetBoCauHoiAIDialog(duyetVm);
-                        ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this));
-
-                        if (duyetVm.DaLuuThanhCong)
-                        {
-                            ThongBaoDialog.ThanhCong(Window.GetWindow(this), $"Bộ câu hỏi cho bài học \"{vm.SelectedBaiHoc.TieuDe}\" đã được lưu thành công vào Ngân hàng câu hỏi!", "Thành công");
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ThongBaoDialog.Loi(Window.GetWindow(this), $"Lỗi khi tạo câu hỏi bằng AI:\n{ex.Message}", "Lỗi tạo câu hỏi");
+                    await Views.Common.AICauHoiUIHelper.TaoVaDuyetBoCauHoiAsync(
+                        Window.GetWindow(this),
+                        vm.SelectedBaiHoc,
+                        nguonTao: "AI_BaiHoc",
+                        soLuong: 10,
+                        forceRecreate: true,
+                        onStatusUpdate: msg => vm.AiQuestionsStatusMessage = msg);
                 }
                 finally
                 {

@@ -83,19 +83,59 @@ namespace DTO
             set { if (_thuTuCauHoi != value) { _thuTuCauHoi = value; OnPropertyChanged(); } }
         }
 
+        public static string ChuanHoaKyNang(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return "Doc";
+            string lower = raw.Trim().ToLowerInvariant();
+            if (lower.Contains("nghe") || lower.Contains("listen")) return "Nghe";
+            if (lower.Contains("nguphap") || lower.Contains("grammar")) return "NguPhap";
+            if (lower.Contains("tuvung") || lower.Contains("vocab")) return "TuVung";
+            if (lower.Contains("viet") || lower.Contains("writ") || lower.Contains("essay")) return "Viet";
+            if (lower.Contains("doc") || lower.Contains("read")) return "Doc";
+            return raw.Trim();
+        }
+
+        public static string ChuanHoaDoKho(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return "TrungBinh";
+            string lower = raw.Trim().ToLowerInvariant();
+            if (lower.Contains("de") || lower.Contains("easy")) return "De";
+            if (lower.Contains("kho") || lower.Contains("hard") || lower.Contains("diff")) return "Kho";
+            return "TrungBinh";
+        }
+
         public string KyNang
         {
             get => _kyNang;
             set
             {
-                if (_kyNang != value)
+                string norm = ChuanHoaKyNang(value);
+                if (_kyNang != norm)
                 {
-                    _kyNang = value;
+                    _kyNang = norm;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(ChuyenMucHienThi));
+                    OnPropertyChanged(nameof(KyNangHienThi));
                     OnPropertyChanged(nameof(IsKyNangNghe));
                     OnPropertyChanged(nameof(IsKyNangDoc));
                 }
+            }
+        }
+
+        public string KyNangHienThi
+        {
+            get
+            {
+                return KyNang switch
+                {
+                    "Doc" or "DocHieu" or "Reading" => "Đọc hiểu",
+                    "Nghe" or "NgheHieu" or "Listening" => "Nghe hiểu",
+                    "NguPhap" or "Grammar" => "Ngữ pháp",
+                    "TuVung" or "Vocabulary" => "Từ vựng",
+                    "Viet" or "Writing" => "Viết",
+                    "Noi" or "Speaking" => "Nói",
+                    _ => string.IsNullOrWhiteSpace(KyNang) ? "Đọc hiểu" : KyNang
+                };
             }
         }
 
@@ -117,8 +157,19 @@ namespace DTO
                 if (_maTrinhDo != value)
                 {
                     _maTrinhDo = value;
+                    _maTrinhDoId = value switch
+                    {
+                        "A1" => 1,
+                        "A2" => 2,
+                        "B1" => 3,
+                        "B2" => 4,
+                        "C1" => 5,
+                        "C2" => 6,
+                        _ => _maTrinhDoId
+                    };
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(ChuyenMucHienThi));
+                    OnPropertyChanged(nameof(MaTrinhDoId));
                 }
             }
         }
@@ -159,16 +210,131 @@ namespace DTO
             set { if (_maTrinhDoId != value) { _maTrinhDoId = value; OnPropertyChanged(); } }
         }
 
+        public static string ChuanHoaLoaiCauHoi(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return "TracNghiem";
+            string lower = raw.Trim().ToLowerInvariant();
+            if (lower.Contains("tfng") || lower.Contains("notgiven") || lower.Contains("not given")) return "TrueFalseNotGiven";
+            if (lower.Contains("truefalse") || lower.Contains("true/false") || lower.Contains("dungsai") || lower == "tf") return "DungSai";
+            if (lower.Contains("shortanswer") || lower.Contains("short_answer") || lower.Contains("traloingan")) return "TraLoiNgan";
+            if (lower.Contains("matching") || lower.Contains("noicap") || lower.Contains("gheptieude")) return "NoiCap";
+            if (lower.Contains("sequence") || lower.Contains("ordering") || lower.Contains("sapxep")) return "SapXep";
+            if (lower.Contains("error") || lower.Contains("loi") || lower.Contains("timloi") || lower.Contains("sualoi")) return "SuaLoiSai";
+            if (lower.Contains("transform") || lower.Contains("vietlai") || lower.Contains("rewrite")) return "VietLaiCau";
+            if (lower.Contains("essay") || lower.Contains("paragraph") || lower.Contains("tuluan") || lower.Contains("writing") || lower.Contains("bai_viet")) return "TuLuan";
+            if (lower.Contains("fill") || lower.Contains("dientu") || lower.Contains("dienkhuyet") || lower.Contains("blank") || lower.Contains("completion")) return "DienKhuyet";
+            return "TracNghiem";
+        }
+
         public string LoaiCauHoi
         {
             get => _loaiCauHoi;
-            set { if (_loaiCauHoi != value) { _loaiCauHoi = value; OnPropertyChanged(); } }
+            set
+            {
+                string norm = ChuanHoaLoaiCauHoi(value);
+                if (_loaiCauHoi != norm)
+                {
+                    _loaiCauHoi = norm;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(LoaiCauHoiHienThi));
+                    OnPropertyChanged(nameof(IsDangTracNghiem));
+                    OnPropertyChanged(nameof(IsDangDungSai));
+                    OnPropertyChanged(nameof(IsDangTrueFalseNotGiven));
+                    OnPropertyChanged(nameof(IsDangLuaChon));
+                    OnPropertyChanged(nameof(IsDangNhapVanBan));
+                    OnPropertyChanged(nameof(IsDangTuLuan));
+                    OnPropertyChanged(nameof(IsDangNoiCap));
+                    OnPropertyChanged(nameof(IsDangSapXep));
+                }
+            }
+        }
+
+        public string LoaiCauHoiHienThi
+        {
+            get
+            {
+                return LoaiCauHoi switch
+                {
+                    "TracNghiem" => "Trắc nghiệm",
+                    "DungSai" => "Đúng / Sai",
+                    "TrueFalseNotGiven" => "True / False / Not Given",
+                    "DienKhuyet" => "Điền khuyết",
+                    "TraLoiNgan" => "Trả lời ngắn",
+                    "NoiCap" => "Nối cặp (Matching)",
+                    "SapXep" => "Sắp xếp thứ tự",
+                    "SuaLoiSai" => "Sửa lỗi sai",
+                    "VietLaiCau" => "Viết lại câu",
+                    "TuLuan" => "Tự luận / Viết bài",
+                    _ => string.IsNullOrWhiteSpace(LoaiCauHoi) ? "Trắc nghiệm" : LoaiCauHoi
+                };
+            }
+        }
+
+        public bool IsDangTracNghiem => LoaiCauHoi == "TracNghiem";
+        public bool IsDangDungSai => LoaiCauHoi == "DungSai";
+        public bool IsDangTrueFalseNotGiven => LoaiCauHoi == "TrueFalseNotGiven";
+        public bool IsDangLuaChon => IsDangTracNghiem || IsDangDungSai || IsDangTrueFalseNotGiven;
+        public bool IsDangNhapVanBan => LoaiCauHoi == "DienKhuyet" || LoaiCauHoi == "TraLoiNgan" || LoaiCauHoi == "VietLaiCau" || LoaiCauHoi == "SuaLoiSai";
+        public bool IsDangTuLuan => LoaiCauHoi == "TuLuan";
+        public bool IsDangNoiCap => LoaiCauHoi == "NoiCap";
+        public bool IsDangSapXep => LoaiCauHoi == "SapXep";
+
+        private string? _cauTraLoiVanBan;
+        public string? CauTraLoiVanBan
+        {
+            get => _cauTraLoiVanBan;
+            set { if (_cauTraLoiVanBan != value) { _cauTraLoiVanBan = value; OnPropertyChanged(); } }
+        }
+
+        public string DapAnDungText
+        {
+            get
+            {
+                var dung = DanhSachLuaChon?.FirstOrDefault(x => x.LaDapAnDung);
+                if (dung != null && !string.IsNullOrWhiteSpace(dung.NoiDungLuaChon))
+                    return dung.NoiDungLuaChon;
+                return DanhSachLuaChon?.FirstOrDefault()?.NoiDungLuaChon ?? "";
+            }
+        }
+
+        public string TieuChiChamRubric
+        {
+            get
+            {
+                var rubricOpt = DanhSachLuaChon?.FirstOrDefault(x => x.KyHieuLuaChon == "RUB" || x.KyHieuLuaChon == "RUBRIC" || x.KyHieuLuaChon == "TC");
+                if (rubricOpt != null && !string.IsNullOrWhiteSpace(rubricOpt.NoiDungLuaChon))
+                    return rubricOpt.NoiDungLuaChon;
+                return GiaiThichDapAn ?? "Chấm theo 4 tiêu chí: Task Response, Coherence & Cohesion, Lexical Resource, Grammatical Range.";
+            }
         }
 
         public string DoKho
         {
             get => _doKho;
-            set { if (_doKho != value) { _doKho = value; OnPropertyChanged(); } }
+            set
+            {
+                string norm = ChuanHoaDoKho(value);
+                if (_doKho != norm)
+                {
+                    _doKho = norm;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(DoKhoHienThi));
+                }
+            }
+        }
+
+        public string DoKhoHienThi
+        {
+            get
+            {
+                return DoKho switch
+                {
+                    "De" or "Easy" => "Dễ",
+                    "TrungBinh" or "Medium" => "Trung Bình",
+                    "Kho" or "Hard" => "Khó",
+                    _ => string.IsNullOrWhiteSpace(DoKho) ? "Trung Bình" : DoKho
+                };
+            }
         }
 
         public string? AudioPath
@@ -224,10 +390,19 @@ namespace DTO
                     "Doc" => "ĐỌC HIỂU",
                     "Nghe" => "NGHE HIỂU",
                     "NgheHieu" => "NGHE HIỂU",
+                    "Viet" => "VIẾT",
+                    "Noi" => "NÓI",
                     _ => KyNang?.ToUpper() ?? "KIẾN THỨC"
                 };
                 return $"{kyNangStr} • TRÌNH ĐỘ {MaTrinhDo}";
             }
+        }
+
+        private double _diem = 1.0;
+        public double Diem
+        {
+            get => _diem;
+            set { if (_diem != value) { _diem = value; OnPropertyChanged(); } }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

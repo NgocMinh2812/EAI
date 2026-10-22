@@ -195,34 +195,43 @@ namespace BUS
         }
 
         /// <summary>
-        /// Xóa chủ đề kèm kiểm tra logic ràng buộc bài học và chủ đề con
+        /// Xóa chủ đề: nếu các chủ đề con đều có 0 bài học thì xóa luôn cả cha lẫn toàn bộ con trong 1 transaction an toàn
         /// </summary>
         public (bool Success, string Message) XoaChuDe(int maChuDe)
         {
             if (maChuDe <= 0)
                 return (false, "Mã chủ đề không hợp lệ.");
 
-            // 1. Kiểm tra xem có chủ đề con không
-            int soCon = _dal.DemSoChuDeCon(maChuDe);
-            if (soCon > 0)
-            {
-                return (false, $"Không thể xóa chủ đề này vì đang có {soCon} chủ đề con trực thuộc. Vui lòng chuyển hoặc xóa các chủ đề con trước!");
-            }
-
-            // 2. Kiểm tra ràng buộc bài học
-            int soBaiHoc = _dal.DemSoBaiHocTheoChuDe(maChuDe);
+            // 1. Kiểm tra tổng số bài học trong cây chủ đề (bao gồm cả chủ đề này và tất cả chủ đề con)
+            int soBaiHoc = _dal.DemTongSoBaiHocTrongCayChuDe(maChuDe);
             if (soBaiHoc > 0)
             {
-                return (false, $"Không thể xóa chủ đề này vì đang có {soBaiHoc} bài học liên kết trực tiếp. Vui lòng di dời hoặc xóa các bài học trước khi xóa danh mục!");
+                return (false, $"Không thể xóa danh mục này vì đang có {soBaiHoc} bài học liên kết (tại danh mục này hoặc các danh mục con trực thuộc). Vui lòng di dời hoặc xóa các bài học trước khi xóa danh mục!");
             }
 
-            // 3. Tiến hành xóa an toàn
-            bool ok = _dal.DeleteChuDe(maChuDe);
-            if (ok)
+            // 2. Lấy số lượng chủ đề con trực thuộc để thông báo chính xác cho người dùng
+            int soCon = _dal.DemSoChuDeConTrongCay(maChuDe);
+
+            // 3. Tiến hành xóa an toàn toàn bộ (cha + các con nếu có) trong 1 Transaction
+            var (success, msg, deletedCount) = _dal.DeleteChuDeVaCacCon(maChuDe);
+            if (success)
             {
-                return (true, "Xóa chủ đề thành công.");
+                string successMsg = soCon > 0
+                    ? $"Đã xóa thành công danh mục cha cùng {soCon} danh mục con trực thuộc (toàn bộ đều có 0 bài học)!"
+                    : "Đã xóa danh mục thành công!";
+                return (true, successMsg);
             }
-            return (false, "Xảy ra lỗi khi xóa chủ đề trong cơ sở dữ liệu.");
+            return (false, msg);
+        }
+
+        public int DemTongSoBaiHocTrongCayChuDe(int rootMaChuDe)
+        {
+            return _dal.DemTongSoBaiHocTrongCayChuDe(rootMaChuDe);
+        }
+
+        public int DemSoChuDeConTrongCay(int rootMaChuDe)
+        {
+            return _dal.DemSoChuDeConTrongCay(rootMaChuDe);
         }
     }
 }

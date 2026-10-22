@@ -408,7 +408,7 @@ namespace GUI.Views
                         }
                         else
                         {
-                            char correctLetter = (char)('A' + ch.DapAnDungIndex);
+                            char correctLetter = (char)('A' + (ch.DapAnDungIndex ?? 0));
                             txtGiaiThich.Text = $"❌ Chưa đúng (Đáp án đúng là {correctLetter}). {ch.GiaiThichChiTiet}";
                             bdrGiaiThich.Background = new SolidColorBrush(Color.FromRgb(254, 242, 242));
                         }

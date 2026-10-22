@@ -64,6 +64,24 @@ namespace DAL
         }
 
         /// <summary>
+        /// Đếm tổng số lượng câu hỏi hiện có trong toàn hệ thống
+        /// </summary>
+        public int DemTongSoCauHoi()
+        {
+            string query = "SELECT COUNT(*) FROM CauHoi";
+            try
+            {
+                object? res = SqlDataProvider.Instance.ExecuteScalar(query);
+                return res != null && res != DBNull.Value ? Convert.ToInt32(res) : 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BoCauHoiDAL.DemTongSoCauHoi] {ex.Message}");
+                return 0;
+            }
+        }
+
+        /// <summary>
         /// Lấy danh sách câu hỏi thuộc một bộ câu hỏi cụ thể
         /// </summary>
         public List<CauHoiKhaoSatDTO> LayDanhSachCauHoiTheoBo(int maBoCauHoi, string? tuKhoa = null, string? kyNang = null, string? doKho = null)
@@ -255,12 +273,21 @@ namespace DAL
                 }
 
                 // 2. LƯU TỪNG CÂU HỎI VÀ LIÊN KẾT VÀO BỘ
+                var newAssignedIds = new Dictionary<CauHoiKhaoSatDTO, int>();
                 int thuTu = 1;
                 foreach (var q in dsCauHoi)
                 {
                     int maCauHoi = q.MaCauHoi;
+                    bool tonTai = false;
 
-                    if (maCauHoi <= 0)
+                    if (maCauHoi > 0)
+                    {
+                        using var cmdCheck = new SqlCommand("SELECT COUNT(1) FROM CauHoi WHERE MaCauHoi = @id", conn, trans);
+                        cmdCheck.Parameters.AddWithValue("@id", maCauHoi);
+                        tonTai = Convert.ToInt32(cmdCheck.ExecuteScalar()) > 0;
+                    }
+
+                    if (!tonTai)
                     {
                         // Thêm mới câu hỏi
                         string insertChSql = @"
@@ -288,8 +315,8 @@ namespace DAL
                         cmdCh.Parameters.AddWithValue("@NguoiTao", nguoiTaoId > 0 ? (object)nguoiTaoId : DBNull.Value);
                         cmdCh.Parameters.AddWithValue("@NguonTao", bo.NguonTao ?? "AI");
 
-                        maCauHoi = (int)cmdCh.ExecuteScalar();
-                        q.MaCauHoi = maCauHoi;
+                        maCauHoi = Convert.ToInt32(cmdCh.ExecuteScalar());
+                        newAssignedIds[q] = maCauHoi;
                     }
                     else
                     {
@@ -331,9 +358,12 @@ namespace DAL
 
                         foreach (var da in q.DanhSachLuaChon)
                         {
+                            string kyHieu = string.IsNullOrWhiteSpace(da.KyHieuLuaChon) ? "A" : da.KyHieuLuaChon.Trim();
+                            if (kyHieu.Length > 5) kyHieu = kyHieu.Substring(0, 5);
+
                             using var cmdDa = new SqlCommand(insertDaSql, conn, trans);
                             cmdDa.Parameters.AddWithValue("@MaCauHoi", maCauHoi);
-                            cmdDa.Parameters.AddWithValue("@KyHieu", da.KyHieuLuaChon);
+                            cmdDa.Parameters.AddWithValue("@KyHieu", kyHieu);
                             cmdDa.Parameters.AddWithValue("@NoiDung", da.NoiDungLuaChon ?? "");
                             cmdDa.Parameters.AddWithValue("@LaDapAnDung", da.LaDapAnDung);
                             cmdDa.ExecuteNonQuery();
@@ -360,12 +390,19 @@ namespace DAL
                 }
 
                 trans.Commit();
+
+                // Gán lại MaCauHoi vào các đối tượng DTO khi transaction đã commit thành công
+                foreach (var kvp in newAssignedIds)
+                {
+                    kvp.Key.MaCauHoi = kvp.Value;
+                }
+
                 bo.SoLuongCauHoi = dsCauHoi.Count;
                 return true;
             }
             catch (Exception ex)
             {
-                trans.Rollback();
+                try { trans.Rollback(); } catch { }
                 errorMessage = ex.Message;
                 return false;
             }
@@ -435,7 +472,7 @@ namespace DAL
         public bool XoaCauHoiKhoiBo(int maBo, int maCauHoi, out string errorMessage)
         {
             errorMessage = string.Empty;
-            if (maBo <= 0 || maCauHoi <= 0)
+            if (maBo <= 0 || maCauHoi < 0)
             {
                 errorMessage = "Dữ liệu không hợp lệ.";
                 return false;
@@ -494,7 +531,7 @@ namespace DAL
         public bool XoaCauHoiVinhVien(int maCauHoi, out string errorMessage)
         {
             errorMessage = string.Empty;
-            if (maCauHoi <= 0)
+            if (maCauHoi < 0)
             {
                 errorMessage = "Mã câu hỏi không hợp lệ.";
                 return false;
@@ -528,6 +565,16 @@ namespace DAL
 
                 try
                 {
+                    // 0. Xóa câu trả lời sinh viên & liên kết AI nếu có để bảo đảm toàn vẹn dữ liệu
+                    using var cmd0 = new SqlCommand(@"
+                        DELETE FROM CauTraLoiKhaoSat WHERE MaCauHoi = @MaCH OR MaLuaChonDaChon IN (SELECT MaLuaChon FROM LuaChonDapAn WHERE MaCauHoi = @MaCH);
+                        DELETE FROM ChiTietTraLoi WHERE MaCauHoi = @MaCH OR MaLuaChonDaChon IN (SELECT MaLuaChon FROM LuaChonDapAn WHERE MaCauHoi = @MaCH);
+                        DELETE FROM CauHoiDoAISinh WHERE MaCauHoi = @MaCH;
+                        UPDATE PhienHoiThoaiAI SET MaCauHoiLienQuan = NULL WHERE MaCauHoiLienQuan = @MaCH;
+                    ", conn, trans);
+                    cmd0.Parameters.AddWithValue("@MaCH", maCauHoi);
+                    cmd0.ExecuteNonQuery();
+
                     // 1. Xóa lựa chọn đáp án
                     using var cmd1 = new SqlCommand("DELETE FROM LuaChonDapAn WHERE MaCauHoi = @MaCH", conn, trans);
                     cmd1.Parameters.AddWithValue("@MaCH", maCauHoi);

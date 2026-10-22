@@ -9,7 +9,17 @@ namespace DTO
         public string TenTrinhDo { get; set; } = string.Empty;
         public string? MoTa { get; set; }
 
-        public string TenHienThi => !string.IsNullOrWhiteSpace(TenTrinhDo) ? $"{MaCapDo} — {TenTrinhDo}" : MaCapDo;
+        public string TenHienThi
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(MaCapDo))
+                    return !string.IsNullOrWhiteSpace(TenTrinhDo) ? TenTrinhDo : "Tất cả cấp độ";
+                if (!string.IsNullOrWhiteSpace(TenTrinhDo))
+                    return $"{MaCapDo} — {TenTrinhDo}";
+                return MaCapDo;
+            }
+        }
 
         // Bổ sung thống kê phục vụ hiển thị US-GV04
         public int SoLuongBaiHoc { get; set; } = 0;

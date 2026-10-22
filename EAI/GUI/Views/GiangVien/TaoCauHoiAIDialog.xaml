@@ -4,7 +4,7 @@
         xmlns:local="clr-namespace:GUI"
         xmlns:converters="clr-namespace:GUI.ViewModels.Common"
         Title="Tạo câu hỏi bằng AI từ nội dung bài học" 
-        Icon="/Assets/app_icon.ico"
+        Icon="pack://application:,,,/GUI;component/Assets/app_icon.ico"
         Height="600" Width="700"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"

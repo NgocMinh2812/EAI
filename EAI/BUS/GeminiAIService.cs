@@ -182,7 +182,8 @@ namespace BUS
             string trinhDo = "B1", 
             int soLuong = 10, 
             string module = "NoiDungHocTap", 
-            string loaiBaiHoc = "")
+            string loaiBaiHoc = "",
+            string? yeuCauLoaiCauHoi = null)
         {
             // Defensive: phát hiện nếu người gọi truyền tên kỹ năng vào tham số module
             if (string.IsNullOrWhiteSpace(loaiBaiHoc) && !string.IsNullOrWhiteSpace(module) &&
@@ -193,7 +194,7 @@ namespace BUS
                 loaiBaiHoc = module;
             }
 
-            return await AI.AIServiceManager.Instance.BocTachCauHoiAsync(tieuDe, noiDung, trinhDo, soLuong, loaiBaiHoc);
+            return await AI.AIServiceManager.Instance.BocTachCauHoiAsync(tieuDe, noiDung, trinhDo, soLuong, loaiBaiHoc, yeuCauLoaiCauHoi: yeuCauLoaiCauHoi);
         }
 
         /// <summary>
@@ -490,7 +491,7 @@ QUY TẮC BẮT BUỘC:
                         "D. \"Our engineering division was finalized all critical deliverables since two days.\""
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Chủ ngữ số ít 'division' đi với trợ động từ 'has' + phân từ hai 'finalized'. Trạng từ 'successfully' đứng giữa trợ động từ và động từ chính theo đúng trật tự chuẩn."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: Chủ ngữ số ít 'division' đi với trợ động từ 'has' + phân từ hai 'finalized'. Trạng từ 'successfully' đứng giữa trợ động từ và động từ chính theo đúng trật tự chuẩn."
                 });
 
                 list.Add(new CauHoiDTO
@@ -504,7 +505,7 @@ QUY TẮC BẮT BUỘC:
                         "D. \"Were you reviewed the pull request for the authentication module yet?\""
                     },
                     DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Câu hỏi thì Hiện tại hoàn thành có cấu trúc 'Have + S + V3/ed + ... + yet?' để hỏi về việc được kỳ vọng hoàn thành hay chưa."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: Câu hỏi thì Hiện tại hoàn thành có cấu trúc 'Have + S + V3/ed + ... + yet?' để hỏi về việc được kỳ vọng hoàn thành hay chưa."
                 });
 
                 list.Add(new CauHoiDTO
@@ -518,7 +519,7 @@ QUY TẮC BẮT BUỘC:
                         "D. \"The management team does not have approved the proposed budget adjustment.\""
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Thể phủ định 'has not yet approved' hoặc 'has not approved ... yet' là dạng chuẩn mực trong tiếng Anh thương mại."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: Thể phủ định 'has not yet approved' hoặc 'has not approved ... yet' là dạng chuẩn mực trong tiếng Anh thương mại."
                 });
 
                 list.Add(new CauHoiDTO
@@ -532,7 +533,7 @@ QUY TẮC BẮT BUỘC:
                         "D. from"
                     },
                     DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Dùng 'for' đi kèm với một khoảng thời gian (for over four years). 'Since' chỉ đi với mốc thời gian cụ thể (since 2020, since last Monday)."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: Dùng 'for' đi kèm với một khoảng thời gian (for over four years). 'Since' chỉ đi với mốc thời gian cụ thể (since 2020, since last Monday)."
                 });
 
                 list.Add(new CauHoiDTO
@@ -546,7 +547,7 @@ QUY TẮC BẮT BUỘC:
                         "D. were not"
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Trong cấu trúc 'Neither... nor...', động từ chia theo chủ ngữ gần nó nhất. Tuy nhiên nếu danh từ gần nhất là số nhiều/ít cần đối chiếu kỹ; ở đây chia theo danh từ đứng liền kề."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: Trong cấu trúc 'Neither... nor...', động từ chia theo chủ ngữ gần nó nhất. Tuy nhiên nếu danh từ gần nhất là số nhiều/ít cần đối chiếu kỹ; ở đây chia theo danh từ đứng liền kề."
                 });
 
                 list.Add(new CauHoiDTO
@@ -560,7 +561,7 @@ QUY TẮC BẮT BUỘC:
                         "D. \"The update had already deployed to production by the DevOps team.\""
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Thể bị động của thì Hiện tại hoàn thành: S + have/has + been + V3/ed."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: Thể bị động của thì Hiện tại hoàn thành: S + have/has + been + V3/ed."
                 });
 
                 list.Add(new CauHoiDTO
@@ -574,7 +575,7 @@ QUY TẮC BẮT BUỘC:
                         "D. [D] yesterday morning"
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Với mốc thời gian quá khứ xác định 'yesterday morning', bắt buộc phải dùng Quá khứ đơn (sent), không được dùng Hiện tại hoàn thành (have sent)."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: Với mốc thời gian quá khứ xác định 'yesterday morning', bắt buộc phải dùng Quá khứ đơn (sent), không được dùng Hiện tại hoàn thành (have sent)."
                 });
 
                 list.Add(new CauHoiDTO
@@ -588,7 +589,7 @@ QUY TẮC BẮT BUỘC:
                         "D. which established"
                     },
                     DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Mệnh đề quan hệ bị động 'which were established by our department' được rút gọn thành quá khứ phân từ 'established'."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: Mệnh đề quan hệ bị động 'which were established by our department' được rút gọn thành quá khứ phân từ 'established'."
                 });
 
                 list.Add(new CauHoiDTO
@@ -602,7 +603,7 @@ QUY TẮC BẮT BUỘC:
                         "D. does not approve"
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Mệnh đề chứa 'Unless' (nếu không) trong câu điều kiện loại 1 chia ở thì Hiện tại đơn và mang nghĩa phủ định sẵn, không dùng trợ động từ phủ định kèm theo."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: Mệnh đề chứa 'Unless' (nếu không) trong câu điều kiện loại 1 chia ở thì Hiện tại đơn và mang nghĩa phủ định sẵn, không dùng trợ động từ phủ định kèm theo."
                 });
 
                 list.Add(new CauHoiDTO
@@ -616,7 +617,7 @@ QUY TẮC BẮT BUỘC:
                         "D. \"Seldom have witnessed we such tremendous progress in a single sprint.\""
                     },
                     DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Khi trạng từ phủ định/bán phủ định 'Seldom' đứng đầu câu, ta đảo trợ động từ lên trước chủ ngữ: Seldom + have + S + V3/ed."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: Khi trạng từ phủ định/bán phủ định 'Seldom' đứng đầu câu, ta đảo trợ động từ lên trước chủ ngữ: Seldom + have + S + V3/ed."
                 });
             }
             else if (loaiLower.Contains("tuvung") || loaiLower.Contains("vocab"))
@@ -632,7 +633,7 @@ QUY TẮC BẮT BUỘC:
                         "D. Office stationary distributed to newly hired staff."
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Giải thích AI: 'Deliverables' (sản phẩm bàn giao) là các hạng mục, báo cáo hoặc sản phẩm hoàn thiện bắt buộc phải bàn giao cho khách hàng hoặc ban điều hành."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: 'Deliverables' (sản phẩm bàn giao) là các hạng mục, báo cáo hoặc sản phẩm hoàn thiện bắt buộc phải bàn giao cho khách hàng hoặc ban điều hành."
                 });
 
                 list.Add(new CauHoiDTO
@@ -646,7 +647,7 @@ QUY TẮC BẮT BUỘC:
                         "D. look forward"
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Cụm 'follow up with someone' có nghĩa là liên hệ theo dõi, kiểm tra tiến độ của một công việc trước đó."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: Cụm 'follow up with someone' có nghĩa là liên hệ theo dõi, kiểm tra tiến độ của một công việc trước đó."
                 });
 
                 list.Add(new CauHoiDTO
@@ -660,7 +661,7 @@ QUY TẮC BẮT BUỘC:
                         "D. perform"
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Cụm 'reach/achieve a milestone' là collocation tự nhiên mang nghĩa đạt được một cột mốc quan trọng."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: Cụm 'reach/achieve a milestone' là collocation tự nhiên mang nghĩa đạt được một cột mốc quan trọng."
                 });
 
                 list.Add(new CauHoiDTO
@@ -674,7 +675,7 @@ QUY TẮC BẮT BUỘC:
                         "D. coordinatingly"
                     },
                     DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Đứng sau tính từ 'Seamless' cần một danh từ chỉ sự việc ('coordination' - sự phối hợp)."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: Đứng sau tính từ 'Seamless' cần một danh từ chỉ sự việc ('coordination' - sự phối hợp)."
                 });
 
                 list.Add(new CauHoiDTO
@@ -688,7 +689,7 @@ QUY TẮC BẮT BUỘC:
                         "D. They are writing code on the same physical computer."
                     },
                     DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Thành ngữ 'on the same page' chỉ sự thấu hiểu đồng thuận và có chung góc nhìn, mục tiêu làm việc."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: Thành ngữ 'on the same page' chỉ sự thấu hiểu đồng thuận và có chung góc nhìn, mục tiêu làm việc."
                 });
 
                 list.Add(new CauHoiDTO
@@ -702,7 +703,7 @@ QUY TẮC BẮT BUỘC:
                         "D. A celebration party at the end of a sprint."
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Giải thích AI: 'Bottleneck' (nút thắt cổ chai) là điểm tắc nghẽn làm giảm tốc độ của cả chu trình làm việc."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: 'Bottleneck' (nút thắt cổ chai) là điểm tắc nghẽn làm giảm tốc độ của cả chu trình làm việc."
                 });
 
                 list.Add(new CauHoiDTO
@@ -716,7 +717,7 @@ QUY TẮC BẮT BUỘC:
                         "D. on"
                     },
                     DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Giải thích AI: Cụm động từ cố định 'comply with something' mang nghĩa tuân thủ quy định, tiêu chuẩn."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: Cụm động từ cố định 'comply with something' mang nghĩa tuân thủ quy định, tiêu chuẩn."
                 });
 
                 list.Add(new CauHoiDTO
@@ -730,7 +731,7 @@ QUY TẮC BẮT BUỘC:
                         "D. Directness"
                     },
                     DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Giải thích AI: 'Transparency' là sự minh bạch, rõ ràng; trái nghĩa với nó là 'Ambiguity' (sự mơ hồ, mập mờ)."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: 'Transparency' là sự minh bạch, rõ ràng; trái nghĩa với nó là 'Ambiguity' (sự mơ hồ, mập mờ)."
                 });
 
                 list.Add(new CauHoiDTO
@@ -744,7 +745,7 @@ QUY TẮC BẮT BUỘC:
                         "D. inspect"
                     },
                     DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Giải thích AI: 'Expedite' và 'Accelerate' đều mang nghĩa xúc tiến, thúc đẩy tiến độ nhanh hơn."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: 'Expedite' và 'Accelerate' đều mang nghĩa xúc tiến, thúc đẩy tiến độ nhanh hơn."
                 });
 
                 list.Add(new CauHoiDTO
@@ -758,12 +759,130 @@ QUY TẮC BẮT BUỘC:
                         "D. complicate"
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Giải thích AI: 'Complement' (với chữ 'e') nghĩa là bổ sung hoàn thiện; còn 'Compliment' (với chữ 'i') là khen ngợi."
+                    GiaiThichChiTiet = "➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: 'Complement' (với chữ 'e') nghĩa là bổ sung hoàn thiện; còn 'Compliment' (với chữ 'i') là khen ngợi."
+                });
+            }
+            else if (loaiLower.Contains("nghe") || loaiLower.Contains("listen"))
+            {
+                // Bộ câu hỏi kỹ năng Nghe hiểu (Listening): Trắc nghiệm, Đúng/Sai, Điền từ, Trả lời ngắn
+                string audioScript = "Audio Dialogue:\n" +
+                                     "Emma: \"David, thanks for meeting on short notice. Have you had an opportunity to inspect the crash reports?\"\n" +
+                                     "David: \"Yes, Emma. Our diagnostic logs indicate a memory leak occurred when concurrent users exceeded ten thousand.\"\n" +
+                                     "Emma: \"Is this issue likely to postpone next Monday's enterprise rollout?\"\n" +
+                                     "David: \"Not necessarily. If we push a hotfix to optimize the database query cache today, we can rerun load simulations by tonight.\"\n" +
+                                     "Emma: \"Sounds like a viable workaround. Who will be leading the deployment?\"\n" +
+                                     "David: \"Marcus and I will handle it directly. We'll post real-time updates in the deployment Slack channel.\"";
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = $"Question 1 (Listening - Setting & Purpose - {tieuDe}):\nWhere does the conversation most likely take place and what is its primary focus?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. In an engineering office discussing an urgent software crash issue before launch. (Đúng ✓)",
+                        "B. At a customer service center handling warranty claims.",
+                        "C. In a hardware warehouse ordering physical server racks.",
+                        "D. At an annual general meeting announcing financial dividends."
+                    },
+                    DapAnDungIndex = 0,
+                    LoaiCauHoi = "TracNghiem",
+                    KyNang = "Nghe",
+                    DoanVanDoc = audioScript,
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài nghe: Cuộc trao đổi giữa Emma và David tập trung vào 'crash reports', 'memory leak' và phương án 'hotfix' trước ngày ra mắt."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 2 (Listening - True / False):\nAccording to David, the enterprise rollout scheduled for next Monday MUST definitely be postponed.",
+                    DanhSachLuaChon = new List<string> { "A. True", "B. False (Đúng ✓)" },
+                    DapAnDungIndex = 1,
+                    LoaiCauHoi = "DungSai",
+                    KyNang = "Nghe",
+                    DoanVanDoc = audioScript,
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài nghe: David trả lời rõ ràng: 'Not necessarily. If we push a hotfix... we can rerun load simulations by tonight'."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 3 (Listening - True / False):\nMarcus and David will personally supervise the deployment of the database hotfix.",
+                    DanhSachLuaChon = new List<string> { "A. True (Đúng ✓)", "B. False" },
+                    DapAnDungIndex = 0,
+                    LoaiCauHoi = "DungSai",
+                    KyNang = "Nghe",
+                    DoanVanDoc = audioScript,
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài nghe: David xác nhận: 'Marcus and I will handle it directly'."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 4 (Listening - Information Completion):\nFill in the missing technical cause heard in the dialogue: The system crash was caused by a ________ leak when concurrent users exceeded ten thousand.",
+                    DapAnVanBan = "memory",
+                    LoaiCauHoi = "DienKhuyet",
+                    KyNang = "Nghe",
+                    DoanVanDoc = audioScript,
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài nghe: 'Our diagnostic logs indicate a memory leak occurred'."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 5 (Listening - Short Answer):\nWhere will the engineering team post real-time updates regarding the deployment status?",
+                    DapAnVanBan = "Slack channel|deployment Slack channel|Slack",
+                    LoaiCauHoi = "TraLoiNgan",
+                    KyNang = "Nghe",
+                    DoanVanDoc = audioScript,
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài nghe: 'We'll post real-time updates in the deployment Slack channel'."
+                });
+            }
+            else if (loaiLower.Contains("viet") || loaiLower.Contains("writing"))
+            {
+                // Bộ câu hỏi kỹ năng Viết (Writing): Viết lại câu, Sửa lỗi sai, Bài luận tự luận có Rubric
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = $"Question 1 (Sentence Transformation - {tieuDe}):\nRewrite the sentence using 'COMPLY WITH' so that it means the same as the original:\n\"All engineers must follow industry security standards.\"",
+                    DapAnVanBan = "All engineers must comply with industry security standards.",
+                    LoaiCauHoi = "VietLaiCau",
+                    KyNang = "Viet",
+                    GiaiThichChiTiet = "➔ Cấu trúc viết lại: 'follow standards' = 'comply with standards' (tuân thủ tiêu chuẩn)."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 2 (Error Correction):\nFind and correct the grammatical error in this sentence: \"Neither the manager nor the developers was informed about the server maintenance.\"",
+                    DapAnVanBan = "were|was informed -> were informed",
+                    LoaiCauHoi = "SuaLoiSai",
+                    KyNang = "Viet",
+                    GiaiThichChiTiet = "➔ Giải thích sửa lỗi: Với cấu trúc 'Neither... nor...', động từ chia theo danh từ gần nhất 'the developers' (số nhiều) nên phải dùng 'were informed'."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 3 (Sentence Transformation):\nRewrite the sentence beginning with 'DESPITE':\n\"Although the deadline was extremely tight, the QA team completed all test cases.\"",
+                    DapAnVanBan = "Despite the extremely tight deadline, the QA team completed all test cases.|Despite the tight deadline, the QA team completed all test cases.",
+                    LoaiCauHoi = "VietLaiCau",
+                    KyNang = "Viet",
+                    GiaiThichChiTiet = "➔ Cấu trúc viết lại: 'Although + S + V' chuyển thành 'Despite + Noun phrase'."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 4 (Error Correction):\nIdentify and correct the erroneous word: \"The continuous deployment pipeline compliments the automated testing framework perfectly.\"",
+                    DapAnVanBan = "complements|compliments -> complements",
+                    LoaiCauHoi = "SuaLoiSai",
+                    KyNang = "Viet",
+                    GiaiThichChiTiet = "➔ Giải thích sửa lỗi: 'Compliments' nghĩa là khen ngợi; từ đúng phải là 'complements' (bổ sung hoàn thiện)."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = $"Question 5 (Academic Essay Writing Task - {tieuDe}):\nTopic: \"Some organizations believe that daily synchronous stand-ups improve team alignment, while others argue that structured asynchronous updates are far more productive. Discuss both views and give your opinion.\"\n(Write at least 150 words. Organize your essay logically with clear transition devices).",
+                    LoaiCauHoi = "TuLuan",
+                    KyNang = "Viet",
+                    TieuChiCham = "Tiêu chí chấm (IELTS Rubric): Task Response (>=150 từ, lập luận 2 chiều), Coherence & Cohesion (phân đoạn, liên từ nối), Lexical Resource (từ vựng học thuật C1/B2), Grammatical Range & Accuracy (câu phức, bị động, mệnh đề quan hệ).",
+                    GiaiThichChiTiet = "➔ Hướng dẫn chấm bài tự luận: Đạt điểm cao khi nêu đủ 2 quan điểm (ưu điểm của họp trực tiếp vs lợi ích của báo cáo bất đồng bộ), đưa ra quan điểm cá nhân rõ ràng và bảo đảm độ dài tối thiểu 150 từ."
                 });
             }
             else
             {
-                // Mặc định hoặc Đọc hiểu / Nghe hiểu / Viết luận (Reading, Listening, Writing, General)
+                // Mặc định hoặc Đọc hiểu (Reading Comprehension): Trắc nghiệm, True/False/Not Given, Trả lời ngắn, Điền từ
                 list.Add(new CauHoiDTO
                 {
                     NoiDungCauHoi = $"Question 1 (Main Idea & Primary Purpose - {tieuDe}):\nWhat is the primary message conveyed in the lesson material?",
@@ -775,7 +894,9 @@ QUY TẮC BẮT BUỘC:
                         "D. Daily meetings are merely bureaucratic formalities with no real practical value."
                     },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Toàn bộ bài học khẳng định giao tiếp minh bạch, văn hóa an toàn tâm lý và giải quyết vướng mắc sớm là nền tảng cốt lõi của đội ngũ xuất sắc."
+                    LoaiCauHoi = "TracNghiem",
+                    KyNang = "Doc",
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài học: Toàn bộ bài học khẳng định giao tiếp minh bạch, văn hóa an toàn tâm lý và giải quyết vướng mắc sớm là nền tảng cốt lõi của đội ngũ xuất sắc."
                 });
 
                 list.Add(new CauHoiDTO
@@ -789,119 +910,47 @@ QUY TẮC BẮT BUỘC:
                         "D. Personal opinions on company policy, software preferences, and social events."
                     },
                     DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Dẫn chứng AI: 3 câu hỏi kinh điển của Daily Stand-up gồm: hôm qua làm gì, hôm nay làm gì, và có trở ngại (blockers/impediments) nào không."
+                    LoaiCauHoi = "TracNghiem",
+                    KyNang = "Doc",
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài học: 3 câu hỏi kinh điển của Daily Stand-up gồm: hôm qua làm gì, hôm nay làm gì, và có trở ngại (blockers/impediments) nào không."
                 });
 
                 list.Add(new CauHoiDTO
                 {
-                    NoiDungCauHoi = "Question 3 (Vocabulary in Context):\nWhat does the word 'impediments' most nearly mean as used in the passage?",
-                    DanhSachLuaChon = new List<string>
-                    {
-                        "A. Financial bonuses paid to high performers.",
-                        "B. Obstacles or hindrances that slow down progress. (Đúng ✓)",
-                        "C. Formal commendation letters from executives.",
-                        "D. New hardware components delivered to the lab."
-                    },
-                    DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Trong quản trị dự án, 'impediments' là các rào cản, khó khăn cản trở tiến độ của đội ngũ."
-                });
-
-                list.Add(new CauHoiDTO
-                {
-                    NoiDungCauHoi = "Question 4 (Inference & Critical Analysis):\nWhat can be inferred about an organization that lacks 'psychological safety'?",
-                    DanhSachLuaChon = new List<string>
-                    {
-                        "A. Team members will immediately resolve all issues without needing managers.",
-                        "B. Critical delays and software bugs will remain hidden until catastrophic failures occur. (Đúng ✓)",
-                        "C. The company will automatically generate higher profit margins.",
-                        "D. Employees will work much faster due to intense pressure."
-                    },
-                    DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Thiếu an toàn tâm lý khiến nhân viên sợ bị phạt nên che giấu lỗi sai cho đến khi vấn đề bùng nổ thành khủng hoảng."
-                });
-
-                list.Add(new CauHoiDTO
-                {
-                    NoiDungCauHoi = "Question 5 (Tone and Perspective):\nWhat is the author's tone toward modern collaborative communication methodologies?",
-                    DanhSachLuaChon = new List<string>
-                    {
-                        "A. Skeptical and highly dismissive.",
-                        "B. Strongly supportive and constructive. (Đúng ✓)",
-                        "C. Indifferent and unconcerned.",
-                        "D. Aggressive and confrontational."
-                    },
-                    DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Tác giả nhấn mạnh giá trị to lớn của giao tiếp cộng tác và đưa ra các hướng dẫn mang tính xây dựng rõ rệt."
-                });
-
-                list.Add(new CauHoiDTO
-                {
-                    NoiDungCauHoi = "Question 6 (Cause and Effect Relationship):\nWhy is early escalation of project blockers considered an essential best practice?",
-                    DanhSachLuaChon = new List<string>
-                    {
-                        "A. It allows cross-functional teams to resolve issues collaboratively before delivery dates are compromised. (Đúng ✓)",
-                        "B. It ensures that guilty individuals can be immediately reprimanded.",
-                        "C. It eliminates the need for further testing and validation.",
-                        "D. It allows the management to cancel the project altogether."
-                    },
+                    NoiDungCauHoi = "Question 3 (Reading - True / False / Not Given):\nTransparent escalation within agile teams helps eliminate critical project bottlenecks early.",
+                    DanhSachLuaChon = new List<string> { "A. True (Đúng ✓)", "B. False", "C. Not Given" },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Báo cáo trở ngại sớm (early escalation) giúp cả đội ngũ phối hợp giải cứu tiến độ trước khi ảnh hưởng đến thời hạn bàn giao."
+                    LoaiCauHoi = "TrueFalseNotGiven",
+                    KyNang = "Doc",
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài học: 'Environments that champion transparent escalation empower cross-functional teams to proactively address impediments'."
                 });
 
                 list.Add(new CauHoiDTO
                 {
-                    NoiDungCauHoi = "Question 7 (Cohesion & Transition Words):\nWhich transition word best fills the gap: \"Face-to-face meetings build rapport; ________, asynchronous updates preserve deep focus.\"",
-                    DanhSachLuaChon = new List<string>
-                    {
-                        "A. therefore",
-                        "B. however (Đúng ✓)",
-                        "C. for example",
-                        "D. similarly"
-                    },
-                    DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "➔ Dẫn chứng AI: 'However' được dùng để nối hai vế mang ý đối lập tương phản giữa họp trực tiếp và cập nhật bất đồng bộ."
-                });
-
-                list.Add(new CauHoiDTO
-                {
-                    NoiDungCauHoi = "Question 8 (Practical Application & Actionable Strategy):\nHow should a software engineer constructively phrase an impediment during a sprint meeting?",
-                    DanhSachLuaChon = new List<string>
-                    {
-                        "A. \"I'm stuck because third-party API documentation is missing, and I recommend we schedule a sync with their support team today.\" (Đúng ✓)",
-                        "B. \"Everything is completely ruined and nobody is helping me.\"",
-                        "C. \"I have nothing to report today; everything will somehow be fine.\"",
-                        "D. \"The other department is incompetent, so do not expect my part to finish.\""
-                    },
-                    DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Trình bày chuyên nghiệp cần nêu rõ nguồn cơn vấn đề khách quan kèm đề xuất hướng xử lý khả thi."
-                });
-
-                list.Add(new CauHoiDTO
-                {
-                    NoiDungCauHoi = "Question 9 (Identifying False Statements):\nWhich of the following statements is CONTRARY to the lesson principles?",
-                    DanhSachLuaChon = new List<string>
-                    {
-                        "A. Transparent documentation creates an immutable audit trail for distributed teams.",
-                        "B. Context-switching penalties increase when uninterrupted deep work is frequently fragmented.",
-                        "C. Stand-up meetings should ideally last between 45 to 60 minutes with prolonged debates. (Đúng ✓)",
-                        "D. Agile ceremonies function best when participants maintain disciplined conciseness."
-                    },
+                    NoiDungCauHoi = "Question 4 (Reading - True / False / Not Given):\nThe CEO of the organization personally attends every daily stand-up meeting.",
+                    DanhSachLuaChon = new List<string> { "A. True", "B. False", "C. Not Given (Đúng ✓)" },
                     DapAnDungIndex = 2,
-                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Phương án C sai nguyên tắc Agile vì Stand-up meeting chỉ nên kéo dài tối đa 15 phút, các cuộc tranh luận sâu cần tách sang phiên họp riêng."
+                    LoaiCauHoi = "TrueFalseNotGiven",
+                    KyNang = "Doc",
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài học: Bài đọc hoàn toàn không đề cập đến việc CEO có trực tiếp tham gia buổi stand-up hàng ngày hay không -> Not Given."
                 });
 
                 list.Add(new CauHoiDTO
                 {
-                    NoiDungCauHoi = "Question 10 (Synthesized Takeaway):\nWhat is the overarching conclusion regarding organizational communication?",
-                    DanhSachLuaChon = new List<string>
-                    {
-                        "A. High-performing organizations transform candid dialogue from an operational risk into a competitive market advantage. (Đúng ✓)",
-                        "B. Technical skill alone guarantees project success without any need for communication.",
-                        "C. Written communication should be completely abolished in favor of ad-hoc calls.",
-                        "D. Complex problems disappear naturally without collaborative intervention."
-                    },
-                    DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "➔ Dẫn chứng AI: Kết luận bài học chỉ rõ giao tiếp cởi mở, chân thành và xây dựng biến đối thoại thành lợi thế cạnh tranh sống còn của doanh nghiệp."
+                    NoiDungCauHoi = "Question 5 (Reading - Sentence Completion):\nComplete the statement based on the text: Agile ceremonies function best when participants maintain disciplined ________.",
+                    DapAnVanBan = "conciseness|clarity",
+                    LoaiCauHoi = "DienKhuyet",
+                    KyNang = "Doc",
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài học: 'Agile ceremonies function best when participants maintain disciplined conciseness'."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 6 (Reading - Short Answer):\nWhich academic vocabulary word used in the passage means 'obstacles or hindrances that slow down progress'?",
+                    DapAnVanBan = "impediments|impediment",
+                    LoaiCauHoi = "TraLoiNgan",
+                    KyNang = "Doc",
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài học: 'Impediment (/ɪmˈped.ɪ.mənt/) - [Noun]: Trở ngại, rào cản tiến độ'."
                 });
             }
 
@@ -912,17 +961,8 @@ QUY TẮC BẮT BUỘC:
             {
                 var q = list[i];
                 if (string.IsNullOrWhiteSpace(q.KyNang)) q.KyNang = determinedKyNang;
-                if (string.IsNullOrWhiteSpace(q.DoKho)) q.DoKho = (i < 2) ? "De" : ((i >= 7) ? "Kho" : "TrungBinh");
-                if (string.IsNullOrWhiteSpace(q.LoaiCauHoi))
-                {
-                    if (q.NoiDungCauHoi.Contains("Error Identification") || q.NoiDungCauHoi.Contains("Find the error"))
-                        q.LoaiCauHoi = "TimLoiSai";
-                    else if (q.NoiDungCauHoi.Contains("Fill in the") || q.NoiDungCauHoi.Contains("Complete the sentence"))
-                        q.LoaiCauHoi = "DienTu";
-                    else
-                        q.LoaiCauHoi = "TracNghiem";
-                }
-                if (string.IsNullOrWhiteSpace(q.DoanVanDoc) && (q.KyNang == "Doc" || determinedKyNang == "Doc"))
+                if (string.IsNullOrWhiteSpace(q.DoKho)) q.DoKho = (i < 2) ? "De" : ((i >= 4) ? "Kho" : "TrungBinh");
+                if (string.IsNullOrWhiteSpace(q.DoanVanDoc) && (q.KyNang == "Doc" || determinedKyNang == "Doc" || q.KyNang == "Nghe" || determinedKyNang == "Nghe"))
                 {
                     q.DoanVanDoc = passage;
                 }

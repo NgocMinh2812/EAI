@@ -24,6 +24,21 @@ namespace GUI.Views
             public int ThoiGianLamBaiPhut { get; set; } = 30;
             public int SoLuongCauHoi { get; set; } = 10;
             public string MaTrinhDo { get; set; } = "B2";
+            public int SoLuotLamToiDa { get; set; } = 0;
+            public decimal DiemDatYeuCau { get; set; } = 0;
+            public decimal TongDiem { get; set; } = 10;
+            public bool ChoXemDapAn { get; set; } = true;
+            public bool ChoXemLoiGiai { get; set; } = true;
+            public int LuotDaLam { get; set; } = 0;
+
+            public bool CanTakeExam => SoLuotLamToiDa <= 0 || LuotDaLam < SoLuotLamToiDa;
+            public string ActionButtonText => CanTakeExam ? "Bắt đầu thi" : "Đã hết lượt thi";
+
+            public Visibility MaxAttemptsVisibility => SoLuotLamToiDa > 0 ? Visibility.Visible : Visibility.Collapsed;
+            public string LuotLamBadgeText => $"Lượt làm: {LuotDaLam}/{SoLuotLamToiDa}";
+
+            public Visibility PassMarkVisibility => DiemDatYeuCau > 0 ? Visibility.Visible : Visibility.Collapsed;
+            public string PassMarkBadgeText => $"Điểm đạt: {DiemDatYeuCau:F1} / {TongDiem:F1}đ";
 
             public string FormatIcon => LoaiHinh == "ThiThu" ? (TenBaiTapDeThi.Contains("IELTS") ? "🇬🇧" : "🏢") : "📝";
             public Brush FormatBadgeBg => LoaiHinh == "ThiThu" 
@@ -77,6 +92,8 @@ namespace GUI.Views
         private Dictionary<int, int> _userAnswers = new Dictionary<int, int>();
         // Key = MaCauHoi, Value = 0, 1, 2, 3 (Index A, B, C, D)
         private Dictionary<int, int> _userAnswerIndices = new Dictionary<int, int>();
+        // Lưu câu trả lời văn bản / tự luận: Key = MaCauHoi, Value = Chuỗi trả lời
+        private Dictionary<int, string> _userTextAnswers = new Dictionary<int, string>();
 
         // Timer & Time tracking
         private DispatcherTimer? _examTimer;
@@ -105,7 +122,8 @@ namespace GUI.Views
         {
             try
             {
-                _rawExams = BaiTapDeThiBUS.Instance.LayDanhSachDeThi();
+                // Học viên chỉ được xem và làm các đề thi đã xuất bản (chiLayDaXuatBan: true)
+                _rawExams = BaiTapDeThiBUS.Instance.LayDanhSachDeThi(chiLayDaXuatBan: true);
             }
             catch (Exception ex)
             {
@@ -123,15 +141,30 @@ namespace GUI.Views
                 ).ToList();
             }
 
-            var viewModels = displayList.Select(e => new ExamItemViewModel
+            int currentUserId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
+
+            var viewModels = displayList.Select(e =>
             {
-                MaBaiTapDeThi = e.MaBaiTapDeThi,
-                TenBaiTapDeThi = e.TenBaiTapDeThi,
-                LoaiHinh = e.LoaiHinh,
-                MoTa = e.MoTa,
-                ThoiGianLamBaiPhut = e.ThoiGianLamBaiPhut > 0 ? e.ThoiGianLamBaiPhut : 25,
-                SoLuongCauHoi = e.SoLuongCauHoi > 0 ? e.SoLuongCauHoi : 10,
-                MaTrinhDo = !string.IsNullOrEmpty(e.MaCapDo) ? e.MaCapDo : "B2"
+                int daLam = currentUserId > 0 
+                    ? BaiTapDeThiBUS.Instance.DemSoLuotHocVienDaLam(e.MaBaiTapDeThi, currentUserId) 
+                    : 0;
+
+                return new ExamItemViewModel
+                {
+                    MaBaiTapDeThi = e.MaBaiTapDeThi,
+                    TenBaiTapDeThi = e.TenBaiTapDeThi,
+                    LoaiHinh = e.LoaiHinh,
+                    MoTa = e.MoTa,
+                    ThoiGianLamBaiPhut = e.ThoiGianLamBaiPhut > 0 ? e.ThoiGianLamBaiPhut : 25,
+                    SoLuongCauHoi = e.SoLuongCauHoi > 0 ? e.SoLuongCauHoi : 10,
+                    MaTrinhDo = !string.IsNullOrEmpty(e.MaCapDo) ? e.MaCapDo : "B2",
+                    SoLuotLamToiDa = e.SoLuotLamToiDa,
+                    DiemDatYeuCau = e.DiemDatYeuCau,
+                    TongDiem = e.TongDiem > 0 ? (decimal)e.TongDiem : 10m,
+                    ChoXemDapAn = e.ChoXemDapAn,
+                    ChoXemLoiGiai = e.ChoXemLoiGiai,
+                    LuotDaLam = daLam
+                };
             }).ToList();
 
             icDanhSachDeThi.ItemsSource = viewModels;
@@ -217,6 +250,20 @@ namespace GUI.Views
                 return;
             }
 
+            int currentUserId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
+            if (_currentExam.SoLuotLamToiDa > 0 && currentUserId > 0)
+            {
+                int daLam = BaiTapDeThiBUS.Instance.DemSoLuotHocVienDaLam(_currentExam.MaBaiTapDeThi, currentUserId);
+                if (daLam >= _currentExam.SoLuotLamToiDa)
+                {
+                    Common.ThongBaoDialog.CanhBao(
+                        $"Bạn đã hoàn thành đủ số lượt thi cho phép ({daLam}/{_currentExam.SoLuotLamToiDa} lượt).\n" +
+                        "Quy định của đề thi này không cho phép thực hiện thêm lượt mới.", 
+                        "Hết lượt làm bài");
+                    return;
+                }
+            }
+
             // Nạp danh sách câu hỏi của đề từ Database
             try
             {
@@ -237,6 +284,7 @@ namespace GUI.Views
             // Reset trạng thái làm bài (TASK-206)
             _userAnswers.Clear();
             _userAnswerIndices.Clear();
+            _userTextAnswers.Clear();
             _flaggedQuestions.Clear();
             _currentIndex = 0;
             _isSubmitting = false;
@@ -340,14 +388,18 @@ namespace GUI.Views
 
         private void UpdateNavProgress()
         {
-            int answeredCount = _userAnswers.Count(x => x.Value > 0);
+            int answeredCount = _questions.Count(q =>
+                (_userAnswers.ContainsKey(q.MaCauHoi) && _userAnswers[q.MaCauHoi] > 0) ||
+                (_userTextAnswers.ContainsKey(q.MaCauHoi) && !string.IsNullOrWhiteSpace(_userTextAnswers[q.MaCauHoi])));
+
             txtNavProgress.Text = $"Đã làm: {answeredCount} / {_questions.Count} câu";
 
             for (int i = 0; i < _navButtons.Count; i++)
             {
                 var btn = _navButtons[i];
                 var q = _questions[i];
-                bool isAnswered = _userAnswers.ContainsKey(q.MaCauHoi) && _userAnswers[q.MaCauHoi] > 0;
+                bool isAnswered = (_userAnswers.ContainsKey(q.MaCauHoi) && _userAnswers[q.MaCauHoi] > 0) ||
+                                  (_userTextAnswers.ContainsKey(q.MaCauHoi) && !string.IsNullOrWhiteSpace(_userTextAnswers[q.MaCauHoi]));
                 bool isFlagged = _flaggedQuestions.Contains(q.MaCauHoi);
                 bool isCurrent = (i == _currentIndex);
 
@@ -391,7 +443,8 @@ namespace GUI.Views
             var q = _questions[index];
 
             txtExamProgressCount.Text = $"Câu {index + 1} / {_questions.Count}";
-            txtQuestionSkill.Text = $"KỸ NĂNG: {q.KyNang?.ToUpper() ?? "CHUNG"}";
+            txtQuestionSkill.Text = $"KỸ NĂNG: {q.KyNangHienThi.ToUpper()}";
+            txtQuestionType.Text = $"DẠNG: {q.LoaiCauHoiHienThi.ToUpper()}";
             txtQuestionLevel.Text = $"TRÌNH ĐỘ {q.MaTrinhDo ?? "B2"}";
             txtExamQuestionPrompt.Text = $"Câu {index + 1}: {q.NoiDungCauHoi}";
 
@@ -409,44 +462,153 @@ namespace GUI.Views
                 btnFlagQuestion.Foreground = new SolidColorBrush(Color.FromRgb(180, 83, 9));
             }
 
-            // Hiển thị đoạn văn nếu có
-            if (!string.IsNullOrWhiteSpace(q.DoanVanDoc))
+            // Xử lý bài thi Nghe (Listening) vs Đọc (Reading)
+            bool isListening = q.IsKyNangNghe;
+            if (isListening)
             {
-                pnlExamPassage.Visibility = Visibility.Visible;
-                txtExamPassage.Text = q.DoanVanDoc;
+                pnlExamAudio.Visibility = Visibility.Visible;
+                pnlExamPassage.Visibility = Visibility.Collapsed; // Ẩn transcript để bảo đảm tính khách quan khi nghe
+                txtAudioStatus.Text = "🎧 Bấm để nghe • Transcript được bảo mật trong suốt thời gian thi";
             }
             else
             {
-                pnlExamPassage.Visibility = Visibility.Collapsed;
+                pnlExamAudio.Visibility = Visibility.Collapsed;
+                if (!string.IsNullOrWhiteSpace(q.DoanVanDoc))
+                {
+                    pnlExamPassage.Visibility = Visibility.Visible;
+                    txtExamPassage.Text = q.DoanVanDoc;
+                }
+                else
+                {
+                    pnlExamPassage.Visibility = Visibility.Collapsed;
+                }
             }
 
-            // Gán 4 phương án trắc nghiệm
-            var options = q.DanhSachLuaChon;
-            txtOptA.Text = options.Count > 0 ? $"A. {options[0].NoiDungLuaChon}" : "A.";
-            txtOptB.Text = options.Count > 1 ? $"B. {options[1].NoiDungLuaChon}" : "B.";
-            txtOptC.Text = options.Count > 2 ? $"C. {options[2].NoiDungLuaChon}" : "C.";
-            txtOptD.Text = options.Count > 3 ? $"D. {options[3].NoiDungLuaChon}" : "D.";
+            // Chuyển đổi khung nhập liệu dựa trên loại câu hỏi
+            if (q.IsDangLuaChon)
+            {
+                pnlChoiceOptions.Visibility = Visibility.Visible;
+                pnlTextInputAnswer.Visibility = Visibility.Collapsed;
+                pnlEssayAnswer.Visibility = Visibility.Collapsed;
 
-            // Tạm hủy event để tránh trigger ngược khi set IsChecked
-            rbOptA.Checked -= ExamOption_Checked;
-            rbOptB.Checked -= ExamOption_Checked;
-            rbOptC.Checked -= ExamOption_Checked;
-            rbOptD.Checked -= ExamOption_Checked;
+                var options = q.DanhSachLuaChon;
+                txtOptA.Text = options.Count > 0 ? $"{options[0].KyHieuLuaChon}. {options[0].NoiDungLuaChon}" : "A.";
+                txtOptB.Text = options.Count > 1 ? $"{options[1].KyHieuLuaChon}. {options[1].NoiDungLuaChon}" : "B.";
+                txtOptC.Text = options.Count > 2 ? $"{options[2].KyHieuLuaChon}. {options[2].NoiDungLuaChon}" : "C.";
+                txtOptD.Text = options.Count > 3 ? $"{options[3].KyHieuLuaChon}. {options[3].NoiDungLuaChon}" : "D.";
 
-            int selectedOptIdx = _userAnswerIndices.ContainsKey(q.MaCauHoi) ? _userAnswerIndices[q.MaCauHoi] : -1;
-            rbOptA.IsChecked = (selectedOptIdx == 0);
-            rbOptB.IsChecked = (selectedOptIdx == 1);
-            rbOptC.IsChecked = (selectedOptIdx == 2);
-            rbOptD.IsChecked = (selectedOptIdx == 3);
+                rbOptC.Visibility = options.Count > 2 ? Visibility.Visible : Visibility.Collapsed;
+                rbOptD.Visibility = options.Count > 3 ? Visibility.Visible : Visibility.Collapsed;
 
-            rbOptA.Checked += ExamOption_Checked;
-            rbOptB.Checked += ExamOption_Checked;
-            rbOptC.Checked += ExamOption_Checked;
-            rbOptD.Checked += ExamOption_Checked;
+                // Tạm hủy event để tránh trigger ngược khi set IsChecked
+                rbOptA.Checked -= ExamOption_Checked;
+                rbOptB.Checked -= ExamOption_Checked;
+                rbOptC.Checked -= ExamOption_Checked;
+                rbOptD.Checked -= ExamOption_Checked;
+
+                int selectedOptIdx = _userAnswerIndices.ContainsKey(q.MaCauHoi) ? _userAnswerIndices[q.MaCauHoi] : -1;
+                rbOptA.IsChecked = (selectedOptIdx == 0);
+                rbOptB.IsChecked = (selectedOptIdx == 1);
+                rbOptC.IsChecked = (selectedOptIdx == 2);
+                rbOptD.IsChecked = (selectedOptIdx == 3);
+
+                rbOptA.Checked += ExamOption_Checked;
+                rbOptB.Checked += ExamOption_Checked;
+                rbOptC.Checked += ExamOption_Checked;
+                rbOptD.Checked += ExamOption_Checked;
+            }
+            else if (q.IsDangTuLuan)
+            {
+                pnlChoiceOptions.Visibility = Visibility.Collapsed;
+                pnlTextInputAnswer.Visibility = Visibility.Collapsed;
+                pnlEssayAnswer.Visibility = Visibility.Visible;
+
+                txtEssayRubric.Text = !string.IsNullOrWhiteSpace(q.TieuChiChamRubric) 
+                    ? q.TieuChiChamRubric 
+                    : "Chấm theo mức độ hoàn thành nhiệm vụ, tính mạch lạc, vốn từ vựng và độ chính xác ngữ pháp.";
+
+                txtStudentEssayAnswer.TextChanged -= TxtStudentEssayAnswer_TextChanged;
+                string currentEssay = _userTextAnswers.ContainsKey(q.MaCauHoi) ? _userTextAnswers[q.MaCauHoi] : "";
+                txtStudentEssayAnswer.Text = currentEssay;
+                int wc = string.IsNullOrWhiteSpace(currentEssay) ? 0 : currentEssay.Split(new[] { ' ', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
+                txtEssayWordCount.Text = $"Số từ: {wc} từ";
+                txtStudentEssayAnswer.TextChanged += TxtStudentEssayAnswer_TextChanged;
+            }
+            else
+            {
+                // Mặc định: Điền khuyết, Trả lời ngắn, Viết lại câu, Sửa lỗi sai, Sắp xếp, Nối cặp
+                pnlChoiceOptions.Visibility = Visibility.Collapsed;
+                pnlTextInputAnswer.Visibility = Visibility.Visible;
+                pnlEssayAnswer.Visibility = Visibility.Collapsed;
+
+                lblTextInputGuide.Text = q.IsDangSapXep 
+                    ? "🔢 Sắp xếp theo đúng thứ tự (ví dụ: A-C-B-D):" 
+                    : (q.IsDangNoiCap ? "🔗 Nhập các cặp ghép (ví dụ: 1-B, 2-A, 3-C):" : "✍️ Nhập câu trả lời của bạn vào ô bên dưới:");
+
+                txtStudentTextAnswer.TextChanged -= TxtStudentTextAnswer_TextChanged;
+                txtStudentTextAnswer.Text = _userTextAnswers.ContainsKey(q.MaCauHoi) ? _userTextAnswers[q.MaCauHoi] : "";
+                txtStudentTextAnswer.TextChanged += TxtStudentTextAnswer_TextChanged;
+            }
 
             btnPrevQuestion.IsEnabled = (index > 0);
             btnNextQuestion.Content = (index == _questions.Count - 1) ? "Xem lại câu 1 ➔" : "Câu tiếp theo ➔";
 
+            UpdateNavProgress();
+        }
+
+        private void SpeakText(string text, double speed = 1.0)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    var type = Type.GetType("System.Speech.Synthesis.SpeechSynthesizer, System.Speech");
+                    if (type != null)
+                    {
+                        dynamic synth = Activator.CreateInstance(type)!;
+                        synth.Volume = 100;
+                        synth.Rate = (int)((speed - 1.0) * 4);
+                        synth.Speak(text);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[Speech] Lỗi phát âm: {ex.Message}");
+                }
+            });
+        }
+
+        private void BtnPlayExamAudio_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentIndex < 0 || _currentIndex >= _questions.Count) return;
+            var q = _questions[_currentIndex];
+
+            string audioContent = !string.IsNullOrWhiteSpace(q.DoanVanDoc) ? q.DoanVanDoc : q.NoiDungCauHoi;
+            txtAudioStatus.Text = "🎧 Đang phát bài nghe (TTS)...";
+            SpeakText(audioContent);
+        }
+
+        private void TxtStudentTextAnswer_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_currentIndex < 0 || _currentIndex >= _questions.Count) return;
+            var q = _questions[_currentIndex];
+            _userTextAnswers[q.MaCauHoi] = txtStudentTextAnswer.Text;
+            UpdateNavProgress();
+        }
+
+        private void TxtStudentEssayAnswer_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_currentIndex < 0 || _currentIndex >= _questions.Count) return;
+            var q = _questions[_currentIndex];
+            string text = txtStudentEssayAnswer.Text;
+            _userTextAnswers[q.MaCauHoi] = text;
+
+            int wordCount = string.IsNullOrWhiteSpace(text)
+                ? 0
+                : text.Split(new[] { ' ', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
+            txtEssayWordCount.Text = $"Số từ: {wordCount} từ";
             UpdateNavProgress();
         }
 
@@ -529,7 +691,11 @@ namespace GUI.Views
         // =========================================================================
         private void BtnSubmitExam_Click(object sender, RoutedEventArgs e)
         {
-            int unanswered = _questions.Count - _userAnswers.Count;
+            int answeredCount = _questions.Count(q =>
+                (_userAnswers.ContainsKey(q.MaCauHoi) && _userAnswers[q.MaCauHoi] > 0) ||
+                (_userTextAnswers.ContainsKey(q.MaCauHoi) && !string.IsNullOrWhiteSpace(_userTextAnswers[q.MaCauHoi])));
+            int unanswered = _questions.Count - answeredCount;
+
             string confirmMsg = unanswered > 0
                 ? $"Bạn còn {unanswered} câu hỏi chưa trả lời.\nBạn có chắc chắn muốn nộp bài thi ngay bây giờ?"
                 : "Bạn đã hoàn thành tất cả các câu hỏi.\nBạn có muốn nộp bài thi để hệ thống chấm điểm?";
@@ -556,7 +722,8 @@ namespace GUI.Views
                 _examStartTime,
                 timeSpentSeconds,
                 _questions,
-                _userAnswers
+                _userAnswers,
+                _userTextAnswers
             );
 
             // Cập nhật thống kê người dùng trên header
@@ -584,20 +751,27 @@ namespace GUI.Views
             txtReviewTimeSpent.Text = $"⏱️ Thời gian làm: {timeSpent / 60:D2}:{timeSpent % 60:D2}";
 
             int percentage = total > 0 ? (correct * 100) / total : 0;
-            if (percentage >= 80)
+            if (_currentExam != null && _currentExam.DiemDatYeuCau > 0)
+            {
+                bool isPass = score >= _currentExam.DiemDatYeuCau;
+                txtReviewVerdict.Text = isPass 
+                    ? $"KẾT QUẢ: ĐẠT YÊU CẦU ({score:F1}/{_currentExam.TongDiem:F1}đ • Chuẩn: {_currentExam.DiemDatYeuCau:F1}đ)" 
+                    : $"KẾT QUẢ: CHƯA ĐẠT ({score:F1}/{_currentExam.TongDiem:F1}đ • Cần tối thiểu: {_currentExam.DiemDatYeuCau:F1}đ)";
+            }
+            else if (percentage >= 80)
             {
                 txtReviewVerdict.Text = "KẾT QUẢ: XUẤT SẮC (BAND C1/B2+)";
-                txtReviewAiFeedback.Text = "AI Đánh giá: Bạn có phản xạ xuất sắc và vốn từ vựng học thuật rất tốt. Khả năng đọc hiểu chi tiết và suy luận mạch lạc giúp bạn đạt điểm gần như tuyệt đối!";
+                txtReviewAiFeedback.Text = "AI Đánh giá: Bạn có phản xạ xuất sắc và vốn từ vựng học thuật rất tốt. Khả năng giải quyết các dạng câu hỏi đa dạng giúp bạn đạt điểm gần như tuyệt đối!";
             }
             else if (percentage >= 50)
             {
                 txtReviewVerdict.Text = "KẾT QUẢ: ĐẠT CHUẨN (BAND B1/B2)";
-                txtReviewAiFeedback.Text = "AI Đánh giá: Bạn nắm vững các ngữ cảnh thông thường. Hãy chú ý đọc kỹ các bẫy liên từ và từ đồng nghĩa trong đoạn văn để nâng cao thêm điểm số.";
+                txtReviewAiFeedback.Text = "AI Đánh giá: Bạn nắm vững các ngữ cảnh thông thường. Hãy chú ý đọc kỹ các bẫy liên từ và từ đồng nghĩa trong bài đọc và bài nghe để nâng cao thêm điểm số.";
             }
             else
             {
                 txtReviewVerdict.Text = "KẾT QUẢ: CẦN CỐ GẮNG THÊM";
-                txtReviewAiFeedback.Text = "AI Đánh giá: Bạn cần ôn luyện thêm phần Ngữ pháp cấu trúc câu và từ vựng chuyên ngành. Hãy xem kỹ phần giải thích chi tiết bên dưới để rút kinh nghiệm.";
+                txtReviewAiFeedback.Text = "AI Đánh giá: Bạn cần ôn luyện thêm phần Ngữ pháp cấu trúc câu, từ vựng chuyên ngành và kỹ năng nghe hiểu. Hãy xem kỹ phần giải thích chi tiết bên dưới để rút kinh nghiệm.";
             }
 
             // 2. Nạp chi tiết câu hỏi và đối chiếu đáp án từ DB
@@ -606,6 +780,9 @@ namespace GUI.Views
             {
                 chiTietLuot = BaiTapDeThiBUS.Instance.LayChiTietKetQuaLamBai(maLuotLamBai);
             }
+
+            bool choXemDapAn = _currentExam?.ChoXemDapAn ?? true;
+            bool choXemLoiGiai = _currentExam?.ChoXemLoiGiai ?? true;
 
             var reviewItems = new List<ReviewQuestionViewModel>();
 
@@ -616,18 +793,62 @@ namespace GUI.Views
                     bool isCorrect = ct.IsCorrect;
                     bool isAnswered = ct.IsAnswered;
 
+                    string studentChoiceText;
+                    if (!string.IsNullOrWhiteSpace(ct.CauTraLoiVanBan))
+                    {
+                        studentChoiceText = ct.CauTraLoiVanBan;
+                    }
+                    else if (isAnswered)
+                    {
+                        studentChoiceText = $"{ct.KyHieuDaChon}. {ct.NoiDungDaChon}";
+                    }
+                    else
+                    {
+                        studentChoiceText = "(Thí sinh bỏ trống)";
+                    }
+
+                    string correctChoiceText;
+                    if (!choXemDapAn)
+                    {
+                        correctChoiceText = "🔒 (Đáp án được bảo mật theo quy định của đề thi)";
+                    }
+                    else if (ct.KyHieuDapAnDung == "RUBRIC" || ct.KyHieuDapAnDung == "RUB")
+                    {
+                        correctChoiceText = $"📋 Tiêu chí chấm (Rubric): {ct.NoiDungDapAnDung}";
+                    }
+                    else if (ct.KyHieuDapAnDung == "KEY")
+                    {
+                        correctChoiceText = $"🔑 Đáp án mẫu: {ct.NoiDungDapAnDung}";
+                    }
+                    else
+                    {
+                        correctChoiceText = $"{ct.KyHieuDapAnDung}. {ct.NoiDungDapAnDung}";
+                    }
+
+                    string explanationText = !choXemLoiGiai 
+                        ? "🔒 (Lời giải chi tiết không được công khai theo quy định của đề thi)."
+                        : (!string.IsNullOrWhiteSpace(ct.GiaiThichDapAn) ? ct.GiaiThichDapAn : "Đáp án chuẩn theo ngân hàng câu hỏi đề thi.");
+
+                    string? passageText = ct.DoanVanDoc;
+                    if (!string.IsNullOrWhiteSpace(passageText) && (ct.KyNang?.Contains("Nghe", StringComparison.OrdinalIgnoreCase) == true || ct.KyNang?.Contains("Listening", StringComparison.OrdinalIgnoreCase) == true))
+                    {
+                        passageText = $"🎧 Transcript bài nghe:\n{passageText}";
+                    }
+
+                    decimal earnedPoint = ct.DiemDat > 0 ? ct.DiemDat : (isCorrect ? (ct.DiemToiDa > 0 ? ct.DiemToiDa : 1.0m) : 0m);
+
                     var vm = new ReviewQuestionViewModel
                     {
                         ThuTuCauHoi = ct.ThuTuCauHoi,
                         KyNang = ct.KyNang,
-                        DoanVanDoc = ct.DoanVanDoc,
+                        DoanVanDoc = passageText,
                         NoiDungCauHoi = ct.NoiDungCauHoi,
-                        CorrectChoiceText = $"{ct.KyHieuDapAnDung}. {ct.NoiDungDapAnDung}",
-                        ExplanationText = !string.IsNullOrWhiteSpace(ct.GiaiThichDapAn) ? ct.GiaiThichDapAn : "Đáp án chuẩn theo ngân hàng câu hỏi đề thi.",
-                        StatusBadgeText = isCorrect ? "✅ ĐÚNG (+1.0 đ)" : (isAnswered ? "❌ SAI (0.0 đ)" : "⚪ CHƯA LÀM (0.0 đ)"),
+                        CorrectChoiceText = correctChoiceText,
+                        ExplanationText = explanationText,
+                        StatusBadgeText = isCorrect ? $"✅ ĐÚNG (+{earnedPoint:F1} đ)" : (isAnswered ? "❌ SAI (0.0 đ)" : "⚪ CHƯA LÀM (0.0 đ)"),
                         StatusBadgeBg = isCorrect ? new SolidColorBrush(Color.FromRgb(209, 250, 229)) : (isAnswered ? new SolidColorBrush(Color.FromRgb(254, 226, 226)) : new SolidColorBrush(Color.FromRgb(241, 245, 249))),
                         StatusBadgeFg = isCorrect ? new SolidColorBrush(Color.FromRgb(16, 185, 129)) : (isAnswered ? new SolidColorBrush(Color.FromRgb(239, 68, 68)) : new SolidColorBrush(Color.FromRgb(100, 116, 139))),
-                        StudentChoiceText = isAnswered ? $"{ct.KyHieuDaChon}. {ct.NoiDungDaChon}" : "(Thí sinh bỏ trống)",
+                        StudentChoiceText = studentChoiceText,
                         StudentChoiceBg = isCorrect ? new SolidColorBrush(Color.FromRgb(236, 253, 245)) : (isAnswered ? new SolidColorBrush(Color.FromRgb(254, 242, 242)) : new SolidColorBrush(Color.FromRgb(248, 250, 252))),
                         StudentChoiceBorder = isCorrect ? new SolidColorBrush(Color.FromRgb(16, 185, 129)) : (isAnswered ? new SolidColorBrush(Color.FromRgb(239, 68, 68)) : new SolidColorBrush(Color.FromRgb(226, 232, 240))),
                         StudentChoiceFg = isCorrect ? new SolidColorBrush(Color.FromRgb(16, 185, 129)) : (isAnswered ? new SolidColorBrush(Color.FromRgb(239, 68, 68)) : new SolidColorBrush(Color.FromRgb(100, 116, 139)))
@@ -644,22 +865,48 @@ namespace GUI.Views
                     var correctOpt = q.DanhSachLuaChon.FirstOrDefault(o => o.LaDapAnDung);
                     int? selectedOptId = _userAnswers.ContainsKey(q.MaCauHoi) ? _userAnswers[q.MaCauHoi] : null;
                     var selectedOpt = q.DanhSachLuaChon.FirstOrDefault(o => o.MaLuaChon == selectedOptId);
+                    string? userText = _userTextAnswers.ContainsKey(q.MaCauHoi) ? _userTextAnswers[q.MaCauHoi] : null;
 
-                    bool isCorrect = selectedOpt != null && selectedOpt.LaDapAnDung;
-                    bool isAnswered = selectedOpt != null;
+                    bool isAnswered = selectedOpt != null || !string.IsNullOrWhiteSpace(userText);
+                    bool isCorrect = false;
+
+                    string studentText = "(Thí sinh bỏ trống)";
+                    if (!string.IsNullOrWhiteSpace(userText))
+                    {
+                        studentText = userText;
+                        if (q.IsDangTuLuan) isCorrect = userText.Trim().Length >= 20;
+                        else if (q.IsDangNhapVanBan) isCorrect = !string.IsNullOrWhiteSpace(q.DapAnDungText) && userText.Trim().Equals(q.DapAnDungText.Trim(), StringComparison.OrdinalIgnoreCase);
+                    }
+                    else if (selectedOpt != null)
+                    {
+                        studentText = $"{selectedOpt.KyHieuLuaChon}. {selectedOpt.NoiDungLuaChon}";
+                        isCorrect = selectedOpt.LaDapAnDung;
+                    }
+
+                    string correctText = correctOpt != null ? $"{correctOpt.KyHieuLuaChon}. {correctOpt.NoiDungLuaChon}" : (q.DapAnDungText ?? "Đang cập nhật");
+                    if (q.IsDangTuLuan)
+                    {
+                        correctText = $"📋 Tiêu chí chấm (Rubric): {q.TieuChiChamRubric ?? "Hoàn thành nhiệm vụ, ngữ pháp và từ vựng"}";
+                    }
+
+                    string? passageText = q.DoanVanDoc;
+                    if (!string.IsNullOrWhiteSpace(passageText) && q.IsKyNangNghe)
+                    {
+                        passageText = $"🎧 Transcript bài nghe:\n{passageText}";
+                    }
 
                     reviewItems.Add(new ReviewQuestionViewModel
                     {
                         ThuTuCauHoi = i + 1,
                         KyNang = q.KyNang,
-                        DoanVanDoc = q.DoanVanDoc,
+                        DoanVanDoc = passageText,
                         NoiDungCauHoi = q.NoiDungCauHoi,
-                        CorrectChoiceText = correctOpt != null ? $"{correctOpt.KyHieuLuaChon}. {correctOpt.NoiDungLuaChon}" : "Đang cập nhật",
+                        CorrectChoiceText = correctText,
                         ExplanationText = q.GiaiThichDapAn ?? "Không có giải thích chi tiết.",
                         StatusBadgeText = isCorrect ? "✅ ĐÚNG (+1.0 đ)" : (isAnswered ? "❌ SAI (0.0 đ)" : "⚪ CHƯA LÀM"),
                         StatusBadgeBg = isCorrect ? new SolidColorBrush(Color.FromRgb(209, 250, 229)) : new SolidColorBrush(Color.FromRgb(254, 226, 226)),
                         StatusBadgeFg = isCorrect ? new SolidColorBrush(Color.FromRgb(16, 185, 129)) : new SolidColorBrush(Color.FromRgb(239, 68, 68)),
-                        StudentChoiceText = isAnswered ? $"{selectedOpt!.KyHieuLuaChon}. {selectedOpt.NoiDungLuaChon}" : "(Thí sinh bỏ trống)",
+                        StudentChoiceText = studentText,
                         StudentChoiceBg = isCorrect ? new SolidColorBrush(Color.FromRgb(236, 253, 245)) : new SolidColorBrush(Color.FromRgb(254, 242, 242)),
                         StudentChoiceBorder = isCorrect ? new SolidColorBrush(Color.FromRgb(16, 185, 129)) : new SolidColorBrush(Color.FromRgb(239, 68, 68)),
                         StudentChoiceFg = isCorrect ? new SolidColorBrush(Color.FromRgb(16, 185, 129)) : new SolidColorBrush(Color.FromRgb(239, 68, 68))

@@ -1,4 +1,4 @@
-﻿/*
+/*
     DATABASE: TiengAnhAI
     Mục đích: CSDL cho đề tài "Ứng dụng khảo thí & học tiếng Anh tích hợp AI"
     Hệ quản trị: Microsoft SQL Server.
@@ -249,6 +249,10 @@ CREATE TABLE BaiTapDeThi (
     TongSoCau INT NOT NULL DEFAULT 0,
     XaoTronCauHoi BIT NOT NULL DEFAULT 1,
     DaPhatHanh BIT NOT NULL DEFAULT 0,
+    ChoXemDapAn BIT NOT NULL DEFAULT 1,
+    ChoXemLoiGiai BIT NOT NULL DEFAULT 1,
+    SoLuotLamToiDa INT NOT NULL DEFAULT 0,
+    TrangThai NVARCHAR(30) NOT NULL DEFAULT N'BanNhap', -- BanNhap / DaXuatBan / DaDong
     NguoiTao INT NULL,
     NgayTao DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     CONSTRAINT FK_BaiTapDeThi_BaiHoc
@@ -268,6 +272,14 @@ CREATE TABLE CauHoiBaiTap (
     MaCauHoi INT NOT NULL,
     ThuTuCauHoi INT NOT NULL,
     DiemSo DECIMAL(5,2) NOT NULL DEFAULT 1,
+    NoiDungCauHoiSnapshot NVARCHAR(MAX) NULL,
+    DoanVanDocSnapshot NVARCHAR(MAX) NULL,
+    GiaiThichDapAnSnapshot NVARCHAR(MAX) NULL,
+    AudioPathSnapshot NVARCHAR(500) NULL,
+    LoaiCauHoiSnapshot NVARCHAR(30) NULL,
+    KyNangSnapshot NVARCHAR(30) NULL,
+    DoKhoSnapshot NVARCHAR(20) NULL,
+    DanhSachLuaChonJson NVARCHAR(MAX) NULL,
     CONSTRAINT UQ_CauHoiBaiTap UNIQUE(MaBaiTapDeThi, MaCauHoi),
     CONSTRAINT FK_CauHoiBaiTap_BaiTapDeThi
         FOREIGN KEY (MaBaiTapDeThi) REFERENCES BaiTapDeThi(MaBaiTapDeThi),

@@ -21,6 +21,7 @@ namespace GUI.Views.GiangVien
     {
         public BaiHocDTO BaiHocData { get; private set; } = new BaiHocDTO();
         private string? _selectedFilePath;
+        private string? _selectedAudioFilePath;
 
         public UploadTaiLieuDialog(List<ChuDeDTO> danhSachChuDe, int? defaultChuDeId = null)
         {
@@ -41,6 +42,71 @@ namespace GUI.Views.GiangVien
 
             // Nạp danh sách trình độ động từ CSDL
             NapDanhSachTrinhDo();
+        }
+
+        private void CboLoaiBaiHoc_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (pnlAudioSection == null) return;
+            string loai = (cboLoaiBaiHoc.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "Doc";
+            bool isNghe = string.Equals(loai, "Nghe", StringComparison.OrdinalIgnoreCase) || BaiHocDTO.KiemTraKyNangNghe(loai);
+            pnlAudioSection.Visibility = (isNghe || !string.IsNullOrEmpty(_selectedAudioFilePath)) ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void BtnBrowseAudio_Click(object sender, RoutedEventArgs e)
+        {
+            var openDlg = new OpenFileDialog
+            {
+                Title = "Chọn tệp âm thanh bài nghe (Audio Listening)",
+                Filter = "Tệp âm thanh (*.mp3;*.wav;*.m4a;*.ogg;*.aac)|*.mp3;*.wav;*.m4a;*.ogg;*.aac|Tất cả tệp (*.*)|*.*",
+                Multiselect = false
+            };
+
+            try
+            {
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string candTest1 = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\TaiLieu_TestUpload"));
+                string candKho1 = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\KhoHocLieu"));
+                if (Directory.Exists(candTest1)) openDlg.InitialDirectory = candTest1;
+                else if (Directory.Exists(candKho1)) openDlg.InitialDirectory = candKho1;
+            }
+            catch { }
+
+            if (openDlg.ShowDialog() == true)
+            {
+                UpdateAudioDisplay(openDlg.FileName);
+            }
+        }
+
+        private void BtnRemoveAudio_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateAudioDisplay(null);
+        }
+
+        private void UpdateAudioDisplay(string? filePath)
+        {
+            if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
+            {
+                _selectedAudioFilePath = filePath;
+                var fileInfo = new FileInfo(filePath);
+                double sizeKb = Math.Round(fileInfo.Length / 1024.0, 1);
+                string sizeText = sizeKb > 1024 ? $"{Math.Round(sizeKb / 1024.0, 2)} MB" : $"{sizeKb} KB";
+
+                txtAudioNameDisplay.Text = fileInfo.Name;
+                txtAudioSizeDisplay.Text = $"Định dạng: {fileInfo.Extension.ToUpper()} • Dung lượng: {sizeText} • Đã gắn audio";
+                btnRemoveAudio.Visibility = Visibility.Visible;
+                pnlAudioSection.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                _selectedAudioFilePath = null;
+                txtAudioNameDisplay.Text = "Chưa chọn tệp audio (.mp3, .wav, .m4a)";
+                txtAudioSizeDisplay.Text = "Nhấn nút bên phải để chọn tệp âm thanh đồng bộ";
+                btnRemoveAudio.Visibility = Visibility.Collapsed;
+
+                string loai = (cboLoaiBaiHoc.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "Doc";
+                bool isNghe = string.Equals(loai, "Nghe", StringComparison.OrdinalIgnoreCase) || BaiHocDTO.KiemTraKyNangNghe(loai);
+                pnlAudioSection.Visibility = isNghe ? Visibility.Visible : Visibility.Collapsed;
+            }
         }
 
         private void NapDanhSachTrinhDo()
@@ -68,7 +134,7 @@ namespace GUI.Views.GiangVien
             var openDlg = new OpenFileDialog
             {
                 Title = "Chọn tệp đề thi hoặc tài liệu học liệu",
-                Filter = "Tệp học liệu (*.pdf;*.docx;*.txt)|*.pdf;*.docx;*.txt|Word Document (*.docx)|*.docx|Adobe PDF (*.pdf)|*.pdf|Văn bản thuần (*.txt)|*.txt|Tất cả tệp (*.*)|*.*",
+                Filter = "Tệp học liệu (*.pdf;*.docx;*.txt;*.mp3;*.wav;*.m4a)|*.pdf;*.docx;*.txt;*.mp3;*.wav;*.m4a|Word Document (*.docx)|*.docx|Adobe PDF (*.pdf)|*.pdf|Tệp âm thanh (*.mp3;*.wav;*.m4a)|*.mp3;*.wav;*.m4a|Văn bản thuần (*.txt)|*.txt|Tất cả tệp (*.*)|*.*",
                 Multiselect = false
             };
 
@@ -112,25 +178,59 @@ namespace GUI.Views.GiangVien
                 txtFileNameDisplay.Text = fileName;
                 txtFileSizeDisplay.Text = $"Định dạng: {ext.ToUpper()} • Dung lượng: {sizeText} • Sẵn sàng trích xuất";
 
+                bool isAudioFile = ext == ".mp3" || ext == ".wav" || ext == ".m4a" || ext == ".aac" || ext == ".ogg";
+                bool isListeningDoc = fileName.ToLower().Contains("listening") || fileName.ToLower().Contains("nghe");
+
                 // Đổi icon tương ứng
-                if (ext == ".pdf")
+                if (isAudioFile)
+                {
+                    icoFileTypeDisplay.Kind = LucideIconKind.Headphones;
+                    icoFileTypeDisplay.Foreground = (Brush)new BrushConverter().ConvertFrom("#16A34A")!;
+                    pnlFileIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#DCFCE7")!;
+                    cboLoaiBaiHoc.SelectedIndex = 3; // Luyện nghe
+                    UpdateAudioDisplay(filePath);
+                }
+                else if (ext == ".pdf")
                 {
                     icoFileTypeDisplay.Kind = LucideIconKind.FileText;
                     icoFileTypeDisplay.Foreground = (Brush)new BrushConverter().ConvertFrom("#DC2626")!;
                     pnlFileIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#FEE2E2")!;
-                    cboLoaiBaiHoc.SelectedIndex = 0; // Đọc hiểu
+                    if (isListeningDoc) cboLoaiBaiHoc.SelectedIndex = 3;
+                    else cboLoaiBaiHoc.SelectedIndex = 0; // Đọc hiểu
                 }
                 else if (ext == ".docx")
                 {
                     icoFileTypeDisplay.Kind = LucideIconKind.FileText;
                     icoFileTypeDisplay.Foreground = (Brush)new BrushConverter().ConvertFrom("#2563EB")!;
                     pnlFileIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#DBEAFE")!;
+                    if (isListeningDoc) cboLoaiBaiHoc.SelectedIndex = 3;
                 }
                 else
                 {
                     icoFileTypeDisplay.Kind = LucideIconKind.FileText;
                     icoFileTypeDisplay.Foreground = (Brush)new BrushConverter().ConvertFrom("#0284C7")!;
                     pnlFileIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#E0F2FE")!;
+                    if (isListeningDoc) cboLoaiBaiHoc.SelectedIndex = 3;
+                }
+
+                // Nếu là bài nghe mà chưa có audio, tự động tìm tệp audio cùng tên trong cùng thư mục
+                if (cboLoaiBaiHoc.SelectedIndex == 3 && string.IsNullOrEmpty(_selectedAudioFilePath))
+                {
+                    string baseName = Path.GetFileNameWithoutExtension(filePath);
+                    string? dir = Path.GetDirectoryName(filePath);
+                    if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir))
+                    {
+                        string[] audioExts = { ".mp3", ".wav", ".m4a", ".aac", ".ogg" };
+                        foreach (var aExt in audioExts)
+                        {
+                            string candidate = Path.Combine(dir, baseName + aExt);
+                            if (File.Exists(candidate))
+                            {
+                                UpdateAudioDisplay(candidate);
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 // Bóc tách nội dung thực tế từ tệp
@@ -346,12 +446,47 @@ namespace GUI.Views.GiangVien
             }
 
             string loai = (cboLoaiBaiHoc.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "Doc";
+            bool isNghe = string.Equals(loai, "Nghe", StringComparison.OrdinalIgnoreCase) || BaiHocDTO.KiemTraKyNangNghe(loai);
+
+            // Ràng buộc bài học nghe bắt buộc phải có Audio
+            if (isNghe && (string.IsNullOrEmpty(_selectedAudioFilePath) || !File.Exists(_selectedAudioFilePath)))
+            {
+                var confirm = Common.ThongBaoDialog.XacNhan(this, 
+                    "Bạn đang tạo bài học thuộc kỹ năng Luyện nghe (Listening) nhưng chưa đính kèm tệp âm thanh (Audio).\n\n" +
+                    "Để học viên có thể luyện nghe và hệ thống phát audio cho câu hỏi, bạn có muốn chọn tệp Audio (.mp3, .wav, .m4a) ngay bây giờ không?", 
+                    "Yêu cầu tệp âm thanh");
+
+                if (confirm)
+                {
+                    BtnBrowseAudio_Click(sender, e);
+                    if (string.IsNullOrEmpty(_selectedAudioFilePath) || !File.Exists(_selectedAudioFilePath))
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    Common.ThongBaoDialog.CanhBao(this, "Bài học Luyện nghe bắt buộc phải có tệp Audio để học viên luyện nghe và phát câu hỏi. Vui lòng chọn tệp Audio trước khi lưu.", "Thiếu tệp âm thanh");
+                    return;
+                }
+            }
+
             string capDo = cboTrinhDo.SelectedValue?.ToString()
                 ?? (cboTrinhDo.SelectedItem as TrinhDoDTO)?.MaCapDo
                 ?? (cboTrinhDo.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Substring(0, 2)
                 ?? "B1";
             int maTrinhDoId = (cboTrinhDo.SelectedItem as TrinhDoDTO)?.MaTrinhDo ?? 0;
             int thoiGian = int.TryParse(txtThoiGian.Text.Trim(), out int tg) ? tg : 25;
+
+            // Sao chép tệp audio vào thư mục KhoHocLieu theo chủ đề để đồng bộ hệ thống
+            string? audioPathToSave = _selectedAudioFilePath;
+            if (!string.IsNullOrEmpty(_selectedAudioFilePath) && File.Exists(_selectedAudioFilePath))
+            {
+                var danhMucBUS = new BUS.DanhMucBUS();
+                var allChuDe = danhMucBUS.LayDanhSachChuDe();
+                string? destAudio = BUS.KhoHocLieuSyncHelper.SaoChepTepKhiUpload(_selectedAudioFilePath, maChuDe, tieuDe + "_Audio", allChuDe);
+                audioPathToSave = destAudio ?? _selectedAudioFilePath;
+            }
 
             BaiHocData.TieuDe = tieuDe;
             BaiHocData.MaChuDe = maChuDe;
@@ -361,6 +496,8 @@ namespace GUI.Views.GiangVien
             BaiHocData.ThoiGianUocTinhPhut = thoiGian;
             BaiHocData.TomTat = txtTomTat.Text.Trim();
             BaiHocData.NoiDung = txtNoiDung.Text.Trim();
+            BaiHocData.DuongDanAudio = audioPathToSave;
+            BaiHocData.AudioPath = audioPathToSave;
             BaiHocData.DaXuatBan = true;
             BaiHocData.NguoiTao = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
 
@@ -370,8 +507,8 @@ namespace GUI.Views.GiangVien
             {
                 BaiHocData.MaBaiHoc = newId;
 
-                // Tự động sao chép tệp nguồn vào thư mục KhoHocLieu theo chủ đề đã chọn
-                if (!string.IsNullOrEmpty(_selectedFilePath) && File.Exists(_selectedFilePath))
+                // Tự động sao chép tệp tài liệu văn bản nguồn vào thư mục KhoHocLieu theo chủ đề đã chọn
+                if (!string.IsNullOrEmpty(_selectedFilePath) && File.Exists(_selectedFilePath) && !_selectedFilePath.Equals(_selectedAudioFilePath, StringComparison.OrdinalIgnoreCase))
                 {
                     var danhMucBUS = new BUS.DanhMucBUS();
                     var allChuDe = danhMucBUS.LayDanhSachChuDe();

@@ -22,7 +22,63 @@ namespace GUI.ViewModels.GiangVien
 
         public ObservableCollection<BaiHocDTO> DanhSachBaiHoc { get; set; } = new();
         public ObservableCollection<TrinhDoDTO> DanhSachTrinhDo { get; set; } = new();
+        public ObservableCollection<TrinhDoDTO> DanhSachTrinhDoFilter { get; set; } = new();
         public ObservableCollection<ChuDeDTO> DanhSachChuDe { get; set; } = new();
+
+        // Trình phát audio nghe thử bài giảng
+        private readonly System.Windows.Media.MediaPlayer _mediaPlayer = new();
+        private readonly System.Windows.Threading.DispatcherTimer _audioTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
+        private bool _isPlayingAudio;
+        private bool _isTimerUpdating;
+        private bool _isUserSeeking;
+        private string? _loadedAudioPath;
+
+        public bool IsPlayingAudio
+        {
+            get => _isPlayingAudio;
+            set => SetProperty(ref _isPlayingAudio, value);
+        }
+
+        private double _audioCurrentSeconds;
+        public double AudioCurrentSeconds
+        {
+            get => _audioCurrentSeconds;
+            set
+            {
+                if (Math.Abs(_audioCurrentSeconds - value) > 0.05)
+                {
+                    _audioCurrentSeconds = value;
+                    OnPropertyChanged();
+                    AudioCurrentTimeText = FormatTimeSpan(TimeSpan.FromSeconds(value));
+
+                    if (!_isTimerUpdating && !_isUserSeeking)
+                    {
+                        SeekTo(value);
+                    }
+                }
+            }
+        }
+
+        private double _audioTotalSeconds = 100;
+        public double AudioTotalSeconds
+        {
+            get => _audioTotalSeconds;
+            set => SetProperty(ref _audioTotalSeconds, value);
+        }
+
+        private string _audioCurrentTimeText = "00:00";
+        public string AudioCurrentTimeText
+        {
+            get => _audioCurrentTimeText;
+            set => SetProperty(ref _audioCurrentTimeText, value);
+        }
+
+        private string _audioTotalTimeText = "00:00";
+        public string AudioTotalTimeText
+        {
+            get => _audioTotalTimeText;
+            set => SetProperty(ref _audioTotalTimeText, value);
+        }
 
         private BaiHocDTO? _selectedBaiHocInList;
         public BaiHocDTO? SelectedBaiHocInList
@@ -57,7 +113,7 @@ namespace GUI.ViewModels.GiangVien
                     if (value != null)
                     {
                         IsCreatingNewLesson = false;
-                        SelectedBaiHoc = value;
+                        SelectedBaiHoc = value.Clone();
                     }
                 }
             }
@@ -78,6 +134,7 @@ namespace GUI.ViewModels.GiangVien
                 if (_selectedBaiHoc != null)
                 {
                     _selectedBaiHoc.PropertyChanged -= SelectedBaiHoc_PropertyChanged;
+                    DungAudio();
                 }
 
                 BaiHocDTO item = value ?? new BaiHocDTO();
@@ -93,6 +150,7 @@ namespace GUI.ViewModels.GiangVien
                 OnPropertyChanged(nameof(HasAudioFile));
                 OnPropertyChanged(nameof(HasTieuDeBaiHoc));
                 OnPropertyChanged(nameof(CanTaoBangAI));
+                NapAudioFileHienTai();
                 CommandManager.InvalidateRequerySuggested();
             }
         }
@@ -106,6 +164,7 @@ namespace GUI.ViewModels.GiangVien
             }
             else if (e.PropertyName == nameof(BaiHocDTO.AudioPath) || e.PropertyName == nameof(BaiHocDTO.DuongDanAudio) || e.PropertyName == nameof(BaiHocDTO.HasAudio))
             {
+                DungAudio();
                 OnPropertyChanged(nameof(HasAudioFile));
                 CommandManager.InvalidateRequerySuggested();
             }
@@ -114,6 +173,17 @@ namespace GUI.ViewModels.GiangVien
                 OnPropertyChanged(nameof(HasTieuDeBaiHoc));
                 OnPropertyChanged(nameof(CanTaoBangAI));
                 CommandManager.InvalidateRequerySuggested();
+            }
+            else if (e.PropertyName == nameof(BaiHocDTO.MaTrinhDo))
+            {
+                if (SelectedBaiHoc != null && !string.IsNullOrWhiteSpace(SelectedBaiHoc.MaTrinhDo))
+                {
+                    var matchTd = DanhSachTrinhDo.FirstOrDefault(x => string.Equals(x.MaCapDo, SelectedBaiHoc.MaTrinhDo, StringComparison.OrdinalIgnoreCase));
+                    if (matchTd != null && matchTd.MaTrinhDo > 0)
+                    {
+                        SelectedBaiHoc.MaTrinhDoId = matchTd.MaTrinhDo;
+                    }
+                }
             }
             else if (e.PropertyName == nameof(BaiHocDTO.MaChuDe))
             {
@@ -233,6 +303,7 @@ namespace GUI.ViewModels.GiangVien
 
         public ICommand ChonAudioCommand { get; }
         public ICommand XoaAudioCommand { get; }
+        public ICommand TogglePlayAudioCommand { get; }
         public ICommand LuuBaiHocCommand { get; }
         public ICommand ToggleXuatBanCommand { get; }
         public ICommand ThemBaiHocMoiCommand { get; }
@@ -249,8 +320,47 @@ namespace GUI.ViewModels.GiangVien
         {
             _selectedBaiHoc.PropertyChanged += SelectedBaiHoc_PropertyChanged;
 
+            _audioTimer.Tick += AudioTimer_Tick;
+
+            _mediaPlayer.MediaOpened += (s, e) =>
+            {
+                System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (_mediaPlayer.NaturalDuration.HasTimeSpan)
+                    {
+                        double total = _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                        AudioTotalSeconds = total > 0 ? total : 100;
+                        AudioTotalTimeText = FormatTimeSpan(_mediaPlayer.NaturalDuration.TimeSpan);
+                    }
+                }));
+            };
+
+            _mediaPlayer.MediaEnded += (s, e) =>
+            {
+                System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    try { _mediaPlayer.Stop(); } catch { }
+                    try { _mediaPlayer.Position = TimeSpan.Zero; } catch { }
+                    IsPlayingAudio = false;
+                    _audioTimer.Stop();
+                    _audioCurrentSeconds = 0;
+                    OnPropertyChanged(nameof(AudioCurrentSeconds));
+                    AudioCurrentTimeText = "00:00";
+                }));
+            };
+            _mediaPlayer.MediaFailed += (s, e) =>
+            {
+                System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    IsPlayingAudio = false;
+                    _audioTimer.Stop();
+                    ThongBaoLoi = $"Không thể phát tệp âm thanh: {e.ErrorException?.Message ?? "Lỗi định dạng tệp."}";
+                }));
+            };
+
             ChonAudioCommand = new RelayCommand(ThucHienChonAudio, () => IsKyNangNghe);
             XoaAudioCommand = new RelayCommand(ThucHienXoaAudio, () => HasAudioFile);
+            TogglePlayAudioCommand = new RelayCommand(ThucHienToggleAudio, () => HasAudioFile);
             LuuBaiHocCommand = new RelayCommand(ThucHienLuuBaiHoc);
             ToggleXuatBanCommand = new RelayCommand(ThucHienToggleXuatBan);
             ThemBaiHocMoiCommand = new RelayCommand(ThucHienThemBaiHocMoi);
@@ -320,12 +430,49 @@ namespace GUI.ViewModels.GiangVien
 
                 var newIds = trinhDos.Select(x => x.MaCapDo).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-                if (DanhSachTrinhDo.Count == 0 || !string.IsNullOrEmpty(DanhSachTrinhDo[0].MaCapDo))
+                // 1. Cập nhật DanhSachTrinhDoFilter (Có mục "Tất cả cấp độ (A1 - C1)" ở vị trí đầu)
+                if (DanhSachTrinhDoFilter.Count == 0 || !string.IsNullOrEmpty(DanhSachTrinhDoFilter[0].MaCapDo))
                 {
-                    DanhSachTrinhDo.Insert(0, new TrinhDoDTO { MaCapDo = "", TenTrinhDo = "Tất cả cấp độ (A1 - C1)" });
+                    DanhSachTrinhDoFilter.Insert(0, new TrinhDoDTO { MaCapDo = "", TenTrinhDo = "Tất cả cấp độ (A1 - C1)" });
                 }
 
-                for (int i = DanhSachTrinhDo.Count - 1; i >= 1; i--)
+                for (int i = DanhSachTrinhDoFilter.Count - 1; i >= 1; i--)
+                {
+                    if (!newIds.Contains(DanhSachTrinhDoFilter[i].MaCapDo))
+                    {
+                        DanhSachTrinhDoFilter.RemoveAt(i);
+                    }
+                }
+
+                for (int i = 0; i < trinhDos.Count; i++)
+                {
+                    var item = trinhDos[i];
+                    var existing = DanhSachTrinhDoFilter.Skip(1).FirstOrDefault(x => string.Equals(x.MaCapDo, item.MaCapDo, StringComparison.OrdinalIgnoreCase));
+                    if (existing != null)
+                    {
+                        existing.TenTrinhDo = item.TenTrinhDo;
+                        existing.MoTa = item.MoTa;
+                        existing.MaTrinhDo = item.MaTrinhDo;
+                    }
+                    else
+                    {
+                        DanhSachTrinhDoFilter.Add(item);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(currentFilterCapDo))
+                {
+                    var matchFilter = DanhSachTrinhDoFilter.FirstOrDefault(x => string.Equals(x.MaCapDo, currentFilterCapDo, StringComparison.OrdinalIgnoreCase));
+                    if (matchFilter != null)
+                        SelectedTrinhDoFilter = matchFilter;
+                }
+                else if (SelectedTrinhDoFilter == null && DanhSachTrinhDoFilter.Count > 0)
+                {
+                    SelectedTrinhDoFilter = DanhSachTrinhDoFilter[0];
+                }
+
+                // 2. Cập nhật DanhSachTrinhDo (Dùng cho Form Soạn thảo: CHỈ gồm các cấp độ thực tế A1-C1)
+                for (int i = DanhSachTrinhDo.Count - 1; i >= 0; i--)
                 {
                     if (!newIds.Contains(DanhSachTrinhDo[i].MaCapDo))
                     {
@@ -336,32 +483,33 @@ namespace GUI.ViewModels.GiangVien
                 for (int i = 0; i < trinhDos.Count; i++)
                 {
                     var item = trinhDos[i];
-                    var existing = DanhSachTrinhDo.Skip(1).FirstOrDefault(x => string.Equals(x.MaCapDo, item.MaCapDo, StringComparison.OrdinalIgnoreCase));
+                    var existing = DanhSachTrinhDo.FirstOrDefault(x => string.Equals(x.MaCapDo, item.MaCapDo, StringComparison.OrdinalIgnoreCase));
                     if (existing != null)
                     {
                         existing.TenTrinhDo = item.TenTrinhDo;
                         existing.MoTa = item.MoTa;
+                        existing.MaTrinhDo = item.MaTrinhDo;
                     }
                     else
                     {
-                        DanhSachTrinhDo.Add(item);
+                        DanhSachTrinhDo.Add(new TrinhDoDTO
+                        {
+                            MaTrinhDo = item.MaTrinhDo,
+                            MaCapDo = item.MaCapDo,
+                            TenTrinhDo = item.TenTrinhDo,
+                            MoTa = item.MoTa
+                        });
                     }
-                }
-
-                if (!string.IsNullOrEmpty(currentFilterCapDo))
-                {
-                    var matchFilter = DanhSachTrinhDo.FirstOrDefault(x => string.Equals(x.MaCapDo, currentFilterCapDo, StringComparison.OrdinalIgnoreCase));
-                    if (matchFilter != null)
-                        SelectedTrinhDoFilter = matchFilter;
-                }
-                else if (SelectedTrinhDoFilter == null && DanhSachTrinhDo.Count > 0)
-                {
-                    SelectedTrinhDoFilter = DanhSachTrinhDo[0];
                 }
 
                 if (SelectedBaiHoc != null && !string.IsNullOrEmpty(currentMaTrinhDo))
                 {
                     SelectedBaiHoc.MaTrinhDo = currentMaTrinhDo;
+                    var matchTd = DanhSachTrinhDo.FirstOrDefault(x => string.Equals(x.MaCapDo, currentMaTrinhDo, StringComparison.OrdinalIgnoreCase));
+                    if (matchTd != null && matchTd.MaTrinhDo > 0)
+                    {
+                        SelectedBaiHoc.MaTrinhDoId = matchTd.MaTrinhDo;
+                    }
                 }
             }
             catch (Exception ex)
@@ -424,11 +572,19 @@ namespace GUI.ViewModels.GiangVien
                 }
 
                 // 3. Khôi phục lại MaChuDe của bài học đang chọn (tránh WPF ComboBox two-way binding reset)
-                if (SelectedBaiHoc != null && currentMaChuDe > 0)
+                if (SelectedBaiHoc != null)
                 {
-                    if (SelectedBaiHoc.MaChuDe != currentMaChuDe)
+                    if (newIds.Contains(currentMaChuDe))
                     {
-                        SelectedBaiHoc.MaChuDe = currentMaChuDe;
+                        if (SelectedBaiHoc.MaChuDe != currentMaChuDe)
+                        {
+                            SelectedBaiHoc.MaChuDe = currentMaChuDe;
+                        }
+                    }
+                    else if (DanhSachChuDe.Count > 0)
+                    {
+                        SelectedBaiHoc.MaChuDe = DanhSachChuDe[0].MaChuDe;
+                        SelectedBaiHoc.TenChuDe = DanhSachChuDe[0].TenChuDe;
                     }
                 }
             }
@@ -509,47 +665,54 @@ namespace GUI.ViewModels.GiangVien
                     var match = DanhSachBaiHoc.FirstOrDefault(x => x.MaBaiHoc == currentId);
                     if (match != null)
                     {
-                        // Giữ nguyên các nội dung mà người dùng hoặc AI đang soạn thảo dở dang chưa lưu vào DB
-                        if (currentSelected != null)
+                        if (IsAiGeneratingSample && currentSelected != null)
                         {
-                            if (IsAiGeneratingSample || (!string.IsNullOrEmpty(currentSelected.NoiDung) && currentSelected.NoiDung != match.NoiDung))
-                            {
-                                match.NoiDung = currentSelected.NoiDung;
-                            }
-                            if (!string.IsNullOrEmpty(currentSelected.TieuDe) && currentSelected.TieuDe != match.TieuDe)
-                            {
-                                match.TieuDe = currentSelected.TieuDe;
-                            }
-                            if (currentSelected.MaChuDe > 0)
-                            {
-                                match.MaChuDe = currentSelected.MaChuDe;
-                                match.TenChuDe = currentSelected.TenChuDe;
-                            }
-                            if (!string.IsNullOrEmpty(currentSelected.MaTrinhDo))
-                            {
-                                match.MaTrinhDo = currentSelected.MaTrinhDo;
-                            }
-                            if (!string.IsNullOrEmpty(currentSelected.AudioPath))
-                            {
-                                match.AudioPath = currentSelected.AudioPath;
-                            }
+                            match.NoiDung = currentSelected.NoiDung;
                         }
-                        SelectedBaiHoc = match;
-                        SelectedBaiHocInList = match;
+                        SelectedBaiHoc = match.Clone();
+                        _selectedBaiHocInList = match;
+                        OnPropertyChanged(nameof(SelectedBaiHocInList));
+                    }
+                    else
+                    {
+                        if (DanhSachBaiHoc.Count > 0)
+                        {
+                            SelectedBaiHoc = DanhSachBaiHoc[0].Clone();
+                            _selectedBaiHocInList = DanhSachBaiHoc[0];
+                            OnPropertyChanged(nameof(SelectedBaiHocInList));
+                        }
+                        else
+                        {
+                            SelectedBaiHoc = new BaiHocDTO();
+                            _selectedBaiHocInList = null;
+                            OnPropertyChanged(nameof(SelectedBaiHocInList));
+                        }
                     }
                 }
                 else if (IsCreatingNewLesson && currentSelected != null)
                 {
-                    // Người dùng đang soạn bài học mới (hoặc đang sinh AI):
-                    // BẢO TOÀN NGUYÊN VẸN BẢN NHÁP MỚI, KHÔNG ĐƯỢC ĐÈ BẰNG BÀI ĐẦU TIÊN
                     SelectedBaiHoc = currentSelected;
-                    SelectedBaiHocInList = null;
+                    _selectedBaiHocInList = null;
+                    OnPropertyChanged(nameof(SelectedBaiHocInList));
                 }
-                else if (!IsCreatingNewLesson && (SelectedBaiHoc == null || SelectedBaiHoc.MaBaiHoc <= 0) && DanhSachBaiHoc.Count > 0)
+                else if (!IsCreatingNewLesson)
                 {
-                    SelectedBaiHoc = DanhSachBaiHoc[0];
-                    SelectedBaiHocInList = DanhSachBaiHoc[0];
+                    if (DanhSachBaiHoc.Count > 0)
+                    {
+                        SelectedBaiHoc = DanhSachBaiHoc[0].Clone();
+                        _selectedBaiHocInList = DanhSachBaiHoc[0];
+                        OnPropertyChanged(nameof(SelectedBaiHocInList));
+                    }
+                    else
+                    {
+                        SelectedBaiHoc = new BaiHocDTO();
+                        _selectedBaiHocInList = null;
+                        OnPropertyChanged(nameof(SelectedBaiHocInList));
+                    }
                 }
+
+                // Dọn dẹp cache câu hỏi AI nháp đối với các bài học không còn tồn tại trong hệ thống
+                Views.Common.AICauHoiUIHelper.DonDepCacBaiHocKhongTonTai(DanhSachBaiHoc.Select(x => x.MaBaiHoc));
             }
             catch (Exception ex)
             {
@@ -606,24 +769,244 @@ namespace GUI.ViewModels.GiangVien
                 Title = "Chọn file ghi âm Audio bài giảng nghe"
             };
 
+            // Ưu tiên mở vào thư mục KhoHocLieu hoặc TaiLieu_TestUpload
+            try
+            {
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string candTest1 = System.IO.Path.GetFullPath(System.IO.Path.Combine(baseDir, @"..\..\..\..\TaiLieu_TestUpload"));
+                string candKho1 = System.IO.Path.GetFullPath(System.IO.Path.Combine(baseDir, @"..\..\..\..\KhoHocLieu"));
+                if (System.IO.Directory.Exists(candTest1)) dlg.InitialDirectory = candTest1;
+                else if (System.IO.Directory.Exists(candKho1)) dlg.InitialDirectory = candKho1;
+            }
+            catch { }
+
             if (dlg.ShowDialog() == true)
             {
-                SelectedBaiHoc.AudioPath = dlg.FileName;
+                DungAudio();
+
+                // Sao chép tệp audio vào thư mục KhoHocLieu theo chủ đề để đồng bộ toàn hệ thống
+                var allChuDes = _danhMucBUS.LayDanhSachChuDe();
+                string? dest = KhoHocLieuSyncHelper.SaoChepTepKhiUpload(dlg.FileName, SelectedBaiHoc.MaChuDe, SelectedBaiHoc.TieuDe + "_Audio", allChuDes);
+                string savedPath = dest ?? dlg.FileName;
+
+                SelectedBaiHoc.AudioPath = savedPath;
+                SelectedBaiHoc.DuongDanAudio = savedPath;
+
+                // Nếu bài học đã tồn tại trong CSDL, đồng bộ lưu ngay vào cơ sở dữ liệu
+                if (SelectedBaiHoc.MaBaiHoc > 0)
+                {
+                    BaiHocBUS.LuuBaiHoc(SelectedBaiHoc, out _);
+                }
+
                 OnPropertyChanged(nameof(SelectedBaiHoc));
                 OnPropertyChanged(nameof(HasAudioFile));
+                NapAudioFileHienTai();
                 CommandManager.InvalidateRequerySuggested();
             }
         }
 
         private void ThucHienXoaAudio()
         {
+            DungAudio();
             if (SelectedBaiHoc != null)
             {
                 SelectedBaiHoc.AudioPath = null;
+                SelectedBaiHoc.DuongDanAudio = null;
+
+                if (SelectedBaiHoc.MaBaiHoc > 0)
+                {
+                    BaiHocBUS.LuuBaiHoc(SelectedBaiHoc, out _);
+                }
+
                 OnPropertyChanged(nameof(SelectedBaiHoc));
                 OnPropertyChanged(nameof(HasAudioFile));
                 CommandManager.InvalidateRequerySuggested();
             }
+        }
+
+        public Uri? ResolveAudioUri(string? audioPath)
+        {
+            if (string.IsNullOrWhiteSpace(audioPath)) return null;
+
+            string path = audioPath.Trim();
+            if (System.IO.File.Exists(path))
+            {
+                return new Uri(System.IO.Path.GetFullPath(path));
+            }
+
+            if (Uri.TryCreate(path, UriKind.Absolute, out var absUri) && 
+                (absUri.Scheme == Uri.UriSchemeHttp || absUri.Scheme == Uri.UriSchemeHttps || absUri.Scheme == Uri.UriSchemeFile))
+            {
+                return absUri;
+            }
+
+            // Tìm trong KhoHocLieu hoặc các thư mục học liệu của dự án nếu tệp bị đổi đường dẫn tương đối
+            string fileName = System.IO.Path.GetFileName(path);
+            foreach (var root in KhoHocLieuSyncHelper.GetAllHocLieuRoots())
+            {
+                if (System.IO.Directory.Exists(root))
+                {
+                    try
+                    {
+                        var found = System.IO.Directory.GetFiles(root, fileName, System.IO.SearchOption.AllDirectories).FirstOrDefault();
+                        if (found != null && System.IO.File.Exists(found))
+                        {
+                            return new Uri(System.IO.Path.GetFullPath(found));
+                        }
+                    }
+                    catch { }
+                }
+            }
+
+            return null;
+        }
+
+        private void NapAudioFileHienTai()
+        {
+            if (string.IsNullOrWhiteSpace(SelectedBaiHoc?.AudioPath))
+            {
+                AudioTotalSeconds = 100;
+                AudioTotalTimeText = "00:00";
+                AudioCurrentSeconds = 0;
+                AudioCurrentTimeText = "00:00";
+                return;
+            }
+
+            try
+            {
+                Uri? uri = ResolveAudioUri(SelectedBaiHoc.AudioPath);
+                if (uri != null)
+                {
+                    _mediaPlayer.Open(uri);
+                    _loadedAudioPath = SelectedBaiHoc.AudioPath.Trim();
+                }
+            }
+            catch { }
+        }
+
+        private void AudioTimer_Tick(object? sender, EventArgs e)
+        {
+            if (IsPlayingAudio && !_isUserSeeking)
+            {
+                if ((_audioTotalSeconds <= 1 || _audioTotalTimeText == "00:00") && _mediaPlayer.NaturalDuration.HasTimeSpan)
+                {
+                    double total = _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                    AudioTotalSeconds = total > 0 ? total : 100;
+                    AudioTotalTimeText = FormatTimeSpan(_mediaPlayer.NaturalDuration.TimeSpan);
+                }
+
+                _isTimerUpdating = true;
+                try
+                {
+                    double pos = _mediaPlayer.Position.TotalSeconds;
+                    if (_audioTotalSeconds > 0 && pos > _audioTotalSeconds)
+                    {
+                        pos = _audioTotalSeconds;
+                    }
+                    _audioCurrentSeconds = pos;
+                    OnPropertyChanged(nameof(AudioCurrentSeconds));
+                    AudioCurrentTimeText = FormatTimeSpan(TimeSpan.FromSeconds(pos));
+                }
+                finally
+                {
+                    _isTimerUpdating = false;
+                }
+            }
+        }
+
+        public void BatDauTuaAudio()
+        {
+            _isUserSeeking = true;
+        }
+
+        public void KetThucTuaAudio(double targetSeconds)
+        {
+            SeekTo(targetSeconds);
+            _isUserSeeking = false;
+        }
+
+        public void SeekTo(double seconds)
+        {
+            try
+            {
+                if (seconds < 0) seconds = 0;
+                if (_audioTotalSeconds > 0 && seconds > _audioTotalSeconds) seconds = _audioTotalSeconds;
+                _mediaPlayer.Position = TimeSpan.FromSeconds(seconds);
+                _audioCurrentSeconds = seconds;
+                OnPropertyChanged(nameof(AudioCurrentSeconds));
+                AudioCurrentTimeText = FormatTimeSpan(TimeSpan.FromSeconds(seconds));
+            }
+            catch { }
+        }
+
+        private static string FormatTimeSpan(TimeSpan ts)
+        {
+            if (ts.TotalHours >= 1)
+                return $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}";
+            return $"{ts.Minutes:D2}:{ts.Seconds:D2}";
+        }
+
+        private void ThucHienToggleAudio()
+        {
+            if (SelectedBaiHoc == null || string.IsNullOrWhiteSpace(SelectedBaiHoc.AudioPath)) return;
+
+            try
+            {
+                if (IsPlayingAudio)
+                {
+                    _mediaPlayer.Pause();
+                    _audioTimer.Stop();
+                    IsPlayingAudio = false;
+                }
+                else
+                {
+                    string path = SelectedBaiHoc.AudioPath.Trim();
+                    Uri? uri = ResolveAudioUri(path);
+
+                    if (uri == null)
+                    {
+                        ThongBaoLoi = "Không tìm thấy file âm thanh trên hệ thống.";
+                        return;
+                    }
+
+                    if (_loadedAudioPath != path)
+                    {
+                        _mediaPlayer.Open(uri);
+                        _loadedAudioPath = path;
+                        _audioCurrentSeconds = 0;
+                        AudioCurrentTimeText = "00:00";
+                    }
+
+                    _mediaPlayer.Play();
+                    _audioTimer.Start();
+                    IsPlayingAudio = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                ThongBaoLoi = $"Lỗi phát audio: {ex.Message}";
+                IsPlayingAudio = false;
+                _audioTimer.Stop();
+            }
+        }
+
+        public void DungAudio()
+        {
+            try
+            {
+                _audioTimer.Stop();
+                if (IsPlayingAudio)
+                {
+                    _mediaPlayer.Stop();
+                    IsPlayingAudio = false;
+                }
+                _mediaPlayer.Close();
+                _loadedAudioPath = null;
+                _audioCurrentSeconds = 0;
+                AudioCurrentTimeText = "00:00";
+                OnPropertyChanged(nameof(AudioCurrentSeconds));
+            }
+            catch { }
         }
 
         private void ThucHienLuuBaiHoc()
@@ -654,7 +1037,8 @@ namespace GUI.ViewModels.GiangVien
             }
             else
             {
-                ThongBaoLoi = "Lỗi khi lưu bài học: " + err;
+                ThongBaoLoi = "Lỗi khi lưu bài học: " + (string.IsNullOrWhiteSpace(err) ? "Bài học không tồn tại trong hệ thống hoặc đã bị xóa." : err);
+                LocDanhSach();
             }
         }
 
@@ -663,7 +1047,11 @@ namespace GUI.ViewModels.GiangVien
             if (obj is BaiHocDTO bh)
             {
                 bh.DaXuatBan = !bh.DaXuatBan;
-                BaiHocBUS.CapNhatTrangThaiXuatBan(bh.MaBaiHoc, bh.DaXuatBan);
+                bool ok = BaiHocBUS.CapNhatTrangThaiXuatBan(bh.MaBaiHoc, bh.DaXuatBan);
+                if (!ok)
+                {
+                    ThongBaoLoi = "Không thể cập nhật trạng thái vì bài học này không còn tồn tại trong hệ thống.";
+                }
                 LocDanhSach();
             }
         }
@@ -744,41 +1132,26 @@ namespace GUI.ViewModels.GiangVien
             }
         }
 
-        private readonly System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<CauHoiKhaoSatDTO>> _sessionAIDrafts = new();
-
         public async Task<System.Collections.Generic.List<CauHoiKhaoSatDTO>> LayHoacTaoCauHoiAIAsync(bool forceRecreate = false)
         {
             if (SelectedBaiHoc == null) return new System.Collections.Generic.List<CauHoiKhaoSatDTO>();
 
-            if (!forceRecreate && _sessionAIDrafts.TryGetValue(SelectedBaiHoc.MaBaiHoc, out var cached) && cached != null && cached.Count > 0)
+            if (!forceRecreate && Views.Common.AICauHoiUIHelper.CoBanNhapTrongPhien(SelectedBaiHoc.MaBaiHoc))
             {
-                return cached;
+                return Views.Common.AICauHoiUIHelper.LayBanNhapTrongPhien(SelectedBaiHoc.MaBaiHoc)!;
             }
 
-            string content = SelectedBaiHoc.NoiDung;
-            if (string.IsNullOrWhiteSpace(content))
+            var (converted, kyNang, trinhDo, noiDung) = await BoCauHoiBUS.Instance.SinhCauHoiChoBaiHocAsync(
+                SelectedBaiHoc,
+                soLuong: 10,
+                module: "AI_BaiHoc");
+
+            if (converted != null && converted.Count > 0)
             {
-                content = SelectedBaiHoc.TieuDe;
+                Views.Common.AICauHoiUIHelper.LuuBanNhapTrongPhien(SelectedBaiHoc.MaBaiHoc, converted);
             }
 
-            string tieuDe = string.IsNullOrWhiteSpace(SelectedBaiHoc.TieuDe) ? "Bài học tiếng Anh" : SelectedBaiHoc.TieuDe.Trim();
-            string trinhDo = string.IsNullOrWhiteSpace(SelectedBaiHoc.MaTrinhDo) ? "B1" : SelectedBaiHoc.MaTrinhDo;
-            string loai = string.IsNullOrWhiteSpace(SelectedBaiHoc.LoaiBaiHoc) 
-                ? BaiHocDTO.XacDinhKyNangTuTenHoacChuDe(SelectedBaiHoc.TieuDe, SelectedBaiHoc.TenChuDe, SelectedBaiHoc.DuongDanTepVatLy) 
-                : SelectedBaiHoc.LoaiBaiHoc;
-
-            var questions = await GeminiAIService.BocTachCauHoiAIAsync(tieuDe, content, trinhDo, 10, "NoiDungHocTap", loai);
-            var converted = BoCauHoiBUS.ChuyenDoiTuCauHoiAI(
-                questions,
-                kyNang: loai,
-                maTrinhDo: trinhDo,
-                maChuDe: SelectedBaiHoc.MaChuDe,
-                maTrinhDoId: SelectedBaiHoc.MaTrinhDoId,
-                audioPath: SelectedBaiHoc.AudioPath ?? SelectedBaiHoc.DuongDanAudio,
-                noiDungBaiHoc: content);
-
-            _sessionAIDrafts[SelectedBaiHoc.MaBaiHoc] = converted;
-            return converted;
+            return converted ?? new System.Collections.Generic.List<CauHoiKhaoSatDTO>();
         }
 
         private async void ThucHienSinhCauHoiAI()

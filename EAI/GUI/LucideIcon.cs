@@ -92,6 +92,7 @@ namespace GUI
         AlertCircle,
         Play,
         Pause,
+        PauseCircle,
         Volume2,
         VolumeX,
         Mic,

@@ -238,11 +238,146 @@ namespace DAL
             return rows > 0;
         }
 
+        public int DemTongSoBaiHocTrongCayChuDe(int rootMaChuDe)
+        {
+            try
+            {
+                var query = @"
+                    WITH ChuDeSubTree AS (
+                        SELECT MaChuDe 
+                        FROM ChuDe 
+                        WHERE MaChuDe = @id
+                        UNION ALL
+                        SELECT c.MaChuDe 
+                        FROM ChuDe c 
+                        INNER JOIN ChuDeSubTree p ON c.MaChuDeCha = p.MaChuDe
+                    )
+                    SELECT COUNT(*) 
+                    FROM BaiHoc 
+                    WHERE MaChuDe IN (SELECT MaChuDe FROM ChuDeSubTree);";
+
+                var count = DatabaseHelper.ExecuteScalar(query, new[] { new SqlParameter("@id", rootMaChuDe) });
+                return Convert.ToInt32(count ?? 0);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DemTongSoBaiHocTrongCayChuDe] {ex.Message}");
+                return 0;
+            }
+        }
+
+        public int DemSoChuDeConTrongCay(int rootMaChuDe)
+        {
+            try
+            {
+                var query = @"
+                    WITH ChuDeSubTree AS (
+                        SELECT MaChuDe 
+                        FROM ChuDe 
+                        WHERE MaChuDe = @id
+                        UNION ALL
+                        SELECT c.MaChuDe 
+                        FROM ChuDe c 
+                        INNER JOIN ChuDeSubTree p ON c.MaChuDeCha = p.MaChuDe
+                    )
+                    SELECT COUNT(*) 
+                    FROM ChuDeSubTree 
+                    WHERE MaChuDe != @id;";
+
+                var count = DatabaseHelper.ExecuteScalar(query, new[] { new SqlParameter("@id", rootMaChuDe) });
+                return Convert.ToInt32(count ?? 0);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DemSoChuDeConTrongCay] {ex.Message}");
+                return 0;
+            }
+        }
+
+        public (bool Success, string Message, int DeletedCount) DeleteChuDeVaCacCon(int maChuDe)
+        {
+            try
+            {
+                var query = @"
+                    BEGIN TRY
+                        BEGIN TRANSACTION;
+
+                        -- 1. Tìm toàn bộ MaChuDe của chủ đề cha và các chủ đề con/cháu
+                        IF OBJECT_ID('tempdb..#TargetChuDes') IS NOT NULL DROP TABLE #TargetChuDes;
+                        CREATE TABLE #TargetChuDes (MaChuDe INT PRIMARY KEY);
+
+                        ;WITH ChuDeSubTree AS (
+                            SELECT MaChuDe 
+                            FROM ChuDe 
+                            WHERE MaChuDe = @id
+                            UNION ALL
+                            SELECT c.MaChuDe 
+                            FROM ChuDe c 
+                            INNER JOIN ChuDeSubTree p ON c.MaChuDeCha = p.MaChuDe
+                        )
+                        INSERT INTO #TargetChuDes (MaChuDe)
+                        SELECT MaChuDe FROM ChuDeSubTree;
+
+                        -- 2. Kiểm tra nếu vẫn còn bài học liên kết thì hủy thao tác ngay
+                        IF EXISTS (SELECT 1 FROM BaiHoc WHERE MaChuDe IN (SELECT MaChuDe FROM #TargetChuDes))
+                        BEGIN
+                            ROLLBACK TRANSACTION;
+                            SELECT -1 AS DeletedCount;
+                            RETURN;
+                        END
+
+                        -- 3. Gỡ bỏ ràng buộc khóa ngoại từ các bảng phụ thuộc (cho phép NULL)
+                        UPDATE CauHoi SET MaChuDe = NULL WHERE MaChuDe IN (SELECT MaChuDe FROM #TargetChuDes);
+                        UPDATE BaiTapDeThi SET MaChuDe = NULL WHERE MaChuDe IN (SELECT MaChuDe FROM #TargetChuDes);
+                        UPDATE TuVung SET MaChuDe = NULL WHERE MaChuDe IN (SELECT MaChuDe FROM #TargetChuDes);
+                        UPDATE DiemYeuNguoiDung SET MaChuDe = NULL WHERE MaChuDe IN (SELECT MaChuDe FROM #TargetChuDes);
+                        UPDATE DeXuatHocTap SET MaChuDe = NULL WHERE MaChuDe IN (SELECT MaChuDe FROM #TargetChuDes);
+
+                        -- 4. Xóa tự tham chiếu MaChuDeCha để tránh xung đột khóa ngoại cha-con khi xóa
+                        UPDATE ChuDe SET MaChuDeCha = NULL WHERE MaChuDe IN (SELECT MaChuDe FROM #TargetChuDes);
+
+                        -- 5. Đếm số lượng chủ đề sẽ xóa
+                        DECLARE @count INT;
+                        SELECT @count = COUNT(*) FROM #TargetChuDes;
+
+                        -- 6. Xóa toàn bộ các chủ đề trong danh sách
+                        DELETE FROM ChuDe WHERE MaChuDe IN (SELECT MaChuDe FROM #TargetChuDes);
+
+                        DROP TABLE #TargetChuDes;
+                        COMMIT TRANSACTION;
+
+                        SELECT @count AS DeletedCount;
+                    END TRY
+                    BEGIN CATCH
+                        IF @@TRANCOUNT > 0
+                            ROLLBACK TRANSACTION;
+                        THROW;
+                    END CATCH;";
+
+                var result = DatabaseHelper.ExecuteScalar(query, new[] { new SqlParameter("@id", maChuDe) });
+                int deleted = Convert.ToInt32(result ?? 0);
+
+                if (deleted == -1)
+                {
+                    return (false, "Không thể xóa vì danh mục hoặc các danh mục con vẫn còn bài học liên kết.", 0);
+                }
+                if (deleted > 0)
+                {
+                    return (true, "Xóa danh mục thành công.", deleted);
+                }
+                return (false, "Không tìm thấy danh mục để xóa.", 0);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DeleteChuDeVaCacCon] {ex.Message}");
+                return (false, "Lỗi cơ sở dữ liệu khi xóa danh mục: " + ex.Message, 0);
+            }
+        }
+
         public bool DeleteChuDe(int maChuDe)
         {
-            var query = "DELETE FROM ChuDe WHERE MaChuDe = @id";
-            int rows = DatabaseHelper.ExecuteNonQuery(query, new[] { new SqlParameter("@id", maChuDe) });
-            return rows > 0;
+            var res = DeleteChuDeVaCacCon(maChuDe);
+            return res.Success;
         }
     }
 }

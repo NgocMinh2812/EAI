@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:GUI"
         Title="EnglishAI - Hệ thống học tiếng Anh thông minh" 
-        Icon="/Assets/app_icon.ico"
+        Icon="pack://application:,,,/GUI;component/Assets/app_icon.ico"
         WindowState="Maximized"
         WindowStyle="None"
         WindowStartupLocation="CenterScreen"

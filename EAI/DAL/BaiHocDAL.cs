@@ -704,21 +704,34 @@ namespace DAL
 
         public bool InsertBaiHoc(BaiHocDTO bh)
         {
+            string audio = bh.AudioPath ?? bh.DuongDanAudio ?? "";
+            string image = bh.AnhMinhHoaPath ?? bh.DuongDanHinhAnh ?? "";
+
             var query = @"
-                INSERT INTO BaiHoc (MaChuDe, MaTrinhDo, NguoiTao, TieuDe, LoaiBaiHoc, TomTat, NoiDung, ThoiGianUocTinhPhut, DaXuatBan)
-                VALUES (@MaChuDe, @MaTrinhDo, @NguoiTao, @TieuDe, @LoaiBaiHoc, @TomTat, @NoiDung, @ThoiGianUocTinhPhut, @DaXuatBan);
+                INSERT INTO BaiHoc (MaChuDe, MaTrinhDo, NguoiTao, TieuDe, LoaiBaiHoc, TomTat, NoiDung, 
+                                    DuongDanAudio, AudioPath, DuongDanHinhAnh, AnhMinhHoaPath, 
+                                    ThoiGianUocTinhPhut, ThoiLuongUocTinh, DaXuatBan, NgayTao)
+                VALUES (@MaChuDe, @MaTrinhDo, @NguoiTao, @TieuDe, @LoaiBaiHoc, @TomTat, @NoiDung, 
+                        @Audio, @Audio, @Image, @Image, 
+                        @ThoiGianUocTinhPhut, @ThoiGianUocTinhPhut, @DaXuatBan, SYSDATETIME());
                 SELECT SCOPE_IDENTITY();";
 
-            int maTrinhDo = bh.MaTrinhDoId > 0 ? bh.MaTrinhDoId : 3;
-            if (!string.IsNullOrEmpty(bh.MaTrinhDo))
+            int maTrinhDo = 0;
+            if (!string.IsNullOrWhiteSpace(bh.MaTrinhDo))
             {
                 var trinhDoRow = DatabaseHelper.ExecuteScalar(
-                    "SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = @capDo", 
-                    new[] { new SqlParameter("@capDo", bh.MaTrinhDo) });
+                    "SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE UPPER(LTRIM(RTRIM(MaCapDo))) = UPPER(LTRIM(RTRIM(@capDo)))", 
+                    new[] { new SqlParameter("@capDo", bh.MaTrinhDo.Trim()) });
                 if (trinhDoRow != null && trinhDoRow != DBNull.Value)
                 {
                     maTrinhDo = Convert.ToInt32(trinhDoRow);
+                    bh.MaTrinhDoId = maTrinhDo;
                 }
+            }
+
+            if (maTrinhDo <= 0)
+            {
+                maTrinhDo = bh.MaTrinhDoId > 0 ? bh.MaTrinhDoId : 3;
             }
 
             var parameters = new[]
@@ -730,6 +743,8 @@ namespace DAL
                 new SqlParameter("@LoaiBaiHoc", string.IsNullOrEmpty(bh.LoaiBaiHoc) ? "Doc" : bh.LoaiBaiHoc),
                 new SqlParameter("@TomTat", (object?)bh.TomTat ?? DBNull.Value),
                 new SqlParameter("@NoiDung", (object?)bh.NoiDung ?? DBNull.Value),
+                new SqlParameter("@Audio", string.IsNullOrEmpty(audio) ? DBNull.Value : (object)audio),
+                new SqlParameter("@Image", string.IsNullOrEmpty(image) ? DBNull.Value : (object)image),
                 new SqlParameter("@ThoiGianUocTinhPhut", bh.ThoiGianUocTinhPhut > 0 ? bh.ThoiGianUocTinhPhut : 20),
                 new SqlParameter("@DaXuatBan", bh.DaXuatBan)
             };
@@ -870,17 +885,23 @@ namespace DAL
             errorMessage = string.Empty;
             try
             {
-                // Đảm bảo MaTrinhDo hợp lệ nếu chưa có
-                int maTrinhDo = baiHoc.MaTrinhDoId;
-                if (maTrinhDo <= 0)
+                // Đảm bảo MaTrinhDo chuẩn xác theo MaCapDo (A1, A2, B1, B2, C1) được chọn trên form
+                int maTrinhDo = 0;
+                if (!string.IsNullOrWhiteSpace(baiHoc.MaTrinhDo))
                 {
                     object? tdObj = DatabaseHelper.ExecuteScalar(
-                        "SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = @CapDo", 
-                        new[] { new SqlParameter("@CapDo", string.IsNullOrWhiteSpace(baiHoc.MaTrinhDo) ? "B1" : baiHoc.MaTrinhDo) });
+                        "SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE UPPER(LTRIM(RTRIM(MaCapDo))) = UPPER(LTRIM(RTRIM(@CapDo)))", 
+                        new[] { new SqlParameter("@CapDo", baiHoc.MaTrinhDo.Trim()) });
                     if (tdObj != null && tdObj != DBNull.Value)
+                    {
                         maTrinhDo = Convert.ToInt32(tdObj);
-                    else
-                        maTrinhDo = 1;
+                        baiHoc.MaTrinhDoId = maTrinhDo;
+                    }
+                }
+
+                if (maTrinhDo <= 0)
+                {
+                    maTrinhDo = baiHoc.MaTrinhDoId > 0 ? baiHoc.MaTrinhDoId : 3;
                 }
 
                 // Đảm bảo MaChuDe hợp lệ nếu chưa có

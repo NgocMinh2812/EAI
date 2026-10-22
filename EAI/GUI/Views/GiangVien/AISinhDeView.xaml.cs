@@ -71,6 +71,12 @@ namespace GUI.Views.GiangVien
             int.TryParse(countStr, out int count);
             if (count <= 0) count = 5;
 
+            string selectedSkillTag = (cboSkill.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "";
+            string loaiBaiHoc = !string.IsNullOrWhiteSpace(selectedSkillTag) ? selectedSkillTag : "Ngữ pháp & Từ vựng";
+
+            string selectedQTypeTag = (cboQuestionType.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "";
+            string? yeuCauLoaiCauHoi = !string.IsNullOrWhiteSpace(selectedQTypeTag) ? selectedQTypeTag : null;
+
             string modelSelection = (cboModel.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Google Gemini";
 
             // Khởi tạo CancellationToken cho tác vụ chạy nền
@@ -93,8 +99,9 @@ namespace GUI.Views.GiangVien
                         noiDung: prompt,
                         trinhDo: level,
                         soLuong: count,
-                        loaiBaiHoc: "Ngữ pháp & Từ vựng",
-                        ct: ct
+                        loaiBaiHoc: loaiBaiHoc,
+                        ct: ct,
+                        yeuCauLoaiCauHoi: yeuCauLoaiCauHoi
                     );
                 }, ct);
 
@@ -111,7 +118,7 @@ namespace GUI.Views.GiangVien
                         }
                         UpdatePendingCount();
                         Common.ThongBaoDialog.ThanhCong(
-                            $"AI ({modelSelection}) đã tạo thành công {questions.Count} câu hỏi trắc nghiệm theo yêu cầu: \"{prompt}\"!\nCâu hỏi đã được đưa vào danh sách chờ duyệt.", 
+                            $"AI ({modelSelection}) đã tạo thành công {questions.Count} câu hỏi đa dạng theo yêu cầu: \"{prompt}\"!\nCâu hỏi đã được đưa vào danh sách chờ duyệt.", 
                             "Tạo câu hỏi thành công");
                     }
                     else
@@ -181,6 +188,25 @@ namespace GUI.Views.GiangVien
                 Foreground = (Brush)FindResource("TextDark"),
                 Margin = new Thickness(0, 0, 8, 0)
             });
+
+            // Badge loại câu hỏi & kỹ năng
+            string loaiHienThi = CauHoiKhaoSatDTO.ChuanHoaLoaiCauHoi(q.LoaiCauHoi);
+            var qTypeBadge = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(243, 232, 255)),
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(6, 2, 6, 2),
+                Margin = new Thickness(0, 0, 8, 0)
+            };
+            qTypeBadge.Child = new TextBlock
+            {
+                Text = loaiHienThi,
+                FontSize = 11,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(Color.FromRgb(126, 34, 206))
+            };
+            headerLeft.Children.Add(qTypeBadge);
+
             headerLeft.Children.Add(new TextBlock
             {
                 Text = $"{DateTime.Now:dd/MM HH:mm} • {modelName}",
@@ -218,14 +244,28 @@ namespace GUI.Views.GiangVien
                 Margin = new Thickness(0, 0, 0, 12)
             };
 
-            string choicesText = "";
+            string bodyText = "";
+            if (!string.IsNullOrWhiteSpace(q.DoanVanDoc))
+            {
+                bodyText += $"📖 Đoạn văn tham chiếu:\n{q.DoanVanDoc}\n\n";
+            }
+            bodyText += q.NoiDungCauHoi;
+
             if (q.DanhSachLuaChon != null && q.DanhSachLuaChon.Count > 0)
             {
-                choicesText = "\n" + string.Join("\n", q.DanhSachLuaChon);
+                bodyText += "\n\n" + string.Join("\n", q.DanhSachLuaChon);
+            }
+            if (!string.IsNullOrWhiteSpace(q.DapAnVanBan))
+            {
+                bodyText += $"\n\n🔑 Đáp án mẫu: {q.DapAnVanBan}";
+            }
+            if (!string.IsNullOrWhiteSpace(q.TieuChiCham))
+            {
+                bodyText += $"\n\n📋 Tiêu chí chấm (Rubric): {q.TieuChiCham}";
             }
             if (!string.IsNullOrWhiteSpace(q.GiaiThichChiTiet))
             {
-                choicesText += $"\n\n💡 Giải thích: {q.GiaiThichChiTiet}";
+                bodyText += $"\n\n💡 Giải thích: {q.GiaiThichChiTiet}";
             }
 
             contentBorder.Child = new TextBlock
@@ -235,7 +275,7 @@ namespace GUI.Views.GiangVien
                 Foreground = (Brush)FindResource("TextDark"),
                 TextWrapping = TextWrapping.Wrap,
                 LineHeight = 20,
-                Text = $"{q.NoiDungCauHoi}{choicesText}"
+                Text = bodyText
             };
             mainStack.Children.Add(contentBorder);
 

@@ -9,9 +9,9 @@ namespace DTO
     {
         public int MaCauHoi { get; set; }
         public string NoiDungCauHoi { get; set; } = string.Empty;
-        public List<string> DanhSachLuaChon { get; set; } = new List<string>();
-        public int DapAnDungIndex { get; set; } // 0: A, 1: B, 2: C, 3: D
-        public string GiaiThichChiTiet { get; set; } = string.Empty;
+        public List<string>? DanhSachLuaChon { get; set; } = new List<string>();
+        public int? DapAnDungIndex { get; set; } // 0: A, 1: B, 2: C, 3: D (null nếu là câu hỏi điền từ/trả lời ngắn/tự luận)
+        public string? GiaiThichChiTiet { get; set; } = string.Empty;
         public int LuaChonCuaNguoiDung { get; set; } = -1; // -1: Chưa chọn
         public bool? DaTraLoiDung { get; set; } = null;
         public bool IsSelected { get; set; } = true;
@@ -19,6 +19,9 @@ namespace DTO
         public string? DoKho { get; set; }
         public string? LoaiCauHoi { get; set; }
         public string? DoanVanDoc { get; set; }
+        public string? DapAnVanBan { get; set; }
+        public string? TieuChiCham { get; set; }
+        public string? AudioScript { get; set; }
     }
 
     public class BaiHocDTO : INotifyPropertyChanged
@@ -54,7 +57,7 @@ namespace DTO
             set => SetProperty(ref _maChuDe, value);
         }
 
-        private int _maTrinhDoId = 3;
+        private int _maTrinhDoId = 0;
         public int MaTrinhDoId
         {
             get => _maTrinhDoId;
@@ -260,5 +263,49 @@ namespace DTO
 
         public List<CauHoiDTO> DanhSachCauHoi { get; set; } = new List<CauHoiDTO>();
         public bool IsSelected { get; set; } = false;
+
+        public BaiHocDTO Clone()
+        {
+            return new BaiHocDTO
+            {
+                MaBaiHoc = this.MaBaiHoc,
+                MaChuDe = this.MaChuDe,
+                MaTrinhDoId = this.MaTrinhDoId,
+                NguoiTao = this.NguoiTao,
+                TieuDe = this.TieuDe,
+                LoaiBaiHoc = this.LoaiBaiHoc,
+                TenLoaiHienThi = this.TenLoaiHienThi,
+                MaTrinhDo = this.MaTrinhDo,
+                TenChuDe = this.TenChuDe,
+                TomTat = this.TomTat,
+                NoiDung = this.NoiDung,
+                DuongDanAudio = this.DuongDanAudio,
+                DuongDanHinhAnh = this.DuongDanHinhAnh,
+                AudioPath = this.AudioPath,
+                AnhMinhHoaPath = this.AnhMinhHoaPath,
+                ThoiGianUocTinhPhut = this.ThoiGianUocTinhPhut,
+                DaXuatBan = this.DaXuatBan,
+                PhanTramTienDo = this.PhanTramTienDo,
+                TrangThai = this.TrangThai,
+                DiemSo = this.DiemSo,
+                NgayHocGanNhat = this.NgayHocGanNhat,
+                NgayTao = this.NgayTao,
+                BadgeBackground = this.BadgeBackground,
+                BadgeForeground = this.BadgeForeground,
+                IconSkill = this.IconSkill,
+                StatusColor = this.StatusColor,
+                StatusBackground = this.StatusBackground,
+                ButtonActionText = this.ButtonActionText,
+                DinhDangTep = this.DinhDangTep,
+                TenTepVatLy = this.TenTepVatLy,
+                DuongDanTepVatLy = this.DuongDanTepVatLy,
+                DungLuongHienThi = this.DungLuongHienThi,
+                BadgeDinhDangBg = this.BadgeDinhDangBg,
+                BadgeDinhDangFg = this.BadgeDinhDangFg,
+                BadgeDinhDangBorder = this.BadgeDinhDangBorder,
+                DanhSachCauHoi = new List<CauHoiDTO>(this.DanhSachCauHoi ?? new List<CauHoiDTO>()),
+                IsSelected = this.IsSelected
+            };
+        }
     }
 }
