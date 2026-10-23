@@ -9,12 +9,14 @@ namespace BUS.AI.Configuration
     {
         public const string UserSecretsId = "eai-desktop-app-secrets";
         private static IConfiguration? _configuration;
+        private static IConfiguration? _apiJsonConfig;
+        private static string? _lastApiJsonPath;
 
         /// <summary>
         /// Configuration pipeline hợp nhất của ứng dụng:
-        /// 1. Nạp .NET User Secrets từ %APPDATA%\Microsoft\UserSecrets\eai-desktop-app-secrets\secrets.json
-        /// 2. Nạp Biến môi trường hệ thống (Environment Variables)
-        /// Tuyệt đối KHÔNG đọc hay fallback tới file secrets.json trong repository!
+        /// 1. Nạp .NET User Secrets từ %APPDATA%\Microsoft\UserSecrets\eai-desktop-app-secrets\secrets.json (Ưu tiên số 1)
+        /// 2. Nạp Biến môi trường hệ thống (Environment Variables - User, Machine, Process) (Ưu tiên số 2)
+        /// 3. Nạp tệp cấu hình cục bộ api.json (Ưu tiên số 3 - dùng khi copy sang máy khác để test)
         /// </summary>
         public static IConfiguration Configuration => _configuration ??= BuildConfiguration();
 
@@ -43,6 +45,71 @@ namespace BUS.AI.Configuration
         public static void ReloadConfiguration()
         {
             _configuration = BuildConfiguration();
+            _apiJsonConfig = null;
+            _lastApiJsonPath = null;
+        }
+
+        /// <summary>
+        /// Tìm kiếm đường dẫn tệp cấu hình api.json theo các vị trí tiềm năng:
+        /// 1. Thư mục chạy ứng dụng (BaseDirectory - bin\Debug\net7.0-windows)
+        /// 2. Thư mục làm việc hiện tại (CurrentDirectory)
+        /// 3. Lần ngược lên các thư mục cha (thư mục project GUI, thư mục EAI chứa EAI.sln, thư mục gốc repository)
+        /// </summary>
+        public static string? FindApiJsonPath()
+        {
+            try
+            {
+                // 1. Thư mục thực thi của ứng dụng
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string p1 = Path.Combine(baseDir, "api.json");
+                if (File.Exists(p1)) return p1;
+
+                // 2. Thư mục làm việc hiện tại
+                string currDir = Directory.GetCurrentDirectory();
+                string p2 = Path.Combine(currDir, "api.json");
+                if (File.Exists(p2)) return p2;
+
+                // 3. Quét ngược lên các thư mục cha (để tìm thấy EAI\api.json hoặc repo root)
+                DirectoryInfo? dir = new DirectoryInfo(baseDir);
+                for (int i = 0; i < 6 && dir != null; i++)
+                {
+                    string candidate = Path.Combine(dir.FullName, "api.json");
+                    if (File.Exists(candidate)) return candidate;
+
+                    string candidateSub = Path.Combine(dir.FullName, "EAI", "api.json");
+                    if (File.Exists(candidateSub)) return candidateSub;
+
+                    dir = dir.Parent;
+                }
+            }
+            catch { }
+
+            return null;
+        }
+
+        public static IConfiguration? ApiJsonConfiguration
+        {
+            get
+            {
+                string? path = FindApiJsonPath();
+                if (string.IsNullOrEmpty(path) || !File.Exists(path)) return null;
+
+                if (_apiJsonConfig == null || _lastApiJsonPath != path)
+                {
+                    try
+                    {
+                        _lastApiJsonPath = path;
+                        _apiJsonConfig = new ConfigurationBuilder()
+                            .AddJsonFile(path, optional: true, reloadOnChange: true)
+                            .Build();
+                    }
+                    catch
+                    {
+                        return null;
+                    }
+                }
+                return _apiJsonConfig;
+            }
         }
 
         /// <summary>
@@ -79,7 +146,9 @@ namespace BUS.AI.Configuration
         {
             var config = Configuration;
 
-            // 1. Ưu tiên cấu hình User Secrets (Manage User Secrets)
+            // =========================================================================
+            // 1. ƯU TIÊN SỐ 1: .NET User Secrets (Manage User Secrets)
+            // =========================================================================
             // 1a. Cấu trúc lồng chuẩn: Gemini:ApiKey
             string? key = config["Gemini:ApiKey"];
             if (!string.IsNullOrWhiteSpace(key)) return key.Trim();
@@ -101,7 +170,9 @@ namespace BUS.AI.Configuration
             key = config["GEMINI_API_KEY"] ?? config["GOOGLE_API_KEY"];
             if (!string.IsNullOrWhiteSpace(key)) return key.Trim();
 
-            // 2. Biến môi trường hệ thống (User target -> Machine target -> Process target)
+            // =========================================================================
+            // 2. ƯU TIÊN SỐ 2: Biến môi trường hệ thống (User -> Machine -> Process)
+            // =========================================================================
             if (!string.IsNullOrWhiteSpace(module))
             {
                 string modEnvVar = $"GEMINI_API_KEY_{module.ToUpperInvariant()}";
@@ -112,6 +183,29 @@ namespace BUS.AI.Configuration
             string? envKey = GetEnvVar("GEMINI_API_KEY") ?? GetEnvVar("GOOGLE_API_KEY");
             if (!string.IsNullOrWhiteSpace(envKey)) return envKey.Trim();
 
+            // =========================================================================
+            // 3. ƯU TIÊN SỐ 3: File cấu hình cục bộ api.json (Dùng test trên máy khác)
+            // =========================================================================
+            var apiJson = ApiJsonConfiguration;
+            if (apiJson != null)
+            {
+                string? jsonKey = apiJson["Gemini:ApiKey"];
+                if (!string.IsNullOrWhiteSpace(jsonKey)) return jsonKey.Trim();
+
+                if (!string.IsNullOrWhiteSpace(module))
+                {
+                    jsonKey = apiJson[$"Gemini:{module}"];
+                    if (!string.IsNullOrWhiteSpace(jsonKey)) return jsonKey.Trim();
+                }
+
+                jsonKey = apiJson["Gemini:NoiDungHocTap"] 
+                       ?? apiJson["Gemini:DanhMucCauTruc"] 
+                       ?? apiJson["Gemini:DanhMuc"]
+                       ?? apiJson["GEMINI_API_KEY"] 
+                       ?? apiJson["GOOGLE_API_KEY"];
+                if (!string.IsNullOrWhiteSpace(jsonKey)) return jsonKey.Trim();
+            }
+
             return string.Empty;
         }
 
@@ -119,13 +213,21 @@ namespace BUS.AI.Configuration
         {
             var config = Configuration;
 
-            // 1. Ưu tiên .NET User Secrets (chuẩn lồng Groq:ApiKey hoặc flat GROQ_API_KEY)
+            // 1. ƯU TIÊN SỐ 1: .NET User Secrets
             string? key = config["Groq:ApiKey"] ?? config["GROQ_API_KEY"];
             if (!string.IsNullOrWhiteSpace(key)) return key.Trim();
 
-            // 2. Biến môi trường hệ thống (User -> Machine -> Process)
+            // 2. ƯU TIÊN SỐ 2: Biến môi trường hệ thống (User -> Machine -> Process)
             string? envKey = GetEnvVar("GROQ_API_KEY");
             if (!string.IsNullOrWhiteSpace(envKey)) return envKey.Trim();
+
+            // 3. ƯU TIÊN SỐ 3: File cấu hình cục bộ api.json (Dùng test trên máy khác)
+            var apiJson = ApiJsonConfiguration;
+            if (apiJson != null)
+            {
+                string? jsonKey = apiJson["Groq:ApiKey"] ?? apiJson["GROQ_API_KEY"];
+                if (!string.IsNullOrWhiteSpace(jsonKey)) return jsonKey.Trim();
+            }
 
             return string.Empty;
         }
@@ -134,7 +236,7 @@ namespace BUS.AI.Configuration
         {
             var config = Configuration;
 
-            // 1. Ưu tiên .NET User Secrets
+            // 1. ƯU TIÊN SỐ 1: .NET User Secrets
             string? key = config["Xkio:ApiKey"] 
                        ?? config["xKiro:ApiKey"] 
                        ?? config["XKIO_API_KEY"] 
@@ -147,7 +249,7 @@ namespace BUS.AI.Configuration
                        ?? config["XKIO_BASE_URL"] 
                        ?? config["XKIRO_BASE_URL"];
 
-            // 2. Biến môi trường hệ thống (User -> Machine -> Process)
+            // 2. ƯU TIÊN SỐ 2: Biến môi trường hệ thống (User -> Machine -> Process)
             if (string.IsNullOrWhiteSpace(key))
             {
                 key = GetEnvVar("XKIO_API_KEY") ?? GetEnvVar("XKIRO_API_KEY");
@@ -159,6 +261,31 @@ namespace BUS.AI.Configuration
                    ?? GetEnvVar("XKIRO_API_ENDPOINT") 
                    ?? GetEnvVar("XKIO_BASE_URL") 
                    ?? GetEnvVar("XKIRO_BASE_URL");
+            }
+
+            // 3. ƯU TIÊN SỐ 3: File cấu hình cục bộ api.json (Dùng test trên máy khác)
+            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(url))
+            {
+                var apiJson = ApiJsonConfiguration;
+                if (apiJson != null)
+                {
+                    if (string.IsNullOrWhiteSpace(key))
+                    {
+                        key = apiJson["Xkio:ApiKey"] 
+                           ?? apiJson["xKiro:ApiKey"] 
+                           ?? apiJson["XKIO_API_KEY"] 
+                           ?? apiJson["XKIRO_API_KEY"];
+                    }
+                    if (string.IsNullOrWhiteSpace(url))
+                    {
+                        url = apiJson["Xkio:BaseUrl"] 
+                           ?? apiJson["xKiro:BaseUrl"] 
+                           ?? apiJson["XKIO_API_ENDPOINT"] 
+                           ?? apiJson["XKIRO_API_ENDPOINT"]
+                           ?? apiJson["XKIO_BASE_URL"] 
+                           ?? apiJson["XKIRO_BASE_URL"];
+                    }
+                }
             }
 
             key ??= "";

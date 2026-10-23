@@ -19,6 +19,8 @@ secrets.json
 *.secrets.json
 *secret*.json
 appsettings.secrets.json
+api.json
+**/api.json
 
 # Whitelist safe configuration examples
 !*.example.json
