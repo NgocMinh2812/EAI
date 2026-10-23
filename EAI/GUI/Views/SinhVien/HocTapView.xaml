@@ -238,74 +238,6 @@
             </Setter>
         </Style>
 
-        <!-- Modern TreeView and TreeViewItem Style -->
-        <Style x:Key="ModernTreeViewItem" TargetType="TreeViewItem">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Padding" Value="7,4"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TreeViewItem">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition/>
-                            </Grid.RowDefinitions>
-                            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
-                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}" Margin="0,1">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="20"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <ToggleButton x:Name="Expander" ClickMode="Press" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
-                                                  Background="Transparent" BorderThickness="0" Width="16" Height="16" VerticalAlignment="Center">
-                                        <ToggleButton.Template>
-                                            <ControlTemplate TargetType="ToggleButton">
-                                                <Border Background="Transparent" Width="16" Height="16">
-                                                    <Path x:Name="ExpandPath" Data="M 1 1 L 5 5 L 9 1" Stroke="#94A3B8" StrokeThickness="1.5"
-                                                          HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
-                                                        <Path.RenderTransform>
-                                                            <RotateTransform Angle="-90"/>
-                                                        </Path.RenderTransform>
-                                                    </Path>
-                                                </Border>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsChecked" Value="True">
-                                                        <Setter TargetName="ExpandPath" Property="RenderTransform">
-                                                            <Setter.Value>
-                                                                <RotateTransform Angle="0"/>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </ToggleButton.Template>
-                                    </ToggleButton>
-                                    <ContentPresenter Grid.Column="1" ContentSource="Header" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                                </Grid>
-                            </Border>
-                            <ItemsPresenter x:Name="ItemsHost" Grid.Row="1" Margin="14,0,0,0"/>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="HasItems" Value="false">
-                                <Setter TargetName="Expander" Property="Visibility" Value="Hidden"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="true">
-                                <Setter TargetName="Bd" Property="Background" Value="#F1F5F9"/>
-                            </Trigger>
-                            <Trigger Property="IsSelected" Value="true">
-                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource BrandTealLight}"/>
-                                <Setter Property="Foreground" Value="{StaticResource BrandTeal}"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </Page.Resources>
 
     <!-- ================= RIGHT MAIN AREA ================= -->
@@ -364,54 +296,8 @@
                 
                 <!-- ================= VIEW 1: DANH SÁCH BÀI HỌC ================= -->
                 <ScrollViewer x:Name="pnlDanhSachBaiHoc" VerticalScrollBarVisibility="Auto" Padding="25,20,25,30" Visibility="Visible">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="280"/>
-                            <ColumnDefinition Width="18"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <!-- CỘT TRÁI: CÂY DANH MỤC LỘ TRÌNH (KỸ NĂNG & CHỦ ĐỀ) - TASK-202 -->
-                        <Border Grid.Column="0" Background="White" CornerRadius="14" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="16,16" VerticalAlignment="Top">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.04" Color="Black"/>
-                            </Border.Effect>
-                            <StackPanel>
-                                <Grid Margin="0,0,0,10">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                        <Border Background="{StaticResource BrandTealLight}" Width="32" Height="32" CornerRadius="8" Margin="0,0,10,0">
-                                            <TextBlock Text="🧭" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                        <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Text="CÂY DANH MỤC LỘ TRÌNH" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource BrandTealDark}"/>
-                                            <TextBlock Text="Kỹ năng &amp; Chủ đề học tập" FontSize="11" Foreground="{StaticResource TextGray}"/>
-                                        </StackPanel>
-                                    </StackPanel>
-
-                                    <!-- Quick Refresh Button -->
-                                    <Button x:Name="btnRefreshTree" Content="🔄" ToolTip="Đồng bộ lại Cây danh mục từ Cơ sở dữ liệu" 
-                                            HorizontalAlignment="Right" VerticalAlignment="Center" Width="28" Height="28"
-                                            Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnRefreshTree_Click"
-                                            FontSize="12" Foreground="{StaticResource TextGray}"/>
-                                </Grid>
-
-                                <Rectangle Height="1" Fill="{StaticResource BorderLight}" Margin="0,0,0,10"/>
-
-                                <!-- Quick Reset Button -->
-                                <Button x:Name="btnTreeReset" Content="🌐 Xem toàn bộ bài học" Style="{StaticResource FilterChipButton}" 
-                                        HorizontalAlignment="Stretch" Margin="0,0,0,10" Background="{StaticResource BrandTealLight}" 
-                                        Foreground="{StaticResource BrandTeal}" FontWeight="SemiBold" Click="BtnTreeReset_Click"/>
-
-                                <!-- Interactive TreeView (Nạp động 100% từ Cơ sở dữ liệu) -->
-                                <TreeView x:Name="trvDanhMuc" BorderThickness="0" Background="Transparent" 
-                                          ItemContainerStyle="{StaticResource ModernTreeViewItem}"
-                                          SelectedItemChanged="TrvDanhMuc_SelectedItemChanged"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- CỘT PHẢI: BANNER, THANH LỌC VÀ DANH SÁCH BÀI HỌC -->
-                        <StackPanel Grid.Column="2">
-                            <!-- Top Banner -->
+                    <StackPanel>
+                        <!-- Top Banner -->
                             <Border Background="{StaticResource BrandTeal}" CornerRadius="14" Padding="22,18" Margin="0,0,0,16">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -426,7 +312,7 @@
                                             <TextBlock Text="Đồng bộ cơ sở dữ liệu" FontSize="12" Foreground="{StaticResource BrandMintSoft}" VerticalAlignment="Center"/>
                                         </StackPanel>
                                         <TextBlock x:Name="txtBannerTitle" Text="Kho Bài Học Tương Tác &amp; Cá Nhân Hóa" FontSize="20" FontWeight="Bold" Foreground="White"/>
-                                        <TextBlock x:Name="txtBannerSubtitle" Text="Luyện tập đa kỹ năng: Từ vựng, Ngữ pháp, Đọc hiểu, Nghe và Viết luận có AI hướng dẫn chi tiết từng câu."
+                                        <TextBlock x:Name="txtBannerSubtitle" Text="Luyện tập toàn diện 4 kỹ năng: Từ vựng, Ngữ pháp, Đọc hiểu và Nghe hiểu có AI hướng dẫn chi tiết từng câu."
                                                    Foreground="#E6F7F3" FontSize="12.5" Margin="0,4,0,0" TextWrapping="Wrap"/>
                                     </StackPanel>
 
@@ -457,7 +343,7 @@
                                     </Grid.ColumnDefinitions>
 
                                     <!-- Skill Filter Tabs -->
-                                    <StackPanel x:Name="pnlSkillChips" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <WrapPanel x:Name="pnlSkillChips" Grid.Column="0" VerticalAlignment="Center">
                                         <Button x:Name="btnFilterAll" Content="Tất cả" Style="{StaticResource FilterChipButton}" 
                                                 Background="{StaticResource BrandTealLight}" Foreground="{StaticResource BrandTeal}" FontWeight="SemiBold" 
                                                 BorderBrush="{StaticResource BrandTeal}" Click="FilterSkill_Click" Tag="All"/>
@@ -465,8 +351,7 @@
                                         <Button x:Name="btnFilterNguPhap" Content="📝 Ngữ pháp" Style="{StaticResource FilterChipButton}" Click="FilterSkill_Click" Tag="NguPhap"/>
                                         <Button x:Name="btnFilterDoc" Content="📚 Đọc hiểu" Style="{StaticResource FilterChipButton}" Click="FilterSkill_Click" Tag="Doc"/>
                                         <Button x:Name="btnFilterNghe" Content="🎧 Nghe hiểu" Style="{StaticResource FilterChipButton}" Click="FilterSkill_Click" Tag="Nghe"/>
-                                        <Button x:Name="btnFilterViet" Content="✍️ Viết luận" Style="{StaticResource FilterChipButton}" Click="FilterSkill_Click" Tag="Viet"/>
-                                    </StackPanel>
+                                    </WrapPanel>
 
                                     <!-- Level and Status Dropdowns -->
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -588,7 +473,6 @@
                                 </StackPanel>
                             </Border>
                         </StackPanel>
-                    </Grid>
                 </ScrollViewer>
 
                 <!-- ================= VIEW 2: CHI TIẾT BÀI HỌC (TIẾN HÀNH HỌC) ================= -->

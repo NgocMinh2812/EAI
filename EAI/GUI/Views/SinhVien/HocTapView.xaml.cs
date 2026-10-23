@@ -15,22 +15,9 @@ namespace GUI.Views
         private const string SearchPlaceholder = "Tìm bài học, chủ đề, từ vựng...";
         private List<BaiHocDTO> _danhSachBaiHoc = new List<BaiHocDTO>();
         private string _selectedSkill = "All";
-        private TreeFilterNodeTag? _currentTreeFilter;
         private BaiHocDTO? _currentBaiHoc;
         private bool _isInitialized = false;
         private readonly DAL.DanhMucDAL _danhMucDAL = new DAL.DanhMucDAL();
-
-        // TASK-202: Cấu trúc dữ liệu thẻ lọc đại diện cho mỗi nút trên Cây Danh Mục Lộ Trình
-        public class TreeFilterNodeTag
-        {
-            public string FilterType { get; set; } = string.Empty; // "ALL", "SKILL", "TOPIC_PARENT", "TOPIC_CHILD", "LEVEL", "FOLDER_SKILLS", "FOLDER_TOPICS", "FOLDER_LEVELS"
-            public string? Code { get; set; }
-            public int Id { get; set; }
-            public List<int> ChildTopicIds { get; set; } = new List<int>();
-            public string Title { get; set; } = string.Empty;
-            public string? Description { get; set; }
-            public int LessonCount { get; set; }
-        }
 
         // TASK-204: Biến theo dõi thời gian học tập thực tế
         private System.Windows.Threading.DispatcherTimer? _studyTimer;
@@ -174,8 +161,6 @@ namespace GUI.Views
                     txtTimKiem.Foreground = GetBrush("TextGray", Brushes.Gray);
                 }
 
-                // Xây dựng cây danh mục lộ trình trực tiếp từ CSDL
-                BuildRoadmapTree();
             }
             catch (Exception ex)
             {
@@ -183,297 +168,7 @@ namespace GUI.Views
             }
         }
 
-        /// <summary>
-        /// Nạp và xây dựng CÂY DANH MỤC LỘ TRÌNH tự động từ CSDL (Bảng ChuDe, TrinhDo & BaiHoc)
-        /// Kèm badge đếm số lượng bài học theo thời gian thực
-        /// </summary>
-        private void BuildRoadmapTree()
-        {
-            if (trvDanhMuc == null) return;
-            trvDanhMuc.Items.Clear();
 
-            int totalLessons = _danhSachBaiHoc.Count;
-
-            // =========================================================================
-            // NHÁNH 1: PHÂN THEO KỸ NĂNG (SKILLS)
-            // =========================================================================
-            var skillDefinitions = new (string Code, string Name, string Icon)[]
-            {
-                ("TuVung", "Từ vựng (Vocabulary)", "📖"),
-                ("NguPhap", "Ngữ pháp (Grammar)", "📝"),
-                ("Doc", "Đọc hiểu (Reading)", "📚"),
-                ("Nghe", "Nghe hiểu (Listening)", "🎧"),
-                ("Viet", "Viết luận (Writing)", "✍️")
-            };
-
-            int totalSkillLessons = 0;
-            var skillItemTags = new List<(TreeViewItem Item, TreeFilterNodeTag Tag)>();
-
-            foreach (var sk in skillDefinitions)
-            {
-                int count = _danhSachBaiHoc.Count(b => b.LoaiBaiHoc.Equals(sk.Code, StringComparison.OrdinalIgnoreCase));
-                totalSkillLessons += count;
-
-                var tag = new TreeFilterNodeTag
-                {
-                    FilterType = "SKILL",
-                    Code = sk.Code,
-                    Title = sk.Name,
-                    Description = $"Rèn luyện chuyên sâu kỹ năng {sk.Name} với học liệu chuẩn hóa và AI chấm điểm chi tiết.",
-                    LessonCount = count
-                };
-
-                var item = CreateTreeItem(sk.Icon, sk.Name, count, tag, tag.Description);
-                skillItemTags.Add((item, tag));
-            }
-
-            var folderSkillsTag = new TreeFilterNodeTag
-            {
-                FilterType = "FOLDER_SKILLS",
-                Title = "Phân theo Kỹ năng",
-                Description = "Lộ trình học tập đa kỹ năng: Từ vựng, Ngữ pháp, Đọc hiểu, Nghe hiểu và Viết luận.",
-                LessonCount = totalSkillLessons
-            };
-            var branchSkills = CreateTreeItem("📂", "Phân theo Kỹ năng", totalSkillLessons, folderSkillsTag, folderSkillsTag.Description, isBold: true, isExpanded: true);
-            foreach (var s in skillItemTags)
-            {
-                branchSkills.Items.Add(s.Item);
-            }
-            trvDanhMuc.Items.Add(branchSkills);
-
-            // =========================================================================
-            // NHÁNH 2: CÂY CHỦ ĐỀ HỌC TẬP (TOPICS - Nạp động từ bảng ChuDe)
-            // =========================================================================
-            List<ChuDeDTO> allChuDe;
-            try
-            {
-                allChuDe = _danhMucDAL.GetAllChuDe();
-            }
-            catch
-            {
-                allChuDe = new List<ChuDeDTO>();
-            }
-
-            var rootTopics = allChuDe.Where(x => !x.MaChuDeCha.HasValue || x.MaChuDeCha <= 0).ToList();
-            int totalTopicLessons = 0;
-            var branchTopicItems = new List<TreeViewItem>();
-
-            foreach (var parent in rootTopics)
-            {
-                // Tìm toàn bộ chủ đề con trực tiếp
-                var children = allChuDe.Where(x => x.MaChuDeCha == parent.MaChuDe).ToList();
-                var childIds = children.Select(c => c.MaChuDe).ToList();
-
-                // Tính tổng số bài học của chủ đề cha + tất cả con
-                int parentLessonCount = _danhSachBaiHoc.Count(b => b.MaChuDe == parent.MaChuDe || childIds.Contains(b.MaChuDe));
-                totalTopicLessons += parentLessonCount;
-
-                string parentIcon = GetTopicIcon(parent.TenChuDe, isParent: true);
-
-                var parentTag = new TreeFilterNodeTag
-                {
-                    FilterType = "TOPIC_PARENT",
-                    Id = parent.MaChuDe,
-                    ChildTopicIds = childIds,
-                    Title = parent.TenChuDe,
-                    Description = !string.IsNullOrWhiteSpace(parent.MoTa) ? parent.MoTa : $"Kho bài học chủ đề {parent.TenChuDe}",
-                    LessonCount = parentLessonCount
-                };
-
-                var parentItem = CreateTreeItem(parentIcon, parent.TenChuDe, parentLessonCount, parentTag, parentTag.Description, isBold: true, isExpanded: true);
-
-                foreach (var child in children)
-                {
-                    int childCount = _danhSachBaiHoc.Count(b => b.MaChuDe == child.MaChuDe);
-                    string childIcon = GetTopicIcon(child.TenChuDe, isParent: false);
-
-                    var childTag = new TreeFilterNodeTag
-                    {
-                        FilterType = "TOPIC_CHILD",
-                        Id = child.MaChuDe,
-                        Title = child.TenChuDe,
-                        Description = !string.IsNullOrWhiteSpace(child.MoTa) ? child.MoTa : $"Chủ đề chi tiết: {child.TenChuDe}",
-                        LessonCount = childCount
-                    };
-
-                    var childItem = CreateTreeItem(childIcon, child.TenChuDe, childCount, childTag, childTag.Description);
-                    parentItem.Items.Add(childItem);
-                }
-
-                branchTopicItems.Add(parentItem);
-            }
-
-            var folderTopicsTag = new TreeFilterNodeTag
-            {
-                FilterType = "FOLDER_TOPICS",
-                Title = "Cây Chủ đề học tập",
-                Description = "Cây danh mục chủ đề phân cấp từ thực tế đời sống, học thuật IELTS đến CNTT và Thương mại.",
-                LessonCount = totalTopicLessons
-            };
-            var branchTopics = CreateTreeItem("📂", "Cây Chủ đề học tập", totalTopicLessons, folderTopicsTag, folderTopicsTag.Description, isBold: true, isExpanded: true);
-            foreach (var t in branchTopicItems)
-            {
-                branchTopics.Items.Add(t);
-            }
-            trvDanhMuc.Items.Add(branchTopics);
-
-            // =========================================================================
-            // NHÁNH 3: TRÌNH ĐỘ CHUẨN CEFR (LEVELS - Nạp động từ bảng TrinhDo)
-            // =========================================================================
-            List<TrinhDoDTO> allTrinhDo;
-            try
-            {
-                allTrinhDo = _danhMucDAL.GetAllTrinhDo();
-            }
-            catch
-            {
-                allTrinhDo = new List<TrinhDoDTO>();
-            }
-
-            int totalLevelLessons = 0;
-            var branchLevelItems = new List<TreeViewItem>();
-
-            foreach (var td in allTrinhDo)
-            {
-                int count = _danhSachBaiHoc.Count(b => b.MaTrinhDo.Equals(td.MaCapDo, StringComparison.OrdinalIgnoreCase));
-                totalLevelLessons += count;
-
-                string bullet = td.MaCapDo.ToUpper() switch
-                {
-                    "A1" => "🟢",
-                    "A2" => "🔵",
-                    "B1" => "🟣",
-                    "B2" => "🟠",
-                    "C1" => "🔴",
-                    _ => "⭐"
-                };
-
-                string title = $"{bullet} {td.MaCapDo} — {td.TenTrinhDo}";
-                var tag = new TreeFilterNodeTag
-                {
-                    FilterType = "LEVEL",
-                    Code = td.MaCapDo,
-                    Id = td.MaTrinhDo,
-                    Title = title,
-                    Description = !string.IsNullOrWhiteSpace(td.MoTa) ? td.MoTa : $"Khung năng lực tiếng Anh trình độ {td.MaCapDo}",
-                    LessonCount = count
-                };
-
-                var item = CreateTreeItem(string.Empty, title, count, tag, tag.Description);
-                branchLevelItems.Add(item);
-            }
-
-            var folderLevelsTag = new TreeFilterNodeTag
-            {
-                FilterType = "FOLDER_LEVELS",
-                Title = "Trình độ chuẩn CEFR",
-                Description = "Khung tham chiếu ngôn ngữ chung Châu Âu từ A1 (Căn bản) đến C1 (Nâng cao).",
-                LessonCount = totalLevelLessons
-            };
-            var branchLevels = CreateTreeItem("📂", "Trình độ chuẩn CEFR", totalLevelLessons, folderLevelsTag, folderLevelsTag.Description, isBold: true, isExpanded: true);
-            foreach (var l in branchLevelItems)
-            {
-                branchLevels.Items.Add(l);
-            }
-            trvDanhMuc.Items.Add(branchLevels);
-
-            // Cập nhật nhãn nút Reset trên cùng
-            if (btnTreeReset != null)
-            {
-                btnTreeReset.Content = $"🌐 Xem toàn bộ bài học ({totalLessons})";
-            }
-        }
-
-        /// <summary>
-        /// Tạo TreeViewItem hiện đại có biểu tượng, tên danh mục và huy hiệu (pill badge) số lượng bài học
-        /// </summary>
-        private TreeViewItem CreateTreeItem(string icon, string title, int count, TreeFilterNodeTag tag, string? tooltip = null, bool isBold = false, bool isExpanded = true)
-        {
-            var item = new TreeViewItem
-            {
-                Tag = tag,
-                IsExpanded = isExpanded,
-                ToolTip = !string.IsNullOrWhiteSpace(tooltip) ? tooltip : title
-            };
-
-            var stack = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(0, 1, 0, 1)
-            };
-
-            if (!string.IsNullOrEmpty(icon))
-            {
-                stack.Children.Add(new TextBlock
-                {
-                    Text = icon,
-                    FontSize = 13,
-                    Margin = new Thickness(0, 0, 6, 0),
-                    VerticalAlignment = VerticalAlignment.Center
-                });
-            }
-
-            stack.Children.Add(new TextBlock
-            {
-                Text = title,
-                FontSize = 12.5,
-                FontWeight = isBold ? FontWeights.SemiBold : FontWeights.Normal,
-                VerticalAlignment = VerticalAlignment.Center
-            });
-
-            // Huy hiệu số bài học
-            var badgeBorder = new Border
-            {
-                Background = new SolidColorBrush(Color.FromRgb(241, 245, 249)),
-                CornerRadius = new CornerRadius(8),
-                Padding = new Thickness(6, 1, 6, 1),
-                Margin = new Thickness(6, 0, 0, 0),
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            badgeBorder.Child = new TextBlock
-            {
-                Text = count.ToString(),
-                FontSize = 10.5,
-                FontWeight = FontWeights.Bold,
-                Foreground = new SolidColorBrush(Color.FromRgb(100, 116, 139))
-            };
-
-            stack.Children.Add(badgeBorder);
-            item.Header = stack;
-            return item;
-        }
-
-        private string GetTopicIcon(string topicName, bool isParent)
-        {
-            string n = topicName.ToLower();
-            if (isParent)
-            {
-                if (n.Contains("giao tiếp")) return "☕";
-                if (n.Contains("ielts") || n.Contains("học thuật")) return "🎓";
-                if (n.Contains("ngữ pháp")) return "📐";
-                if (n.Contains("thương mại") || n.Contains("công sở")) return "💼";
-                if (n.Contains("công nghệ") || n.Contains("it") || n.Contains("phần mềm")) return "💻";
-                return "📁";
-            }
-            else
-            {
-                if (n.Contains("chào hỏi") || n.Contains("giới thiệu")) return "👋";
-                if (n.Contains("mua sắm") || n.Contains("nhà hàng") || n.Contains("ẩm thực")) return "🛍️";
-                if (n.Contains("du lịch") || n.Contains("giao thông") || n.Contains("sân bay")) return "✈️";
-                if (n.Contains("reading") || n.Contains("skimming")) return "📑";
-                if (n.Contains("writing") || n.Contains("luận")) return "✍️";
-                if (n.Contains("listening")) return "🎧";
-                if (n.Contains("thì") || n.Contains("tenses")) return "⏳";
-                if (n.Contains("mệnh đề") || n.Contains("bị động")) return "🔗";
-                if (n.Contains("điều kiện") || n.Contains("đảo ngữ")) return "⚖️";
-                if (n.Contains("email") || n.Contains("thư")) return "✉️";
-                if (n.Contains("đàm phán") || n.Contains("thuyết trình")) return "🤝";
-                if (n.Contains("lập trình") || n.Contains("thuật ngữ")) return "💻";
-                if (n.Contains("agile") || n.Contains("scrum")) return "🗣️";
-                return "📄";
-            }
-        }
 
         private void ApplyFilter()
         {
@@ -484,55 +179,13 @@ namespace GUI.Views
             {
                 var query = _danhSachBaiHoc.AsEnumerable();
 
-                // 1. Lọc theo Cây danh mục lộ trình (TreeView - TASK-202)
-                if (_currentTreeFilter != null)
-                {
-                    switch (_currentTreeFilter.FilterType)
-                    {
-                        case "SKILL":
-                            if (!string.IsNullOrEmpty(_currentTreeFilter.Code))
-                            {
-                                query = query.Where(b => b.LoaiBaiHoc.Equals(_currentTreeFilter.Code, StringComparison.OrdinalIgnoreCase));
-                            }
-                            break;
-
-                        case "TOPIC_CHILD":
-                            query = query.Where(b => b.MaChuDe == _currentTreeFilter.Id);
-                            break;
-
-                        case "TOPIC_PARENT":
-                            var allIds = new HashSet<int>(_currentTreeFilter.ChildTopicIds) { _currentTreeFilter.Id };
-                            query = query.Where(b => allIds.Contains(b.MaChuDe));
-                            break;
-
-                        case "LEVEL":
-                            if (!string.IsNullOrEmpty(_currentTreeFilter.Code))
-                            {
-                                query = query.Where(b => b.MaTrinhDo.Equals(_currentTreeFilter.Code, StringComparison.OrdinalIgnoreCase));
-                            }
-                            break;
-
-                        case "FOLDER_TOPICS":
-                            query = query.Where(b => b.MaChuDe > 0);
-                            break;
-
-                        case "FOLDER_LEVELS":
-                            query = query.Where(b => !string.IsNullOrEmpty(b.MaTrinhDo));
-                            break;
-
-                        case "FOLDER_SKILLS":
-                        default:
-                            break;
-                    }
-                }
-
-                // 2. Lọc theo Skill Chip Bar (nếu khác All)
+                // 1. Lọc theo Kỹ năng (All / TuVung / NguPhap / Doc / Nghe)
                 if (!string.IsNullOrEmpty(_selectedSkill) && _selectedSkill != "All")
                 {
                     query = query.Where(b => b.LoaiBaiHoc.Equals(_selectedSkill, StringComparison.OrdinalIgnoreCase));
                 }
 
-                // 3. Lọc theo Trình độ (ComboBox)
+                // 2. Lọc theo Trình độ (ComboBox)
                 if (cboTrinhDo != null && cboTrinhDo.SelectedItem is ComboBoxItem itemTrinhDo)
                 {
                     string trinhDo = itemTrinhDo.Content?.ToString() ?? "Tất cả";
@@ -542,7 +195,7 @@ namespace GUI.Views
                     }
                 }
 
-                // 4. Lọc theo Trạng thái (ComboBox)
+                // 3. Lọc theo Trạng thái (ComboBox)
                 if (cboTrangThai != null && cboTrangThai.SelectedItem is ComboBoxItem itemTrangThai)
                 {
                     string trangThai = itemTrangThai.Content?.ToString() ?? "Tất cả";
@@ -552,7 +205,7 @@ namespace GUI.Views
                     }
                 }
 
-                // 5. Lọc theo từ khóa tìm kiếm
+                // 4. Lọc theo từ khóa tìm kiếm
                 if (txtTimKiem != null)
                 {
                     string keyword = txtTimKiem.Text.Trim();
@@ -573,13 +226,9 @@ namespace GUI.Views
                     pnlEmptyLessons.Visibility = filteredList.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
                     icDanhSachBaiHoc.Visibility = filteredList.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
-                    if (txtEmptyReason != null && _currentTreeFilter != null)
+                    if (txtEmptyReason != null)
                     {
-                        txtEmptyReason.Text = $"Chưa có bài học nào thuộc '{_currentTreeFilter.Title}' phù hợp với bộ lọc hiện tại.";
-                    }
-                    else if (txtEmptyReason != null)
-                    {
-                        txtEmptyReason.Text = "Không có bài học nào trong danh mục hoặc bộ lọc hiện tại.";
+                        txtEmptyReason.Text = "Không có bài học nào phù hợp với bộ lọc hiện tại.";
                     }
                 }
 
@@ -592,64 +241,6 @@ namespace GUI.Views
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine("ApplyFilter Error: " + ex.Message);
-            }
-        }
-
-        private void TrvDanhMuc_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            if (e.NewValue is TreeViewItem item && item.Tag is TreeFilterNodeTag nodeTag)
-            {
-                _currentTreeFilter = nodeTag;
-
-                // Cập nhật giao diện Banner Tiêu đề & Mô tả
-                UpdateBannerForTreeSelection(nodeTag);
-
-                // Đồng bộ bộ lọc ngoài nếu chọn Kỹ năng hoặc Trình độ
-                if (nodeTag.FilterType == "SKILL" && !string.IsNullOrEmpty(nodeTag.Code))
-                {
-                    SyncSkillButtonsVisual(nodeTag.Code);
-                }
-                else if (nodeTag.FilterType == "LEVEL" && !string.IsNullOrEmpty(nodeTag.Code))
-                {
-                    SyncTrinhDoComboBoxVisual(nodeTag.Code);
-                }
-
-                ApplyFilter();
-            }
-        }
-
-        private void UpdateBannerForTreeSelection(TreeFilterNodeTag tag)
-        {
-            if (txtCurrentNavCategory != null)
-            {
-                txtCurrentNavCategory.Text = tag.FilterType switch
-                {
-                    "SKILL" => $"KỸ NĂNG: {tag.Title.ToUpper()}",
-                    "TOPIC_PARENT" => $"LỘ TRÌNH: {tag.Title.ToUpper()}",
-                    "TOPIC_CHILD" => $"CHỦ ĐỀ: {tag.Title.ToUpper()}",
-                    "LEVEL" => $"TRÌNH ĐỘ: {tag.Title.ToUpper()}",
-                    "FOLDER_SKILLS" => "TẤT CẢ KỸ NĂNG HỌC TẬP",
-                    "FOLDER_TOPICS" => "CÂY CHỦ ĐỀ HỌC TẬP TOÀN DIỆN",
-                    "FOLDER_LEVELS" => "KHUNG NĂNG LỰC CHUẨN CEFR",
-                    _ => tag.Title.ToUpper()
-                };
-            }
-
-            if (txtBannerTitle != null)
-            {
-                txtBannerTitle.Text = tag.FilterType switch
-                {
-                    "SKILL" => $"Học liệu Kỹ năng: {tag.Title}",
-                    "TOPIC_PARENT" => tag.Title,
-                    "TOPIC_CHILD" => tag.Title,
-                    "LEVEL" => $"Lộ trình trình độ: {tag.Title}",
-                    _ => tag.Title
-                };
-            }
-
-            if (txtBannerSubtitle != null && !string.IsNullOrWhiteSpace(tag.Description))
-            {
-                txtBannerSubtitle.Text = tag.Description;
             }
         }
 
@@ -676,36 +267,9 @@ namespace GUI.Views
             }
         }
 
-        private void SyncTrinhDoComboBoxVisual(string levelCode)
-        {
-            if (cboTrinhDo == null) return;
-            for (int i = 0; i < cboTrinhDo.Items.Count; i++)
-            {
-                if (cboTrinhDo.Items[i] is ComboBoxItem item && 
-                    string.Equals(item.Content?.ToString(), levelCode, StringComparison.OrdinalIgnoreCase))
-                {
-                    cboTrinhDo.SelectedIndex = i;
-                    break;
-                }
-            }
-        }
-
-        private void BtnRefreshTree_Click(object sender, RoutedEventArgs e)
-        {
-            LoadData();
-            ApplyFilter();
-        }
-
         private void BtnTreeReset_Click(object sender, RoutedEventArgs e)
         {
-            _currentTreeFilter = null;
             _selectedSkill = "All";
-
-            // Bỏ chọn nút trên TreeView nếu có
-            if (trvDanhMuc != null && trvDanhMuc.SelectedItem is TreeViewItem selItem)
-            {
-                selItem.IsSelected = false;
-            }
 
             if (cboTrinhDo != null) cboTrinhDo.SelectedIndex = 0;
             if (cboTrangThai != null) cboTrangThai.SelectedIndex = 0;
@@ -727,7 +291,7 @@ namespace GUI.Views
             }
             if (txtBannerSubtitle != null)
             {
-                txtBannerSubtitle.Text = "Luyện tập đa kỹ năng: Từ vựng, Ngữ pháp, Đọc hiểu, Nghe và Viết luận có AI hướng dẫn chi tiết từng câu.";
+                txtBannerSubtitle.Text = "Luyện tập toàn diện 4 kỹ năng: Từ vựng, Ngữ pháp, Đọc hiểu và Nghe hiểu có AI hướng dẫn chi tiết từng câu.";
             }
 
             ApplyFilter();
@@ -743,11 +307,23 @@ namespace GUI.Views
                 {
                     "DocHieu" => "Doc",
                     "NgheHieu" => "Nghe",
-                    "VietLuan" => "Viet",
                     _ => tag
                 };
 
                 SyncSkillButtonsVisual(mappedSkill);
+
+                if (txtCurrentNavCategory != null)
+                {
+                    txtCurrentNavCategory.Text = mappedSkill switch
+                    {
+                        "TuVung" => "KỸ NĂNG: TỪ VỰNG (VOCABULARY)",
+                        "NguPhap" => "KỸ NĂNG: NGỮ PHÁP (GRAMMAR)",
+                        "Doc" => "KỸ NĂNG: ĐỌC HIỂU (READING)",
+                        "Nghe" => "KỸ NĂNG: NGHE HIỂU (LISTENING)",
+                        _ => "LỘ TRÌNH TẤT CẢ BÀI HỌC"
+                    };
+                }
+
                 ApplyFilter();
             }
         }
