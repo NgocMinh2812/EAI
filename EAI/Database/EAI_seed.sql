@@ -1,4 +1,4 @@
--- ===================================================================
+﻿-- ===================================================================
 -- Script: EAI_seed.sql (BẢN TỔNG HỢP TOÀN DIỆN CHO TOÀN BỘ HỆ THỐNG EAI)
 -- Bao gồm đầy đủ dữ liệu: Vai trò, Trình độ, Người dùng, Hồ sơ học tập,
 -- Cây danh mục chủ đề, Học liệu phong phú, Từ vựng, Flashcard,
