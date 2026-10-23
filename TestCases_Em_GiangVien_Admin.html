@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Bộ Kịch Bản Kiểm Thử Phần Mềm - Êm (Giảng Viên / Admin)</title>
+<style>
+
+    @page { 
+        size: A4 landscape; 
+        margin: 15mm 15mm 15mm 15mm; 
+        mso-header-margin: 10mm;
+        mso-footer-margin: 10mm;
+    }
+    body { 
+        font-family: 'Times New Roman', Times, serif; 
+        font-size: 13pt; 
+        color: #000000; 
+        line-height: 1.35; 
+        margin: 0; 
+        padding: 5px; 
+        background-color: #FFFFFF; 
+    }
+    .cover-box { 
+        border: 1.5px solid #000000; 
+        background: #FFFFFF; 
+        padding: 16px 22px; 
+        margin-bottom: 20px; 
+    }
+    .cover-title { 
+        font-size: 16pt; 
+        font-weight: bold; 
+        color: #000000; 
+        margin-bottom: 6px; 
+        text-transform: uppercase; 
+        text-align: center;
+    }
+    .cover-sub { 
+        font-size: 15pt; 
+        font-weight: bold; 
+        color: #000000; 
+        margin-bottom: 12px; 
+        text-align: center;
+    }
+    .meta-table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        font-size: 13pt; 
+        color: #000000;
+    }
+    .meta-table td { 
+        padding: 4px 6px; 
+        border: none; 
+        font-size: 13pt;
+        color: #000000;
+    }
+    .meta-table td.lbl { 
+        font-weight: bold; 
+        color: #000000; 
+        width: 220px; 
+    }
+    h1, .sprint-header { 
+        font-size: 16pt; 
+        font-weight: bold; 
+        color: #000000; 
+        border-bottom: 1.5px solid #000000; 
+        padding-bottom: 4px; 
+        margin-top: 22px; 
+        margin-bottom: 10px; 
+        text-transform: uppercase; 
+    }
+    h2, .module-title { 
+        font-size: 15pt; 
+        font-weight: bold; 
+        color: #000000; 
+        margin-top: 16px; 
+        margin-bottom: 6px; 
+    }
+    .module-header {
+        margin-top: 14px;
+        margin-bottom: 6px;
+        border-bottom: 1px dashed #444444;
+        padding-bottom: 3px;
+    }
+    .module-desc {
+        font-size: 13pt;
+        color: #000000;
+        font-style: italic;
+    }
+    p, li { 
+        font-size: 13pt; 
+        color: #000000;
+        text-align: justify; 
+        margin: 5px 0; 
+    }
+    ul { 
+        margin: 4px 0 10px 24px; 
+    }
+    table.tc-table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        margin: 6px 0 16px 0; 
+        font-size: 13pt; 
+        color: #000000;
+        border: 1px solid #000000; 
+    }
+    table.tc-table thead { 
+        display: table-header-group; 
+    }
+    table.tc-table th { 
+        background-color: #F0F0F0; 
+        color: #000000; 
+        padding: 6px 8px; 
+        border: 1px solid #000000; 
+        text-align: left; 
+        font-weight: bold; 
+        font-size: 13pt; 
+    }
+    table.tc-table td { 
+        padding: 6px 8px; 
+        border: 1px solid #000000; 
+        vertical-align: top; 
+        font-size: 13pt; 
+        color: #000000;
+        line-height: 1.35; 
+    }
+    table.tc-table tr { 
+        page-break-inside: avoid; 
+    }
+    .tc-id { 
+        font-weight: bold; 
+        color: #000000; 
+        text-align: center;
+        white-space: nowrap; 
+    }
+    .tc-name { 
+        font-weight: bold; 
+        color: #000000; 
+    }
+    .tc-steps { 
+        color: #000000; 
+    }
+    .tc-expected { 
+        color: #000000; 
+    }
+    .tc-result {
+        text-align: center;
+        vertical-align: middle !important;
+        color: #000000;
+        white-space: nowrap;
+    }
+    .chk-box {
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 12.5pt;
+        color: #000000;
+    }
+    table.tbl-summary, table.tbl-matrix { 
+        width: 100%; 
+        border-collapse: collapse; 
+        margin: 10px 0 16px 0; 
+        font-size: 13pt; 
+        color: #000000;
+        border: 1px solid #000000; 
+    }
+    table.tbl-summary th, table.tbl-matrix th { 
+        background-color: #F0F0F0; 
+        color: #000000; 
+        padding: 6px 8px; 
+        border: 1px solid #000000; 
+        text-align: left; 
+        font-weight: bold; 
+        font-size: 13pt; 
+    }
+    table.tbl-summary td, table.tbl-matrix td { 
+        padding: 6px 8px; 
+        border: 1px solid #000000; 
+        vertical-align: top; 
+        font-size: 13pt;
+        color: #000000;
+    }
+    .page-break { 
+        page-break-before: always; 
+    }
+
+</style>
+</head>
+<body>
+<div class="cover-box">
+    <div class="cover-title">DỰ ÁN ENGLISHAI (EAI) &mdash; HỆ THỐNG HỌC & THI TIẾNG ANH THÔNG MINH</div>
+    <div class="cover-sub">TÀI LIỆU KỊCH BẢN KIỂM THỬ PHẦN MỀM (TEST CASE SPECIFICATION)</div>
+    <div style="height: 1.5px; background: #000000; margin: 12px 0;"></div>
+    <table class="meta-table">
+        <tr><td class="lbl">Tên tài liệu:</td><td><b>BỘ KỊCH BẢN KIỂM THỬ SPRINT 1 & SPRINT 2 &mdash; PHÂN HỆ GIẢNG VIÊN / ADMIN</b></td></tr>
+        <tr><td class="lbl">Người phụ trách:</td><td><b>Êm</b> (Kiểm thử viên / Tester)</td></tr>
+        <tr><td class="lbl">Phân hệ phụ trách:</td><td>Giao diện và chức năng dành cho Giảng viên & Quản trị viên</td></tr>
+        <tr><td class="lbl">Phạm vi kiểm thử:</td><td><b>Sprint 1 và Sprint 2</b> (Bao phủ US-GV01 đến US-GV07 và WBS T-01 đến T-23)</td></tr>
+        <tr><td class="lbl">Quy cách trình bày:</td><td>Bảng ngang 5 cột chuẩn kiểm thử: <b>Mã TC | Tên TC | Thực nghiệm | Kết quả mong đợi | Pass/Fail</b></td></tr>
+        <tr><td class="lbl">Ngày cập nhật:</td><td>23/10/2026</td></tr>
+    </table>
+</div>
+<h1>MỤC 1. MỤC ĐÍCH VÀ PHẠM VI KIỂM THỬ</h1>
+<p><b>1.1 Mục đích:</b> Tài liệu này tập hợp toàn bộ các kịch bản kiểm thử chức năng dành riêng cho <b>phân hệ Giảng viên & Quản trị viên (Admin)</b> của hệ thống EnglishAI do <b>Êm</b> phụ trách. Tài liệu được thiết kế tối giản, dễ hiểu, sử dụng ngôn ngữ kiểm thử thông thường để phục vụ trực tiếp cho việc vận hành thử nghiệm trên ứng dụng thực tế.</p>
+<p><b>1.2 Phạm vi chức năng kiểm thử:</b>
+<ul>
+    <li><b>Giai đoạn 1 (Sprint 1):</b> Khung màn hình quản trị và thanh điều hướng; Trang Tổng quan với 4 thẻ thống kê và biểu đồ hoạt động; Quản lý tài khoản người dùng, phân trang danh sách, tìm kiếm, lọc vai trò, khóa và mở khóa tài khoản, cấp lại mật khẩu; Quản lý cây danh mục chủ đề phân cấp cha con, thêm/sửa/di chuyển/ẩn chủ đề; Kiểm thử liên thông phân hệ quản trị.</li>
+    <li><b>Giai đoạn 2 (Sprint 2):</b> Soạn thảo nội dung bài học theo chủ đề và trình độ, phân loại 5 kỹ năng, đính kèm file âm thanh và ảnh minh họa, xuất bản bài học; Quản lý ngân hàng câu hỏi trắc nghiệm, điền từ, đọc hiểu, nghe hiểu, giải thích chi tiết, gắn mức độ khó; Quản lý và tạo lập đề thi thử tính giờ hoặc luyện tập tự do, chọn câu hỏi, sắp xếp thứ tự và điểm số, xem trước phòng thi, phát hành đề thi cho học viên; Kiểm thử liên hoàn xuất bản học liệu và thi cử.</li>
+    <li><b>Kiểm thử toàn trình (End-to-End):</b> Chu trình quản lý học liệu và khảo thí trọn vẹn từ lúc dựng cây danh mục, soạn bài học, biên tập câu hỏi đến phát hành đề thi và xử lý vi phạm tài khoản.</li>
+</ul></p>
+<h2>1.3 Môi trường kiểm thử</h2>
+<table class="tbl-summary">
+    <tr><th style="width:25%">Thành phần</th><th style="width:45%">Cấu hình sử dụng</th><th style="width:30%">Ghi chú</th></tr>
+    <tr><td>Hệ điều hành</td><td>Microsoft Windows 10 / Windows 11 (64-bit)</td><td>Máy tính người quản trị</td></tr>
+    <tr><td>Môi trường ứng dụng</td><td>.NET 10.0 Desktop Runtime</td><td>Chạy phần mềm EnglishAI</td></tr>
+    <tr><td>Máy chủ dữ liệu</td><td>Microsoft SQL Server (Cơ sở dữ liệu TiengAnhAI)</td><td>Lưu trữ dữ liệu toàn hệ thống</td></tr>
+    <tr><td>Tài khoản Giảng viên</td><td>Email: <code>giangvien@englisheai.edu.vn</code> | Mật khẩu: <code>123456</code></td><td>Toàn quyền quản trị học liệu</td></tr>
+    <tr><td>Tài khoản Học viên thử nghiệm</td><td>Email: <code>sinhvien@englisheai.edu.vn</code> | Mật khẩu: <code>123456</code></td><td>Kiểm tra hiển thị phía học sinh</td></tr>
+    <tr><td>Tệp đính kèm thử nghiệm</td><td>Các file mẫu âm thanh (.mp3) và hình ảnh (.png)</td><td>Thử nghiệm đính kèm bài học</td></tr>
+</table>
+<div class="sprint-header">MỤC 2. BỘ KỊCH BẢN KIỂM THỬ SPRINT 1 &mdash; PHÂN HỆ GIẢNG VIÊN / ADMIN</div>
+<p>Bao gồm các kịch bản kiểm thử từ <b>US-GV01 đến US-GV04</b> và các nhiệm vụ kỹ thuật <b>T-01 đến T-13</b>:</p>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: ĐIỀU HƯỚNG MÀN HÌNH QUẢN TRỊ (US-GV01 / T-05)</div>
+    <div class="module-desc">Nhiệm vụ: US-GV01 / T-05 &mdash; Số lượng kịch bản: 4 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-01</b></td>
+        <td class="tc-name"><b>Chuyển đổi qua lại giữa các mục menu trên màn hình quản trị</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang đăng nhập bằng tài khoản Giảng viên.<br>
+            <b>Dữ liệu:</b> Nhấp chuột lần lượt: Tổng quan -> Quản lý người dùng -> Cây danh mục -> Soạn bài học<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấp chọn lần lượt từng mục menu trên thanh bên trái màn hình.<br>
+            2. Quan sát giao diện tương ứng hiển thị ở giữa.<br>
+            3. Kiểm tra thanh chỉ dẫn đường dẫn trang ở phía trên.
+        </td>
+        <td class="tc-expected">
+            Màn hình chuyển đổi mượt mà, không bị giật hay đứng ứng dụng. Thanh chỉ dẫn hiển thị đúng tên mục đang mở (ví dụ: 'Trang chủ / Quản lý người dùng'). Nút menu đang chọn được làm nổi bật rõ ràng.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-02</b></td>
+        <td class="tc-name"><b>Hiển thị thông tin cá nhân và tên viết tắt của giảng viên trên thanh trên cùng</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đăng nhập tài khoản giảng viên 'Trần Thị Giảng Viên'.<br>
+            <b>Dữ liệu:</b> Họ tên: 'Trần Thị Giảng Viên', Vai trò: 'Giảng viên / Quản trị viên'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Quan sát góc trên bên phải màn hình quản trị.<br>
+            2. Kiểm tra ảnh đại diện và tên người dùng hiển thị.
+        </td>
+        <td class="tc-expected">
+            Hiển thị chính xác họ tên đầy đủ 'Trần Thị Giảng Viên' kèm chức danh 'Giảng viên'. Ảnh đại diện hiển thị chữ viết tắt 'TG' rõ ràng, trang nhã.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-03</b></td>
+        <td class="tc-name"><b>Đăng xuất tài khoản giảng viên an toàn khỏi hệ thống</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang ở giao diện quản trị của giảng viên.<br>
+            <b>Dữ liệu:</b> Bấm nút 'Đăng xuất' trên thanh menu bên trái<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấn nút 'Đăng xuất'.<br>
+            2. Bấm 'Đồng ý' tại hộp thoại hỏi xác nhận đăng xuất.
+        </td>
+        <td class="tc-expected">
+            Màn hình quản trị đóng lại ngay lập tức, hệ thống xóa phiên làm việc hiện tại và quay về màn hình đăng nhập. Không thể bấm quay lại trang quản trị khi chưa đăng nhập lại.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-04</b></td>
+        <td class="tc-name"><b>Phân quyền: Chặn học viên không được truy cập vào giao diện quản trị</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Có tài khoản học viên (sinhvien@englisheai.edu.vn).<br>
+            <b>Dữ liệu:</b> Tài khoản: sinhvien@englisheai.edu.vn, Mật khẩu: 123456<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Đăng nhập bằng tài khoản học viên.<br>
+            2. Kiểm tra xem hệ thống có mở giao diện quản trị hay không.
+        </td>
+        <td class="tc-expected">
+            Hệ thống nhận diện đúng vai trò học viên và chỉ mở màn hình học tập của học viên, tuyệt đối không cho phép truy cập vào khu vực quản trị của giảng viên.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: BẢNG THỐNG KÊ TỔNG QUAN (US-GV02 / T-11, T-12)</div>
+    <div class="module-desc">Nhiệm vụ: US-GV02 / T-11, T-12 &mdash; Số lượng kịch bản: 5 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-05</b></td>
+        <td class="tc-name"><b>Hiển thị 4 thẻ thống kê tổng quan: Số học viên, Bài học, Câu hỏi và Lượt thi</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Hệ thống đang hoạt động và có dữ liệu thực tế.<br>
+            <b>Dữ liệu:</b> Mở trang Tổng quan trên màn hình giảng viên<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Mở xem trang Tổng quan của giảng viên.<br>
+            2. Đối chiếu số liệu hiển thị trên 4 thẻ thống kê với thực tế hệ thống.
+        </td>
+        <td class="tc-expected">
+            Cả 4 thẻ hiển thị chính xác số liệu thực tế gồm: Tổng số học viên, Tổng số bài học đã tạo, Số câu hỏi trong ngân hàng và Tổng số lượt thi đã thực hiện.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-06</b></td>
+        <td class="tc-name"><b>Tính tỷ lệ phần trăm tăng trưởng so với tuần trước và xử lý khi hệ thống mới</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Hệ thống có số liệu hoạt động của tuần này và tuần trước.<br>
+            <b>Dữ liệu:</b> Trường hợp 1: Có dữ liệu tăng trưởng; Trường hợp 2: Hệ thống mới tinh chưa có lượt thi nào<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Kiểm tra con số phần trăm tăng trưởng trên các thẻ thống kê.<br>
+            2. Kiểm tra trường hợp hệ thống mới chưa có dữ liệu cũ của tuần trước.
+        </td>
+        <td class="tc-expected">
+            Hiển thị đúng tỷ lệ phần trăm tăng hoặc giảm kèm mũi tên chỉ hướng. Khi hệ thống mới chưa có dữ liệu cũ, hiển thị số 0% an toàn không gây lỗi ứng dụng.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-07</b></td>
+        <td class="tc-name"><b>Hiển thị danh sách hoạt động học tập mới nhất của học viên</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Có học viên vừa hoàn thành bài học hoặc nộp bài thi.<br>
+            <b>Dữ liệu:</b> Danh sách hoạt động gần đây trên hệ thống<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Xem mục 'Hoạt động gần đây' trên trang Tổng quan.<br>
+            2. Đối chiếu tên học viên và thời gian vừa làm bài.
+        </td>
+        <td class="tc-expected">
+            Hiển thị danh sách các hoạt động mới nhất kèm tên học viên, việc vừa làm (ví dụ: 'Hoàn thành bài thi TOEIC đạt 8.0 điểm') và thời gian thực hiện (ví dụ: '5 phút trước').
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-08</b></td>
+        <td class="tc-name"><b>Biểu đồ xu hướng học tập trong tuần hiển thị trực quan và chính xác</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Hệ thống có dữ liệu học tập phân bổ theo các ngày trong tuần.<br>
+            <b>Dữ liệu:</b> Thống kê số lượt thi và giờ học 7 ngày gần nhất<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Quan sát biểu đồ học tập trên trang Tổng quan.<br>
+            2. Rê chuột vào các điểm mốc trên biểu đồ.
+        </td>
+        <td class="tc-expected">
+            Biểu đồ vẽ rõ ràng theo từng ngày từ Thứ 2 đến Chủ nhật. Rê chuột vào từng ngày hiển thị chi tiết số lượt học và số bài thi của ngày đó.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-09</b></td>
+        <td class="tc-name"><b>Nút 'Làm mới' cập nhật ngay số liệu mới nhất và xử lý khi mất mạng</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Có học viên vừa nộp thêm 1 bài thi ở bên ngoài.<br>
+            <b>Dữ liệu:</b> Bấm nút 'Làm mới' trên màn hình<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Bấm nút 'Làm mới' trên trang Tổng quan.<br>
+            2. Thử ngắt kết nối mạng rồi bấm nút Làm mới.
+        </td>
+        <td class="tc-expected">
+            Số lượt thi trên màn hình tự động tăng thêm 1 lượt ngay lập tức. Khi mất mạng, hiển thị thông báo 'Không thể cập nhật dữ liệu, vui lòng kiểm tra lại mạng' mà không làm mất số liệu đang hiển thị.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: QUẢN LÝ NGƯỜI DÙNG & HỌC VIÊN (US-GV03 / T-03, 04, 06)</div>
+    <div class="module-desc">Nhiệm vụ: US-GV03 / T-03, T-04, T-06 &mdash; Số lượng kịch bản: 8 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-10</b></td>
+        <td class="tc-name"><b>Hiển thị danh sách người dùng theo từng trang và chuyển trang qua lại</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Hệ thống có nhiều tài khoản người dùng, mỗi trang hiển thị 10 người.<br>
+            <b>Dữ liệu:</b> Chuyển trang: Trang 1, Trang 2, Trang cuối<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Mở trang Quản lý người dùng.<br>
+            2. Quan sát danh sách 10 người đầu tiên.<br>
+            3. Nhấn nút chuyển sang trang tiếp theo và trang cuối cùng.
+        </td>
+        <td class="tc-expected">
+            Danh sách hiển thị đúng 10 tài khoản trên một trang kèm họ tên, email, vai trò và trạng thái. Chuyển trang mượt mà, số trang hiển thị đúng (ví dụ: 'Trang 2 / 3').
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-11</b></td>
+        <td class="tc-name"><b>Tìm kiếm người dùng nhanh theo Họ tên hoặc địa chỉ Email</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang ở trang Quản lý người dùng.<br>
+            <b>Dữ liệu:</b> Từ khóa tìm kiếm: 'Minh' hoặc 'sinhvien@'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhập từ khóa vào ô tìm kiếm.<br>
+            2. Quan sát danh sách người dùng sau khi dừng gõ nửa giây.
+        </td>
+        <td class="tc-expected">
+            Danh sách tự động lọc ra đúng các tài khoản có họ tên hoặc email chứa từ khóa tìm kiếm. Số trang tự tính toán lại theo kết quả lọc.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-12</b></td>
+        <td class="tc-name"><b>Lọc người dùng kết hợp theo Vai trò (Giảng viên, Sinh viên) và Trạng thái</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Hệ thống có đủ tài khoản giảng viên, học viên, tài khoản hoạt động và bị khóa.<br>
+            <b>Dữ liệu:</b> Chọn lọc: Vai trò là 'Sinh viên', Trạng thái là 'Đã khóa'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chọn ô lọc Vai trò là 'Sinh viên'.<br>
+            2. Chọn ô lọc Trạng thái là 'Đã khóa'.<br>
+            3. Quan sát danh sách hiển thị.
+        </td>
+        <td class="tc-expected">
+            Danh sách chỉ hiển thị đúng các sinh viên đang bị khóa tài khoản. Khi chọn lại 'Tất cả', danh sách hiển thị lại toàn bộ người dùng.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-13</b></td>
+        <td class="tc-name"><b>Khóa và mở khóa tài khoản học viên trực tiếp trên danh sách</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Có tài khoản học viên đang ở trạng thái Hoạt động.<br>
+            <b>Dữ liệu:</b> Tài khoản học viên cần xử lý<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấn nút 'Khóa tài khoản' tại dòng của học viên đó và xác nhận.<br>
+            2. Kiểm tra cột trạng thái.<br>
+            3. Nhấn nút 'Mở khóa' tại chính dòng tài khoản đó.
+        </td>
+        <td class="tc-expected">
+            Khi khóa: Cột trạng thái đổi sang nhãn 'Đã khóa', học viên đó không thể đăng nhập vào ứng dụng được nữa. Khi mở khóa: Trạng thái đổi lại thành 'Hoạt động', học viên đăng nhập lại bình thường.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-14</b></td>
+        <td class="tc-name"><b>Chặn không cho giảng viên tự khóa chính tài khoản của mình</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Giảng viên đang đăng nhập tài khoản của chính mình.<br>
+            <b>Dữ liệu:</b> Dòng tài khoản của giảng viên đang sử dụng<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Tìm dòng tài khoản của chính mình trong danh sách người dùng.<br>
+            2. Quan sát nút thao tác Khóa.<br>
+            3. Thử bấm nút khóa tài khoản này.
+        </td>
+        <td class="tc-expected">
+            Nút Khóa tại dòng của chính giảng viên bị vô hiệu hóa (mờ đi) hoặc hệ thống cảnh báo: 'Bạn không thể tự khóa tài khoản của chính mình đang đăng nhập'.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-15</b></td>
+        <td class="tc-name"><b>Cấp lại mật khẩu mặc định (123456) cho học viên khi quên mật khẩu</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên quên mật khẩu và yêu cầu cấp lại.<br>
+            <b>Dữ liệu:</b> Tài khoản học viên cần cấp lại mật khẩu<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chọn học viên trong danh sách và nhấn nút 'Cấp lại mật khẩu'.<br>
+            2. Xác nhận đồng ý.<br>
+            3. Thử đăng nhập bằng tài khoản học viên đó với mật khẩu 123456.
+        </td>
+        <td class="tc-expected">
+            Hệ thống đặt lại mật khẩu về mặc định '123456'. Học viên đăng nhập thành công với mật khẩu mới này.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-16</b></td>
+        <td class="tc-name"><b>Kiểm tra các lỗi nhập liệu khi thêm tài khoản người dùng mới</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Bấm nút 'Thêm người dùng' để mở bảng nhập thông tin.<br>
+            <b>Dữ liệu:</b> Trường hợp 1: Để trống Họ tên hoặc Email;
+Trường hợp 2: Nhập email sai định dạng;
+Trường hợp 3: Nhập email đã có người đăng ký từ trước<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Lần lượt nhập các trường hợp sai sót trên vào bảng thêm người dùng.<br>
+            2. Nhấn nút 'Lưu'.<br>
+            3. Quan sát thông báo lỗi.
+        </td>
+        <td class="tc-expected">
+            Hệ thống ngăn chặn lưu ở mọi trường hợp không hợp lệ và hiển thị thông báo lỗi rõ ràng bên dưới ô nhập liệu tương ứng.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-17</b></td>
+        <td class="tc-name"><b>Khóa tài khoản có hiệu lực ngay lập tức khi học viên đang sử dụng</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên đang mở ứng dụng sinh viên và học bài.<br>
+            <b>Dữ liệu:</b> Giảng viên bấm Khóa tài khoản của học viên đó<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Giảng viên khóa tài khoản học viên trên trang Quản lý người dùng.<br>
+            2. Phía học viên đang học bài, thử bấm chuyển bài hoặc nộp bài.
+        </td>
+        <td class="tc-expected">
+            Màn hình của học viên lập tức thông báo: 'Tài khoản của bạn đã bị khóa bởi quản trị viên'. Tự động đóng phiên làm việc và đẩy người dùng về màn hình đăng nhập.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: QUẢN LÝ CÂY DANH MỤC (US-GV04 / T-07..T-10)</div>
+    <div class="module-desc">Nhiệm vụ: US-GV04 / T-07..T-10 &mdash; Số lượng kịch bản: 9 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-18</b></td>
+        <td class="tc-name"><b>Xem danh mục các cấp độ chuẩn (A1 đến C1) trong hệ thống</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Mở mục Quản lý danh mục.<br>
+            <b>Dữ liệu:</b> Danh mục cấp độ tiếng Anh<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Mở xem danh sách các cấp độ tiếng Anh.<br>
+            2. Quan sát các cấp độ hiển thị.
+        </td>
+        <td class="tc-expected">
+            Hiển thị đầy đủ 5 cấp độ chuẩn quốc tế: A1 (Cơ bản), A2 (Sơ cấp), B1 (Trung cấp), B2 (Trung cao cấp), C1 (Cao cấp) kèm mô tả chuẩn đầu ra.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-19</b></td>
+        <td class="tc-name"><b>Hiển thị cây danh mục chủ đề học tập phân cấp cha và con</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Hệ thống có các chủ đề phân cấp nhiều tầng.<br>
+            <b>Dữ liệu:</b> Cây chủ đề: Tiếng Anh giao tiếp -> Công sở -> Phỏng vấn xin việc<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Mở xem cây chủ đề trên màn hình.<br>
+            2. Bấm vào các dấu mũi tên mở rộng và thu gọn nhánh thư mục.
+        </td>
+        <td class="tc-expected">
+            Cây danh mục hiển thị rõ ràng theo cấu trúc phân nhánh cha con, các chủ đề con thụt vào trong đúng nhánh, thao tác đóng mở nhánh mượt mà.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-20</b></td>
+        <td class="tc-name"><b>Thêm một chủ đề con mới vào dưới một chủ đề cha đã chọn</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang chọn một thư mục cha (ví dụ: 'Ngữ pháp tiếng Anh').<br>
+            <b>Dữ liệu:</b> Tên chủ đề mới: 'Các thì trong tiếng Anh', Mô tả: 'Tổng hợp các thì cơ bản'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chọn thư mục cha.<br>
+            2. Bấm nút 'Thêm chủ đề con'.<br>
+            3. Nhập tên và mô tả rồi bấm 'Lưu'.
+        </td>
+        <td class="tc-expected">
+            Chủ đề mới được thêm thành công và xuất hiện ngay dưới nhánh của thư mục cha trên màn hình danh mục.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-21</b></td>
+        <td class="tc-name"><b>Chỉnh sửa tên và mô tả của một chủ đề đã có sẵn</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Chọn một chủ đề trên cây danh mục.<br>
+            <b>Dữ liệu:</b> Đổi tên chủ đề và cập nhật mô tả mới<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chọn chủ đề và nhấn nút 'Chỉnh sửa'.<br>
+            2. Thay đổi tên và mô tả trong bảng nhập liệu.<br>
+            3. Nhấn 'Lưu'.
+        </td>
+        <td class="tc-expected">
+            Tên chủ đề được cập nhật mới ngay lập tức trên cây danh mục.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-22</b></td>
+        <td class="tc-name"><b>Di chuyển một chủ đề sang nằm dưới một thư mục cha khác</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Có chủ đề 'Viết Email' đang nằm ở mục 'Kỹ năng viết cơ bản'.<br>
+            <b>Dữ liệu:</b> Chuyển thư mục cha sang 'Tiếng Anh thương mại'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chọn chủ đề 'Viết Email' và bấm nút 'Di chuyển'.<br>
+            2. Chọn thư mục đích là 'Tiếng Anh thương mại'.<br>
+            3. Bấm 'Xác nhận chuyển'.
+        </td>
+        <td class="tc-expected">
+            Chủ đề 'Viết Email' được chuyển dời sang nằm dưới nhánh thư mục 'Tiếng Anh thương mại'.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-23</b></td>
+        <td class="tc-name"><b>Ẩn hoặc hiện một chủ đề học tập đối với học viên</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Chọn một chủ đề đang hiển thị.<br>
+            <b>Dữ liệu:</b> Bật/tắt công tắc Trạng thái hoạt động<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chọn chủ đề và gạt trạng thái sang 'Ẩn'.<br>
+            2. Kiểm tra bên giao diện của học viên.
+        </td>
+        <td class="tc-expected">
+            Bên học viên, chủ đề này cùng toàn bộ các bài học bên trong sẽ không hiển thị, giúp giảng viên yên tâm biên soạn nội dung chưa hoàn chỉnh.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-24</b></td>
+        <td class="tc-name"><b>Ngăn chặn việc di chuyển thư mục cha vào làm con của chính nó</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Cây danh mục có thư mục Cha và thư mục Con.<br>
+            <b>Dữ liệu:</b> Cố ý chọn chuyển thư mục Cha vào làm con của thư mục Con của nó<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chọn thư mục Cha.<br>
+            2. Bấm 'Di chuyển' và chọn thư mục đích là thư mục Con của nó.<br>
+            3. Nhấn 'Xác nhận'.
+        </td>
+        <td class="tc-expected">
+            Hệ thống phát hiện lỗi vòng lặp và cảnh báo: 'Không thể di chuyển thư mục cha vào làm thư mục con của chính nó'.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-25</b></td>
+        <td class="tc-name"><b>Xóa chủ đề rỗng thành công và Chặn xóa chủ đề đang chứa bài học</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Thử 2 trường hợp: Chủ đề mới chưa có bài nào và Chủ đề đang chứa 10 bài học.<br>
+            <b>Dữ liệu:</b> Thử xóa 2 loại chủ đề trên<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chọn chủ đề rỗng bấm 'Xóa' và xác nhận.<br>
+            2. Chọn chủ đề đang chứa bài học bấm 'Xóa'.
+        </td>
+        <td class="tc-expected">
+            Chủ đề rỗng được xóa sạch khỏi hệ thống. Chủ đề đang chứa bài học bị chặn xóa kèm thông báo: 'Không thể xóa chủ đề này vì đang có bài học/câu hỏi trực thuộc. Vui lòng di chuyển hoặc xóa các nội dung con trước'.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-26</b></td>
+        <td class="tc-name"><b>Cây danh mục hiển thị ổn định và chính xác sau khi khởi động lại ứng dụng</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đã thực hiện thêm, sửa các chủ đề trên cây danh mục.<br>
+            <b>Dữ liệu:</b> Tắt ứng dụng và mở lại<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Tắt ứng dụng quản trị của giảng viên.<br>
+            2. Khởi chạy lại ứng dụng và mở lại cây danh mục.
+        </td>
+        <td class="tc-expected">
+            Toàn bộ cấu trúc cây danh mục và tên các chủ đề vẫn hiển thị chính xác như lúc vừa chỉnh sửa.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: KIỂM THỬ LIÊN HOÀN SPRINT 1 (T-13)</div>
+    <div class="module-desc">Nhiệm vụ: T-13 &mdash; Số lượng kịch bản: 2 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-27</b></td>
+        <td class="tc-name"><b>Kiểm tra liên hoàn: Tạo chủ đề mới, tạo tài khoản học viên và xem trang Tổng quan</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang đăng nhập tài khoản Giảng viên.<br>
+            <b>Dữ liệu:</b> Tạo chủ đề 'Luyện thi TOEIC 2026' -> Thêm học viên 'Trần Văn Test'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Vào mục Danh mục tạo chủ đề 'Luyện thi TOEIC 2026'.<br>
+            2. Vào mục Quản lý người dùng thêm học viên mới 'Trần Văn Test'.<br>
+            3. Chuyển sang trang Tổng quan kiểm tra.
+        </td>
+        <td class="tc-expected">
+            Trang Tổng quan tự động cập nhật số học viên tăng thêm 1 người, danh sách hoạt động ghi nhận tài khoản mới tạo. Luồng liên kết giữa các màn hình hoạt động trơn tru.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-28</b></td>
+        <td class="tc-name"><b>Khóa tài khoản học viên rồi dùng tài khoản đó đăng nhập thử ở ngoài</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên đang hoạt động bình thường.<br>
+            <b>Dữ liệu:</b> Tài khoản học viên cần thử nghiệm<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Giảng viên vào Quản lý người dùng bấm Khóa tài khoản này.<br>
+            2. Mở màn hình đăng nhập bên ngoài, nhập email và mật khẩu của tài khoản vừa bị khóa và bấm Đăng nhập.
+        </td>
+        <td class="tc-expected">
+            Đăng nhập bị từ chối kèm thông báo: 'Tài khoản của bạn đã bị khóa hoặc tạm dừng hoạt động'. Xác nhận tính đồng bộ giữa phân hệ Quản trị và phân hệ Đăng nhập.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="page-break"></div>
+<div class="sprint-header">MỤC 3. BỘ KỊCH BẢN KIỂM THỬ SPRINT 2 &mdash; PHÂN HỆ GIẢNG VIÊN / ADMIN</div>
+<p>Bao gồm các kịch bản kiểm thử từ <b>US-GV05 đến US-GV07</b> và các nhiệm vụ kỹ thuật <b>T-14 đến T-23</b>:</p>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: QUẢN LÝ NỘI DUNG BÀI HỌC (US-GV05 / T-14..17)</div>
+    <div class="module-desc">Nhiệm vụ: US-GV05 / T-14..T-17 &mdash; Số lượng kịch bản: 8 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-29</b></td>
+        <td class="tc-name"><b>Tạo bài học mới theo chủ đề và trình độ với đầy đủ thông tin hợp lệ</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Mở trang Quản lý bài học, nhấn 'Tạo bài học mới'.<br>
+            <b>Dữ liệu:</b> Tiêu đề: 'Thì quá khứ tiếp diễn', Chủ đề: 'Ngữ pháp tiếng Anh', Trình độ: 'B1', Thời lượng: 20 phút, Kỹ năng: 'Ngữ pháp'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhập tiêu đề, chọn chủ đề, trình độ B1, kỹ năng Ngữ pháp.<br>
+            2. Nhập nội dung bài giảng chi tiết vào khung soạn thảo.<br>
+            3. Nhấn nút 'Lưu bài học'.
+        </td>
+        <td class="tc-expected">
+            Bài học được tạo thành công và xuất hiện ngay trên danh sách bài học của giảng viên ở trạng thái 'Bản nháp' (chưa xuất bản).
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-30</b></td>
+        <td class="tc-name"><b>Kiểm tra bắt buộc nhập tiêu đề và thời lượng hợp lệ khi tạo bài học</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang ở form soạn bài học.<br>
+            <b>Dữ liệu:</b> Trường hợp 1: Để trống Tiêu đề; Trường hợp 2: Nhập thời lượng bằng 0 hoặc số âm<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Để trống ô tiêu đề rồi bấm Lưu.<br>
+            2. Nhập tiêu đề nhưng để thời lượng bằng -5 rồi bấm Lưu.
+        </td>
+        <td class="tc-expected">
+            Hệ thống chặn lại và thông báo lỗi rõ ràng: 'Vui lòng nhập tiêu đề bài học' và 'Thời lượng bài học phải lớn hơn 0'. Không có dữ liệu rác nào được lưu vào hệ thống.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-31</b></td>
+        <td class="tc-name"><b>Phân loại bài học theo 5 kỹ năng chuẩn: Từ vựng, Ngữ pháp, Đọc, Nghe, Viết</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Form soạn bài học có danh sách chọn Kỹ năng.<br>
+            <b>Dữ liệu:</b> 5 kỹ năng cốt lõi<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấp mở ô chọn 'Kỹ năng'.<br>
+            2. Kiểm tra danh sách các kỹ năng có thể chọn.
+        </td>
+        <td class="tc-expected">
+            Hiển thị đầy đủ 5 kỹ năng: Từ vựng, Ngữ pháp, Đọc hiểu, Nghe hiểu, Viết. Chọn kỹ năng nào thì bài học lưu đúng kỹ năng đó.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-32</b></td>
+        <td class="tc-name"><b>Đính kèm file âm thanh nghe thử và ảnh minh họa xem trước cho bài học</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Có sẵn file âm thanh mẫu (.mp3) và file ảnh mẫu (.png).<br>
+            <b>Dữ liệu:</b> File âm thanh .mp3 và file ảnh .png<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Bấm nút chọn file âm thanh và bấm 'Nghe thử' tại trình phát.<br>
+            2. Bấm nút chọn ảnh minh họa và quan sát khung xem trước.
+        </td>
+        <td class="tc-expected">
+            File âm thanh phát rõ ràng trên trình nghe thử; ảnh minh họa hiển thị sắc nét trong khung xem trước kèm thông tin dung lượng tệp.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-33</b></td>
+        <td class="tc-name"><b>Ngăn chặn việc chọn nhầm file sai định dạng khi đính kèm bài học</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Có file văn bản hoặc file cài đặt (.exe, .txt).<br>
+            <b>Dữ liệu:</b> Thử chọn file .exe hoặc .txt vào ô đính kèm âm thanh<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Cố ý chọn file .exe hoặc .txt vào ô đính kèm âm thanh hoặc ảnh.<br>
+            2. Quan sát cảnh báo của hệ thống.
+        </td>
+        <td class="tc-expected">
+            Hệ thống tự lọc định dạng chỉ cho phép chọn đuôi file nhạc (.mp3, .wav) và file ảnh (.png, .jpg), báo lỗi nếu cố tình chọn sai.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-34</b></td>
+        <td class="tc-name"><b>Bật hoặc tắt xuất bản bài học và kiểm tra sự xuất hiện bên phía học viên</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Bài học mới soạn xong đang ở trạng thái Bản nháp.<br>
+            <b>Dữ liệu:</b> Bật/tắt công tắc 'Xuất bản bài học'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Bật công tắc 'Xuất bản bài học' và bấm Lưu. Mở ứng dụng sinh viên kiểm tra.<br>
+            2. Tắt công tắc xuất bản và Lưu lại. Kiểm tra lại bên học viên.
+        </td>
+        <td class="tc-expected">
+            Khi bật xuất bản: Học viên nhìn thấy bài học và vào học bình thường. Khi tắt xuất bản: Bài học biến mất ngay khỏi danh sách của học viên, đảm bảo nội dung chưa hoàn chỉnh không bị lộ.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-35</b></td>
+        <td class="tc-name"><b>Chỉnh sửa bài học mà không làm mất file âm thanh và ảnh đã đính kèm</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Bài học đã có sẵn file âm thanh và ảnh đính kèm từ trước.<br>
+            <b>Dữ liệu:</b> Sửa một đoạn văn bản trong bài giảng mà không chọn lại file đính kèm<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Mở bài học để chỉnh sửa một đoạn văn bản lý thuyết.<br>
+            2. Nhấn nút 'Cập nhật bài học'.
+        </td>
+        <td class="tc-expected">
+            Đoạn văn bản được cập nhật mới, các file âm thanh và ảnh đính kèm từ trước vẫn được giữ nguyên vẹn.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-36</b></td>
+        <td class="tc-name"><b>Xử lý lưu trữ an toàn khi gặp sự cố ngắt kết nối lúc lưu bài học</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Giả lập lỗi ngắt kết nối mạng khi đang nhấn Lưu.<br>
+            <b>Dữ liệu:</b> Ngắt kết nối mạng đúng thời điểm bấm Lưu bài học<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhập nội dung bài học hoàn chỉnh.<br>
+            2. Ngắt mạng rồi nhấn nút Lưu.<br>
+            3. Quan sát thông báo lỗi.
+        </td>
+        <td class="tc-expected">
+            Hệ thống báo lỗi kết nối và giữ nguyên toàn bộ nội dung bài giảng trên form, không làm người dùng bị mất công soạn thảo.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: NGÂN HÀNG CÂU HỎI (US-GV06 / T-18..T-20)</div>
+    <div class="module-desc">Nhiệm vụ: US-GV06 / T-18..T-20 &mdash; Số lượng kịch bản: 9 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-37</b></td>
+        <td class="tc-name"><b>Tạo câu hỏi trắc nghiệm 4 lựa chọn (A, B, C, D) với 1 đáp án đúng</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Mở trang Ngân hàng câu hỏi, nhấn 'Thêm câu hỏi'.<br>
+            <b>Dữ liệu:</b> Câu hỏi: 'She ___ to the cinema yesterday.', 4 đáp án: A. go, B. went (Đúng), C. gone, D. goes<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhập nội dung câu hỏi trắc nghiệm.<br>
+            2. Nhập nội dung cho 4 đáp án A, B, C, D.<br>
+            3. Tích chọn ô tròn tại đáp án B đánh dấu là đáp án đúng.<br>
+            4. Nhấn 'Lưu câu hỏi'.
+        </td>
+        <td class="tc-expected">
+            Câu hỏi được lưu thành công vào ngân hàng kèm 4 phương án, đáp án B được ghi nhận là đáp án đúng, câu hỏi xuất hiện trên danh sách ngân hàng.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-38</b></td>
+        <td class="tc-name"><b>Tạo câu hỏi dạng điền từ vào chỗ trống và kiểm tra cách hiển thị</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Chọn loại câu hỏi 'Điền từ vào chỗ trống'.<br>
+            <b>Dữ liệu:</b> Nội dung: 'I have lived in Hanoi [since] 2010.', đáp án đúng là 'since'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chọn loại câu hỏi điền từ.<br>
+            2. Nhập câu hỏi có từ khóa trong ngoặc vuông [since].<br>
+            3. Nhấn 'Lưu'.
+        </td>
+        <td class="tc-expected">
+            Hệ thống tự động nhận diện từ khóa và tạo ra chỗ trống [...] để học viên điền từ lúc làm bài thi.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-39</b></td>
+        <td class="tc-name"><b>Tạo câu hỏi đọc hiểu đính kèm đoạn văn bản dài</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Chọn loại câu hỏi 'Đọc hiểu'.<br>
+            <b>Dữ liệu:</b> Đoạn văn đọc hiểu dài 300 từ về chủ đề Môi trường<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhập đoạn văn mẫu vào ô 'Đoạn văn đọc hiểu'.<br>
+            2. Nhập câu hỏi liên quan và 4 phương án trả lời.<br>
+            3. Nhấn 'Lưu'.
+        </td>
+        <td class="tc-expected">
+            Đoạn văn đọc hiểu được lưu đầy đủ. Khi hiển thị cho thí sinh sẽ chia đôi màn hình: bên trái là đoạn văn có thanh cuộn riêng, bên phải là câu hỏi và các phương án.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-40</b></td>
+        <td class="tc-name"><b>Tạo câu hỏi nghe đính kèm file ghi âm và nghe thử âm thanh</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Chọn loại câu hỏi 'Nghe hiểu'.<br>
+            <b>Dữ liệu:</b> File âm thanh bài nghe<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấn nút đính kèm file âm thanh cho câu hỏi.<br>
+            2. Bấm 'Nghe thử' tại trình phát nhỏ bên cạnh.<br>
+            3. Nhập câu hỏi và các đáp án rồi bấm Lưu.
+        </td>
+        <td class="tc-expected">
+            File âm thanh liên kết đúng với câu hỏi. Khi học viên làm bài thi, trình phát âm thanh nhỏ sẽ xuất hiện ngay phía trên câu hỏi cho phép nghe đoạn hội thoại.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-41</b></td>
+        <td class="tc-name"><b>Nhập lời giải thích chi tiết đáp án và phân tích ngữ pháp cho câu hỏi</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang soạn câu hỏi.<br>
+            <b>Dữ liệu:</b> Giải thích: 'Dấu hiệu 'yesterday' chỉ quá khứ đơn, nên động từ 'go' chia thành 'went'.'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhập nội dung phân tích vào ô 'Giải thích chi tiết'.<br>
+            2. Nhấn Lưu câu hỏi.
+        </td>
+        <td class="tc-expected">
+            Lời giải thích được lưu vào hệ thống và sẽ hiển thị cho học viên xem lại sau khi nộp bài thi để ôn tập.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-42</b></td>
+        <td class="tc-name"><b>Gắn mức độ khó (Dễ, Trung bình, Khó) và đánh dấu Đã kiểm duyệt</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Form thêm câu hỏi có ô chọn Độ khó và ô Đã kiểm duyệt.<br>
+            <b>Dữ liệu:</b> Độ khó: 'Khó', tích chọn Đã kiểm duyệt<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chọn độ khó 'Khó'.<br>
+            2. Đánh dấu vào ô 'Đã kiểm duyệt' (Sẵn sàng đưa vào đề thi).<br>
+            3. Nhấn Lưu.
+        </td>
+        <td class="tc-expected">
+            Câu hỏi lưu đúng độ khó 'Khó' và trạng thái đã duyệt, đủ điều kiện để đưa vào các đề thi thử chính thức.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-43</b></td>
+        <td class="tc-name"><b>Kiểm tra bắt buộc có từ 2 đáp án trở lên và phải chọn 1 đáp án đúng</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang ở form tạo câu hỏi trắc nghiệm.<br>
+            <b>Dữ liệu:</b> Trường hợp 1: Chỉ nhập 1 đáp án; Trường hợp 2: Nhập 4 đáp án nhưng không chọn đáp án đúng nào<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Thử nghiệm lần lượt các trường hợp vi phạm trên form.<br>
+            2. Nhấn nút 'Lưu câu hỏi' ở từng trường hợp.
+        </td>
+        <td class="tc-expected">
+            Hệ thống chặn lại và thông báo: 'Câu hỏi trắc nghiệm phải có ít nhất 2 đáp án lựa chọn' và 'Vui lòng chọn 1 đáp án đúng cho câu hỏi'.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-44</b></td>
+        <td class="tc-name"><b>Đảm bảo lưu câu hỏi và toàn bộ các đáp án đồng thời, không bị sót</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Thực hiện lưu câu hỏi trắc nghiệm có 4 đáp án.<br>
+            <b>Dữ liệu:</b> 1 câu hỏi kèm 4 lựa chọn đáp án<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấn nút 'Lưu câu hỏi'.<br>
+            2. Kiểm tra danh sách câu hỏi trong ngân hàng.
+        </td>
+        <td class="tc-expected">
+            Câu hỏi và đủ cả 4 phương án được lưu hoàn chỉnh cùng lúc, không bao giờ xảy ra tình trạng câu hỏi bị thiếu mất đáp án.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-45</b></td>
+        <td class="tc-name"><b>Tìm kiếm câu hỏi theo từ khóa và chỉnh sửa nội dung câu hỏi</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Ngân hàng có nhiều câu hỏi.<br>
+            <b>Dữ liệu:</b> Tìm từ khóa 'cinema', lọc kỹ năng Ngữ pháp, mở câu hỏi để sửa<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhập từ khóa 'cinema' vào thanh tìm kiếm, chọn lọc kỹ năng Ngữ pháp.<br>
+            2. Chọn câu hỏi tìm thấy và nhấn nút 'Chỉnh sửa'.<br>
+            3. Sửa lại nội dung và nhấn Lưu.
+        </td>
+        <td class="tc-expected">
+            Tìm đúng câu hỏi cần tìm. Bảng sửa câu hỏi tải đủ nội dung cũ và các phương án. Cập nhật thành công mà không bị nhân bản thêm câu hỏi trùng lặp.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: QUẢN LÝ ĐỀ THI & LUYỆN TẬP (US-GV07 / T-21, 22)</div>
+    <div class="module-desc">Nhiệm vụ: US-GV07 / T-21, T-22 &mdash; Số lượng kịch bản: 9 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-46</b></td>
+        <td class="tc-name"><b>Tạo đề thi thử chính thức có cài đặt thời gian làm bài đếm ngược</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Mở mục Quản lý đề thi, nhấn 'Tạo đề thi mới'.<br>
+            <b>Dữ liệu:</b> Tên đề thi: 'Đề thi thử TOEIC Đợt 1', Thời gian: 60 phút, Thể loại: 'Thi thử (Có tính giờ)', Trình độ: 'B2'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhập tên đề thi, chọn loại có tính giờ, nhập thời gian 60 phút.<br>
+            2. Nhấn 'Lưu thông tin đề thi'.
+        </td>
+        <td class="tc-expected">
+            Đề thi được tạo thành công ở trạng thái 'Bản nháp' (Chưa phát hành) để giảng viên chọn câu hỏi đưa vào đề thi.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-47</b></td>
+        <td class="tc-name"><b>Tạo gói bài tập luyện tập tự do không áp lực thời gian</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Chọn thể loại 'Gói Luyện tập tự do'.<br>
+            <b>Dữ liệu:</b> Tên gói: 'Bộ bài tập ngữ pháp A1', Thời gian: 0 phút<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chọn thể loại Luyện tập tự do, để thời gian = 0 phút.<br>
+            2. Nhấn 'Lưu gói luyện tập'.
+        </td>
+        <td class="tc-expected">
+            Gói luyện tập được tạo thành công. Khi học viên làm bài gói này sẽ không có đồng hồ đếm ngược, được tự do suy nghĩ làm bài.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-48</b></td>
+        <td class="tc-name"><b>Chọn câu hỏi từ ngân hàng đưa vào đề thi và sắp xếp thứ tự, điểm số</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang ở màn hình chọn câu hỏi cho đề thi.<br>
+            <b>Dữ liệu:</b> Chọn 10 câu hỏi từ ngân hàng; Cấu hình mỗi câu 1.0 điểm; Đổi vị trí câu 1 xuống câu 5<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Đánh dấu chọn 10 câu hỏi trong ngân hàng và bấm 'Thêm vào đề thi'.<br>
+            2. Nhập điểm 1.0 cho từng câu.<br>
+            3. Dùng nút mũi tên di chuyển lên/xuống để đổi thứ tự câu hỏi.<br>
+            4. Nhấn 'Lưu cấu hình câu hỏi'.
+        </td>
+        <td class="tc-expected">
+            Đề thi có đủ 10 câu hỏi với thứ tự và điểm số đúng như vừa sắp xếp.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-49</b></td>
+        <td class="tc-name"><b>Cài đặt điểm đạt yêu cầu và bật tính năng xáo trộn thứ tự câu hỏi</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đề thi có 10 câu hỏi, tổng điểm 10.0.<br>
+            <b>Dữ liệu:</b> Điểm đạt: 6.0 điểm, Bật tính năng xáo trộn câu hỏi<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhập Điểm đạt yêu cầu: 6.0 điểm.<br>
+            2. Bật công tắc 'Xáo trộn thứ tự câu hỏi khi thi'.<br>
+            3. Nhấn Lưu cấu hình.
+        </td>
+        <td class="tc-expected">
+            Khi học viên làm bài thi, thứ tự câu hỏi sẽ được đảo ngẫu nhiên để chống nhìn bài của nhau, học viên đạt từ 6.0 điểm trở lên là đạt.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-50</b></td>
+        <td class="tc-name"><b>Kiểm tra bắt buộc đề thi phải có câu hỏi trước khi phát hành</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Thử phát hành một đề thi chưa có câu hỏi nào.<br>
+            <b>Dữ liệu:</b> Đề thi có 0 câu hỏi<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấn nút 'Phát hành đề thi' khi đề thi chưa được gán bất kỳ câu hỏi nào.<br>
+            2. Quan sát phản hồi.
+        </td>
+        <td class="tc-expected">
+            Hệ thống chặn lại và cảnh báo: 'Đề thi phải có ít nhất 1 câu hỏi trước khi phát hành'. Không cho phép phát hành đề thi rỗng.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-51</b></td>
+        <td class="tc-name"><b>Phát hành đề thi và kiểm tra sự xuất hiện bên phía học viên</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đề thi đã hoàn thiện đầy đủ câu hỏi, thời gian và điểm số.<br>
+            <b>Dữ liệu:</b> Nhấn nút 'Phát hành đề thi'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấn nút 'Phát hành đề thi'.<br>
+            2. Xác nhận đồng ý tại hộp thoại phê duyệt.<br>
+            3. Mở bên ứng dụng học viên kiểm tra.
+        </td>
+        <td class="tc-expected">
+            Đề thi chuyển sang trạng thái 'Đã phát hành' và xuất hiện ngay trên danh sách đề thi thử của học viên.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-52</b></td>
+        <td class="tc-name"><b>Đề thi đã phát hành không bị ảnh hưởng khi ngân hàng câu hỏi bị sửa</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đề thi đã phát hành có chứa câu hỏi số 10; giảng viên vào ngân hàng câu hỏi sửa câu số 10.<br>
+            <b>Dữ liệu:</b> Sửa câu hỏi số 10 trong ngân hàng<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Giảng viên vào Ngân hàng câu hỏi sửa nội dung câu hỏi số 10.<br>
+            2. Mở đề thi đã phát hành ra xem lại.
+        </td>
+        <td class="tc-expected">
+            Đề thi đã phát hành vẫn giữ nguyên nội dung gốc để đảm bảo tính công bằng và ổn định của kỳ thi.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-53</b></td>
+        <td class="tc-name"><b>Xem trước giao diện phòng thi giả lập trước khi phát hành đề thi</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Chọn một đề thi đã tạo.<br>
+            <b>Dữ liệu:</b> Bấm nút 'Xem trước đề thi'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấn nút 'Xem trước đề thi'.<br>
+            2. Duyệt qua giao diện phòng thi giả lập.
+        </td>
+        <td class="tc-expected">
+            Mở ra giao diện mô phỏng phòng thi giống của học viên: có đồng hồ đếm ngược, danh sách câu hỏi, bảng số câu và các phương án trả lời để giảng viên rà soát lần cuối.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-54</b></td>
+        <td class="tc-name"><b>Thông tin đề thi lưu trữ ổn định khi tắt và mở lại ứng dụng</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đã tạo và cấu hình đề thi hoàn chỉnh.<br>
+            <b>Dữ liệu:</b> Tắt ứng dụng và mở lại<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Kiểm tra danh sách đề thi sau khi khởi động lại ứng dụng.<br>
+            2. Mở xem chi tiết các câu hỏi trong đề thi.
+        </td>
+        <td class="tc-expected">
+            Toàn bộ thông tin đề thi, thời lượng, điểm đạt và danh sách câu hỏi trực thuộc vẫn được lưu trữ bền vững và đầy đủ.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: KIỂM THỬ LIÊN HOÀN SPRINT 2 (T-23)</div>
+    <div class="module-desc">Nhiệm vụ: T-23 &mdash; Số lượng kịch bản: 2 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-55</b></td>
+        <td class="tc-name"><b>Kiểm tra liên hoàn: Giảng viên soạn bài, xuất bản và học viên vào học</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Mở ứng dụng giảng viên và ứng dụng học viên.<br>
+            <b>Dữ liệu:</b> Soạn bài học nghe mới có file âm thanh<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Giảng viên soạn bài học nghe mới, đính kèm file âm thanh.<br>
+            2. Bật xuất bản và Lưu.<br>
+            3. Đăng nhập ứng dụng học viên bằng tài khoản sinh viên.<br>
+            4. Vào mục Lộ trình học kiểm tra và bấm nghe thử âm thanh bài học.
+        </td>
+        <td class="tc-expected">
+            Học viên nhìn thấy ngay bài học mới trong danh mục, bấm vào học và nghe âm thanh rõ ràng, xác nhận tính liên thông hoàn hảo giữa quản trị và học viên.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-56</b></td>
+        <td class="tc-name"><b>Kiểm tra liên hoàn: Giảng viên phát hành đề, học viên thi và xem số liệu tự cập nhật</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang ở ứng dụng giảng viên.<br>
+            <b>Dữ liệu:</b> Tạo 5 câu hỏi mới -> Gom vào đề thi 15 phút -> Phát hành -> Học viên thi được 8.0đ<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Giảng viên tạo 5 câu hỏi trong Ngân hàng câu hỏi.<br>
+            2. Tạo đề thi 'Kiểm tra 15 phút', gán 5 câu hỏi vừa tạo và bấm Phát hành.<br>
+            3. Học viên đăng nhập vào Thi thử, làm bài và nộp bài đạt 8.0 điểm.<br>
+            4. Giảng viên quay lại trang Tổng quan kiểm tra số liệu.
+        </td>
+        <td class="tc-expected">
+            Chu trình khép kín vận hành hoàn hảo: Đề thi phát hành thành công -> Học viên thi và được chấm điểm tự động -> Số lượt thi trên trang Tổng quan của Giảng viên tự động tăng thêm 1 lượt.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="page-break"></div>
+<div class="sprint-header">MỤC 4. KỊCH BẢN KIỂM THỬ TOÀN TRÌNH (END-TO-END)</div>
+<p>Kiểm tra chu trình quản lý học liệu và khảo thí trọn vẹn trên hệ thống quản trị:</p>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-57</b></td>
+        <td class="tc-name"><b>Kiểm tra toàn bộ chu trình quản lý: Tạo danh mục, soạn bài học, tạo câu hỏi và phát hành đề thi</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Giảng viên đăng nhập vào hệ thống quản trị.<br>
+            <b>Dữ liệu:</b> Tạo chủ đề mới -> Soạn bài học -> Tạo câu hỏi -> Phát hành đề thi thử<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Vào mục Danh mục tạo chủ đề mới 'Luyện thi TOEIC 2026'.<br>
+            2. Vào mục Bài học soạn bài học thuộc chủ đề này và xuất bản.<br>
+            3. Vào Ngân hàng câu hỏi tạo các câu hỏi trắc nghiệm.<br>
+            4. Vào Quản lý đề thi tạo đề thi thử, gán câu hỏi và phát hành đề thi.<br>
+            5. Đăng xuất an toàn.
+        </td>
+        <td class="tc-expected">
+            Toàn bộ chu trình quản lý vận hành trơn tru: Cây danh mục cập nhật nhánh mới, bài học hiển thị đúng chủ đề, ngân hàng câu hỏi đầy đủ và đề thi phát hành sẵn sàng cho học viên. Dữ liệu đồng bộ chính xác.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-58</b></td>
+        <td class="tc-name"><b>Kiểm tra xử lý học viên vi phạm: Khóa tài khoản, cấp lại mật khẩu và mở khóa</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Tài khoản giảng viên đang đăng nhập.<br>
+            <b>Dữ liệu:</b> Khóa tài khoản vi phạm -> Thử đăng nhập ngoài -> Cấp lại mật khẩu -> Mở khóa<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Mở Quản lý người dùng, tìm kiếm học viên theo email.<br>
+            2. Bấm nút khóa tài khoản học viên đó.<br>
+            3. Ra màn hình đăng nhập bên ngoài xác nhận tài khoản bị chặn không vào được.<br>
+            4. Giảng viên cấp lại mật khẩu về 123456 và mở khóa tài khoản.<br>
+            5. Đăng nhập lại để xác nhận tài khoản hoạt động bình thường.
+        </td>
+        <td class="tc-expected">
+            Cơ chế quản lý tài khoản và bảo mật hoạt động an toàn tuyệt đối, cập nhật trạng thái có hiệu lực ngay lập tức trên hệ thống.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="page-break"></div>
+<h1>MỤC 5. MA TRẬN ĐỐI CHIẾU VÀ ÁNH XẠ KỊCH BẢN KIỂM THỬ</h1>
+<p>Bảng đối chiếu giữa các User Story, nhiệm vụ WBS trong Kế hoạch triển khai (<code>Kehoachtrienkhai.xlsx</code>) với các mã kịch bản kiểm thử tương ứng của phân hệ Giảng viên/Admin:</p>
+<table class="tbl-matrix">
+    <thead><tr><th style="width:14%">Mã công việc</th><th style="width:24%">Tên hạng mục chức năng</th><th style="width:32%">Tiêu chí nghiệm thu</th><th style="width:15%">Mã Test Case</th><th style="width:15%">Ghi chú</th></tr></thead>
+    <tbody>
+    <tr><td><b>US-GV01 / T-05</b></td><td>Khung điều hướng Giảng viên</td><td>Chuyển trang mượt mà, thanh chỉ dẫn đường dẫn, làm nổi bật menu đang chọn, avatar, đăng xuất an toàn, phân quyền</td><td><b>TC-01, TC-02, TC-03, TC-04</b></td><td><i>Gộp điều hướng và highlight vào TC-01</i></td></tr>
+    <tr><td><b>US-GV02 / T-11, T-12</b></td><td>Bảng thống kê tổng quan (Dashboard)</td><td>4 thẻ thống kê thực tế, tính % tăng trưởng, hiển thị số 0 an toàn, hoạt động gần đây, biểu đồ xu hướng, nút Làm mới</td><td><b>TC-05, TC-06, TC-07, TC-08, TC-09</b></td><td><i>Gộp tính tăng trưởng vào TC-06, nút làm mới vào TC-09</i></td></tr>
+    <tr><td><b>US-GV03 / T-03, 04, 06</b></td><td>Quản lý Người dùng & Học viên</td><td>Phân trang 10 người/trang, tìm kiếm nhanh, lọc vai trò/trạng thái, khóa/mở khóa, chặn tự khóa mình, cấp lại mật khẩu 123456</td><td><b>TC-10, TC-11, TC-12, TC-13, TC-14, TC-15, TC-16, TC-17</b></td><td><i>Gộp phân trang vào TC-10, lọc kết hợp vào TC-12, khóa/mở khóa vào TC-13</i></td></tr>
+    <tr><td><b>US-GV04 / T-07..10</b></td><td>Quản lý Cây Danh mục chủ đề</td><td>Danh mục cấp độ A1-C1, cây chủ đề phân cấp cha con, thêm/sửa/di chuyển/ẩn chủ đề, chặn lỗi lặp vô tận, chặn xóa khi có bài học</td><td><b>TC-18, TC-19, TC-20, TC-21, TC-22, TC-23, TC-24, TC-25, TC-26</b></td><td><i>Gộp xóa rỗng và chặn xóa vào TC-25</i></td></tr>
+    <tr><td><b>T-13</b></td><td>Kiểm thử liên hoàn Sprint 1 WBS</td><td>Tạo chủ đề -> Thêm học viên -> Xem Dashboard; Khóa tài khoản và kiểm tra chặn đăng nhập ngoài</td><td><b>TC-27, TC-28</b></td><td><i>Kiểm tra liên hoàn Sprint 1</i></td></tr>
+    <tr><td><b>US-GV05 / T-14..17</b></td><td>Quản lý Nội dung Bài học</td><td>Soạn bài học theo chủ đề/trình độ, kiểm tra bắt buộc nhập liệu, 5 kỹ năng, đính kèm âm thanh/ảnh, xuất bản, xử lý lưu an toàn</td><td><b>TC-29, TC-30, TC-31, TC-32, TC-33, TC-34, TC-35, TC-36</b></td><td><i>Gộp đính kèm âm thanh và ảnh vào TC-32, bật tắt xuất bản vào TC-34</i></td></tr>
+    <tr><td><b>US-GV06 / T-18..20</b></td><td>Quản lý Ngân hàng Câu hỏi</td><td>Thêm trắc nghiệm 4 lựa chọn, điền từ, đọc hiểu đoạn văn, câu hỏi nghe, giải thích chi tiết, độ khó/kiểm duyệt, bắt lỗi nhập</td><td><b>TC-37, TC-38, TC-39, TC-40, TC-41, TC-42, TC-43, TC-44, TC-45</b></td><td><i>Gộp bắt lỗi lựa chọn vào TC-43, tìm kiếm và sửa câu hỏi vào TC-45</i></td></tr>
+    <tr><td><b>US-GV07 / T-21, 22</b></td><td>Quản lý Đề thi & Gói Luyện tập</td><td>Tạo đề thi tính giờ, bài tập tự do, chọn câu hỏi từ ngân hàng, sắp xếp thứ tự điểm số, điểm đạt/xáo trộn, phát hành, xem trước phòng thi</td><td><b>TC-46, TC-47, TC-48, TC-49, TC-50, TC-51, TC-52, TC-53, TC-54</b></td><td><i>Gộp chọn câu hỏi và sắp xếp vào TC-48</i></td></tr>
+    <tr><td><b>T-23</b></td><td>Kiểm thử liên hoàn Sprint 2 WBS</td><td>Chu trình xuất bản bài học và học viên vào học; Chu trình phát hành đề và tự cập nhật thống kê</td><td><b>TC-55, TC-56</b></td><td><i>Kiểm tra liên hoàn Sprint 2</i></td></tr>
+    <tr><td><b>E2E</b></td><td>Kiểm thử toàn trình (End-to-End)</td><td>Chu trình quản lý học liệu và thi cử từ đầu đến cuối; Quản lý xử lý vi phạm tài khoản và bảo mật</td><td><b>TC-57, TC-58</b></td><td><i>Kiểm tra toàn trình quản trị</i></td></tr>
+    </tbody>
+</table>
+</body>
+</html>

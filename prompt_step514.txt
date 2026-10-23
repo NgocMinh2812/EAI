@@ -1,0 +1,100 @@
+﻿<USER_REQUEST>
+EAI â€” Tá»° Äá»˜NG CHáº Y á»¨NG Dá»¤NG, KIá»‚M TRA GIAO DIá»†N VÃ€ THU THáº¬P SCREENSHOT CHO TEST CASE
+Repository: [https://github.com/NgocMinh2812/EAI.git](https://github.com/NgocMinh2812/EAI.git)
+1. Má»¥c tiÃªu
+HÃ£y cháº¡y á»©ng dá»¥ng EAI/EnglishAI thá»±c táº¿ trÃªn Windows, tá»± Ä‘á»™ng thao tÃ¡c giao diá»‡n, thu tháº­p screenshot vÃ  há»— trá»£ hoÃ n thiá»‡n hai tÃ i liá»‡u Word:
+TestCases_Sprint1_Sprint2_Minh_HocVien.docx
+TestCases_Sprint1_Sprint2_Em_GiangVien_Admin.docx
+Nguá»“n yÃªu cáº§u lÃ  file Kehoachtrienkhai.xlsx, cÃ¡c mÃ£ Task/User Story trong káº¿ hoáº¡ch vÃ  nhá»¯ng áº£nh giao diá»‡n Ä‘Ã£ Ä‘Æ°á»£c cung cáº¥p.
+TÃ´i muá»‘n háº¡n cháº¿ tá»‘i Ä‘a viá»‡c chá»¥p áº£nh vÃ  kiá»ƒm tra mÃ n hÃ¬nh thá»§ cÃ´ng. HÃ£y tá»± Ä‘á»™ng hÃ³a nhá»¯ng thao tÃ¡c cÃ³ thá»ƒ thá»±c hiá»‡n Ä‘Ã¡ng tin cáº­y, lÆ°u áº£nh tháº­t tá»« á»©ng dá»¥ng Ä‘ang cháº¡y vÃ  gáº¯n chÃºng vá»›i test case tÆ°Æ¡ng á»©ng.
+KhÃ´ng táº¡o áº£nh minh há»a giáº£ thay cho screenshot á»©ng dá»¥ng thá»±c táº¿.
+2. Kháº£o sÃ¡t mÃ´i trÆ°á»ng
+TrÆ°á»›c khi thá»±c hiá»‡n:
+Kiá»ƒm tra solution, project khá»Ÿi Ä‘á»™ng, framework vÃ  cÃ¡ch build á»©ng dá»¥ng.
+Kiá»ƒm tra tráº¡ng thÃ¡i Git vÃ  báº£o toÃ n thay Ä‘á»•i chÆ°a commit.
+XÃ¡c Ä‘á»‹nh cáº¥u hÃ¬nh káº¿t ná»‘i database, tÃ i khoáº£n kiá»ƒm thá»­ vÃ  cÃ¡c dá»‹ch vá»¥ báº¯t buá»™c.
+XÃ¡c Ä‘á»‹nh liá»‡u mÃ´i trÆ°á»ng hiá»‡n táº¡i cÃ³ Windows desktop session Ä‘á»ƒ cháº¡y vÃ  Ä‘iá»u khiá»ƒn á»©ng dá»¥ng hay khÃ´ng.
+Náº¿u project lÃ  WPF, Æ°u tiÃªn kháº£o sÃ¡t FlaUI/UI Automation Ä‘á»ƒ tá»± Ä‘á»™ng hÃ³a giao diá»‡n. Chá»‰ sá»­ dá»¥ng Playwright náº¿u thá»±c táº¿ cÃ³ thÃ nh pháº§n web cáº§n kiá»ƒm thá»­.
+Náº¿u mÃ´i trÆ°á»ng hiá»‡n táº¡i khÃ´ng cÃ³ kháº£ nÄƒng cháº¡y á»©ng dá»¥ng Windows desktop hoáº·c khÃ´ng cÃ³ quyá»n tÆ°Æ¡ng tÃ¡c vá»›i GUI, hÃ£y nÃªu rÃµ giá»›i háº¡n. KhÃ´ng giáº£ vá» Ä‘Ã£ cháº¡y á»©ng dá»¥ng hoáº·c táº¡o screenshot tháº­t khi chÆ°a thá»±c hiá»‡n Ä‘Æ°á»£c.
+3. Thiáº¿t láº­p tá»± Ä‘á»™ng hÃ³a giao diá»‡n
+Náº¿u mÃ´i trÆ°á»ng Ä‘Ã¡p á»©ng Ä‘iá»u kiá»‡n, hÃ£y:
+Build á»©ng dá»¥ng vÃ  cháº¡y báº±ng Ä‘Ãºng cáº¥u hÃ¬nh cá»§a project.
+Táº¡o má»™t project UI test riÃªng náº¿u cáº§n, trÃ¡nh Ä‘Æ°a logic kiá»ƒm thá»­ vÃ o code nghiá»‡p vá»¥.
+CÃ³ thá»ƒ sá»­ dá»¥ng FlaUI phÃ¹ há»£p vá»›i UI framework hiá»‡n táº¡i.
+TÃ¬m control báº±ng AutomationId, tÃªn hoáº·c cÃ¢y UI Automation khi cÃ³ thá»ƒ.
+Náº¿u cÃ¡c control quan trá»ng chÆ°a thá»ƒ nháº­n diá»‡n á»•n Ä‘á»‹nh, cÃ¢n nháº¯c bá»• sung AutomationProperties.AutomationId tá»‘i thiá»ƒu vÃ  khÃ´ng lÃ m thay Ä‘á»•i hÃ nh vi á»©ng dá»¥ng.
+Tá»± Ä‘á»™ng báº¥m nÃºt, chá»n tab, nháº­p dá»¯ liá»‡u, chá»n item, xÃ¡c nháº­n dialog vÃ  Ä‘iá»u hÆ°á»›ng mÃ n hÃ¬nh.
+Chá» á»©ng dá»¥ng táº£i xong trÆ°á»›c khi chá»¥p áº£nh.
+Chá»¥p screenshot tháº­t cá»§a cá»­a sá»• á»©ng dá»¥ng táº¡i cÃ¡c tráº¡ng thÃ¡i cáº§n kiá»ƒm thá»­.
+KhÃ´ng Æ°u tiÃªn nháº­n diá»‡n vá»‹ trÃ­ pixel cá»‘ Ä‘á»‹nh náº¿u cÃ³ thá»ƒ tÃ¬m control theo thuá»™c tÃ­nh UI Automation, vÃ¬ tá»a Ä‘á»™ cÃ³ thá»ƒ thay Ä‘á»•i theo Ä‘á»™ phÃ¢n giáº£i hoáº·c kÃ­ch thÆ°á»›c cá»­a sá»•.
+KhÃ´ng tá»± Ã½ thay Ä‘á»•i toÃ n bá»™ giao diá»‡n chá»‰ Ä‘á»ƒ dá»… chá»¥p áº£nh.
+4. Thu tháº­p screenshot
+Táº¡o thÆ° má»¥c:
+artifacts/ui-screenshots/
+Tá»• chá»©c áº£nh theo Sprint, vai trÃ² vÃ  mÃ£ test case. VÃ­ dá»¥:
+Sprint1/Student/ST1-STU-LOGIN-001.png
+Sprint1/Admin/ST1-ADM-USER-001.png
+Sprint2/Student/ST2-STU-EXAM-001.png
+Sprint2/Admin/ST2-ADM-QUESTION-001.png
+CÃ³ thá»ƒ táº¡o nhiá»u áº£nh cho má»™t test case khi cáº§n minh há»a cÃ¡c tráº¡ng thÃ¡i trÆ°á»›c/sau hoáº·c lá»—i quan trá»ng.
+Æ¯u tiÃªn chá»¥p cÃ¡c mÃ n hÃ¬nh:
+ÄÄƒng nháº­p, Ä‘Äƒng kÃ½ vÃ  kháº£o sÃ¡t.
+Trang chá»§, danh sÃ¡ch bÃ i há»c, chi tiáº¿t bÃ i há»c.
+Player audio vÃ  cÃ¡c tráº¡ng thÃ¡i Ä‘iá»u khiá»ƒn.
+Luyá»‡n táº­p, lÃ m bÃ i thi, ná»™p bÃ i, káº¿t quáº£ vÃ  xem láº¡i bÃ i thi.
+Dashboard giáº£ng viÃªn/admin.
+Quáº£n lÃ½ ngÆ°á»i dÃ¹ng, danh má»¥c, bÃ i há»c, ngÃ¢n hÃ ng cÃ¢u há»i, Ä‘á» thi vÃ  gÃ³i luyá»‡n táº­p.
+Chá»‰ chá»¥p nhá»¯ng tráº¡ng thÃ¡i thá»±c sá»± cÃ³ trong á»©ng dá»¥ng. Náº¿u má»™t tÃ­nh nÄƒng chÆ°a triá»ƒn khai hoáº·c khÃ´ng truy cáº­p Ä‘Æ°á»£c, ghi nháº­n lÃ  chÆ°a kiá»ƒm thá»­ Ä‘Æ°á»£c; khÃ´ng tá»± dá»±ng giao diá»‡n Ä‘á»ƒ thay tháº¿.
+Screenshot pháº£i rÃµ rÃ ng, Ä‘á»§ Ä‘á»™ phÃ¢n giáº£i Ä‘á»ƒ nhÃ¬n Ä‘Æ°á»£c tiÃªu Ä‘á», dá»¯ liá»‡u vÃ  thÃ´ng bÃ¡o quan trá»ng. TrÃ¡nh chá»¥p khi dialog Ä‘ang che ná»™i dung khÃ´ng liÃªn quan hoáº·c khi á»©ng dá»¥ng Ä‘ang á»Ÿ tráº¡ng thÃ¡i táº£i dá»Ÿ.
+5. An toÃ n dá»¯ liá»‡u khi tá»± Ä‘á»™ng thao tÃ¡c
+Chá»‰ sá»­ dá»¥ng tÃ i khoáº£n vÃ  dá»¯ liá»‡u kiá»ƒm thá»­ Ä‘Æ°á»£c phÃ©p.
+Æ¯u tiÃªn database thá»­ nghiá»‡m hoáº·c dá»¯ liá»‡u Ä‘Ã£ Ä‘Æ°á»£c backup.
+KhÃ´ng reset hoáº·c xÃ³a database Ä‘ang chá»©a dá»¯ liá»‡u tháº­t.
+KhÃ´ng xÃ³a tÃ i khoáº£n, dá»¯ liá»‡u hoáº·c bÃ i thi hiá»‡n cÃ³ náº¿u chÆ°a Ä‘Æ°á»£c cho phÃ©p.
+KhÃ´ng gá»­i email, gá»i API tÃ­nh phÃ­ hoáº·c thá»±c hiá»‡n hÃ nh Ä‘á»™ng bÃªn ngoÃ i khÃ´ng cáº§n thiáº¿t.
+KhÃ´ng Ä‘á»ƒ screenshot chá»©a API key, password, token hoáº·c dá»¯ liá»‡u cÃ¡ nhÃ¢n tháº­t.
+Náº¿u cáº§n táº¡o dá»¯ liá»‡u, sá»­ dá»¥ng dá»¯ liá»‡u kiá»ƒm thá»­ cÃ³ thá»ƒ nháº­n diá»‡n vÃ  dá»n dáº¹p an toÃ n.
+Náº¿u thao tÃ¡c cÃ³ nguy cÆ¡ phÃ¡ há»§y dá»¯ liá»‡u, dá»«ng táº¡i bÆ°á»›c Ä‘Ã³ vÃ  bÃ¡o cÃ¡o thay vÃ¬ tá»± thá»±c hiá»‡n.
+6. LiÃªn káº¿t screenshot vá»›i test case
+Äá»‘i chiáº¿u áº£nh Ä‘Æ°á»£c chá»¥p vá»›i hai file Word test case Ä‘Ã£ táº¡o.
+Trong má»—i test case cÃ³ liÃªn quan, ghi:
+TÃªn file screenshot.
+Tráº¡ng thÃ¡i giao diá»‡n mÃ  áº£nh minh há»a.
+Test Case ID tÆ°Æ¡ng á»©ng.
+Káº¿t quáº£ kiá»ƒm tra thá»±c táº¿ náº¿u Ä‘Ã£ cÃ³ thá»ƒ xÃ¡c minh.
+CÃ³ thá»ƒ chÃ¨n áº£nh trá»±c tiáº¿p vÃ o tÃ i liá»‡u Word náº¿u áº£nh giÃºp hiá»ƒu rÃµ cÃ¡c bÆ°á»›c thao tÃ¡c hoáº·c káº¿t quáº£ mong Ä‘á»£i. KhÃ´ng cáº§n chÃ¨n hÃ ng loáº¡t áº£nh trÃ¹ng láº·p vÃ o má»i test case.
+PhÃ¢n biá»‡t rÃµ:
+Screenshot minh há»a giao diá»‡n.
+Screenshot ghi láº¡i tráº¡ng thÃ¡i thá»±c táº¿ khi thá»±c hiá»‡n kiá»ƒm thá»­.
+Expected Result.
+Actual Result.
+Pass/Fail.
+KhÃ´ng Ä‘Ã¡nh dáº¥u Pass chá»‰ vÃ¬ áº£nh giao diá»‡n trÃ´ng giá»‘ng thiáº¿t káº¿. Chá»‰ Ä‘Ã¡nh dáº¥u Pass náº¿u hÃ nh vi Ä‘Ã£ Ä‘Æ°á»£c xÃ¡c minh vÃ  Ä‘Ã¡p á»©ng tiÃªu chÃ­ tÆ°Æ¡ng á»©ng. Náº¿u chá»‰ chá»¥p Ä‘Æ°á»£c giao diá»‡n mÃ  chÆ°a xÃ¡c minh Ä‘Æ°á»£c nghiá»‡p vá»¥ hoáº·c database, pháº£i ghi rÃµ giá»›i háº¡n.
+7. Káº¿t quáº£ bÃ n giao
+BÃ n giao:
+Hai file Word test case Ä‘Ã£ cáº­p nháº­t vá»›i screenshot phÃ¹ há»£p.
+ThÆ° má»¥c artifacts/ui-screenshots/ chá»©a cÃ¡c áº£nh thá»±c táº¿.
+MÃ£ tá»± Ä‘á»™ng hÃ³a giao diá»‡n náº¿u Ä‘Ã£ táº¡o.
+HÆ°á»›ng dáº«n cháº¡y cÃ´ng cá»¥ chá»¥p áº£nh láº¡i.
+BÃ¡o cÃ¡o cÃ¡c mÃ n hÃ¬nh Ä‘Ã£ má»Ÿ vÃ  chá»¥p Ä‘Æ°á»£c.
+Danh sÃ¡ch chá»©c nÄƒng chÆ°a thá»ƒ truy cáº­p hoáº·c chÆ°a thá»ƒ kiá»ƒm thá»­.
+Káº¿t quáº£ build vÃ  test thá»±c táº¿.
+KhÃ´ng tuyÃªn bá»‘ Ä‘Ã£ cháº¡y á»©ng dá»¥ng hoáº·c chá»¥p áº£nh náº¿u mÃ´i trÆ°á»ng khÃ´ng cho phÃ©p. Náº¿u chÆ°a thá»ƒ thá»±c hiá»‡n, hÃ£y cung cáº¥p cÃ¡c bÆ°á»›c vÃ  lá»‡nh cá»¥ thá»ƒ Ä‘á»ƒ cháº¡y cÃ´ng cá»¥ trÃªn Windows cá»§a tÃ´i.
+KhÃ´ng commit, push hoáº·c ghi Ä‘Ã¨ thay Ä‘á»•i hiá»‡n cÃ³ náº¿u chÆ°a Ä‘Æ°á»£c yÃªu cáº§u.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-10-23T22:13:08+07:00.
+
+The user's current state is as follows:
+Active Document: d:\TDC\HK5\CDPTUD\EAI\.gitignore (LANGUAGE_UNSPECIFIED)
+Cursor is on line: 1
+Other open documents:
+- d:\TDC\HK5\CDPTUD\EAI\EAI\GUI\Views\GiangVien\.gitkeep (LANGUAGE_UNSPECIFIED)
+- d:\TDC\HK5\CDPTUD\EAI\EAI\Database\Update_Rich_BaiHoc_Content.sql (LANGUAGE_UNSPECIFIED)
+- d:\TDC\HK5\CDPTUD\EAI\EAI\Database\Create_NoiDungHocTapAIBaiHoc.sql (LANGUAGE_UNSPECIFIED)
+- d:\TDC\HK5\CDPTUD\EAI\EAI\Database\EAI_seed.sql (LANGUAGE_UNSPECIFIED)
+- d:\TDC\HK5\CDPTUD\EAI\dump_sheets.ps1 (LANGUAGE_POWERSHELL)
+</ADDITIONAL_METADATA>
+<USER_SETTINGS_CHANGE>
+The user changed setting `Model Selection` from Gemini 3.8 Flash (High) to Claude Opus 4.6 (Thinking). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
+</USER_SETTINGS_CHANGE>

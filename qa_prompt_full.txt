@@ -1,0 +1,528 @@
+﻿<USER_REQUEST>
+# YÊU CẦU QA: TẠO BỘ TEST CASE ĐẦY ĐỦ CHO SPRINT 1 VÀ SPRINT 2 CỦA DỰ ÁN ENGLISHAI/EAI
+
+## 1. Vai trò và mục tiêu
+
+Bạn đóng vai trò chuyên viên QA/Software Tester, có kinh nghiệm kiểm thử ứng dụng desktop C# WPF, SQL Server, kiến trúc 3 lớp GUI – BUS – DAL – DTO.
+
+Tôi đã cung cấp file Excel `Kehoachtrienkhai.xlsx` chứa kế hoạch dự án và sẽ cung cấp thêm ảnh giao diện thực tế của ứng dụng khi cần.
+
+Hãy phân tích kỹ nội dung Excel, ảnh giao diện và các tiêu chí nghiệm thu có trong kế hoạch để tạo **hai tài liệu Word (.docx) độc lập chứa test case cho tất cả chức năng thuộc Sprint 1 và Sprint 2**.
+
+Phải tạo ra đúng hai file:
+
+**FILE 1 — Dành cho Minh, phụ trách phần HỌC VIÊN**
+
+Tên file:
+`TestCases_Sprint1_Sprint2_Minh_HocVien.docx`
+
+**FILE 2 — Dành cho Êm, phụ trách phần GIẢNG VIÊN/ADMIN**
+
+Tên file:
+`TestCases_Sprint1_Sprint2_Em_GiangVien_Admin.docx`
+
+Hai file phải có nội dung kiểm thử riêng theo trách nhiệm của từng người, không gộp chung thành một tài liệu và không để lẫn các chức năng của hai vai trò.
+
+Mục đích là để chúng tôi có thể sử dụng tài liệu khi kiểm thử ứng dụng thực tế, ghi lại kết quả Pass/Fail, đính kèm bằng chứng và lập báo cáo lỗi.
+
+## 2. Nguồn thông tin và nguyên tắc phân tích
+
+Thứ tự ưu tiên khi xác định phạm vi kiểm thử:
+
+1. Nội dung, mã Task, User Story, mô tả công việc và tiêu chí chấp nhận trong file Excel.
+2. Ảnh chụp giao diện thực tế do tôi cung cấp.
+3. Luồng nghiệp vụ được mô tả rõ ràng trong kế hoạch.
+
+Hãy đọc toàn bộ các sheet liên quan trong workbook, đặc biệt:
+
+- `Kế hoạch 3 Sprint - Minh`
+- `Kế hoạch 3 Sprint - Quys`
+- `Phân rã công việc - Quys`
+
+Sử dụng đúng mã Task và User Story tương ứng để truy vết test case.
+
+Không giới hạn việc tạo test case ở những mục đã có giao diện. Phải kiểm thử cả logic nghiệp vụ, validation, database, phân quyền, xử lý lỗi và tính toàn vẹn dữ liệu theo những yêu cầu đã nêu trong kế hoạch.
+
+Không được:
+- Bỏ sót chức năng chỉ vì chức năng đó chưa có ảnh giao diện.
+- Giả định một chức năng hoạt động đúng chỉ vì đã có nút hoặc form.
+- Ghi nhận một tính năng là đã hoàn thành khi kế hoạch chưa xác nhận.
+- Tự đặt ra nghiệp vụ không có căn cứ rồi coi đó là tiêu chí chính thức.
+- Giả định dữ liệu mẫu luôn đầy đủ hoặc database luôn kết nối thành công.
+
+Nếu có nội dung mâu thuẫn giữa các sheet, hãy ghi rõ điểm mâu thuẫn và đề xuất cách xác minh. Không tự ý sửa đổi yêu cầu gốc.
+
+Ví dụ: TASK-108 nói bài khảo sát kiểm tra 4 kỹ năng nhưng danh sách trong mô tả chỉ nêu Ngữ pháp, Từ vựng và Đọc hiểu. Hãy tạo test case cho các yêu cầu đã xác định được và ghi chú cần làm rõ kỹ năng thứ tư, thay vì tự khẳng định một kỹ năng chưa được xác nhận.
+
+## 3. Phạm vi FILE 1 — HỌC VIÊN (MINH)
+
+Tài liệu của Minh bao gồm toàn bộ chức năng học viên thuộc Sprint 1 và Sprint 2.
+
+### Sprint 1 — Đăng ký, đăng nhập và khảo sát năng lực
+
+Phải tạo test case cho những hạng mục sau:
+
+**TASK-101 — Khởi tạo CSDL và dữ liệu mẫu học liệu**
+- Kiểm tra khả năng khởi tạo hoặc sử dụng database SQL Server theo môi trường dự án.
+- Kiểm tra tính tồn tại và quan hệ giữa các bảng liên quan đến người dùng, hồ sơ học tập, bài học, câu hỏi và kết quả thi.
+- Kiểm tra dữ liệu mẫu phục vụ các luồng đăng nhập, khảo sát và học tập.
+- Kiểm tra trường hợp database thiếu dữ liệu hoặc không truy cập được.
+
+**TASK-102 — Solution và kiến trúc 3 lớp WPF**
+- Kiểm tra ứng dụng khởi chạy với cấu hình database hợp lệ.
+- Kiểm tra xử lý khi chuỗi kết nối hoặc database không khả dụng.
+- Kiểm tra luồng thao tác chính có truy cập được dữ liệu thực, không chỉ dữ liệu giao diện giả.
+
+**TASK-103 — DAL và DTO phía học viên**
+- Kiểm tra dữ liệu tài khoản, hồ sơ học tập, câu hỏi và kết quả được truy vấn đúng.
+- Kiểm tra dữ liệu không tồn tại, dữ liệu null và lỗi truy vấn theo khả năng quan sát được.
+- Kiểm tra dữ liệu trên giao diện nhất quán với dữ liệu đã lưu.
+
+**TASK-104 — Đăng nhập/Đăng ký**
+- Đăng ký hợp lệ.
+- Bỏ trống các trường bắt buộc.
+- Email sai định dạng.
+- Email đã tồn tại.
+- Mật khẩu không thỏa điều kiện validation nếu có.
+- Nhập sai thông tin đăng nhập.
+- Bỏ trống thông tin đăng nhập.
+- Trạng thái giao diện khi chuyển giữa hai tab Đăng nhập và Đăng ký.
+- Lỗi kết nối và lỗi lưu dữ liệu.
+- Kiểm tra ứng dụng không tạo tài khoản trùng.
+
+**TASK-105 — Xác thực và phiên đăng nhập**
+- Đăng nhập thành công và thất bại.
+- Tài khoản không hoạt động hoặc bị khóa không được truy cập trái phép.
+- Mật khẩu được xử lý theo cơ chế bảo vệ thực tế, không lưu dạng rõ nếu dự án yêu cầu băm mật khẩu.
+- Kiểm tra thông tin SessionHelper được tạo và sử dụng đúng.
+- Đăng xuất và xóa trạng thái phiên phù hợp.
+- Người dùng không thể truy cập chức năng dành cho vai trò khác bằng cách điều hướng thông thường.
+
+**TASK-106 — MainWindow sinh viên**
+- Hiển thị đúng khung giao diện, avatar và các mục điều hướng.
+- Điều hướng giữa các mục chính.
+- Trạng thái menu đang chọn.
+- Chuyển màn hình liên tục.
+- Kiểm tra giao diện ở kích thước cửa sổ phù hợp với thiết kế.
+- Kiểm tra khi dữ liệu hồ sơ không tồn tại.
+
+**TASK-107 — Kiểm soát lần đầu đăng nhập**
+- Tài khoản mới có cờ lần đầu đăng nhập được điều hướng theo đúng quy trình.
+- Sidebar bị ẩn nếu đó là yêu cầu của onboarding.
+- Sau khi hoàn thành khảo sát, trạng thái lần đầu đăng nhập được cập nhật.
+- Người học cũ không bị bắt làm lại onboarding ngoài chính sách đã xác định.
+- Đóng ứng dụng hoặc đăng nhập lại giữa chừng.
+- Làm mới cửa sổ không được tạo nhiều hồ sơ hoặc bắt đầu nhiều lượt khảo sát ngoài ý muốn.
+
+**TASK-108 — Khảo sát năng lực**
+- Hiển thị đúng số lượng câu theo cấu hình thực tế, kế hoạch nêu khoảng 15–20 câu.
+- Tải câu hỏi và phương án đúng.
+- Chọn, thay đổi và bỏ chọn đáp án nếu được phép.
+- Điều hướng giữa các câu.
+- Xử lý câu chưa trả lời.
+- Nộp bài và xác định trạng thái hoàn thành.
+- Xử lý bộ câu hỏi rỗng hoặc thiếu đáp án.
+- Không hiển thị đáp án đúng trước thời điểm được phép.
+- Kiểm tra dữ liệu sau khi tải lại hoặc mở lại ứng dụng.
+
+**TASK-109 — Chấm điểm và xác định trình độ**
+- Kiểm tra tổng điểm.
+- Kiểm tra quy tắc phân loại CEFR theo cấu hình thực tế.
+- Kiểm tra trường hợp đúng ranh giới điểm giữa hai mức.
+- Kiểm tra bài làm có nhiều câu đúng, nhiều câu sai hoặc bỏ trống.
+- Kiểm tra hồ sơ học tập được tạo/cập nhật đúng.
+- Đối chiếu điểm, trình độ hiển thị với dữ liệu lưu trong database.
+- Kiểm tra trường hợp kết quả không đủ điều kiện phân loại hoặc dữ liệu bất thường.
+
+**TASK-110 — Kiểm thử tích hợp Sprint 1**
+- Luồng đăng ký → đăng nhập → khảo sát năng lực → chấm điểm → lưu trình độ ban đầu.
+- Kiểm tra dữ liệu qua toàn bộ luồng.
+- Kiểm tra đăng xuất/đăng nhập lại và tính toàn vẹn hồ sơ.
+
+### Sprint 2 — Học tập, luyện tập và thi thử
+
+**TASK-201 — Trang chủ sinh viên**
+- Hiển thị lời chào cá nhân hóa.
+- Hiển thị trình độ từ hồ sơ thực tế.
+- Các lối tắt vào học bài và thi thử.
+- Xử lý hồ sơ trống hoặc không có dữ liệu.
+- Điều hướng đúng chức năng khi nhấn từng lối tắt.
+
+**TASK-202 — Học tập theo lộ trình**
+- Danh sách hoặc cây bài học theo kỹ năng và chủ đề.
+- Lọc, chọn và mở bài học.
+- Hiển thị đúng nội dung nguồn.
+- Điều hướng giữa danh sách và chi tiết bài học.
+- Xử lý bài học không tồn tại, nội dung rỗng hoặc dữ liệu thiếu.
+- Không làm mất trạng thái giao diện không liên quan khi quay lại màn hình.
+
+**TASK-203 — Trình phát audio Listening**
+- Phát audio đúng bài học.
+- Tạm dừng và tiếp tục.
+- Tua lại và tua tới nếu player hỗ trợ.
+- Hiển thị đúng trạng thái phát và thời lượng khi có thể xác định.
+- Xử lý không có audio, file không tồn tại, file sai định dạng hoặc lỗi đọc file.
+- Điều hướng sang bài khác không được phát nhầm audio của bài trước.
+- Kiểm tra tương tác với tiến độ học nếu hệ thống có tích hợp.
+
+**TASK-204 — Thời gian và tiến độ học tập**
+- Ghi nhận thời gian học theo quy tắc thực tế.
+- Cộng dồn thời gian giữa các lần học.
+- Đánh dấu hoàn thành bài học khi đủ điều kiện được định nghĩa.
+- Mở rồi thoát nhanh không được cộng thời gian bất hợp lý.
+- Đóng ứng dụng hoặc điều hướng giữa các màn hình.
+- Tránh cộng trùng thời gian do nhiều timer hoặc nhiều event cùng hoạt động.
+- Kiểm tra dữ liệu lưu và dữ liệu hiển thị.
+
+**TASK-205 — Luyện tập theo kỹ năng**
+- Chọn Reading, Listening, Vocabulary theo phạm vi kế hoạch.
+- Tải đúng câu hỏi theo kỹ năng.
+- Chọn đáp án và kiểm tra phản hồi.
+- Hiển thị đáp án/lời giải ngay theo thiết kế.
+- Kiểm tra câu hỏi có audio hoặc Reading Passage.
+- Xử lý bộ câu hỏi rỗng, thiếu đáp án hoặc lựa chọn không hợp lệ.
+- Kiểm tra kết quả nếu hệ thống có lưu phiên luyện tập.
+- Phân biệt điểm luyện tập với điểm thi chính thức.
+
+**TASK-206 — Thi thử chuẩn hóa**
+- Hiển thị câu hỏi và danh sách điều hướng.
+- Đồng hồ đếm ngược.
+- Chuyển câu hỏi.
+- Đánh dấu câu khó và bỏ đánh dấu.
+- Bảo toàn lựa chọn khi chuyển giữa các câu.
+- Nộp bài thủ công.
+- Hết giờ và tự động nộp nếu yêu cầu này đã được triển khai.
+- Chặn nộp lặp.
+- Xử lý chuyển màn hình, đóng ứng dụng và trạng thái bài chưa hoàn thành theo chính sách thực tế.
+- Kiểm tra đồng hồ không chạy nhiều lần hoặc chạy sai khi chuyển câu.
+
+**TASK-207 — Chấm điểm và lịch sử thi**
+- Chấm đúng các loại câu hỏi có thể tự động chấm.
+- Tính điểm, số câu đúng/sai và trạng thái đạt/chưa đạt nếu có ngưỡng.
+- Nộp bài và tự nộp khi hết giờ.
+- Lưu kết quả và chi tiết câu trả lời.
+- Không tạo nhiều kết quả do nộp lặp.
+- Tải lại lịch sử và xác nhận dữ liệu không bị thay đổi ngoài ý muốn.
+- Kiểm tra câu không trả lời và dữ liệu kết quả bất thường.
+
+**TASK-208 — Xem lại chi tiết bài thi**
+- Hiển thị tổng điểm và thống kê đúng/sai.
+- Đối chiếu đáp án sinh viên với đáp án chính xác.
+- Hiển thị lời giải chi tiết khi được phép.
+- Câu chưa trả lời phải được thể hiện chính xác.
+- Dữ liệu xem lại phải khớp với lượt thi đã hoàn thành.
+- Không để kết quả xem lại thay đổi khi bài thi hoặc câu hỏi nguồn được chỉnh sửa về sau nếu thiết kế yêu cầu giữ lịch sử.
+
+**TASK-209 — Kiểm thử tích hợp Sprint 2**
+- Luồng trang chủ → học bài → ghi nhận tiến độ.
+- Luồng luyện tập → xem phản hồi.
+- Luồng thi thử → làm bài → nộp bài → chấm điểm → xem lại.
+- Đồng hồ đếm ngược và tự nộp khi hết giờ.
+- Tính nhất quán giữa giao diện và dữ liệu đã lưu.
+
+## 4. Phạm vi FILE 2 — GIẢNG VIÊN/ADMIN (ÊM)
+
+Tài liệu của Êm bao gồm các chức năng quản trị thuộc Sprint 1 và Sprint 2 trong sheet `Kế hoạch 3 Sprint - Quys` và `Phân rã công việc - Quys`.
+
+### Sprint 1 — US-GV01 đến US-GV04
+
+**US-GV01 — Khung điều hướng giảng viên**
+- Sidebar và trạng thái menu được chọn.
+- Điều hướng các mục chức năng.
+- Breadcrumb cập nhật đúng.
+- Hiển thị thông tin giảng viên.
+- Đăng xuất và xử lý phiên.
+- Chặn truy cập khi sai vai trò.
+- Kiểm tra trạng thái phiên sau đăng nhập lại.
+
+**US-GV02 — Dashboard tổng quan**
+- Bốn KPI: số học viên, bài học, câu hỏi và lượt thi.
+- Số liệu phải lấy từ database thực.
+- Kiểm tra giá trị 0 khi chưa có dữ liệu.
+- Kiểm tra phép tính tăng trưởng so với tuần trước theo quy tắc thực tế.
+- Danh sách hoạt động gần đây.
+- Biểu đồ có dữ liệu hợp lệ.
+- Làm mới và kiểm tra dữ liệu cập nhật.
+- Lỗi truy vấn không được hiển thị số liệu giả như dữ liệu thật.
+
+**US-GV03 — Quản lý người dùng/học viên**
+- Danh sách và phân trang.
+- Tìm kiếm họ tên/email.
+- Lọc theo vai trò và trạng thái.
+- Khóa/mở khóa tài khoản.
+- Không cho phép khóa chính tài khoản đang đăng nhập nếu đó là quy tắc yêu cầu.
+- Reset mật khẩu.
+- Validation email và dữ liệu đầu vào.
+- Kiểm tra trạng thái được lưu sau khi tải lại.
+- Xử lý dữ liệu trùng, không tồn tại hoặc thao tác lỗi.
+- Không để người dùng bị khóa tiếp tục truy cập qua phiên hoặc luồng phù hợp với thiết kế hệ thống.
+
+**US-GV04 — Quản lý trình độ và cây chủ đề**
+- Hiển thị trình độ A1–C1 theo dữ liệu thực tế.
+- Tạo, sửa, ẩn/hiện chủ đề.
+- Hiển thị đúng quan hệ cha-con.
+- Nhiều cấp cây.
+- Ngăn tạo quan hệ gây chu trình.
+- Kiểm tra mã cha không hợp lệ.
+- Chặn xóa chủ đề đang được bài học tham chiếu.
+- Xử lý chủ đề không tồn tại và dữ liệu rỗng.
+- Lưu và tải lại chính xác cấu trúc cây.
+
+### Sprint 2 — US-GV05 đến US-GV07
+
+**US-GV05 — Quản lý nội dung bài học**
+- Tạo và chỉnh sửa bài học.
+- Validation tiêu đề, chủ đề, cấp độ, thời lượng và các trường bắt buộc theo quy tắc thực tế.
+- Phân loại kỹ năng gồm từ vựng, ngữ pháp, đọc, nghe, viết.
+- Đính kèm audio và ảnh.
+- Kiểm tra file hợp lệ, không tồn tại hoặc bị lỗi.
+- Lưu và tải lại nội dung.
+- Chuyển trạng thái xuất bản.
+- Bật/tắt “Cho phép học viên truy cập” nếu checkbox này có trong phiên bản đang kiểm thử.
+- Kiểm tra bài học chưa được phép truy cập không hiển thị cho sinh viên.
+- Kiểm tra file đính kèm không mất sau khi lưu và mở lại.
+- Xử lý lỗi khi lưu database.
+
+Không coi checkbox đã hoạt động chỉ vì nó xuất hiện trên màn hình. Phải kiểm tra giá trị được lưu và tác động tới danh sách/luồng truy cập của học viên nếu chức năng đã được triển khai.
+
+**US-GV06 — Ngân hàng câu hỏi**
+- Thêm mới và chỉnh sửa câu hỏi.
+- Câu hỏi trắc nghiệm A/B/C/D.
+- Câu hỏi điền khuyết.
+- Đoạn văn Reading Passage.
+- Audio cho câu hỏi Listening.
+- Đáp án đúng.
+- Lời giải chi tiết.
+- Độ khó, kỹ năng và kiểm duyệt.
+- Validation số lượng phương án và số đáp án đúng theo từng loại.
+- Lưu câu hỏi và phương án bằng transaction.
+- Sửa câu hỏi rồi tải lại để kiểm tra dữ liệu.
+- Không để phương án hoặc đáp án đúng bị mất hoặc gắn nhầm câu.
+- Xử lý xóa/sửa khi có dữ liệu liên quan.
+- Kiểm tra tìm kiếm và danh sách câu hỏi nếu đã được triển khai.
+
+**US-GV07 — Quản lý đề thi và gói luyện tập**
+- Tạo đề thi thử có thời gian hoặc bài luyện tự do.
+- Chọn câu hỏi từ Ngân hàng câu hỏi.
+- Thay đổi thứ tự câu hỏi khi hệ thống hỗ trợ.
+- Thiết lập điểm đạt và số câu.
+- Validation thời gian, điểm và cấu hình.
+- Phát hành đề.
+- Chỉnh sửa đề nháp.
+- Không để đề đã phát hành sử dụng dữ liệu sai khi chỉnh sửa câu hỏi nguồn theo chính sách hệ thống.
+- Kiểm tra đề không có câu hỏi hoặc câu hỏi không hợp lệ.
+- Kiểm tra nội dung đề được lưu và tải lại chính xác.
+
+### Kiểm thử tích hợp WBS
+
+Đối chiếu các nhiệm vụ T-01 đến T-23 thuộc Sprint 1 và Sprint 2 trong sheet `Phân rã công việc - Quys`.
+
+Bảo đảm các chức năng liên quan được kiểm thử xuyên tầng GUI, BUS, DAL và database theo những gì có thể quan sát hoặc xác minh bằng công cụ của môi trường.
+
+Không nhất thiết viết test riêng cho từng file code nếu nhiều file cùng tham gia một nghiệp vụ, nhưng phải bảo đảm mọi yêu cầu chức năng và tiêu chí chấp nhận đều có test case truy vết được.
+
+## 5. Loại test case cần có cho mỗi chức năng
+
+Không chỉ tạo happy path. Với mỗi nhóm chức năng phù hợp, cần bao phủ:
+
+1. **Positive:** Dữ liệu hợp lệ, thao tác đúng, lưu thành công.
+2. **Negative:** Dữ liệu không hợp lệ, thiếu thông tin, sai trạng thái, không đủ quyền.
+3. **Boundary:** Giá trị tối thiểu/tối đa, ranh giới điểm, số câu, thời gian, số trang.
+4. **Validation:** Trường bắt buộc, định dạng, giá trị không hợp lệ, dữ liệu trùng.
+5. **Persistence & DB:** Lưu, cập nhật, tải lại, quan hệ và tính toàn vẹn dữ liệu.
+6. **Integration:** Luồng liên thông nhiều chức năng.
+7. **Authorization:** Đúng vai trò, sai vai trò, tài khoản khóa, phiên không hợp lệ.
+8. **Error handling:** Database mất kết nối, không có dữ liệu, file lỗi hoặc thao tác thất bại.
+9. **UI/UX:** Điều hướng, trạng thái loading, lỗi, thành công, nội dung hiển thị và khả năng thao tác.
+10. **Regression:** Các chức năng có liên quan không bị ảnh hưởng sau thay đổi.
+
+Chỉ đưa loại test phù hợp với nghiệp vụ. Không thêm những bài kiểm thử ngoài phạm vi không có căn cứ hoặc không thể thực hiện.
+
+## 6. Cấu trúc bắt buộc của mỗi test case
+
+Mỗi test case phải có đầy đủ các trường:
+
+| Trường | Yêu cầu |
+|---|---|
+| Test Case ID | Mã duy nhất, ví dụ ST1-STU-LOGIN-001 hoặc ST2-ADM-QUESTION-001 |
+| Sprint | Sprint 1 hoặc Sprint 2 |
+| Module/Chức năng | Tên chức năng cần kiểm thử |
+| Task/User Story | Mã TASK hoặc US-GV được kiểm thử |
+| Test Scenario | Mục đích hoặc tình huống kiểm thử |
+| Test Type | Positive, Negative, Boundary, Integration... |
+| Priority | High, Medium hoặc Low |
+| Preconditions | Điều kiện trước khi thực hiện |
+| Test Data | Dữ liệu nhập cần thiết |
+| Test Steps | Các bước cụ thể, đánh số rõ ràng |
+| Expected Result | Kết quả mong đợi có thể quan sát hoặc xác minh được |
+| Actual Result | Để trống cho người kiểm thử điền |
+| Status | Để trống hoặc Not Run |
+| Evidence | Để trống hoặc ghi chú nơi dán ảnh/video bằng chứng |
+| Defect ID/Notes | Để trống khi chưa phát hiện lỗi |
+
+Mỗi test case phải có các bước thao tác cụ thể, có thể làm theo mà không cần người viết giải thích thêm.
+
+Ví dụ, không ghi chung chung “Kiểm tra đăng nhập”. Hãy mô tả dữ liệu đầu vào, thao tác cần thực hiện và kết quả mong đợi khi đăng nhập thành công hoặc thất bại.
+
+Không gộp quá nhiều tình huống độc lập vào một test case đến mức không thể xác định được nguyên nhân khi thất bại. Có thể tách riêng từng tình huống dữ liệu, đồng thời tránh các test case trùng lặp vô ích.
+
+## 7. Dữ liệu kiểm thử
+
+Tạo dữ liệu kiểm thử mẫu phù hợp với các chức năng nhưng không sử dụng dữ liệu cá nhân thật hoặc thông tin nhạy cảm.
+
+Ví dụ:
+- Email kiểm thử hợp lệ và không hợp lệ.
+- Tài khoản học viên hoạt động, bị khóa và tài khoản mới.
+- Các cấp độ A1, A2, B1, B2 và C1 nếu tồn tại trong hệ thống.
+- Danh mục cha-con.
+- Bài học có và không có audio.
+- Câu hỏi có đủ đáp án, thiếu đáp án hoặc đáp án không hợp lệ.
+- Bài thi có nhiều câu, có câu bỏ trống và trường hợp hết giờ.
+
+Nếu yêu cầu xác định một giá trị cụ thể từ schema hoặc cấu hình hiện tại nhưng không có thông tin, hãy ghi rõ giá trị giả định cần chuẩn bị thay vì khẳng định đó là cấu hình chính thức.
+
+Không ghi API key, mật khẩu thật hoặc secrets vào tài liệu. Mọi tài khoản và mật khẩu minh họa chỉ dùng cho môi trường thử nghiệm.
+
+## 8. Định dạng và cấu trúc FILE WORD
+
+Mỗi file Word phải là một tài liệu QA chuyên nghiệp, dễ đọc và thuận tiện khi thực hiện kiểm thử thủ công.
+
+Mỗi tài liệu bao gồm:
+
+### Phần đầu tài liệu
+- Tên dự án: EnglishAI/EAI.
+- Tên tài liệu test case.
+- Người phụ trách.
+- Phạm vi Sprint 1 và Sprint 2.
+- Phiên bản tài liệu.
+- Ngày tạo tài liệu.
+
+Không tự ý đặt tên người phụ trách khác với phân công trong yêu cầu.
+
+### Mục 1 — Mục đích và phạm vi
+Mô tả chức năng thuộc hai sprint, vai trò kiểm thử và những phần nằm ngoài phạm vi.
+
+### Mục 2 — Căn cứ kiểm thử
+Liệt kê các sheet, mã Task/User Story và ảnh giao diện đã sử dụng làm nguồn.
+
+### Mục 3 — Điều kiện môi trường
+Mô tả môi trường cần có, ứng dụng WPF, SQL Server, tài khoản và dữ liệu thử nghiệm. Những thông tin chưa được cung cấp phải đánh dấu cần xác nhận.
+
+### Mục 4 — Test case Sprint 1
+Phân nhóm theo module và mã TASK/US-GV. Hiển thị đầy đủ các trường test case đã quy định.
+
+### Mục 5 — Test case Sprint 2
+Phân nhóm tương tự Sprint 1.
+
+### Mục 6 — Test case tích hợp End-to-End
+Có những luồng liên chức năng quan trọng thuộc phạm vi của người phụ trách.
+
+### Mục 7 — Traceability Matrix
+Lập bảng đối chiếu giữa từng TASK/User Story/tiêu chí chấp nhận và các Test Case ID liên quan.
+
+Mỗi tiêu chí chấp nhận phải có ít nhất một test case phù hợp hoặc được ghi nhận rõ là chưa có đủ thông tin để kiểm thử. Không đánh dấu đã được bao phủ nếu không có test case thực sự kiểm tra tiêu chí đó.
+
+### Mục 8 — Tổng hợp thực thi kiểm thử
+Tạo bảng để điền tổng số test case, số đã chạy, Pass, Fail, Blocked, Not Run và tỷ lệ hoàn thành khi có dữ liệu.
+
+Không tự điền số lượng Pass/Fail trước khi có kết quả thực thi. Nếu chưa chạy kiểm thử, trạng thái ban đầu là Not Run hoặc để trống.
+
+### Mục 9 — Nhật ký lỗi
+Tạo mẫu ghi nhận Bug ID, Test Case ID, mức độ nghiêm trọng, bước tái hiện, kết quả thực tế, kết quả mong đợi và trạng thái xử lý.
+
+## 9. Yêu cầu về số lượng và chất lượng
+
+Không đặt giới hạn số lượng test case một cách tùy tiện.
+
+Hãy tạo **đủ test case để bao phủ mọi chức năng và tiêu chí chấp nhận của Sprint 1 và Sprint 2**, kể cả các trường hợp âm tính và các luồng tích hợp quan trọng.
+
+Không cố đạt một con số lớn bằng việc viết nhiều test case tương đương nhau. Mỗi test case phải kiểm tra một hành vi hoặc rủi ro có ý nghĩa.
+
+Đối với những chức năng có nhiều quy tắc, chẳng hạn:
+- Validation đăng ký.
+- Phân loại trình độ.
+- Cây danh mục nhiều cấp.
+- Khóa/mở khóa tài khoản.
+- Câu hỏi và phương án trả lời.
+- Đồng hồ thi thử.
+- Chấm điểm và nộp bài.
+
+Hãy tạo đủ các tình huống riêng biệt để kiểm tra các nhánh nghiệp vụ chính và trường hợp lỗi.
+
+## 10. Sử dụng ảnh giao diện
+
+Tôi sẽ cung cấp các ảnh giao diện của ứng dụng.
+
+Hãy sử dụng ảnh để:
+- Xác định tên màn hình và thành phần giao diện.
+- Viết các bước thao tác UI cụ thể.
+- Kiểm tra các trạng thái hiển thị như menu, form, checkbox, nút, danh sách, thông báo và vùng nhập liệu.
+- Xây dựng test case UI/UX phù hợp với tiêu chí chấp nhận trong Excel.
+
+Không được suy diễn rằng một chức năng đã hoạt động chỉ vì thấy nút xuất hiện trong ảnh.
+
+Nếu ảnh và file Excel không thống nhất, hãy ghi chú để tôi xác minh. Ảnh chỉ là căn cứ mô tả giao diện, không thay thế các tiêu chí nghiệp vụ.
+
+Không bắt buộc chèn tất cả ảnh vào hai file Word. Chỉ chèn hình minh họa khi thật sự hữu ích; không làm tài liệu quá dài hoặc khiến phần test case khó đọc.
+
+## 11. Phân biệt thiết kế test với kết quả kiểm thử
+
+Hai file Word là bộ tài liệu dùng để kiểm thử, không phải báo cáo kết quả đã chạy.
+
+Vì vậy:
+- Expected Result phải có nội dung cụ thể.
+- Actual Result để trống.
+- Status để Not Run hoặc trống.
+- Evidence và Defect ID để trống cho người kiểm thử bổ sung.
+- Không tự tuyên bố chức năng đã Pass.
+- Không giả lập kết quả kiểm thử thực tế.
+- Các tiêu chí chưa thể xác định phải ghi rõ giả định hoặc mục cần xác nhận.
+
+Nếu kế hoạch có đề cập chức năng chưa hoàn thành hoặc đang ở trạng thái dự kiến, vẫn có thể viết test case theo yêu cầu thiết kế, nhưng phải ghi chú để người kiểm thử xác định chức năng đã có thể kiểm thử hay chưa.
+
+## 12. Kiểm tra chất lượng trước khi xuất file
+
+Trước khi bàn giao, hãy tự rà soát:
+
+1. Đã đọc toàn bộ nội dung của các sheet Sprint liên quan chưa?
+2. Có test case cho tất cả Task/User Story thuộc Sprint 1 và Sprint 2 trong phần của từng người không?
+3. Từng tiêu chí chấp nhận có được truy vết tới test case không?
+4. Có đủ test case dương tính, âm tính, biên, tích hợp và persistence phù hợp không?
+5. Các bước thực hiện có rõ ràng, có thứ tự và có thể thực hiện thủ công không?
+6. Expected Result có đo lường hoặc quan sát được không?
+7. Có test case trùng lặp hoặc ngoài phạm vi không?
+8. Actual Result, Status, Evidence và Defect ID có được để trống/Not Run đúng quy định không?
+9. Hai tài liệu có phân chia đúng phần học viên và giảng viên/admin không?
+10. Tên file và định dạng Word có chính xác không?
+
+Tạo hai file `.docx` thực sự, không chỉ trả về nội dung văn bản hoặc bảng Markdown. Định dạng bảng có thể đọc được, tiêu đề rõ ràng, ngắt trang hợp lý, header/footer hoặc số trang nếu phù hợp.
+
+## 13. Kết quả cần bàn giao
+
+Chỉ bàn giao đúng hai file Word độc lập:
+
+1. `TestCases_Sprint1_Sprint2_Minh_HocVien.docx`
+2. `TestCases_Sprint1_Sprint2_Em_GiangVien_Admin.docx`
+
+Sau khi tạo, cung cấp đường dẫn tải từng file và một bản tóm tắt ngắn bao gồm:
+- Phạm vi Sprint 1 và Sprint 2 đã bao phủ trong từng tài liệu.
+- Các module/User Story được đưa vào.
+- Những yêu cầu chưa rõ hoặc cần xác minh.
+- Xác nhận đây là bộ test case thiết kế để chạy thực tế, không phải kết quả Pass/Fail đã thực thi.
+
+**Mục tiêu cuối cùng:** Tôi và Minh có hai tài liệu Word riêng biệt, đầy đủ và có thể dùng trực tiếp để kiểm thử thủ công tất cả chức năng thuộc Sprint 1 và Sprint 2 theo đúng kế hoạch dự án.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-10-23T21:42:30+07:00.
+
+The user's current state is as follows:
+Active Document: d:\TDC\HK5\CDPTUD\EAI\EAI\Database\Update_Rich_BaiHoc_Content.sql (LANGUAGE_UNSPECIFIED)
+Cursor is on line: 1
+Other open documents:
+- d:\TDC\HK5\CDPTUD\EAI\EAI\Database\Update_Rich_BaiHoc_Content.sql (LANGUAGE_UNSPECIFIED)
+- d:\TDC\HK5\CDPTUD\EAI\EAI\Database\Create_NoiDungHocTapAIBaiHoc.sql (LANGUAGE_UNSPECIFIED)
+- d:\TDC\HK5\CDPTUD\EAI\EAI\Database\EAI_seed.sql (LANGUAGE_UNSPECIFIED)
+</ADDITIONAL_METADATA>
+<USER_SETTINGS_CHANGE>
+The user changed setting `Model Selection` from Gemini 3.8 Flash (High) to Claude Opus 4.6 (Thinking). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
+</USER_SETTINGS_CHANGE>

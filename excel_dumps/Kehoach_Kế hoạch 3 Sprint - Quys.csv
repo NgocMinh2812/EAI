@@ -1,0 +1,36 @@
+﻿DANH SÁCH USER STORIES & PHÂN BỔ KỸ THUẬT 3 LỚP (SPRINT 1 - 3),,,,,,,,,,,
+,,,,,,,,,,,
+Sprint,Mã Story,Tên User Story,Màn hình liên quan,Tiêu chí chấp nhận (AC),Công việc Tầng GUI (WPF),Công việc Tầng BUS (Logic),Công việc Tầng DAL & DB,Điểm (SP),Giờ (h),Ưu tiên,Trạng thái
+Sprint 1,US-GV01,Khung điều hướng Giảng viên,GiangVienWindow.xaml,"- Chuyển page mượt qua NavigationService
+- Breadcrumb cập nhật đúng trang
+- Hiển thị Profile giảng viên, nút Đăng xuất an toàn","Tối ưu Sidebar, style active button, liên kết sự kiện click 10 menu con","Quản lý UserSession hiện hành, kiểm tra quyền truy cập Role GiangVien",Lấy thông tin tài khoản đăng nhập gần nhất từ bảng NguoiDung,3,12,Cao,Planned
+Sprint 1,US-GV02,Dashboard Tổng quan Hệ thống,TongQuanView.xaml,"- Hiển thị 4 thẻ KPI động: Học viên, Bài học, Câu hỏi, Lượt thi
+- Biểu đồ xu hướng học tập
+- Danh sách hoạt động gần đây","Binding dữ liệu KPI lên Card thống kê, hiển thị danh sách hoạt động, nút tắt nhanh","Xử lý logic tính toán tăng trưởng % so với tuần trước, format số liệu","Viết Stored Procedure / Query tổng hợp đếm số lượng từ các bảng NguoiDung, BaiHoc, CauHoi, KetQuaBaiThi",5,20,Cao,Planned
+Sprint 1,US-GV03,Quản lý Người dùng & Học viên,NguoiDungView.xaml,"- Hiển thị danh sách phân trang, tìm kiếm họ tên/email
+- Lọc theo Vai trò và Trạng thái
+- Khóa/Mở khóa tài khoản ngay trên lưới
+- Reset mật khẩu học viên","Thay mock data bằng DataGrid/ListView binding từ ViewModel, dialog sửa người dùng, icon khóa/mở linh hoạt","Kiểm tra tính hợp lệ dữ liệu (email chuẩn, không khóa chính mình), mã hóa mật khẩu khi reset","CRUD bảng NguoiDung, HoSoHocTap. Viết hàm phân trang SQL OFFSET FETCH NEXT",8,32,Cao,Planned
+Sprint 1,US-GV04,Quản lý Danh mục & Cây Cấu trúc,DanhMucView.xaml,"- Xem và chỉnh sửa danh mục Trình độ (A1-C1)
+- Quản lý cây chủ đề (MaChuDeCha) dạng TreeView đa cấp
+- Thêm, sửa, ẩn/hiện chủ đề; chặn xóa nếu có bài học","Binding TreeView hiển thị phân cấp cha-con, form thêm/sửa chủ đề, dialog cảnh báo ràng buộc","Thuật toán đệ quy dựng cây chủ đề từ danh sách phẳng, kiểm tra chống chu trình lặp vô hạn","Truy vấn bảng TrinhDo và ChuDe, hàm kiểm tra ràng buộc khóa ngoại trước khi xóa",8,32,Cao,Planned
+Sprint 2,US-GV05,Quản lý Nội dung Bài học,NoiDungHocTapView.xaml,"- Soạn bài học theo Chủ đề và Trình độ
+- Phân loại kỹ năng: Từ vựng, Ngữ pháp, Đọc, Nghe, Viết
+- Đính kèm audio, ảnh minh họa
+- Chuyển đổi trạng thái xuất bản (DaXuatBan)","Giao diện soạn thảo nội dung (RichTextBox), chọn file audio/ảnh, thanh lọc theo cấp độ","Validate bắt buộc tiêu đề, chủ đề, thời lượng ước tính; kích hoạt bài học","Thực hiện lưu dữ liệu vào bảng BaiHoc, cập nhật cờ DaXuatBan",8,32,Cao,Planned
+Sprint 2,US-GV06,Quản lý Ngân hàng Câu hỏi,NganHangCauHoiView.xaml,"- Thêm mới/chỉnh sửa câu hỏi trắc nghiệm A/B/C/D, điền khuyết
+- Hỗ trợ đoạn văn đọc (Reading Passage), audio nghe
+- Nhập lời giải thích đáp án chi tiết
+- Gắn thẻ độ khó và kiểm duyệt","Form nhập câu hỏi động theo loại, danh sách lựa chọn đáp án đánh dấu radio button đáp án đúng, preview audio",Kiểm tra câu hỏi trắc nghiệm phải có ít nhất 2 lựa chọn và đúng 1 đáp án đúng,Lưu bảng CauHoi và LuaChonDapAn sử dụng SqlTransaction đảm bảo tính toàn vẹn,8,32,Cao,Planned
+Sprint 2,US-GV07,Quản lý Đề thi & Gói Luyện tập,DeThiLuyenTapView.xaml,"- Tạo đề thi Mock Test có tính giờ làm bài hoặc bài luyện tự do
+- Chọn tập câu hỏi từ ngân hàng đưa vào đề thi
+- Thiết lập điểm đạt, xáo trộn câu hỏi và phát hành","Card hiển thị danh sách đề thi, dialog cấu hình đề thi, danh sách chọn câu hỏi đưa vào đề","Tính tổng điểm, kiểm tra tổng số lượng câu hỏi, tính thời gian làm bài hợp lệ",Lưu bảng BaiTapDeThi và liên kết bảng trung gian CauHoiBaiTap,8,32,Cao,Planned
+Sprint 3,US-GV08,Trợ lý AI Sinh đề & Nhập tệp,AISinhDeView.xaml,"- Nhập prompt yêu cầu (chủ đề, số câu, level) để AI tạo bộ câu hỏi
+- Nhập tệp Excel/Word bóc tách tự động
+- Hàng đợi kiểm duyệt: Giảng viên xem, sửa và Duyệt đưa vào ngân hàng","Tab AI Sinh đề & Tab Nhập tệp, hiệu ứng loading khi gọi AI, thẻ câu hỏi chờ duyệt kèm nút Duyệt/Sửa/Xóa","Kết nối Gemini/OpenAI API qua prompt template định dạng JSON, parser bóc tách câu hỏi, gán nguồn NguonTao = 'AI'",Lưu các câu hỏi đã kiểm duyệt vào bảng CauHoi và LuaChonDapAn với cờ DaKiemDuyet = 1,8,32,Cao,Planned
+Sprint 3,US-GV09,Cấu hình Khảo sát Đầu vào,KhaoSatDauVaoView.xaml,"- Thiết lập bài kiểm tra Placement Test cho học viên mới
+- Cấu hình thang điểm phân loại trình độ (A1-C1)
+- Xem danh sách học viên vừa hoàn thành bài test","Giao diện cấu hình bộ câu hỏi khảo sát, bảng quy đổi điểm sang cấp độ CEFR, danh sách kết quả khảo sát",Xử lý logic tự động gán cấp độ khởi điểm cho học viên vào bảng HoSoHocTap sau khi nộp bài,"Truy vấn và cập nhật cờ LaLanDauDangNhap của bảng NguoiDung, lưu kết quả test vào KetQuaBaiThi",5,20,Trung bình,Planned
+Sprint 3,US-GV10,Giám sát & Thống kê Hệ thống,GiamSatHeThongView.xaml,"- Biểu đồ phổ điểm, tỷ lệ hoàn thành, kỹ năng còn yếu
+- Bảng theo dõi lượt nộp bài, thời gian làm bài trung bình
+- Xuất báo cáo kết quả học tập ra file Excel","Tích hợp biểu đồ thống kê trực quan, bảng lịch sử nộp bài gần nhất, nút xuất Excel tiện lợi","Tính toán điểm trung bình, độ lệch chuẩn, thống kê tỷ lệ đúng sai theo từng kỹ năng","Truy vấn tổng hợp từ bảng KetQuaBaiThi, ChiTietBaiLam, TienDoBaiHoc",8,32,Cao,Planned

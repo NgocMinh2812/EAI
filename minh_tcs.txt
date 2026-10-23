@@ -1,0 +1,91 @@
+﻿TC-HV-SP1-DB-001 | TASK-101 | Khá»Ÿi táº¡o thÃ nh cÃ´ng toÃ n bá»™ cáº¥u trÃºc CSDL TiengAnhAI tá»« script SQL Server
+TC-HV-SP1-DB-002 | TASK-101 | Kiá»ƒm tra tÃ­nh toÃ n váº¹n cÃ¡c rÃ ng buá»™c khÃ³a ngoáº¡i (Foreign Key) giá»¯a cÃ¡c báº£ng
+TC-HV-SP1-DB-003 | TASK-101 | Náº¡p dá»¯ liá»‡u máº«u háº¡t giá»‘ng (Seed Data) phá»¥c vá»¥ luá»“ng kháº£o sÃ¡t vÃ  há»c táº­p
+TC-HV-SP1-DB-004 | TASK-101 | Xá»­ lÃ½ khi chuá»—i káº¿t ná»‘i sai hoáº·c SQL Server khÃ´ng kháº£ dá»¥ng
+TC-HV-SP1-ARCH-001 | TASK-102 | Khá»Ÿi cháº¡y á»©ng dá»¥ng vÃ  náº¡p cáº¥u hÃ¬nh káº¿t ná»‘i chuáº©n tá»« SqlDataProvider
+TC-HV-SP1-ARCH-002 | TASK-102 | Äáº£m báº£o luá»“ng xá»­ lÃ½ phÃ¢n tÃ¡ch Ä‘Ãºng 3 táº§ng GUI -> BUS -> DAL
+TC-HV-SP1-DAL-001 | TASK-103 | NguoiDungDAL truy váº¥n thÃ´ng tin há»c viÃªn Ã¡nh xáº¡ chÃ­nh xÃ¡c sang NguoiDungDTO
+TC-HV-SP1-DAL-002 | TASK-103 | Truy váº¥n há»“ sÆ¡ há»c viÃªn vá»›i MaNguoiDung khÃ´ng tá»“n táº¡i
+TC-HV-SP1-DAL-003 | TASK-103 | Cáº­p nháº­t thÃ´ng tin Ä‘iá»ƒm kháº£o sÃ¡t Ä‘áº§u vÃ o trong HoSoHocTapDAL
+TC-HV-SP1-AUTH-001 | TASK-104 | ÄÄƒng kÃ½ tÃ i khoáº£n há»c viÃªn má»›i vá»›i thÃ´ng tin há»£p lá»‡
+TC-HV-SP1-AUTH-002 | TASK-104 | ÄÄƒng kÃ½ tháº¥t báº¡i khi Ä‘á»ƒ trá»‘ng cÃ¡c trÆ°á»ng báº¯t buá»™c
+TC-HV-SP1-AUTH-003 | TASK-104 | ÄÄƒng kÃ½ tháº¥t báº¡i khi email khÃ´ng Ä‘Ãºng Ä‘á»‹nh dáº¡ng
+TC-HV-SP1-AUTH-004 | TASK-104 | ÄÄƒng kÃ½ tháº¥t báº¡i khi email Ä‘Ã£ tá»“n táº¡i trong CSDL
+TC-HV-SP1-AUTH-005 | TASK-104 | ÄÄƒng kÃ½ tháº¥t báº¡i khi máº­t kháº©u xÃ¡c nháº­n khÃ´ng trÃ¹ng khá»›p
+TC-HV-SP1-AUTH-006 | TASK-104 | ÄÄƒng nháº­p thÃ nh cÃ´ng vá»›i tÃ i khoáº£n há»c viÃªn há»£p lá»‡
+TC-HV-SP1-AUTH-007 | TASK-104 | ÄÄƒng nháº­p tháº¥t báº¡i khi nháº­p sai máº­t kháº©u
+TC-HV-SP1-AUTH-008 | TASK-104 | ÄÄƒng nháº­p tháº¥t báº¡i khi email chÆ°a tá»«ng Ä‘Äƒng kÃ½
+TC-HV-SP1-AUTH-009 | TASK-104 | Chuyá»ƒn Ä‘á»•i qua láº¡i mÆ°á»£t mÃ  giá»¯a hai tab ÄÄƒng nháº­p vÃ  ÄÄƒng kÃ½
+TC-HV-SP1-SESS-001 | TASK-105 | Kiá»ƒm tra máº­t kháº©u Ä‘Æ°á»£c mÃ£ hÃ³a an toÃ n trong CSDL, khÃ´ng lÆ°u dáº¡ng thÃ´ (Plain Text)
+TC-HV-SP1-SESS-002 | TASK-105 | Cháº·n Ä‘Äƒng nháº­p Ä‘á»‘i vá»›i tÃ i khoáº£n há»c viÃªn bá»‹ khÃ³a (TrangThaiHoatDong = 0)
+TC-HV-SP1-SESS-003 | TASK-105 | Khá»Ÿi táº¡o vÃ  Ä‘á»“ng bá»™ phiÃªn lÃ m viá»‡c SessionHelper.CurrentUser
+TC-HV-SP1-SESS-004 | TASK-105 | ÄÄƒng xuáº¥t an toÃ n, giáº£i phÃ³ng Session vÃ  Ä‘Ã³ng MainWindow
+TC-HV-SP1-SESS-005 | TASK-105 | Cháº·n há»c viÃªn truy cáº­p trÃ¡i phÃ©p vÃ o cÃ¡c mÃ n hÃ¬nh cá»§a Giáº£ng viÃªn/Admin
+TC-HV-SP1-MAIN-001 | TASK-106 | Hiá»ƒn thá»‹ khung MainWindow, Sidebar, Avatar vÃ  tÃªn viáº¿t táº¯t cá»§a sinh viÃªn
+TC-HV-SP1-MAIN-002 | TASK-106 | Äiá»u hÆ°á»›ng qua láº¡i giá»¯a cÃ¡c menu chÃ­nh trÃªn Sidebar
+TC-HV-SP1-MAIN-003 | TASK-106 | Hiá»ƒn thá»‹ tráº¡ng thÃ¡i active highlight trÃªn menu Sidebar Ä‘ang chá»n
+TC-HV-SP1-MAIN-004 | TASK-106 | Kháº£ nÄƒng co giÃ£n giao diá»‡n responsive khi thay Ä‘á»•i kÃ­ch thÆ°á»›c cá»­a sá»•
+TC-HV-SP1-ONBD-001 | TASK-107 | TÃ i khoáº£n má»›i (LaLanDauDangNhap = 1) tá»± Ä‘á»™ng áº©n Sidebar vÃ  chuyá»ƒn vÃ o kháº£o sÃ¡t
+TC-HV-SP1-ONBD-002 | TASK-107 | Cáº­p nháº­t cá» LaLanDauDangNhap = 0 sau khi hoÃ n thÃ nh bÃ i kháº£o sÃ¡t Ä‘áº§u vÃ o
+TC-HV-SP1-ONBD-003 | TASK-107 | TÃ i khoáº£n cÅ© (LaLanDauDangNhap = 0) Ä‘Äƒng nháº­p trá»±c tiáº¿p vÃ o Trang chá»§
+TC-HV-SP1-ONBD-004 | TASK-107 | Há»c viÃªn Ä‘Ã³ng á»©ng dá»¥ng giá»¯a chá»«ng khi Ä‘ang lÃ m bÃ i kháº£o sÃ¡t Ä‘áº§u vÃ o
+TC-HV-SP1-SURV-001 | TASK-108 | Náº¡p Ä‘áº§y Ä‘á»§ bá»™ cÃ¢u há»i kháº£o sÃ¡t Ä‘áº§u vÃ o 15-20 cÃ¢u tá»« CSDL
+TC-HV-SP1-SURV-002 | TASK-108 | Hiá»ƒn thá»‹ ná»™i dung cÃ¢u há»i vÃ  4 lá»±a chá»n A, B, C, D rÃµ rÃ ng
+TC-HV-SP1-SURV-003 | TASK-108 | Chá»n vÃ  thay Ä‘á»•i phÆ°Æ¡ng Ã¡n tráº£ lá»i cho cÃ¢u há»i
+TC-HV-SP1-SURV-004 | TASK-108 | Chuyá»ƒn cÃ¢u há»i báº±ng nÃºt Tiáº¿p/LÃ¹i vÃ  báº±ng ma tráº­n sá»‘ cÃ¢u
+TC-HV-SP1-SURV-005 | TASK-108 | Cáº£nh bÃ¡o khi ngÆ°á»i há»c báº¥m Ná»™p bÃ i nhÆ°ng chÆ°a hoÃ n thÃ nh háº¿t cÃ¢u há»i
+TC-HV-SP1-SURV-006 | TASK-108 | Báº£o máº­t: KhÃ´ng Ä‘á»ƒ lá»™ Ä‘Ã¡p Ã¡n Ä‘Ãºng trong quÃ¡ trÃ¬nh thÃ­ sinh Ä‘ang lÃ m bÃ i test
+TC-HV-SP1-EVAL-001 | TASK-109 | TÃ­nh tá»•ng Ä‘iá»ƒm vÃ  sá»‘ cÃ¢u Ä‘Ãºng bÃ i kháº£o sÃ¡t chÃ­nh xÃ¡c
+TC-HV-SP1-EVAL-002 | TASK-109 | Xáº¿p loáº¡i trÃ¬nh Ä‘á»™ CEFR theo thang Ä‘iá»ƒm chuáº©n [A1, A2, B1, B2, C1]
+TC-HV-SP1-EVAL-003 | TASK-109 | Kiá»ƒm tra ranh giá»›i Ä‘iá»ƒm sá»‘ giá»¯a hai cáº¥p Ä‘á»™ ká» nhau (Boundary Testing)
+TC-HV-SP1-EVAL-004 | TASK-109 | Cáº­p nháº­t há»“ sÆ¡ há»c táº­p HoSoHocTap sau khi xáº¿p trÃ¬nh Ä‘á»™
+TC-HV-SP1-EVAL-005 | TASK-109 | Xá»­ lÃ½ trÆ°á»ng há»£p ná»™p bÃ i bá» trá»‘ng toÃ n bá»™ (0 cÃ¢u Ä‘Ãºng)
+TC-HV-SP1-INT-001 | TASK-110 | Kiá»ƒm thá»­ luá»“ng tÃ­ch há»£p Onboarding liÃªn hoÃ n (End-to-End Onboarding)
+TC-HV-SP1-INT-002 | TASK-110 | ÄÄƒng xuáº¥t vÃ  Ä‘Äƒng nháº­p láº¡i, xÃ¡c nháº­n tÃ­nh toÃ n váº¹n há»“ sÆ¡ vÃ  khÃ´ng bá»‹ láº·p Onboarding
+TC-HV-SP2-HOME-001 | TASK-201 | Hiá»ƒn thá»‹ lá»i chÃ o cÃ¡ nhÃ¢n hÃ³a theo há» tÃªn há»c viÃªn vÃ  badge trÃ¬nh Ä‘á»™ CEFR
+TC-HV-SP2-HOME-002 | TASK-201 | Náº¡p vÃ  hiá»ƒn thá»‹ 3 tháº» KPI thá»‘ng kÃª há»c táº­p tá»« CSDL
+TC-HV-SP2-HOME-003 | TASK-201 | Náº¡p danh sÃ¡ch bÃ i há»c gáº§n Ä‘Ã¢y (Recent Lessons) giÃºp há»c viÃªn tiáº¿p tá»¥c há»c
+TC-HV-SP2-HOME-004 | TASK-201 | TiÃªu Ä‘á» bÃ i há»c hiá»ƒn thá»‹ trá»n váº¹n, khÃ´ng bá»‹ Ä‘Ã¨ chá»¯ vá»›i badge hoáº·c máº¥t chá»¯
+TC-HV-SP2-HOME-005 | TASK-201 | Äiá»u hÆ°á»›ng chÃ­nh xÃ¡c khi báº¥m cÃ¡c nÃºt lá»‘i táº¯t 'Há»c ngay' vÃ  'Thi thá»­ ngay'
+TC-HV-SP2-LRN-001 | TASK-202 | Náº¡p danh má»¥c toÃ n bá»™ bÃ i há»c tá»« CSDL hiá»ƒn thá»‹ theo danh sÃ¡ch/chá»§ Ä‘á»
+TC-HV-SP2-LRN-002 | TASK-202 | Lá»c bÃ i há»c theo cÃ¡c ká»¹ nÄƒng cá»‘t lÃµi (Ngá»¯ phÃ¡p, Tá»« vá»±ng, Äá»c hiá»ƒu, Nghe)
+TC-HV-SP2-LRN-003 | TASK-202 | Má»Ÿ bÃ i há»c vÃ  hiá»ƒn thá»‹ trÃ¬nh Ä‘á»c lÃ½ thuyáº¿t ngá»¯ phÃ¡p/tá»« vá»±ng chi tiáº¿t
+TC-HV-SP2-LRN-004 | TASK-202 | Äiá»u hÆ°á»›ng giá»¯a danh sÃ¡ch bÃ i há»c vÃ  chi tiáº¿t khÃ´ng lÃ m máº¥t tráº¡ng thÃ¡i bá»™ lá»c
+TC-HV-SP2-AUD-001 | TASK-203 | Khá»Ÿi táº¡o MediaPlayer phÃ¡t Ã¢m thanh cho bÃ i nghe Listening
+TC-HV-SP2-AUD-002 | TASK-203 | Táº¡m dá»«ng (Pause) vÃ  tiáº¿p tá»¥c phÃ¡t (Resume) audio á»•n Ä‘á»‹nh
+TC-HV-SP2-AUD-003 | TASK-203 | Äiá»u chá»‰nh tá»‘c Ä‘á»™ phÃ¡t Ã¢m thanh qua 4 náº¥c (0.5x, 0.75x, 1.0x, 1.25x)
+TC-HV-SP2-AUD-004 | TASK-203 | KÃ©o thanh trÆ°á»£t tua láº¡i / tua tá»›i thá»i gian phÃ¡t mÆ°á»£t mÃ 
+TC-HV-SP2-AUD-005 | TASK-203 | CÆ¡ cháº¿ Dual Engine: KÃ­ch hoáº¡t SpeechSynthesizer Ä‘á»c vÄƒn báº£n khi file audio khÃ´ng tá»“n táº¡i
+TC-HV-SP2-AUD-006 | TASK-203 | Chuyá»ƒn sang bÃ i há»c khÃ¡c dá»«ng ngay audio bÃ i trÆ°á»›c, khÃ´ng bá»‹ phÃ¡t Ä‘Ã¨ Ã¢m thanh
+TC-HV-SP2-PROG-001 | TASK-204 | Tá»± Ä‘á»™ng cá»™ng dá»“n thá»i gian há»c vÃ o SoPhutHocTichLuy trong HoSoHocTap
+TC-HV-SP2-PROG-002 | TASK-204 | Cáº­p nháº­t tiáº¿n Ä‘á»™ hoÃ n thÃ nh 100% vÃ o báº£ng TienDoBaiHoc
+TC-HV-SP2-PROG-003 | TASK-204 | RÃ ng buá»™c tiáº¿n Ä‘á»™ trung gian khi chÆ°a hoÃ n thÃ nh bÃ i táº­p cá»§ng cá»‘
+TC-HV-SP2-PROG-004 | TASK-204 | Má»Ÿ rá»“i thoÃ¡t nhanh dÆ°á»›i 10 giÃ¢y khÃ´ng cá»™ng dá»“n thá»i gian há»c báº¥t há»£p lÃ½
+TC-HV-SP2-PROG-005 | TASK-204 | NgÄƒn cháº·n cá»™ng trÃ¹ng thá»i gian do kÃ­ch hoáº¡t nhiá»u DispatcherTimer cÃ¹ng cháº¡y
+TC-HV-SP2-PRAC-001 | TASK-205 | Lá»c vÃ  náº¡p cÃ¢u há»i luyá»‡n táº­p theo ká»¹ nÄƒng (Reading/Listening/Vocab)
+TC-HV-SP2-PRAC-002 | TASK-205 | Chá»n phÆ°Æ¡ng Ã¡n tráº£ lá»i vÃ  hiá»ƒn thá»‹ ngay pháº£n há»“i ÄÃºng/Sai
+TC-HV-SP2-PRAC-003 | TASK-205 | Hiá»ƒn thá»‹ giáº£i thÃ­ch chi tiáº¿t Ä‘Ã¡p Ã¡n vÃ  phÃ¢n tÃ­ch ngá»¯ phÃ¡p ngay sau khi lÃ m
+TC-HV-SP2-PRAC-004 | TASK-205 | Náº¡p bá»™ tháº» Flashcard tá»« vá»±ng theo trÃ¬nh Ä‘á»™ kÃ¨m phiÃªn Ã¢m IPA vÃ  vÃ­ dá»¥
+TC-HV-SP2-PRAC-005 | TASK-205 | Thuáº­t toÃ¡n tÃ­nh Ä‘á»™ chÃ­nh xÃ¡c cho bÃ i luyá»‡n Nghe chÃ©p chÃ­nh táº£ (Dictation)
+TC-HV-SP2-EXAM-001 | TASK-206 | Náº¡p danh má»¥c cÃ¡c Ä‘á» thi chuáº©n hÃ³a TOEIC/IELTS/VSTEP tá»« báº£ng BaiTapDeThi
+TC-HV-SP2-EXAM-002 | TASK-206 | Báº¯t Ä‘áº§u lÃ m bÃ i thi: Náº¡p toÃ n bá»™ cÃ¢u há»i vÃ  danh sÃ¡ch lá»±a chá»n A, B, C, D
+TC-HV-SP2-EXAM-003 | TASK-206 | Äá»“ng há»“ Ä‘áº¿m ngÆ°á»£c (Countdown Timer) cháº¡y chÃ­nh xÃ¡c tá»«ng giÃ¢y
+TC-HV-SP2-EXAM-004 | TASK-206 | CÆ¡ cháº¿ cáº¯m cá» (Flag) Ä‘Ã¡nh dáº¥u cÃ¢u há»i khÃ³ vÃ  há»§y cá» trÃªn ma tráº­n Ä‘iá»u hÆ°á»›ng
+TC-HV-SP2-EXAM-005 | TASK-206 | Báº£o toÃ n phÆ°Æ¡ng Ã¡n Ä‘Ã£ chá»n khi di chuyá»ƒn giá»¯a cÃ¡c cÃ¢u há»i
+TC-HV-SP2-EXAM-006 | TASK-206 | Ná»™p bÃ i thi thá»§ cÃ´ng kÃ¨m há»™p thoáº¡i xÃ¡c nháº­n sá»‘ cÃ¢u chÆ°a hoÃ n thÃ nh
+TC-HV-SP2-EXAM-007 | TASK-206 | Tá»± Ä‘á»™ng thu bÃ i vÃ  ná»™p bÃ i khi Ä‘á»“ng há»“ Ä‘áº¿m ngÆ°á»£c vá» 00:00 (Háº¿t giá»)
+TC-HV-SP2-EXAM-008 | TASK-206 | Cháº·n ná»™p bÃ i trÃ¹ng láº·p (Double Submit Prevention) khi click nhanh nÃºt ná»™p bÃ i
+TC-HV-SP2-GRAD-001 | TASK-207 | Thuáº­t toÃ¡n cháº¥m Ä‘iá»ƒm tá»± Ä‘á»™ng quy Ä‘á»•i sá»‘ cÃ¢u Ä‘Ãºng sang thang Ä‘iá»ƒm 10.0 chuáº©n
+TC-HV-SP2-GRAD-002 | TASK-207 | Kiá»ƒm tra Ä‘á»™ chÃ­nh xÃ¡c Ä‘iá»ƒm sá»‘ cho cÃ¡c trÆ°á»ng há»£p Ä‘áº·c biá»‡t: 100%, 50%, 0%
+TC-HV-SP2-GRAD-003 | TASK-207 | LÆ°u káº¿t quáº£ kháº£o thÃ­ vÃ o báº£ng LuotLamBai, sinh MaLuotLamBai > 0
+TC-HV-SP2-GRAD-004 | TASK-207 | LÆ°u chi tiáº¿t toÃ n bá»™ cÃ¢u tráº£ lá»i cá»§a thÃ­ sinh vÃ o báº£ng ChiTietTraLoi
+TC-HV-SP2-GRAD-005 | TASK-207 | Táº£i láº¡i lá»‹ch sá»­ thi vÃ  xÃ¡c nháº­n dá»¯ liá»‡u khÃ´ng bá»‹ thay Ä‘á»•i ngoÃ i Ã½ muá»‘n
+TC-HV-SP2-REV-001 | TASK-208 | Truy váº¥n vÃ  náº¡p toÃ n bá»™ cÃ¢u há»i trong Review Mode tá»« báº£ng ChiTietTraLoi
+TC-HV-SP2-REV-002 | TASK-208 | Äá»‘i chiáº¿u trá»±c quan phÆ°Æ¡ng Ã¡n thÃ­ sinh chá»n vá»›i Ä‘Ã¡p Ã¡n chuáº©n cá»§a há»‡ thá»‘ng
+TC-HV-SP2-REV-003 | TASK-208 | Hiá»ƒn thá»‹ giáº£i thÃ­ch chi tiáº¿t Ä‘Ã¡p Ã¡n vÃ  phÃ¢n tÃ­ch ngá»¯ phÃ¡p trong Review Mode
+TC-HV-SP2-REV-004 | TASK-208 | Thá»ƒ hiá»‡n chÃ­nh xÃ¡c tráº¡ng thÃ¡i Ä‘á»‘i vá»›i cÃ¡c cÃ¢u há»i thÃ­ sinh bá» trá»‘ng khÃ´ng lÃ m
+TC-HV-SP2-REV-005 | TASK-208 | TÃ­nh báº¥t biáº¿n cá»§a dá»¯ liá»‡u Review Mode khi cÃ¢u há»i gá»‘c trong ngÃ¢n hÃ ng bá»‹ chá»‰nh sá»­a
+TC-HV-SP2-INT-001 | TASK-209 | Kiá»ƒm thá»­ chu trÃ¬nh thi thá»­ chuáº©n hÃ³a trá»n váº¹n (End-to-End Mock Exam)
+TC-HV-SP2-INT-002 | TASK-209 | Kiá»ƒm thá»­ luá»“ng há»c táº­p káº¿t há»£p: Äá»c lÃ½ thuyáº¿t -> Nghe audio -> LÃ m bÃ i cá»§ng cá»‘ -> Ghi nháº­n tiáº¿n Ä‘á»™ 100%
+TC-HV-E2E-001 | TASK-110, TASK-209 | ToÃ n bá»™ hÃ nh trÃ¬nh tráº£i nghiá»‡m cá»§a há»c viÃªn má»›i tá»« ÄÄƒng kÃ½, Onboarding Ä‘áº¿n Há»c táº­p vÃ  Thi thá»­
+TC-HV-E2E-002 | TASK-105, TASK-204 | Kiá»ƒm tra tÃ­nh toÃ n váº¹n phiÃªn, chá»‘ng rÃ² rá»‰ dá»¯ liá»‡u khi ngÆ°á»i dÃ¹ng Ä‘Äƒng xuáº¥t vÃ  Ä‘á»•i máº­t kháº©u

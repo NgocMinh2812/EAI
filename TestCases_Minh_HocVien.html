@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Bộ Kịch Bản Kiểm Thử Phần Mềm - Minh (Học Viên)</title>
+<style>
+
+    @page { 
+        size: A4 landscape; 
+        margin: 15mm 15mm 15mm 15mm; 
+        mso-header-margin: 10mm;
+        mso-footer-margin: 10mm;
+    }
+    body { 
+        font-family: 'Times New Roman', Times, serif; 
+        font-size: 13pt; 
+        color: #000000; 
+        line-height: 1.35; 
+        margin: 0; 
+        padding: 5px; 
+        background-color: #FFFFFF; 
+    }
+    .cover-box { 
+        border: 1.5px solid #000000; 
+        background: #FFFFFF; 
+        padding: 16px 22px; 
+        margin-bottom: 20px; 
+    }
+    .cover-title { 
+        font-size: 16pt; 
+        font-weight: bold; 
+        color: #000000; 
+        margin-bottom: 6px; 
+        text-transform: uppercase; 
+        text-align: center;
+    }
+    .cover-sub { 
+        font-size: 15pt; 
+        font-weight: bold; 
+        color: #000000; 
+        margin-bottom: 12px; 
+        text-align: center;
+    }
+    .meta-table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        font-size: 13pt; 
+        color: #000000;
+    }
+    .meta-table td { 
+        padding: 4px 6px; 
+        border: none; 
+        font-size: 13pt;
+        color: #000000;
+    }
+    .meta-table td.lbl { 
+        font-weight: bold; 
+        color: #000000; 
+        width: 220px; 
+    }
+    h1, .sprint-header { 
+        font-size: 16pt; 
+        font-weight: bold; 
+        color: #000000; 
+        border-bottom: 1.5px solid #000000; 
+        padding-bottom: 4px; 
+        margin-top: 22px; 
+        margin-bottom: 10px; 
+        text-transform: uppercase; 
+    }
+    h2, .module-title { 
+        font-size: 15pt; 
+        font-weight: bold; 
+        color: #000000; 
+        margin-top: 16px; 
+        margin-bottom: 6px; 
+    }
+    .module-header {
+        margin-top: 14px;
+        margin-bottom: 6px;
+        border-bottom: 1px dashed #444444;
+        padding-bottom: 3px;
+    }
+    .module-desc {
+        font-size: 13pt;
+        color: #000000;
+        font-style: italic;
+    }
+    p, li { 
+        font-size: 13pt; 
+        color: #000000;
+        text-align: justify; 
+        margin: 5px 0; 
+    }
+    ul { 
+        margin: 4px 0 10px 24px; 
+    }
+    table.tc-table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        margin: 6px 0 16px 0; 
+        font-size: 13pt; 
+        color: #000000;
+        border: 1px solid #000000; 
+    }
+    table.tc-table thead { 
+        display: table-header-group; 
+    }
+    table.tc-table th { 
+        background-color: #F0F0F0; 
+        color: #000000; 
+        padding: 6px 8px; 
+        border: 1px solid #000000; 
+        text-align: left; 
+        font-weight: bold; 
+        font-size: 13pt; 
+    }
+    table.tc-table td { 
+        padding: 6px 8px; 
+        border: 1px solid #000000; 
+        vertical-align: top; 
+        font-size: 13pt; 
+        color: #000000;
+        line-height: 1.35; 
+    }
+    table.tc-table tr { 
+        page-break-inside: avoid; 
+    }
+    .tc-id { 
+        font-weight: bold; 
+        color: #000000; 
+        text-align: center;
+        white-space: nowrap; 
+    }
+    .tc-name { 
+        font-weight: bold; 
+        color: #000000; 
+    }
+    .tc-steps { 
+        color: #000000; 
+    }
+    .tc-expected { 
+        color: #000000; 
+    }
+    .tc-result {
+        text-align: center;
+        vertical-align: middle !important;
+        color: #000000;
+        white-space: nowrap;
+    }
+    .chk-box {
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 12.5pt;
+        color: #000000;
+    }
+    table.tbl-summary, table.tbl-matrix { 
+        width: 100%; 
+        border-collapse: collapse; 
+        margin: 10px 0 16px 0; 
+        font-size: 13pt; 
+        color: #000000;
+        border: 1px solid #000000; 
+    }
+    table.tbl-summary th, table.tbl-matrix th { 
+        background-color: #F0F0F0; 
+        color: #000000; 
+        padding: 6px 8px; 
+        border: 1px solid #000000; 
+        text-align: left; 
+        font-weight: bold; 
+        font-size: 13pt; 
+    }
+    table.tbl-summary td, table.tbl-matrix td { 
+        padding: 6px 8px; 
+        border: 1px solid #000000; 
+        vertical-align: top; 
+        font-size: 13pt;
+        color: #000000;
+    }
+    .page-break { 
+        page-break-before: always; 
+    }
+
+</style>
+</head>
+<body>
+<div class="cover-box">
+    <div class="cover-title">DỰ ÁN ENGLISHAI (EAI) &mdash; HỆ THỐNG HỌC & THI TIẾNG ANH THÔNG MINH</div>
+    <div class="cover-sub">TÀI LIỆU KỊCH BẢN KIỂM THỬ PHẦN MỀM (TEST CASE SPECIFICATION)</div>
+    <div style="height: 1.5px; background: #000000; margin: 12px 0;"></div>
+    <table class="meta-table">
+        <tr><td class="lbl">Tên tài liệu:</td><td><b>BỘ KỊCH BẢN KIỂM THỬ SPRINT 1 & SPRINT 2 &mdash; PHÂN HỆ HỌC VIÊN</b></td></tr>
+        <tr><td class="lbl">Người phụ trách:</td><td><b>Minh</b> (Kiểm thử viên / Tester)</td></tr>
+        <tr><td class="lbl">Phân hệ phụ trách:</td><td>Giao diện và chức năng dành cho Học viên / Sinh viên</td></tr>
+        <tr><td class="lbl">Phạm vi kiểm thử:</td><td><b>Sprint 1 và Sprint 2</b> (Bao phủ TASK-101 đến TASK-110 và TASK-201 đến TASK-209)</td></tr>
+        <tr><td class="lbl">Quy cách trình bày:</td><td>Bảng ngang 5 cột chuẩn kiểm thử: <b>Mã TC | Tên TC | Thực nghiệm | Kết quả mong đợi | Pass/Fail</b></td></tr>
+        <tr><td class="lbl">Ngày cập nhật:</td><td>23/10/2026</td></tr>
+    </table>
+</div>
+<h1>MỤC 1. MỤC ĐÍCH VÀ PHẠM VI KIỂM THỬ</h1>
+<p><b>1.1 Mục đích:</b> Tài liệu này tập hợp toàn bộ các kịch bản kiểm thử chức năng dành riêng cho <b>phân hệ Học viên</b> của hệ thống EnglishAI do <b>Minh</b> phụ trách. Các kịch bản được viết theo cách hiểu nghiệp vụ thông thường, rõ ràng, giúp người kiểm thử dễ dàng thực hiện thao tác trên màn hình máy tính và ghi nhận trực tiếp kết quả kiểm thử (Đạt/Không đạt).</p>
+<p><b>1.2 Phạm vi chức năng kiểm thử:</b>
+<ul>
+    <li><b>Giai đoạn 1 (Sprint 1):</b> Cài đặt dữ liệu mẫu ban đầu; Mở ứng dụng; Đăng ký và đăng nhập tài khoản học viên; Đăng xuất và bảo mật tài khoản; Giao diện chính và thanh điều hướng; Quy trình bắt buộc làm bài khảo sát năng lực khi đăng nhập lần đầu; Làm bài kiểm tra đầu vào, chấm điểm và xếp lớp tự động theo chuẩn A1 đến C1.</li>
+    <li><b>Giai đoạn 2 (Sprint 2):</b> Trang chủ học tập hiển thị các chỉ số thống kê; Danh mục bài học theo lộ trình; Mở xem bài giảng lý thuyết ngữ pháp và từ vựng; Nghe âm thanh bài học với các tính năng tua và chỉnh tốc độ; Tính năng tự động đọc khi chưa có file ghi âm; Tích lũy thời gian học và ghi nhận hoàn thành bài học; Luyện tập trắc nghiệm, thẻ từ vựng thông minh và nghe chép chính tả; Phòng thi thử chuẩn hóa có tính giờ, nộp bài, chấm điểm và xem lại chi tiết bài làm.</li>
+    <li><b>Kiểm thử toàn trình (End-to-End):</b> Toàn bộ hành trình của người học mới từ lúc tạo tài khoản đến khi học tập và hoàn thành các bài thi thử.</li>
+</ul></p>
+<h2>1.3 Môi trường kiểm thử</h2>
+<table class="tbl-summary">
+    <tr><th style="width:25%">Thành phần</th><th style="width:45%">Cấu hình sử dụng</th><th style="width:30%">Ghi chú</th></tr>
+    <tr><td>Hệ điều hành</td><td>Microsoft Windows 10 / Windows 11 (64-bit)</td><td>Máy tính người dùng</td></tr>
+    <tr><td>Môi trường ứng dụng</td><td>.NET 10.0 Desktop Runtime</td><td>Chạy phần mềm EnglishAI</td></tr>
+    <tr><td>Máy chủ dữ liệu</td><td>Microsoft SQL Server (Cơ sở dữ liệu TiengAnhAI)</td><td>Lưu trữ dữ liệu toàn hệ thống</td></tr>
+    <tr><td>Tài khoản học viên mới</td><td>Email: <code>minh_test@gmail.com</code> | Mật khẩu: <code>123456</code></td><td>Thử nghiệm lần đầu đăng nhập</td></tr>
+    <tr><td>Tài khoản học viên cũ</td><td>Email: <code>sinhvien@englisheai.edu.vn</code> | Mật khẩu: <code>123456</code></td><td>Đã khảo sát, trình độ B1</td></tr>
+    <tr><td>Tài khoản bị khóa</td><td>Email: <code>locked_user@englisheai.edu.vn</code> | Mật khẩu: <code>123456</code></td><td>Thử nghiệm chặn đăng nhập</td></tr>
+</table>
+<div class="sprint-header">MỤC 2. BỘ KỊCH BẢN KIỂM THỬ SPRINT 1 &mdash; PHÂN HỆ HỌC VIÊN</div>
+<p>Bao gồm các kịch bản kiểm thử từ <b>TASK-101 đến TASK-110</b>:</p>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: KHỞI TẠO DỮ LIỆU HỆ THỐNG (TASK-101)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-101 &mdash; Số lượng kịch bản: 4 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-01</b></td>
+        <td class="tc-name"><b>Khởi tạo cơ sở dữ liệu cho hệ thống</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Máy chủ cơ sở dữ liệu SQL Server đang hoạt động bình thường.<br>
+            <b>Dữ liệu:</b> Tệp cài đặt cơ sở dữ liệu của dự án (EAI.sql)<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Mở phần mềm quản lý cơ sở dữ liệu.<br>
+            2. Thực hiện chạy tệp cài đặt cơ sở dữ liệu của dự án.<br>
+            3. Kiểm tra danh sách các bảng dữ liệu vừa được sinh ra.
+        </td>
+        <td class="tc-expected">
+            Hệ thống tạo thành công cơ sở dữ liệu TiengAnhAI. Toàn bộ các bảng dữ liệu về người dùng, bài học, câu hỏi, đề thi và kết quả làm bài được tạo đầy đủ, không có lỗi.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-02</b></td>
+        <td class="tc-name"><b>Kiểm tra tính toàn vẹn dữ liệu khi cố tình nhập sai thông tin</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Cơ sở dữ liệu của hệ thống đã được cài đặt sẵn sàng.<br>
+            <b>Dữ liệu:</b> Thử nhập một tài khoản có mã vai trò không tồn tại trong danh mục<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Thử ghi dữ liệu người dùng có vai trò không hợp lệ vào hệ thống.<br>
+            2. Quan sát phản hồi ngăn chặn của hệ thống.
+        </td>
+        <td class="tc-expected">
+            Hệ thống từ chối lưu dữ liệu sai lệch, báo lỗi vi phạm ràng buộc dữ liệu. Không có bản ghi rác hay tài khoản lỗi nào được lưu vào hệ thống.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-03</b></td>
+        <td class="tc-name"><b>Nạp dữ liệu mẫu ban đầu phục vụ khảo sát và học tập</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Cơ sở dữ liệu đã có đầy đủ cấu trúc các bảng.<br>
+            <b>Dữ liệu:</b> Tệp dữ liệu mẫu ban đầu (EAI_seed.sql)<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chạy tệp nạp dữ liệu mẫu vào hệ thống.<br>
+            2. Kiểm tra danh mục các cấp độ tiếng Anh, bài khảo sát đầu vào và danh sách câu hỏi.
+        </td>
+        <td class="tc-expected">
+            Hệ thống nạp đầy đủ 5 cấp độ từ A1 đến C1, có sẵn bài kiểm tra năng lực đầu vào với 20 câu hỏi và các tài khoản người dùng mẫu sẵn sàng để thử nghiệm.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-04</b></td>
+        <td class="tc-name"><b>Xử lý khi mất kết nối đến máy chủ cơ sở dữ liệu</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Máy chủ dữ liệu tạm thời bị tắt hoặc mất kết nối mạng.<br>
+            <b>Dữ liệu:</b> Cấu hình địa chỉ máy chủ không chính xác<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Khởi chạy ứng dụng EnglishAI khi chưa bật máy chủ dữ liệu.<br>
+            2. Quan sát phản ứng và thông báo trên màn hình ứng dụng.
+        </td>
+        <td class="tc-expected">
+            Ứng dụng không bị tự động thoát (văng ứng dụng). Hiển thị thông báo rõ ràng cho người dùng: 'Không thể kết nối đến máy chủ dữ liệu. Vui lòng kiểm tra lại kết nối mạng hoặc liên hệ quản trị viên'.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: KHỞI ĐỘNG ỨNG DỤNG (TASK-102)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-102 &mdash; Số lượng kịch bản: 1 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-05</b></td>
+        <td class="tc-name"><b>Khởi động ứng dụng và hiển thị màn hình đăng nhập ban đầu</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Máy chủ dữ liệu đang chạy bình thường.<br>
+            <b>Dữ liệu:</b> Nhấp đúp chuột vào biểu tượng phần mềm EnglishAI<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Mở ứng dụng từ màn hình máy tính.<br>
+            2. Quan sát thời gian tải ứng dụng và giao diện đầu tiên xuất hiện.
+        </td>
+        <td class="tc-expected">
+            Ứng dụng khởi động nhanh chóng trong vòng 3 giây. Màn hình đăng nhập hiển thị đầy đủ, rõ ràng và cân đối giữa màn hình.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: ĐĂNG KÝ & ĐĂNG NHẬP TÀI KHOẢN (TASK-104)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-104 &mdash; Số lượng kịch bản: 5 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-06</b></td>
+        <td class="tc-name"><b>Đăng ký tài khoản học viên mới thành công với thông tin hợp lệ</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang ở màn hình đăng nhập, chuyển sang mục Đăng ký.<br>
+            <b>Dữ liệu:</b> Họ tên: 'Nguyễn Văn Minh', Email: 'minh_test@gmail.com', Mật khẩu: '123456', Xác nhận mật khẩu: '123456'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chọn mục 'Đăng ký tài khoản'.<br>
+            2. Nhập đầy đủ thông tin hợp lệ vào các ô.<br>
+            3. Nhấn nút 'Đăng ký'.
+        </td>
+        <td class="tc-expected">
+            Hệ thống thông báo: 'Tài khoản đã được tạo thành công!'. Tự động chuyển người dùng về mục Đăng nhập để sử dụng tài khoản mới.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-07</b></td>
+        <td class="tc-name"><b>Kiểm tra các trường hợp nhập sai khi đăng ký tài khoản</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Mở màn hình đăng ký tài khoản.<br>
+            <b>Dữ liệu:</b> Trường hợp 1: Để trống Họ tên, Email hoặc Mật khẩu;
+Trường hợp 2: Nhập email sai định dạng (ví dụ 'minh_abc', 'test@');
+Trường hợp 3: Nhập email đã được người khác sử dụng;
+Trường hợp 4: Mật khẩu xác nhận không trùng khớp với mật khẩu<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Lần lượt nhập thử các trường hợp thông tin sai sót nêu trên.<br>
+            2. Bấm nút 'Đăng ký' ở từng trường hợp.<br>
+            3. Quan sát thông báo lỗi của hệ thống.
+        </td>
+        <td class="tc-expected">
+            Hệ thống chặn đăng ký ở tất cả các trường hợp sai và hiển thị thông báo lỗi rõ ràng bên dưới ô nhập liệu giúp người dùng dễ dàng chỉnh sửa lại.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-08</b></td>
+        <td class="tc-name"><b>Đăng nhập thành công với tài khoản học viên hợp lệ</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Tài khoản học viên đang hoạt động bình thường.<br>
+            <b>Dữ liệu:</b> Email: 'sinhvien@englisheai.edu.vn', Mật khẩu: '123456'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhập đúng email và mật khẩu tại màn hình đăng nhập.<br>
+            2. Nhấn nút 'Đăng nhập'.
+        </td>
+        <td class="tc-expected">
+            Đăng nhập thành công. Màn hình đăng nhập đóng lại và chuyển tiếp vào màn hình chính của học viên với đầy đủ thanh menu học tập.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-09</b></td>
+        <td class="tc-name"><b>Đăng nhập thất bại khi nhập sai mật khẩu hoặc tài khoản chưa đăng ký</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang ở màn hình đăng nhập.<br>
+            <b>Dữ liệu:</b> Trường hợp 1: Nhập mật khẩu sai ('111222');
+Trường hợp 2: Nhập email chưa từng đăng ký ('nguoidung_moi@gmail.com')<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhập thông tin thử nghiệm của từng trường hợp.<br>
+            2. Nhấn nút 'Đăng nhập'.
+        </td>
+        <td class="tc-expected">
+            Hệ thống từ chối đăng nhập và hiển thị thông báo: 'Email hoặc mật khẩu không chính xác'. Không cho phép vào bên trong ứng dụng.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-10</b></td>
+        <td class="tc-name"><b>Chuyển đổi qua lại giữa mục Đăng nhập và Đăng ký</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Mở màn hình đăng nhập.<br>
+            <b>Dữ liệu:</b> Nhấp chuột chuyển tab giao diện<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Đang ở mục Đăng nhập, bấm nút 'Đăng ký ngay'.<br>
+            2. Nhập một vài chữ rồi bấm nút 'Đăng nhập ngay' để quay lại.
+        </td>
+        <td class="tc-expected">
+            Giao diện chuyển đổi tức thì, các ô nhập liệu được làm mới sạch sẽ, nút bấm hiển thị đúng theo từng chức năng.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: BẢO MẬT & PHÂN QUYỀN (TASK-105)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-105 &mdash; Số lượng kịch bản: 4 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-11</b></td>
+        <td class="tc-name"><b>Kiểm tra tính an toàn của mật khẩu tài khoản người dùng</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đăng ký một tài khoản mới với mật khẩu '123456'.<br>
+            <b>Dữ liệu:</b> Mật khẩu lúc tạo: '123456'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Đăng ký tài khoản thành công.<br>
+            2. Kiểm tra chuỗi mật khẩu được lưu trữ bên trong cơ sở dữ liệu.
+        </td>
+        <td class="tc-expected">
+            Mật khẩu được mã hóa an toàn thành chuỗi ký tự bảo mật, tuyệt đối không lưu chữ thô '123456' để bảo vệ quyền riêng tư của người dùng.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-12</b></td>
+        <td class="tc-name"><b>Chặn đăng nhập đối với tài khoản học viên đã bị khóa</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Tài khoản học viên đã bị giảng viên hoặc quản trị viên tạm khóa.<br>
+            <b>Dữ liệu:</b> Email: 'locked_user@englisheai.edu.vn', Mật khẩu: '123456'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhập thông tin tài khoản bị khóa vào màn hình đăng nhập.<br>
+            2. Nhấn nút 'Đăng nhập'.
+        </td>
+        <td class="tc-expected">
+            Hệ thống chặn đăng nhập và thông báo rõ ràng: 'Tài khoản của bạn đã bị khóa hoặc tạm dừng hoạt động. Vui lòng liên hệ quản trị viên'.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-13</b></td>
+        <td class="tc-name"><b>Đăng xuất tài khoản an toàn khỏi hệ thống</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên đang đăng nhập và sử dụng ứng dụng.<br>
+            <b>Dữ liệu:</b> Bấm nút 'Đăng xuất' ở góc dưới menu bên trái<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấn nút 'Đăng xuất'.<br>
+            2. Bấm 'Đồng ý' tại hộp thoại hỏi xác nhận.
+        </td>
+        <td class="tc-expected">
+            Màn hình chính đóng lại, hệ thống xóa phiên làm việc hiện tại và quay về màn hình đăng nhập. Người dùng không thể quay lại trang cũ khi chưa đăng nhập lại.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-14</b></td>
+        <td class="tc-name"><b>Kiểm tra phân quyền: Không cho học viên vào màn hình của Giảng viên</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang đăng nhập bằng tài khoản học viên bình thường.<br>
+            <b>Dữ liệu:</b> Thử truy cập vào các chức năng quản trị bài học của giảng viên<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Dùng tài khoản học viên thử mở các chức năng của giảng viên.<br>
+            2. Quan sát phản hồi của hệ thống.
+        </td>
+        <td class="tc-expected">
+            Hệ thống tự động ngăn chặn và cảnh báo: 'Bạn không có quyền truy cập vào chức năng dành cho giảng viên/quản trị viên'.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: GIAO DIỆN CHÍNH HỌC VIÊN (TASK-106)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-106 &mdash; Số lượng kịch bản: 3 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-15</b></td>
+        <td class="tc-name"><b>Hiển thị màn hình chính, thanh menu và thông tin người dùng</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đăng nhập bằng tài khoản học viên 'Nguyễn Văn Minh'.<br>
+            <b>Dữ liệu:</b> Tài khoản: 'Nguyễn Văn Minh'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Đăng nhập vào màn hình chính.<br>
+            2. Quan sát thanh menu bên trái và góc thông tin cá nhân bên trên.
+        </td>
+        <td class="tc-expected">
+            Menu hiển thị đầy đủ các mục: Trang chủ, Lộ trình học, Luyện tập, Thi thử, Khảo sát, Đăng xuất. Ảnh đại diện hiển thị chữ cái viết tắt họ tên 'NM' rõ ràng, đẹp mắt.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-16</b></td>
+        <td class="tc-name"><b>Chuyển đổi giữa các mục menu và làm nổi bật mục đang chọn</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Màn hình chính đang hiển thị.<br>
+            <b>Dữ liệu:</b> Nhấp chuột lần lượt: Trang chủ -> Lộ trình học -> Luyện tập -> Thi thử<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Bấm chuột vào từng mục trên thanh menu bên trái.<br>
+            2. Quan sát nội dung trang hiển thị tương ứng ở giữa màn hình.
+        </td>
+        <td class="tc-expected">
+            Màn hình chuyển đổi đúng nội dung của từng mục, nút menu đang chọn được làm nổi bật để người dùng dễ nhận biết vị trí đang xem.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-17</b></td>
+        <td class="tc-name"><b>Khả năng co giãn giao diện khi thay đổi kích thước cửa sổ</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Ứng dụng đang mở ở kích thước mặc định.<br>
+            <b>Dữ liệu:</b> Thao tác phóng to toàn màn hình và thu nhỏ cửa sổ<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấn nút phóng to toàn màn hình (Maximize).<br>
+            2. Thu nhỏ cửa sổ ứng dụng về kích thước nhỏ hơn.
+        </td>
+        <td class="tc-expected">
+            Bố cục các ô thống kê và danh sách bài học tự động căn chỉnh ngay ngắn, không bị tràn chữ hay che khuất các nút bấm.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: QUY TRÌNH KHẢO SÁT ĐẦU VÀO (TASK-107)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-107 &mdash; Số lượng kịch bản: 4 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-18</b></td>
+        <td class="tc-name"><b>Người dùng đăng nhập lần đầu bắt buộc phải làm bài khảo sát năng lực</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Tài khoản học viên mới đăng ký lần đầu tiên.<br>
+            <b>Dữ liệu:</b> Tài khoản mới tạo: minh_test@gmail.com<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Đăng nhập bằng tài khoản mới vừa tạo.<br>
+            2. Quan sát màn hình xuất hiện ngay sau khi đăng nhập.
+        </td>
+        <td class="tc-expected">
+            Thanh menu bên trái được tạm ẩn để người học tập trung. Màn hình đưa thẳng vào bài khảo sát năng lực đầu vào kèm lời chào và hướng dẫn làm bài.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-19</b></td>
+        <td class="tc-name"><b>Mở khóa toàn bộ chức năng sau khi hoàn thành bài khảo sát đầu vào</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên mới đang làm bài khảo sát đầu vào.<br>
+            <b>Dữ liệu:</b> Hoàn thành và nộp bài khảo sát<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Trả lời các câu hỏi và nhấn nút 'Nộp bài'.<br>
+            2. Xem kết quả xếp lớp và bấm nút 'Bắt đầu học ngay'.
+        </td>
+        <td class="tc-expected">
+            Hệ thống ghi nhận kết quả xếp lớp, thanh menu bên trái tự động xuất hiện trở lại và mở khóa đầy đủ tất cả các chức năng học tập.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-20</b></td>
+        <td class="tc-name"><b>Tài khoản đã hoàn thành kiểm tra đầu vào vào thẳng Trang chủ</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Tài khoản học viên cũ đã hoàn thành bài khảo sát từ trước.<br>
+            <b>Dữ liệu:</b> Tài khoản: sinhvien@englisheai.edu.vn<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Đăng nhập vào hệ thống.<br>
+            2. Quan sát màn hình hiển thị.
+        </td>
+        <td class="tc-expected">
+            Hệ thống đưa thẳng vào Trang chủ học tập với đầy đủ thanh menu, không bắt buộc người dùng phải làm lại bài khảo sát đầu vào.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-21</b></td>
+        <td class="tc-name"><b>Xử lý khi học viên tắt ứng dụng giữa chừng lúc đang làm bài khảo sát</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên mới đang làm dở bài khảo sát đầu vào.<br>
+            <b>Dữ liệu:</b> Thao tác: Bấm nút đóng cửa sổ [X] khi đang làm bài<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Đang làm bài khảo sát ở câu số 5, bấm tắt ứng dụng.<br>
+            2. Mở lại ứng dụng và đăng nhập lại bằng chính tài khoản đó.
+        </td>
+        <td class="tc-expected">
+            Do chưa nộp bài hoàn tất, hệ thống tiếp tục đưa người học vào màn hình khảo sát đầu vào để hoàn thành việc xếp lớp trước khi sử dụng các chức năng khác.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: KHẢO SÁT NĂNG LỰC ĐẦU VÀO (TASK-108)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-108 &mdash; Số lượng kịch bản: 4 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-22</b></td>
+        <td class="tc-name"><b>Tải đầy đủ danh sách câu hỏi kiểm tra năng lực đầu vào</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Mở trang khảo sát năng lực.<br>
+            <b>Dữ liệu:</b> Bài kiểm tra đầu vào của hệ thống<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Vào màn hình khảo sát năng lực.<br>
+            2. Kiểm tra danh sách câu hỏi và bảng danh sách số câu.
+        </td>
+        <td class="tc-expected">
+            Hệ thống tải đầy đủ 15 đến 20 câu hỏi bao quát ngữ pháp, từ vựng và đọc hiểu. Bảng số thứ tự câu hỏi (từ 1 đến 20) hiển thị rõ ràng bên cạnh.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-23</b></td>
+        <td class="tc-name"><b>Chọn đáp án, đổi đáp án và chuyển câu hỏi khi làm bài khảo sát</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang ở màn hình làm bài khảo sát.<br>
+            <b>Dữ liệu:</b> Chọn đáp án A, đổi sang B; bấm nút 'Câu tiếp' và bấm chọn câu trên bảng số<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chọn phương án A cho câu 1, sau đó đổi sang phương án B.<br>
+            2. Bấm nút 'Câu tiếp' để sang câu 2.<br>
+            3. Nhấp trực tiếp vào ô số 10 trên bảng số câu.<br>
+            4. Bấm quay lại câu 1 kiểm tra.
+        </td>
+        <td class="tc-expected">
+            Đáp án đã chọn hiển thị rõ ràng, ô số tương ứng trên bảng đổi màu báo hiệu câu đã làm xong. Khi quay lại câu 1, đáp án B vẫn được lưu giữ nguyên vẹn.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-24</b></td>
+        <td class="tc-name"><b>Cảnh báo khi người học nhấn Nộp bài nhưng chưa làm hết câu hỏi</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang làm bài khảo sát 20 câu, mới trả lời 12 câu (còn 8 câu chưa làm).<br>
+            <b>Dữ liệu:</b> Bấm nút 'Nộp bài'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Mới làm 12 câu, bấm nút 'Nộp bài'.<br>
+            2. Đọc nội dung thông báo trên hộp thoại xác nhận.
+        </td>
+        <td class="tc-expected">
+            Xuất hiện hộp thoại nhắc nhở: 'Bạn còn 8 câu chưa trả lời. Bạn có chắc chắn muốn nộp bài đánh giá năng lực ngay bây giờ không?'. Cho phép người dùng chọn làm tiếp hoặc đồng ý nộp bài.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-25</b></td>
+        <td class="tc-name"><b>Bảo mật: Không để lộ đáp án đúng trong quá trình đang làm bài</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên đang làm bài khảo sát đầu vào.<br>
+            <b>Dữ liệu:</b> Kiểm tra thông tin hiển thị trên màn hình<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Quan sát kỹ màn hình câu hỏi và các phương án trong lúc làm bài.<br>
+            2. Xác nhận không có dấu hiệu nhận biết đáp án đúng.
+        </td>
+        <td class="tc-expected">
+            Toàn bộ thông tin đáp án đúng được bảo mật tuyệt đối, chỉ hiển thị kết quả và giải thích sau khi người học đã bấm nộp bài hoàn tất.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: ĐÁNH GIÁ TRÌNH ĐỘ & HỒ SƠ (TASK-109)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-109 &mdash; Số lượng kịch bản: 4 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-26</b></td>
+        <td class="tc-name"><b>Tính tổng điểm và số câu đúng bài khảo sát chính xác</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Thí sinh làm bài khảo sát 20 câu, trả lời đúng chính xác 14 câu.<br>
+            <b>Dữ liệu:</b> 14 câu đúng trên tổng số 20 câu<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nộp bài khảo sát với 14 câu trả lời đúng.<br>
+            2. Quan sát kết quả hiển thị trên màn hình.
+        </td>
+        <td class="tc-expected">
+            Hệ thống ghi nhận chính xác: Số câu đúng là 14/20 câu, điểm số tương ứng đạt 7.0 trên thang điểm 10.0.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-27</b></td>
+        <td class="tc-name"><b>Xếp loại trình độ học viên (A1, A2, B1, B2, C1) theo thang điểm chuẩn</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Thang điểm chuẩn: 0-4.0đ (A1), 4.5-6.0đ (A2), 6.5-7.5đ (B1), 8.0-9.0đ (B2), 9.5-10.0đ (C1).<br>
+            <b>Dữ liệu:</b> Kiểm tra các mức điểm: 4.0đ, 4.5đ, 6.5đ, 8.0đ, 9.5đ<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Kiểm tra kết quả xếp loại tự động với từng mức điểm thử nghiệm.<br>
+            2. Đối chiếu cấp độ nhận được.
+        </td>
+        <td class="tc-expected">
+            Hệ thống xếp đúng cấp độ: 4.0đ là A1; 4.5đ là A2; 6.5đ là B1; 8.0đ là B2; 9.5đ là C1. Không xảy ra lỗi sai lệch cấp độ ở các mốc ranh giới.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-28</b></td>
+        <td class="tc-name"><b>Lưu trình độ và điểm số đầu vào vào hồ sơ của học viên</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên hoàn thành bài khảo sát đạt trình độ B1 (7.0 điểm).<br>
+            <b>Dữ liệu:</b> Điểm: 7.0, Trình độ: B1<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nộp bài khảo sát và nhận kết quả.<br>
+            2. Mở xem thông tin hồ sơ học tập của học viên.
+        </td>
+        <td class="tc-expected">
+            Hồ sơ của học viên được cập nhật chính xác: Trình độ đầu vào là B1 và điểm đánh giá đầu vào là 7.0 điểm.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-29</b></td>
+        <td class="tc-name"><b>Xử lý khi nộp bài khảo sát mà không chọn câu trả lời nào (0 điểm)</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên mở bài khảo sát và bấm nộp bài ngay mà không chọn đáp án nào.<br>
+            <b>Dữ liệu:</b> Số câu trả lời = 0<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Bấm nút 'Nộp bài' và xác nhận đồng ý nộp bài trống.<br>
+            2. Quan sát kết quả xếp loại.
+        </td>
+        <td class="tc-expected">
+            Hệ thống ghi nhận 0.0 điểm, tự động xếp mức độ cơ bản ban đầu là A1 (Mất gốc) để học lại từ đầu, ứng dụng hoạt động bình thường không bị lỗi.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: KIỂM THỬ LIÊN HOÀN SPRINT 1 (TASK-110)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-110 &mdash; Số lượng kịch bản: 2 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-30</b></td>
+        <td class="tc-name"><b>Kiểm tra liên hoàn từ Đăng ký, Đăng nhập, Làm khảo sát đến vào Trang chủ</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Ứng dụng đang ở màn hình đăng nhập.<br>
+            <b>Dữ liệu:</b> Chuỗi thao tác liên tục của người dùng mới<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Đăng ký tài khoản học viên mới.<br>
+            2. Đăng nhập vào hệ thống.<br>
+            3. Làm bài kiểm tra năng lực đầu vào 20 câu.<br>
+            4. Nộp bài, xem kết quả xếp lớp B1.<br>
+            5. Bấm vào Trang chủ bắt đầu học.
+        </td>
+        <td class="tc-expected">
+            Toàn bộ chu trình diễn ra liền mạch, dữ liệu được lưu trữ chính xác, tài khoản được kích hoạt đầy đủ chức năng sau khi xong bài kiểm tra.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-31</b></td>
+        <td class="tc-name"><b>Đăng xuất và đăng nhập lại sau khi đã hoàn thành khảo sát đầu vào</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên vừa hoàn thành bài khảo sát đầu vào.<br>
+            <b>Dữ liệu:</b> Đăng xuất và đăng nhập lại<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Bấm 'Đăng xuất' khỏi hệ thống.<br>
+            2. Nhập lại email và mật khẩu của tài khoản vừa xong khảo sát để đăng nhập lại.
+        </td>
+        <td class="tc-expected">
+            Hệ thống đưa thẳng vào Trang chủ với đầy đủ thanh menu, huy hiệu trình độ hiển thị đúng là B1, không xuất hiện lại màn hình khảo sát bắt buộc.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="page-break"></div>
+<div class="sprint-header">MỤC 3. BỘ KỊCH BẢN KIỂM THỬ SPRINT 2 &mdash; PHÂN HỆ HỌC VIÊN</div>
+<p>Bao gồm các kịch bản kiểm thử từ <b>TASK-201 đến TASK-209</b>:</p>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: TRANG CHỦ HỌC VIÊN (TASK-201)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-201 &mdash; Số lượng kịch bản: 4 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-32</b></td>
+        <td class="tc-name"><b>Hiển thị lời chào cá nhân và huy hiệu trình độ của học viên</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đăng nhập tài khoản học viên 'Nguyễn Văn Minh' có trình độ B1.<br>
+            <b>Dữ liệu:</b> Họ tên: 'Nguyễn Văn Minh', Trình độ: 'B1'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Đăng nhập vào ứng dụng và mở Trang chủ.<br>
+            2. Quan sát phần banner trên cùng của màn hình.
+        </td>
+        <td class="tc-expected">
+            Hiển thị đúng lời chào cá nhân: 'Xin chào, Nguyễn Văn Minh! Chúc bạn một ngày học tập hiệu quả' kèm huy hiệu trình độ hiện tại 'B1 - Intermediate'.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-33</b></td>
+        <td class="tc-name"><b>Hiển thị 3 thẻ thống kê học tập: Bài đã học, Thời gian học và Điểm thi</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên đã học 12 bài, tích lũy 180 phút học và điểm thi trung bình là 7.8.<br>
+            <b>Dữ liệu:</b> Dữ liệu học tập thực tế của học viên<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Mở xem Trang chủ.<br>
+            2. Kiểm tra số liệu tại 3 thẻ thống kê trên màn hình.
+        </td>
+        <td class="tc-expected">
+            Cả 3 thẻ hiển thị chính xác số liệu: Số bài học hoàn thành là 12 bài; Tổng thời gian học là 180 phút (3.0 giờ); Điểm thi trung bình là 7.8 điểm.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-34</b></td>
+        <td class="tc-name"><b>Hiển thị danh sách bài học gần đây và thể hiện rõ ràng tiêu đề bài học</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên đã có học các bài học trong thời gian gần nhất.<br>
+            <b>Dữ liệu:</b> Danh sách bài học gần đây, có bài có tiêu đề dài trên 40 ký tự<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Quan sát khu vực 'Bài học gần đây' trên Trang chủ.<br>
+            2. Xem các thẻ bài học có tiêu đề dài.
+        </td>
+        <td class="tc-expected">
+            Các bài học hiển thị theo thứ tự bài mới học lên đầu. Tiêu đề hiển thị trọn vẹn, rõ ràng, không bị đè chữ lên nhãn kỹ năng hay nút bấm.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-35</b></td>
+        <td class="tc-name"><b>Nút bấm nhanh 'Học ngay' và 'Thi thử ngay' trên Trang chủ</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang ở Trang chủ của ứng dụng.<br>
+            <b>Dữ liệu:</b> Bấm nút 'Học ngay' trên banner và nút 'Thi thử ngay' trên thẻ lối tắt<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấn nút 'Học ngay' trên màn hình. Quan sát màn hình mở ra.<br>
+            2. Quay lại Trang chủ, nhấn nút 'Thi thử ngay'.
+        </td>
+        <td class="tc-expected">
+            Nút 'Học ngay' mở nhanh đến bài học kế tiếp trong lộ trình. Nút 'Thi thử ngay' mở nhanh đến danh sách đề thi thử.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: HỌC TẬP THEO LỘ TRÌNH (TASK-202)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-202 &mdash; Số lượng kịch bản: 4 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-36</b></td>
+        <td class="tc-name"><b>Tải toàn bộ danh sách bài học theo chủ đề và trình độ</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Hệ thống có sẵn các bài học đã xuất bản.<br>
+            <b>Dữ liệu:</b> Mở mục 'Lộ trình học' trên menu bên trái<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Bấm chuột vào mục 'Lộ trình học'.<br>
+            2. Quan sát danh mục các bài học hiển thị trên màn hình.
+        </td>
+        <td class="tc-expected">
+            Toàn bộ bài học phù hợp với trình độ của học viên được hiển thị ngăn nắp theo từng chủ đề kèm tên bài, kỹ năng, thời lượng dự kiến và trạng thái hoàn thành.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-37</b></td>
+        <td class="tc-name"><b>Lọc bài học theo các kỹ năng cốt lõi (Nghe, Nói, Đọc, Viết, Ngữ pháp)</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang ở trang Lộ trình học.<br>
+            <b>Dữ liệu:</b> Bấm các nút lọc kỹ năng: 'Nghe', 'Ngữ pháp', 'Từ vựng', 'Tất cả'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Bấm nút lọc 'Nghe'. Kiểm tra danh sách bài học.<br>
+            2. Bấm nút lọc 'Ngữ pháp'.<br>
+            3. Bấm lại nút 'Tất cả'.
+        </td>
+        <td class="tc-expected">
+            Danh sách bài học lọc nhanh chóng chỉ hiển thị đúng kỹ năng đã chọn. Khi chọn 'Tất cả', toàn bộ bài học hiển thị lại đầy đủ.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-38</b></td>
+        <td class="tc-name"><b>Mở xem nội dung chi tiết bài học ngữ pháp hoặc từ vựng</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Chọn một bài học ngữ pháp (ví dụ: 'Thì hiện tại hoàn thành').<br>
+            <b>Dữ liệu:</b> Bấm nút 'Bắt đầu học' tại thẻ bài học<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấn nút 'Bắt đầu học'.<br>
+            2. Đọc nội dung bài giảng hiển thị trên màn hình.
+        </td>
+        <td class="tc-expected">
+            Trình đọc bài học hiển thị rõ ràng: định nghĩa, công thức cấu trúc câu, bảng ví dụ minh họa và các lưu ý ngữ pháp quan trọng. Cuộn trang mượt mà.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-39</b></td>
+        <td class="tc-name"><b>Giữ nguyên bộ lọc đang chọn khi quay lại danh sách bài học</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang lọc danh sách bài học theo kỹ năng 'Nghe'.<br>
+            <b>Dữ liệu:</b> Mở 1 bài nghe rồi bấm quay lại<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Đang lọc bài 'Nghe', bấm mở 1 bài nghe để học.<br>
+            2. Nhấn nút 'Quay lại danh sách'.<br>
+            3. Kiểm tra bộ lọc trên màn hình.
+        </td>
+        <td class="tc-expected">
+            Màn hình quay về danh sách bài học và vẫn giữ nguyên bộ lọc 'Nghe' đang chọn, không bị đặt lại về trạng thái ban đầu.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: TRÌNH PHÁT ÂM THANH BÀI NGHE (TASK-203)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-203 &mdash; Số lượng kịch bản: 3 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-40</b></td>
+        <td class="tc-name"><b>Phát, tạm dừng, tua và đổi tốc độ phát âm thanh bài nghe</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Mở bài học kỹ năng Nghe có file âm thanh.<br>
+            <b>Dữ liệu:</b> Thử các thao tác: Phát (Play), Tạm dừng (Pause), Tua thời gian và chọn tốc độ 0.75x, 1.25x<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấn nút 'Phát' để nghe âm thanh bài giảng.<br>
+            2. Bấm 'Tạm dừng' rồi bấm phát tiếp.<br>
+            3. Kéo thanh thời gian để tua đến giây thứ 30.<br>
+            4. Chọn các nấc tốc độ 0.75x và 1.25x.
+        </td>
+        <td class="tc-expected">
+            Âm thanh phát rõ ràng, khớp với thời gian hiển thị. Tạm dừng và phát tiếp mượt mà. Tua âm thanh chuẩn xác. Đổi tốc độ đọc tự nhiên, không bị méo tiếng.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-41</b></td>
+        <td class="tc-name"><b>Tính năng tự động đọc văn bản bài nghe khi chưa có sẵn file ghi âm</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Bài học nghe chưa có file ghi âm đính kèm sẵn.<br>
+            <b>Dữ liệu:</b> Đoạn văn bản bài nghe<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Mở bài nghe chưa có file ghi âm.<br>
+            2. Bấm nút 'Phát' âm thanh.<br>
+            3. Lắng nghe giọng đọc phát ra.
+        </td>
+        <td class="tc-expected">
+            Hệ thống tự động kích hoạt tính năng đọc văn bản thành giọng nói tiếng Anh chuẩn, giúp học viên vẫn nghe và luyện tập được bình thường.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-42</b></td>
+        <td class="tc-name"><b>Dừng ngay âm thanh bài cũ khi chuyển sang bài học khác</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Âm thanh bài nghe đang phát dở.<br>
+            <b>Dữ liệu:</b> Thao tác chuyển bài học hoặc chuyển mục menu<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Bật âm thanh bài 1 đang phát.<br>
+            2. Nhấn nút chuyển sang bài học khác hoặc bấm sang mục 'Luyện tập'.<br>
+            3. Lắng nghe âm thanh.
+        </td>
+        <td class="tc-expected">
+            Âm thanh của bài cũ dừng phát ngay lập tức, hoàn toàn không có tình trạng âm thanh chạy ngầm hay phát đè lên bài học mới.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: GHI NHẬN TIẾN ĐỘ HỌC TẬP (TASK-204)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-204 &mdash; Số lượng kịch bản: 4 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-43</b></td>
+        <td class="tc-name"><b>Tự động cộng dồn thời gian học thực tế vào hồ sơ học viên</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên mở bài học và học tập liên tục trong 5 phút.<br>
+            <b>Dữ liệu:</b> Thời gian học tập: 5 phút<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Mở bài học đọc lý thuyết và nghe bài trong 5 phút.<br>
+            2. Bấm nút 'Hoàn thành' hoặc chuyển bài.<br>
+            3. Kiểm tra thời lượng học tích lũy trên Trang chủ.
+        </td>
+        <td class="tc-expected">
+            Tổng thời gian học của học viên được cộng dồn thêm đúng 5 phút học thực tế, chỉ số thời gian trên Trang chủ cập nhật số mới.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-44</b></td>
+        <td class="tc-name"><b>Ghi nhận tiến độ 100% sau khi hoàn thành lý thuyết và bài tập củng cố</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên đọc xong lý thuyết và làm bài tập củng cố ở cuối bài.<br>
+            <b>Dữ liệu:</b> Làm xong bài tập củng cố đạt yêu cầu<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Học xong lý thuyết và làm bài tập củng cố đạt yêu cầu.<br>
+            2. Nhấn nút 'Xác nhận hoàn thành bài học'.<br>
+            3. Quan sát trạng thái bài học.
+        </td>
+        <td class="tc-expected">
+            Bài học được đánh dấu hoàn thành 100% kèm biểu tượng tích xanh. Chỉ số 'Bài học hoàn thành' trên Trang chủ tăng thêm 1 bài.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-45</b></td>
+        <td class="tc-name"><b>Chỉ ghi nhận tiến độ một phần khi chưa hoàn thành bài tập củng cố</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên chỉ đọc lý thuyết trong 3 phút, chưa làm bài tập củng cố.<br>
+            <b>Dữ liệu:</b> Thoát ra ngoài khi chưa làm bài tập cuối bài<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Xem lý thuyết 3 phút rồi bấm thoát ra ngoài danh sách bài học.<br>
+            2. Kiểm tra tiến độ của bài học đó.
+        </td>
+        <td class="tc-expected">
+            Bài học chỉ ghi nhận trạng thái 'Đang học' (50%), hệ thống không cho phép tính là đã hoàn thành 100% khi chưa làm bài tập củng cố.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-46</b></td>
+        <td class="tc-name"><b>Không cộng thời gian khi người học mở bài rồi thoát ra ngay dưới 10 giây</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên nhấp mở bài học rồi bấm thoát ra ngay trong vòng 5 giây.<br>
+            <b>Dữ liệu:</b> Thời gian mở bài: 5 giây<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấp mở bài học, sau 5 giây bấm thoát ra ngay.<br>
+            2. Kiểm tra lại thời gian tích lũy trên Trang chủ.
+        </td>
+        <td class="tc-expected">
+            Hệ thống tự động lọc bỏ các lượt mở quá nhanh dưới 10 giây, không tính thời gian học ảo nhằm đảm bảo tính trung thực trong học tập.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: LUYỆN TẬP THEO KỸ NĂNG (TASK-205)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-205 &mdash; Số lượng kịch bản: 4 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-47</b></td>
+        <td class="tc-name"><b>Tải danh sách câu hỏi luyện tập theo từng kỹ năng và trình độ</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Mở mục 'Luyện tập' trên menu.<br>
+            <b>Dữ liệu:</b> Chọn kỹ năng 'Từ vựng' và trình độ 'B1'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chọn kỹ năng 'Từ vựng' và trình độ 'B1'.<br>
+            2. Nhấn nút 'Bắt đầu luyện tập'.
+        </td>
+        <td class="tc-expected">
+            Hệ thống tải đúng danh sách câu hỏi trắc nghiệm từ vựng phù hợp với trình độ B1. Màn hình hiển thị câu hỏi, các phương án và số câu hiện tại.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-48</b></td>
+        <td class="tc-name"><b>Luyện tập trắc nghiệm: Báo đúng/sai tức thì và hiển thị giải thích chi tiết</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang ở màn hình luyện tập câu hỏi trắc nghiệm.<br>
+            <b>Dữ liệu:</b> Chọn đáp án đúng (A) hoặc chọn đáp án sai (B)<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấp chọn đáp án A (đáp án đúng). Quan sát màu sắc.<br>
+            2. Sang câu tiếp theo, nhấp chọn đáp án B (đáp án sai). Quan sát phản hồi.
+        </td>
+        <td class="tc-expected">
+            Chọn đúng hiển thị viền xanh kèm dấu tích; chọn sai hiển thị viền đỏ và làm nổi bật đáp án đúng màu xanh. Phía dưới có khung giải thích ngữ pháp chi tiết.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-49</b></td>
+        <td class="tc-name"><b>Học từ vựng qua thẻ lật thông minh kèm phiên âm và phát âm</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Chọn chế độ học thẻ từ vựng Flashcard.<br>
+            <b>Dữ liệu:</b> Bộ từ vựng chủ đề công việc<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấp chuột vào thẻ để lật qua lại giữa mặt trước và mặt sau.<br>
+            2. Nhấn nút phát âm thanh từ vựng.
+        </td>
+        <td class="tc-expected">
+            Mặt trước hiển thị từ tiếng Anh, từ loại và phiên âm chuẩn. Mặt sau hiển thị nghĩa tiếng Việt và câu ví dụ. Nút phát âm đọc chuẩn xác từ vựng.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-50</b></td>
+        <td class="tc-name"><b>Luyện nghe chép chính tả và tính điểm phần trăm độ chính xác</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Chọn bài luyện nghe chép câu tiếng Anh.<br>
+            <b>Dữ liệu:</b> Nghe câu mẫu và gõ lại, cố ý gõ thiếu 1 từ<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nghe đoạn âm thanh đọc câu mẫu.<br>
+            2. Gõ lại câu nghe được vào ô nhập liệu.<br>
+            3. Nhấn nút 'Kiểm tra'.
+        </td>
+        <td class="tc-expected">
+            Hệ thống tính chính xác tỷ lệ đúng theo phần trăm (ví dụ: 88%) và đánh dấu màu nổi bật từ bị gõ thiếu để người học nhận biết.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: THI THỬ CHUẨN HÓA (TASK-206)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-206 &mdash; Số lượng kịch bản: 6 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-51</b></td>
+        <td class="tc-name"><b>Xem danh sách các đề thi thử chuẩn hóa (TOEIC, IELTS, Mini-Test)</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Hệ thống có các đề thi đã phát hành sẵn.<br>
+            <b>Dữ liệu:</b> Mở mục 'Thi thử' trên menu bên trái<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Bấm chuột vào mục 'Thi thử'.<br>
+            2. Quan sát danh mục đề thi hiển thị.
+        </td>
+        <td class="tc-expected">
+            Danh mục hiển thị đầy đủ: Tên đề thi, loại đề thi, số lượng câu hỏi và thời gian làm bài quy định (phút).
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-52</b></td>
+        <td class="tc-name"><b>Làm bài thi thử: Chọn đáp án, cắm cờ câu khó và giữ nguyên câu trả lời</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên nhấn 'Bắt đầu làm bài' một đề thi.<br>
+            <b>Dữ liệu:</b> Trả lời câu 1, cắm cờ câu 1, chuyển sang câu khác rồi quay lại câu 1<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chọn đáp án cho câu 1.<br>
+            2. Bấm nút 'Cắm cờ' để đánh dấu câu cần xem lại sau.<br>
+            3. Chuyển sang câu khác rồi bấm quay lại câu 1.
+        </td>
+        <td class="tc-expected">
+            Đáp án đã chọn ở câu 1 vẫn được giữ nguyên vẹn. Trên bảng số câu có biểu tượng lá cờ nhỏ đánh dấu câu hỏi đó.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-53</b></td>
+        <td class="tc-name"><b>Đồng hồ đếm ngược thời gian làm bài thi chạy chuẩn xác từng giây</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đề thi có thời gian quy định 45 phút.<br>
+            <b>Dữ liệu:</b> Đồng hồ đếm ngược từ 45:00<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Bắt đầu làm bài thi.<br>
+            2. Theo dõi đồng hồ đếm ngược ở góc màn hình trong vòng 1 phút.
+        </td>
+        <td class="tc-expected">
+            Đồng hồ đếm lùi đều đặn từng giây (44:59, 44:58...). Khi thời gian còn dưới 5 phút, đồng hồ chuyển sang màu đỏ để nhắc nhở thí sinh.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-54</b></td>
+        <td class="tc-name"><b>Nộp bài thi thủ công kèm hộp thoại xác nhận số câu chưa làm</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang làm bài thi 40 câu, đã làm 35 câu (còn 5 câu chưa làm).<br>
+            <b>Dữ liệu:</b> Bấm nút 'Nộp bài'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấn nút 'Nộp bài'.<br>
+            2. Đọc thông báo trên hộp thoại xác nhận.<br>
+            3. Bấm 'Đồng ý nộp'.
+        </td>
+        <td class="tc-expected">
+            Hộp thoại nhắc nhở rõ ràng: 'Bạn đã làm 35/40 câu (còn 5 câu chưa làm). Bạn có chắc chắn muốn nộp bài?'. Bấm đồng ý thì bài thi được thu ngay và chuyển sang chấm điểm.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-55</b></td>
+        <td class="tc-name"><b>Tự động thu bài và nộp bài khi đồng hồ đếm ngược về 00:00</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Thí sinh đang làm bài thi và thời gian làm bài đếm ngược về 00:00.<br>
+            <b>Dữ liệu:</b> Thời gian hết giờ (00:00)<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Làm bài đến khi đồng hồ đếm ngược điểm 00:00.<br>
+            2. Quan sát phản ứng tự động của ứng dụng.
+        </td>
+        <td class="tc-expected">
+            Hệ thống tự động khóa bài thi, thông báo hết giờ và nộp toàn bộ các câu đã làm lên hệ thống để chấm điểm, thí sinh không thể chỉnh sửa thêm.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-56</b></td>
+        <td class="tc-name"><b>Chặn nộp bài trùng lặp khi bấm nhanh nhiều lần nút nộp bài</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang ở màn hình làm bài thi.<br>
+            <b>Dữ liệu:</b> Bấm chuột liên tiếp 3 lần thật nhanh vào nút 'Nộp bài'<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấn liên tục nhiều lần vào nút 'Nộp bài'.<br>
+            2. Quan sát phản hồi của nút bấm.
+        </td>
+        <td class="tc-expected">
+            Nút nộp bài bị khóa ngay sau lần bấm đầu tiên kèm thông báo 'Đang chấm điểm...', hệ thống chỉ nhận đúng 1 bài nộp duy nhất, không bị nhân đôi kết quả.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: CHẤM ĐIỂM & LƯU KẾT QUẢ THI (TASK-207)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-207 &mdash; Số lượng kịch bản: 4 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-57</b></td>
+        <td class="tc-name"><b>Tự động chấm điểm bài thi quy đổi theo thang điểm 10.0 chuẩn</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đề thi gồm 40 câu hỏi trắc nghiệm.<br>
+            <b>Dữ liệu:</b> Trường hợp 1: Đúng 40/40 câu (100%);
+Trường hợp 2: Đúng 20/40 câu (50%);
+Trường hợp 3: Đúng 0/40 câu (0%)<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Kiểm tra điểm số được chấm với từng trường hợp thử nghiệm trên.<br>
+            2. Quan sát điểm số tính toán hiển thị.
+        </td>
+        <td class="tc-expected">
+            Điểm số tính chính xác tuyệt đối: Đúng 40/40 câu đạt 10.0 điểm; Đúng 20/40 câu đạt 5.0 điểm; Đúng 0/40 câu đạt 0.0 điểm.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-58</b></td>
+        <td class="tc-name"><b>Lưu kết quả điểm số và thời gian làm bài vào lịch sử thi</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Thí sinh hoàn thành nộp bài thi.<br>
+            <b>Dữ liệu:</b> Nộp bài thi mã số 1<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nộp bài thi.<br>
+            2. Kiểm tra thông tin kết quả vừa được lưu trong hệ thống.
+        </td>
+        <td class="tc-expected">
+            Lưu trữ đầy đủ thông tin: Tên đề thi, điểm số, số câu đúng, ngày giờ bắt đầu và ngày giờ nộp bài.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-59</b></td>
+        <td class="tc-name"><b>Lưu chi tiết câu trả lời của thí sinh cho từng câu hỏi</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đề thi có 30 câu hỏi.<br>
+            <b>Dữ liệu:</b> Tập hợp 30 câu trả lời của thí sinh<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nộp bài thi.<br>
+            2. Kiểm tra dữ liệu chi tiết của bài thi vừa nộp.
+        </td>
+        <td class="tc-expected">
+            Lưu đầy đủ chi tiết cả 30 câu hỏi, ghi nhận rõ từng câu thí sinh đã chọn phương án nào và câu đó đúng hay sai.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-60</b></td>
+        <td class="tc-name"><b>Xem lại danh sách lịch sử các lần thi thử trước đó</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên đã từng làm 3 bài thi thử trong hệ thống.<br>
+            <b>Dữ liệu:</b> Mở mục 'Lịch sử thi' trong phần Thi thử<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Chuyển sang xem danh sách lịch sử thi.<br>
+            2. Đối chiếu số điểm, ngày thi và số câu đúng.
+        </td>
+        <td class="tc-expected">
+            Hiển thị đầy đủ cả 3 lần thi với điểm số, thời gian và số câu đúng, sắp xếp theo lần thi mới nhất lên đầu.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: XEM LẠI BÀI THI CHI TIẾT (TASK-208)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-208 &mdash; Số lượng kịch bản: 4 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-61</b></td>
+        <td class="tc-name"><b>Mở chế độ xem lại chi tiết từng câu hỏi của bài thi đã nộp</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên vừa hoàn thành bài thi và bấm nút 'Xem lại bài thi'.<br>
+            <b>Dữ liệu:</b> Bài thi vừa hoàn thành<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Nhấn nút 'Xem lại bài thi' tại màn hình kết quả điểm số.<br>
+            2. Quan sát giao diện xem lại bài thi.
+        </td>
+        <td class="tc-expected">
+            Mở ra toàn bộ danh sách câu hỏi, đoạn văn đọc hiểu và các phương án trả lời theo đúng thứ tự lúc thí sinh làm bài thi.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-62</b></td>
+        <td class="tc-name"><b>Đối chiếu trực quan đáp án thí sinh chọn với đáp án chuẩn và xem giải thích</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đang ở chế độ xem lại bài thi.<br>
+            <b>Dữ liệu:</b> Câu 1: Thí sinh chọn đúng; Câu 2: Thí sinh chọn sai<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Xem câu 1 (chọn đúng).<br>
+            2. Xem câu 2 (chọn sai).<br>
+            3. Đọc khung giải thích chi tiết đáp án bên dưới.
+        </td>
+        <td class="tc-expected">
+            Hiển thị rõ ràng: Đáp án thí sinh chọn đúng được viền xanh lá; đáp án chọn sai được viền đỏ và hệ thống làm nổi bật đáp án đúng màu xanh. Phía dưới có khung giải thích ngữ pháp chi tiết.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-63</b></td>
+        <td class="tc-name"><b>Thể hiện rõ ràng trạng thái đối với các câu hỏi thí sinh bỏ trống không làm</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Bài thi có câu hỏi thí sinh không chọn bất kỳ đáp án nào.<br>
+            <b>Dữ liệu:</b> Câu hỏi bị bỏ trống<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Điều hướng đến câu hỏi đã bị bỏ trống trong chế độ xem lại.<br>
+            2. Quan sát cách hiển thị.
+        </td>
+        <td class="tc-expected">
+            Hiển thị thông báo: 'Bạn đã bỏ trống câu hỏi này'. Đồng thời hệ thống vẫn làm nổi bật đáp án đúng màu xanh kèm giải thích để người học ôn bài.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-64</b></td>
+        <td class="tc-name"><b>Kết quả bài thi cũ không bị thay đổi khi ngân hàng câu hỏi bị chỉnh sửa</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Đã thi xong bài thi trước đó; giảng viên vào ngân hàng câu hỏi sửa lại nội dung câu hỏi.<br>
+            <b>Dữ liệu:</b> Nội dung câu hỏi gốc trong ngân hàng bị sửa đổi<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Học viên mở lại kết quả bài thi cũ để xem lại.<br>
+            2. Kiểm tra nội dung câu hỏi hiển thị.
+        </td>
+        <td class="tc-expected">
+            Bài thi cũ vẫn giữ nguyên nội dung câu hỏi tại thời điểm thi, không bị sai lệch dữ liệu kết quả thi.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="module-header">
+    <div class="module-title">PHÂN HỆ: KIỂM THỬ LIÊN HOÀN SPRINT 2 (TASK-209)</div>
+    <div class="module-desc">Nhiệm vụ: TASK-209 &mdash; Số lượng kịch bản: 2 test cases</div>
+</div>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-65</b></td>
+        <td class="tc-name"><b>Kiểm tra chu trình thi thử hoàn chỉnh: Chọn đề, làm bài, nộp bài, xem điểm và xem lại bài</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên đăng nhập tại màn hình chính.<br>
+            <b>Dữ liệu:</b> Chu trình thi thử từ đầu đến cuối<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Vào mục Thi thử, chọn đề thi TOEIC Mini-Test 30 câu.<br>
+            2. Làm bài trong 20 phút và nhấn Nộp bài.<br>
+            3. Xem bảng điểm tổng kết.<br>
+            4. Bấm 'Xem lại bài thi' để duyệt từng câu hỏi.
+        </td>
+        <td class="tc-expected">
+            Toàn bộ chu trình vận hành thông suốt: Đồng hồ đếm ngược chính xác, chấm điểm đúng, lưu kết quả an toàn, hiển thị bảng điểm rõ ràng và xem lại từng câu đối chiếu xanh đỏ chuẩn xác.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-66</b></td>
+        <td class="tc-name"><b>Kiểm tra chu trình học tập: Đọc lý thuyết, nghe âm thanh, làm bài củng cố và nhận tiến độ 100%</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Học viên chọn một bài học mới trong lộ trình.<br>
+            <b>Dữ liệu:</b> Bài học có đủ phần lý thuyết, âm thanh và bài tập củng cố<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Mở bài học, đọc lý thuyết ngữ pháp.<br>
+            2. Bật âm thanh luyện nghe.<br>
+            3. Hoàn thành bài tập củng cố 5 câu trắc nghiệm.<br>
+            4. Bấm hoàn thành và quay lại Trang chủ kiểm tra.
+        </td>
+        <td class="tc-expected">
+            Hệ thống cộng dồn thời gian học thực tế vào hồ sơ, bài học được đánh dấu hoàn thành 100%, số bài đã hoàn thành trên Trang chủ tăng thêm 1 bài.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="page-break"></div>
+<div class="sprint-header">MỤC 4. KỊCH BẢN KIỂM THỬ TOÀN TRÌNH (END-TO-END)</div>
+<p>Kiểm tra trải nghiệm liên hoàn của học viên từ lúc bắt đầu tạo tài khoản đến khi tốt nghiệp lộ trình học:</p>
+<table class="tc-table">
+<thead>
+        <tr>
+            <th style="width:10%; text-align:center;">Mã TC</th>
+            <th style="width:18%;">Tên TC</th>
+            <th style="width:36%;">Thực nghiệm</th>
+            <th style="width:28%;">Kết quả mong đợi</th>
+            <th style="width:8%; text-align:center;">Pass/Fail</th>
+        </tr>
+    </thead>
+<tbody>
+    <tr>
+        <td class="tc-id"><b>TC-67</b></td>
+        <td class="tc-name"><b>Kiểm tra toàn bộ hành trình của học viên mới từ Đăng ký, Khảo sát, Học tập đến Thi thử</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Ứng dụng mở tại màn hình đăng nhập ban đầu.<br>
+            <b>Dữ liệu:</b> Hành trình: Đăng ký -> Khảo sát đầu vào B1 -> Học bài nghe -> Thi thử<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Đăng ký tài khoản học viên mới.<br>
+            2. Đăng nhập, hệ thống tự đưa vào làm bài khảo sát đầu vào 20 câu.<br>
+            3. Nộp bài, nhận kết quả xếp lớp B1 và mở khóa màn hình chính.<br>
+            4. Vào 'Lộ trình học', hoàn thành 1 bài nghe và ghi nhận tiến độ 100%.<br>
+            5. Vào 'Thi thử', hoàn thành 1 đề thi thử và xem lại bài thi.<br>
+            6. Đăng xuất an toàn.
+        </td>
+        <td class="tc-expected">
+            Toàn bộ hành trình người dùng diễn ra liền mạch, dữ liệu đồng bộ chính xác trên toàn hệ thống, không phát sinh lỗi gián đoạn.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="tc-id"><b>TC-68</b></td>
+        <td class="tc-name"><b>Bảo mật thông tin: Không bị lẫn dữ liệu khi đăng xuất và đổi tài khoản khác</b></td>
+        <td class="tc-steps">
+            <b>Chuẩn bị:</b> Có 2 tài khoản học viên khác nhau (Học viên A trình độ A2 và Học viên B trình độ B2).<br>
+            <b>Dữ liệu:</b> Đăng nhập tài khoản A -> Học 1 bài -> Đăng xuất -> Đăng nhập tài khoản B<br>
+            <b>Các bước thực hiện:</b><br>
+            1. Đăng nhập tài khoản A, xem thông tin và tiến độ.<br>
+            2. Nhấn 'Đăng xuất'.<br>
+            3. Đăng nhập ngay bằng tài khoản B.<br>
+            4. Quan sát thông tin hiển thị trên Trang chủ của tài khoản B.
+        </td>
+        <td class="tc-expected">
+            Hệ thống xóa sạch dữ liệu phiên của tài khoản A, hiển thị chính xác tên, trình độ B2 và các bài học của tài khoản B, hoàn toàn không bị lộ thông tin của người dùng trước.
+        </td>
+        <td class="tc-result">
+            <div style="line-height:1.8;">
+                <span class="chk-box">[ &nbsp; ] Pass</span><br>
+                <span class="chk-box">[ &nbsp; ] Fail</span>
+            </div>
+        </td>
+    </tr>
+</tbody>
+</table>
+<div class="page-break"></div>
+<h1>MỤC 5. MA TRẬN ĐỐI CHIẾU VÀ ÁNH XẠ KỊCH BẢN KIỂM THỬ</h1>
+<p>Bảng đối chiếu giữa các đầu mối công việc trong file Kế hoạch triển khai (<code>Kehoachtrienkhai.xlsx</code>) với các mã kịch bản kiểm thử tương ứng, đảm bảo kiểm tra đầy đủ 100% các chức năng được yêu cầu:</p>
+<table class="tbl-matrix">
+    <thead><tr><th style="width:12%">Mã công việc</th><th style="width:24%">Tên hạng mục chức năng</th><th style="width:34%">Tiêu chí nghiệm thu</th><th style="width:15%">Mã Test Case</th><th style="width:15%">Ghi chú</th></tr></thead>
+    <tbody>
+    <tr><td><b>TASK-101</b></td><td>Khởi tạo cơ sở dữ liệu & dữ liệu mẫu</td><td>Cài đặt CSDL, kiểm tra toàn vẹn, nạp dữ liệu mẫu ban đầu, xử lý mất kết nối</td><td><b>TC-01, TC-02, TC-03, TC-04</b></td><td><i>Bao phủ đầy đủ 4 trường hợp</i></td></tr>
+    <tr><td><b>TASK-102</b></td><td>Khởi động ứng dụng & kết nối</td><td>Khởi chạy ứng dụng nhanh chóng, kết nối ổn định, hiển thị màn hình đầu tiên</td><td><b>TC-05</b></td><td><i>Kiểm tra khởi chạy ứng dụng</i></td></tr>
+    <tr><td><b>TASK-104</b></td><td>Đăng ký & Đăng nhập tài khoản</td><td>Đăng ký thành công, bắt lỗi nhập sai, đăng nhập đúng, đăng nhập sai, chuyển đổi tab</td><td><b>TC-06, TC-07, TC-08, TC-09, TC-10</b></td><td><i>Gộp các trường hợp nhập sai vào TC-07</i></td></tr>
+    <tr><td><b>TASK-105</b></td><td>Bảo mật & Phân quyền học viên</td><td>Mã hóa mật khẩu an toàn, chặn tài khoản bị khóa, đăng xuất an toàn, phân quyền</td><td><b>TC-11, TC-12, TC-13, TC-14</b></td><td><i>Kiểm tra các yêu cầu bảo mật</i></td></tr>
+    <tr><td><b>TASK-106</b></td><td>Khung giao diện chính sinh viên</td><td>Hiển thị menu, avatar viết tắt, chuyển đổi trang, co giãn cửa sổ</td><td><b>TC-15, TC-16, TC-17</b></td><td><i>Gộp chuyển trang và highlight vào TC-16</i></td></tr>
+    <tr><td><b>TASK-107</b></td><td>Quy trình cho người dùng mới (Onboarding)</td><td>Bắt buộc thi đầu vào khi đăng nhập lần đầu, mở khóa menu sau khi thi, tài khoản cũ vào thẳng</td><td><b>TC-18, TC-19, TC-20, TC-21</b></td><td><i>Kiểm tra luồng người dùng mới</i></td></tr>
+    <tr><td><b>TASK-108</b></td><td>Giao diện Khảo sát năng lực đầu vào</td><td>Tải 20 câu hỏi, chọn/đổi đáp án, chuyển câu, cảnh báo chưa làm hết, giấu đáp án</td><td><b>TC-22, TC-23, TC-24, TC-25</b></td><td><i>Gộp thao tác chọn đáp án vào TC-23</i></td></tr>
+    <tr><td><b>TASK-109</b></td><td>Đánh giá trình độ & Xếp loại CEFR</td><td>Tính số câu đúng, xếp loại A1-C1 theo thang điểm, lưu hồ sơ học viên, nộp bài 0đ</td><td><b>TC-26, TC-27, TC-28, TC-29</b></td><td><i>Gộp các mức điểm ranh giới vào TC-27</i></td></tr>
+    <tr><td><b>TASK-110</b></td><td>Kiểm thử liên hoàn Sprint 1</td><td>Chu trình người dùng mới liên hoàn; đăng xuất đăng nhập lại bảo toàn hồ sơ</td><td><b>TC-30, TC-31</b></td><td><i>Kiểm tra liên hoàn quy trình đầu vào</i></td></tr>
+    <tr><td><b>TASK-201</b></td><td>Trang chủ học viên & Thống kê</td><td>Lời chào cá nhân, huy hiệu trình độ, 3 thẻ thống kê, bài học gần đây, nút lối tắt</td><td><b>TC-32, TC-33, TC-34, TC-35</b></td><td><i>Gộp hiển thị bài gần đây vào TC-34</i></td></tr>
+    <tr><td><b>TASK-202</b></td><td>Học tập theo Lộ trình</td><td>Danh mục bài học theo chủ đề, lọc kỹ năng cốt lõi, đọc bài học chi tiết, giữ bộ lọc</td><td><b>TC-36, TC-37, TC-38, TC-39</b></td><td><i>Kiểm tra chức năng lộ trình học</i></td></tr>
+    <tr><td><b>TASK-203</b></td><td>Trình phát âm thanh bài nghe</td><td>Phát, tạm dừng, tua, đổi tốc độ, tự động đọc khi thiếu file âm thanh, chống phát đè</td><td><b>TC-40, TC-41, TC-42</b></td><td><i>Gộp các nút điều khiển vào TC-40</i></td></tr>
+    <tr><td><b>TASK-204</b></td><td>Ghi nhận Thời gian & Tiến độ</td><td>Cộng dồn thời gian học thực tế, hoàn thành 100% khi xong bài tập, chống thoát nhanh</td><td><b>TC-43, TC-44, TC-45, TC-46</b></td><td><i>Gộp chống gian lận thời gian vào TC-46</i></td></tr>
+    <tr><td><b>TASK-205</b></td><td>Luyện tập theo Kỹ năng</td><td>Tải câu hỏi luyện tập, báo đúng sai tức thì, giải thích đáp án, Flashcard, Dictation</td><td><b>TC-47, TC-48, TC-49, TC-50</b></td><td><i>Gộp báo đúng sai và giải thích vào TC-48</i></td></tr>
+    <tr><td><b>TASK-206</b></td><td>Động cơ Thi thử Chuẩn hóa</td><td>Danh mục đề thi, phòng thi, cắm cờ câu khó, đồng hồ đếm ngược, nộp bài, hết giờ tự nộp</td><td><b>TC-51, TC-52, TC-53, TC-54, TC-55, TC-56</b></td><td><i>Gộp thao tác phòng thi vào TC-52</i></td></tr>
+    <tr><td><b>TASK-207</b></td><td>Chấm điểm & Lưu lịch sử thi</td><td>Chấm điểm thang 10.0, lưu kết quả tổng quan, lưu chi tiết từng câu, xem lại lịch sử thi</td><td><b>TC-57, TC-58, TC-59, TC-60</b></td><td><i>Gộp các mức điểm vào TC-57</i></td></tr>
+    <tr><td><b>TASK-208</b></td><td>Xem lại bài thi chi tiết (Review Mode)</td><td>Xem lại câu hỏi, đối chiếu xanh đỏ kèm giải thích, thể hiện câu bỏ trống, cố định kết quả</td><td><b>TC-61, TC-62, TC-63, TC-64</b></td><td><i>Gộp đối chiếu và giải thích vào TC-62</i></td></tr>
+    <tr><td><b>TASK-209</b></td><td>Kiểm thử liên hoàn Sprint 2</td><td>Chu trình thi thử hoàn chỉnh; chu trình học tập kết hợp bài tập củng cố</td><td><b>TC-65, TC-66</b></td><td><i>Kiểm tra liên hoàn Sprint 2</i></td></tr>
+    <tr><td><b>E2E</b></td><td>Kiểm thử toàn trình (End-to-End)</td><td>Toàn bộ hành trình trải nghiệm học viên; bảo mật tài khoản khi đổi người dùng</td><td><b>TC-67, TC-68</b></td><td><i>Kiểm tra toàn trình trải nghiệm</i></td></tr>
+    </tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,62 @@
+﻿"CHI TIẾT TEST CASES SPRINT 1 - TUẦN 1 & TUẦN 2: XÁC THỰC, QUẢN LÝ DANH MỤC HỌC LIỆU & QUẢN TRỊ NGƯỜI DÙNG",,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+Mã Test Case,Phân Hệ / Module,Tên Test Case,Mục Tiêu & Kịch Bản Kiểm Thử,Điều Kiện Tiên Quyết,Các Bước Thực Hiện,Dữ Liệu Kiểm Thử (Test Data),Kết Quả Mong Đợi (Expected Result),Kết Quả Thực Tế (Actual Result),Trạng Thái,Mức Độ
+TC-SP1-01.1,Xác thực & Phân quyền,Đăng nhập Giảng viên thành công,Kiểm tra đăng nhập hệ thống với tài khoản Giảng viên hợp lệ và điều hướng đúng giao diện làm việc.,Tài khoản giảng viên đã tồn tại và đang hoạt động trong bảng NguoiDung.,"1. Mở màn hình DangNhapWindow.
+2. Nhập Email và Mật khẩu giảng viên.
+3. Nhấn nút 'Đăng nhập'.","Email: 'giangvien@englisheai.edu.vn', Pass: '123456'","Đăng nhập thành công, lưu SessionHelper, mở màn hình làm việc của Giảng viên (MainGiangVienWindow).","Đăng nhập thành công, chuyển hướng chính xác sang giao diện Giảng viên.",PASS,Critical
+TC-SP1-01.2,Xác thực & Phân quyền,Đăng nhập Sinh viên thành công,Kiểm tra đăng nhập hệ thống với tài khoản Sinh viên hợp lệ và điều hướng đến Dashboard Sinh viên.,Tài khoản sinh viên tồn tại và đang hoạt động.,"1. Nhập Email và Mật khẩu sinh viên.
+2. Nhấn nút 'Đăng nhập'.","Email: 'sinhvien@englisheai.edu.vn', Pass: '123456'","Đăng nhập thành công, mở MainSinhVienWindow, hiển thị đúng họ tên và avatar viết tắt.","Đăng nhập thành công, mở giao diện học tập của Sinh viên.",PASS,Critical
+TC-SP1-01.3,Xác thực & Phân quyền,Đăng nhập thất bại khi sai mật khẩu,Kiểm tra hiển thị thông báo lỗi và chặn truy cập khi người dùng nhập sai mật khẩu xác thực.,Tài khoản tồn tại trong hệ thống.,"1. Nhập đúng Email nhưng nhập sai Mật khẩu.
+2. Nhấn 'Đăng nhập'.","Email: 'sinhvien@englisheai.edu.vn', Pass: 'SaiMatKhau@123'","Hiển thị thông báo 'Tài khoản hoặc mật khẩu không chính xác', không mở màn hình chính.","Hệ thống chặn đăng nhập, hiển thị thông báo lỗi cảnh báo màu đỏ.",PASS,High
+TC-SP1-01.4,Xác thực & Phân quyền,Đăng nhập thất bại khi tài khoản không tồn tại,Kiểm tra thông báo lỗi khi đăng nhập bằng email chưa từng đăng ký trên hệ thống.,Email chưa có trong bảng NguoiDung.,"1. Nhập email lạ chưa tồn tại.
+2. Nhập mật khẩu bất kỳ.
+3. Nhấn 'Đăng nhập'.","Email: 'notfound_user@gmail.com', Pass: '123456'","Hiển thị thông báo tài khoản không tồn tại, bảo mật không tiết lộ chi tiết mật khẩu.",Hệ thống thông báo tài khoản không tồn tại chuẩn xác.,PASS,High
+TC-SP1-01.5,Xác thực & Phân quyền,Kiểm tra bảo mật Session người dùng,"Đảm bảo sau khi đăng nhập thành công, thông tin phiên (SessionHelper.CurrentUser) được bảo vệ và đồng bộ toàn ứng dụng.",Người dùng vừa đăng nhập thành công.,"1. Truy vấn SessionHelper.CurrentUser.
+2. Kiểm tra MaNguoiDung, HoTen, TenVaiTro.",SessionHelper sau đăng nhập,"Thông tin người dùng được lưu đầy đủ, các view khác nhận đúng context người dùng hiện tại.","Session được khởi tạo chuẩn xác, các phân hệ truy xuất mượt mà.",PASS,High
+TC-SP1-01.6,Xác thực & Phân quyền,Đăng xuất an toàn và giải phóng Session,"Kiểm tra chức năng đăng xuất, hủy thông tin phiên làm việc và quay trở lại màn hình đăng nhập.",Người dùng đang trong trạng thái đăng nhập.,"1. Nhấn nút 'Đăng xuất' trên thanh Sidebar/Header.
+2. Xác nhận hộp thoại đăng xuất.",Thao tác click Đăng xuất,"SessionHelper.CurrentUser được set null, đóng Main Window, mở lại DangNhapWindow.","Đăng xuất an toàn, giải phóng hoàn toàn session làm việc.",PASS,High
+TC-SP1-02.1,Danh mục Học liệu,Nạp cấu trúc cây thư mục phân cấp (TreeView),Kiểm tra nạp toàn bộ cấu trúc cây thư mục chủ đề phân cấp cha - con từ CSDL lên giao diện DanhMucView.,Bảng ChuDe trong CSDL đã có dữ liệu danh mục phân cấp.,"1. Truy cập màn hình DanhMucView.
+2. Quan sát cây thư mục TreeView bên trái.","Bảng ChuDe (MaChuDe, TenChuDe, MaChuDeCha)","TreeView hiển thị cấu trúc phân cấp trực quan với icon folder vàng đồng nhất, không lỗi vòng lặp.","Cây thư mục phân cấp hiển thị chuẩn xác, nạp đệ quy mượt mà.",PASS,High
+TC-SP1-02.2,Danh mục Học liệu,Thêm mới thư mục / chủ đề học liệu,Kiểm tra tạo mới một thư mục con dưới một thư mục cha được chọn.,Giảng viên chọn một thư mục trên TreeView.,"1. Nhấn nút 'Thêm thư mục'.
+2. Nhập tên thư mục mới trong dialog.
+3. Nhấn 'Lưu'.","TenChuDe: 'Luyện thi TOEIC Cấp Tốc - Part 5', MaChuDeCha = 1",Thư mục mới được insert vào CSDL và xuất hiện ngay lập tức trên TreeView.,"Tạo thư mục thành công, CSDL ghi nhận đầy đủ.",PASS,High
+TC-SP1-02.3,Danh mục Học liệu,Sửa tên thư mục học liệu,Kiểm tra đổi tên thư mục học liệu đã tồn tại và cập nhật đồng bộ lên CSDL.,Thư mục đã tồn tại trong CSDL.,"1. Chọn thư mục cần sửa.
+2. Nhấn 'Đổi tên'.
+3. Nhập tên mới và nhấn 'Cập nhật'.",TenChuDeMoi: 'Tiếng Anh Y Tế & Chăm Sóc Sức Khỏe Chuyên Sâu',Tên thư mục cập nhật thành công trong CSDL và làm mới tên hiển thị trên giao diện.,"Đổi tên thành công, giao diện cập nhật ngay lập tức.",PASS,Medium
+TC-SP1-02.4,Danh mục Học liệu,Di chuyển thư mục sang thư mục cha khác,Kiểm tra di chuyển một thư mục con sang nhánh thư mục cha mới qua DiChuyenThuMucDialog.,Thư mục nguồn và thư mục đích tồn tại hợp lệ.,"1. Chọn thư mục cần di chuyển.
+2. Nhấn nút 'Di chuyển'.
+3. Chọn thư mục đích trong dialog.
+4. Nhấn 'Xác nhận'.","DiChuyenThuMucDialog, MaChuDeDich = 3","Thư mục được cập nhật MaChuDeCha mới, cây thư mục refresh hiển thị đúng vị trí mới.","Di chuyển thư mục thành công, cấu trúc cây phân cấp tự động cập nhật.",PASS,High
+TC-SP1-02.5,Danh mục Học liệu,Xóa thư mục rỗng,Kiểm tra xóa một thư mục không chứa bài học và không chứa thư mục con.,"Thư mục rỗng (không có bài học, không có thư mục con).","1. Chọn thư mục rỗng.
+2. Nhấn 'Xóa thư mục'.
+3. Xác nhận trên hộp thoại cảnh báo.",Thư mục rỗng vừa tạo,Thư mục được xóa khỏi CSDL và biến mất khỏi TreeView.,"Xóa thư mục rỗng thành công, hiển thị thông báo thành công.",PASS,Medium
+TC-SP1-02.6,Danh mục Học liệu,Chặn xóa thư mục đang chứa bài học (Ràng buộc FK),Đảm bảo hệ thống chặn không cho xóa thư mục nếu thư mục đó đang chứa bài học hoặc đề thi.,Thư mục đang chứa bài học trong CSDL.,"1. Chọn thư mục đang chứa tài liệu.
+2. Nhấn nút 'Xóa'.",Thư mục MaChuDe = 1 (đang chứa bài học),Hệ thống hiển thị cảnh báo không được phép xóa thư mục đang có dữ liệu con.,"Chặn xóa thành công, hiển thị thông báo lỗi ràng buộc dữ liệu bảo vệ toàn vẹn.",PASS,Critical
+TC-SP1-03.1,Upload & Xử lý Tài liệu,Tải lên tài liệu Word (.docx) và trích xuất nội dung,"Kiểm tra tải lên tài liệu định dạng Word .docx, tự động trích xuất tiêu đề, nội dung và lưu vào CSDL.",Giảng viên mở UploadTaiLieuDialog.,"1. Chọn file .docx từ thư mục TaiLieu_TestUpload.
+2. Nhập thông tin trình độ, chủ đề.
+3. Nhấn 'Lưu tài liệu'.",File: '01_TOEIC_Listening_Part1_Photographs.docx',"File được đọc, trích xuất text 100% không mất đoạn, lưu thành công vào bảng BaiHoc.","Tải lên thành công, trích xuất nguyên vẹn nội dung tài liệu Word.",PASS,Critical
+TC-SP1-03.2,Upload & Xử lý Tài liệu,Tải lên tài liệu PDF (.pdf) và trích xuất nội dung,"Kiểm tra tải lên file PDF, trích xuất văn bản có ngắt dòng hợp lý và lưu trữ vào hệ thống.",Giảng viên mở UploadTaiLieuDialog.,"1. Chọn file PDF mẫu.
+2. Xem trước nội dung (Preview) trên dialog.
+3. Nhấn 'Lưu tài liệu'.",File: '03_De_Thi_Thu_TOEIC_Mini_Test_50_Cau.pdf',"Preview hiển thị rõ ràng, không bị dính chữ, lưu bài học thành công.","Tải lên PDF thành công, văn bản trích xuất định dạng rõ ràng.",PASS,High
+TC-SP1-03.3,Upload & Xử lý Tài liệu,Kiểm tra validation trường bắt buộc khi upload,"Kiểm tra bắt lỗi người dùng khi để trống tiêu đề, chưa chọn chủ đề hoặc chưa chọn file.",Mở UploadTaiLieuDialog để trống các trường.,"1. Nhấn nút 'Lưu tài liệu' mà không chọn file và không nhập tiêu đề.
+2. Quan sát thông báo lỗi.",Form để trống các trường bắt buộc,Hiển thị cảnh báo lỗi màu đỏ yêu cầu nhập đầy đủ thông tin bắt buộc.,"Validation chặn submit form thành công, hiển thị thông báo trực quan.",PASS,Medium
+TC-SP1-03.4,Upload & Xử lý Tài liệu,Chặn tải lên file trùng tên trong cùng thư mục,Kiểm tra cảnh báo và chặn tải lên file có tiêu đề hoặc tên trùng lặp trong cùng một chủ đề.,File đã được upload trước đó trong cùng chủ đề.,"1. Chọn cùng một file tài liệu đã upload.
+2. Nhấn 'Lưu tài liệu'.",Tài liệu đã tồn tại trong thư mục hiện tại,"Hệ thống cảnh báo tài liệu đã tồn tại, yêu cầu đổi tên hoặc cập nhật bản mới.",Hệ thống phát hiện trùng lặp và chặn upload thành công.,PASS,Medium
+TC-SP1-03.5,Upload & Xử lý Tài liệu,Di chuyển file học liệu sang thư mục khác,Kiểm tra nút Di chuyển file trong cột Bài học & Đề thi để đổi chủ đề cho tài liệu.,Tài liệu đã nằm trong một thư mục.,"1. Nhấn nút 'Di chuyển' cạnh bài học.
+2. Chọn thư mục đích trong dialog.
+3. Nhấn xác nhận.","MaBaiHoc = 1, MaChuDeMoi = 2","Tài liệu được chuyển sang chủ đề mới, biến mất khỏi thư mục cũ và xuất hiện ở thư mục mới.",Di chuyển file học liệu sang thư mục mới thành công 100%.,PASS,High
+TC-SP1-03.6,Upload & Xử lý Tài liệu,Xóa file học liệu khỏi hệ thống,Kiểm tra nút Xóa file trong danh sách bài học kèm xác nhận an toàn.,Tài liệu hiển thị trong danh sách bài học.,"1. Nhấn nút 'Xóa file'.
+2. Xác nhận 'Đồng ý' trên hộp thoại ThongBaoDialog.",MaBaiHoc cần xóa,Bài học được xóa khỏi CSDL và biến mất khỏi danh sách hiển thị.,"Xóa file học liệu thành công, dữ liệu được cập nhật tức thì.",PASS,High
+TC-SP1-04.1,Quản trị Người dùng,Nạp danh sách người dùng và tìm kiếm theo tên/email,Kiểm tra nạp danh sách tài khoản người dùng và tính năng tìm kiếm realtime có debounce 2s.,Người dùng có quyền Admin đăng nhập vào hệ thống.,"1. Mở màn hình QuanLyNguoiDungView.
+2. Nhập từ khóa tìm kiếm vào ô tìm kiếm.",Keyword: 'Sinh Viên' hoặc 'giangvien@englisheai',Danh sách lọc chính xác các bản ghi khớp với từ khóa tìm kiếm.,"Tìm kiếm realtime hoạt động mượt mà, kết quả trả về chính xác.",PASS,High
+TC-SP1-04.2,Quản trị Người dùng,Thêm mới tài khoản người dùng kèm mật khẩu mặc định,"Kiểm tra chức năng tạo mới tài khoản sinh viên/giảng viên, tự động sinh mật khẩu mặc định an toàn.",Admin mở dialog Thêm người dùng.,"1. Nhập Họ tên, Email, Vai trò, Trình độ mục tiêu.
+2. Nhấn 'Lưu'.
+3. Quan sát thông báo mật khẩu mặc định.","HoTen: 'Trần Văn Mới', Email: 'tranvanmoi@englisheai.edu.vn', Role: 'SinhVien'","Tài khoản được tạo trong CSDL, thông báo mật khẩu mặc định (ví dụ 123456) cho quản trị viên.","Thêm người dùng thành công, thông báo mật khẩu mặc định rõ ràng.",PASS,High
+TC-SP1-04.3,Quản trị Người dùng,Xóa người dùng kèm xử lý cascade transaction FK,"Đảm bảo khi xóa người dùng, hệ thống xử lý transaction cascade an toàn các dữ liệu ràng buộc liên quan.",Tài khoản người dùng cần xóa có lịch sử hoặc bản ghi liên quan.,"1. Chọn người dùng cần xóa.
+2. Nhấn 'Xóa người dùng'.
+3. Xác nhận xóa.",MaNguoiDung cần xóa,"Hệ thống thực thi transaction xóa an toàn hoặc vô hiệu hóa tài khoản, không bị lỗi khóa ngoại SQL.","Cascade transaction xử lý hoàn hảo, không xảy ra lỗi ràng buộc FK.",PASS,Critical
+TC-SP1-05.1,Hồ sơ Cá nhân,Cập nhật thông tin giảng viên (ProfileGiangVienDialog),"Kiểm tra cập nhật thông tin họ tên, số điện thoại, ngày sinh và chuẩn hóa tên hiển thị của Giảng viên.",Giảng viên mở ProfileGiangVienDialog.,"1. Sửa Họ tên, SĐT, chọn Ngày sinh chuẩn tiếng Việt dd/MM/yyyy.
+2. Nhấn 'Lưu Hồ Sơ'.","HoTen: 'TS. Nguyễn Văn Giảng Viên', Sdt: '0912345678', NgaySinh: '15/08/1985'","Lưu thành công vào CSDL, cập nhật lại tên hiển thị và avatar initials trên header.","Hồ sơ được cập nhật chuẩn xác, định dạng ngày sinh tiếng Việt chuẩn dd/MM/yyyy.",PASS,High
+TC-SP1-05.2,Hồ sơ Cá nhân,Validation kiểm tra số điện thoại không hợp lệ,"Kiểm tra bắt lỗi validation khi người dùng nhập số điện thoại sai định dạng (chứa chữ cái, không đủ 10 số).",Mở dialog hồ sơ cá nhân.,"1. Nhập số điện thoại sai định dạng: '0912ABC'.
+2. Nhấn 'Lưu Hồ Sơ'.",Sdt: '0912ABC' hoặc '123',"Hiển thị cảnh báo lỗi inline màu đỏ, không lưu vào CSDL.","Validation số điện thoại hoạt động chuẩn xác, ngăn chặn dữ liệu bẩn.",PASS,Medium

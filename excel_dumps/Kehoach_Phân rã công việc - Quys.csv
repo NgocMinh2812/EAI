@@ -1,0 +1,34 @@
+﻿BẢNG PHÂN RÃ CÔNG VIỆC KỸ THUẬT THEO FILE & TẦNG KIẾN TRÚC (WBS),,,,,,,,,,
+,,,,,,,,,,
+Mã Task,Sprint,Tuần,Tầng,Tên Công việc Chi tiết,File code tác động trong Solution,Ngày bắt đầu,Ngày kết thúc,Ước tính (h),Người phụ trách,Trạng thái
+T-01,Sprint 1,Tuần 1,DTO,"Tạo các model NguoiDungDTO, VaiTroDTO, HoSoHocTapDTO",DTO/NguoiDungDTO.cs,10/5/2026,05/10/2026,1,Backend Dev,Chưa bắt đầu
+T-02,Sprint 1,Tuần 1,DAL,Viết DatabaseHelper quản lý chuỗi kết nối và SqlCommand,DAL/DatabaseHelper.cs,10/5/2026,06/10/2026,2,Backend Dev,Chưa bắt đầu
+T-03,Sprint 1,Tuần 1,DAL,"Xây dựng NguoiDungDAL (lấy danh sách, phân trang, khóa/mở)",DAL/NguoiDungDAL.cs,10/6/2026,07/10/2026,2,Backend Dev,Chưa bắt đầu
+T-04,Sprint 1,Tuần 1,BUS,"Xây dựng NguoiDungBUS (xác thực dữ liệu, logic phân quyền)",BUS/NguoiDungBUS.cs,10/7/2026,08/10/2026,2,Backend Dev,Chưa bắt đầu
+T-05,Sprint 1,Tuần 1,GUI,"Hoàn thiện GiangVienWindow (active style, navigation, logout)",GUI/Views/GiangVien/GiangVienWindow.xaml.cs,10/6/2026,07/10/2026,2,Frontend Dev,Chưa bắt đầu
+T-06,Sprint 1,Tuần 1,GUI,"Nạp dữ liệu thật cho NguoiDungView, sự kiện khóa tài khoản",GUI/Views/GiangVien/NguoiDungView.xaml.cs,10/8/2026,09/10/2026,2,Frontend Dev,Chưa bắt đầu
+T-07,Sprint 1,Tuần 2,DTO,"Tạo các model TrinhDoDTO, ChuDeDTO, TreeNodeDTO",DTO/DanhMucDTO.cs,10/12/2026,12/10/2026,1,Backend Dev,Chưa bắt đầu
+T-08,Sprint 1,Tuần 2,DAL,"Viết DanhMucDAL truy vấn bảng TrinhDo, ChuDe đệ quy",DAL/DanhMucDAL.cs,10/12/2026,13/10/2026,2,Backend Dev,Chưa bắt đầu
+T-09,Sprint 1,Tuần 2,BUS,Viết DanhMucBUS kiểm tra logic ràng buộc bài học khi xóa,BUS/DanhMucBUS.cs,10/13/2026,14/10/2026,2,Backend Dev,Chưa bắt đầu
+T-10,Sprint 1,Tuần 2,GUI,"Binding TreeView động cho DanhMucView, popup thêm/sửa",GUI/Views/GiangVien/DanhMucView.xaml.cs,10/14/2026,15/10/2026,2,Frontend Dev,Chưa bắt đầu
+T-11,Sprint 1,Tuần 2,DAL/BUS,Viết query đếm KPI tổng quan hệ thống cho TongQuanView,DAL/ThongKeDAL.cs & BUS/ThongKeBUS.cs,14/10/2026,15/10/2026,2,Fullstack Dev,Chưa bắt đầu
+T-12,Sprint 1,Tuần 2,GUI,Binding số liệu thật lên 4 thẻ KPI của TongQuanView,GUI/Views/GiangVien/TongQuanView.xaml.cs,10/15/2026,16/10/2026,2,Frontend Dev,Chưa bắt đầu
+T-13,Sprint 1,Tuần 2,QA,Kiểm thử liên thông Sprint 1 & chuẩn bị dữ liệu mẫu,Test Cases Sprint 1,10/16/2026,16/10/2026,1,Tester / QA,Chưa bắt đầu
+T-14,Sprint 2,Tuần 3,DTO,"Tạo BaiHocDTO, TuVungDTO, CauHoiDTO, LuaChonDapAnDTO",DTO/BaiHocDTO.cs & DTO/CauHoiDTO.cs,10/19/2026,19/10/2026,1,Backend Dev,Chưa bắt đầu
+T-15,Sprint 2,Tuần 3,DAL,"Xây dựng BaiHocDAL: CRUD bài học, lọc theo chủ đề/trình độ",DAL/BaiHocDAL.cs,10/19/2026,20/10/2026,2,Backend Dev,Chưa bắt đầu
+T-16,Sprint 2,Tuần 3,BUS,"Hoàn thiện BaiHocBUS: validate tiêu đề, cập nhật trạng thái xuất bản",BUS/BaiHocBUS.cs,10/20/2026,21/10/2026,2,Backend Dev,Chưa bắt đầu
+T-17,Sprint 2,Tuần 3,GUI,"Kết nối NoiDungHocTapView với BaiHocBUS, bộ lọc kỹ năng",GUI/Views/GiangVien/NoiDungHocTapView.xaml.cs,10/21/2026,22/10/2026,2,Frontend Dev,Chưa bắt đầu
+T-18,Sprint 2,Tuần 3,DAL,Xây dựng CauHoiDAL: lưu câu hỏi kèm transaction các lựa chọn đáp án,DAL/CauHoiDAL.cs,10/22/2026,23/10/2026,2,Backend Dev,Chưa bắt đầu
+T-19,Sprint 2,Tuần 4,BUS,"Xây dựng CauHoiBUS: validate đáp án đúng, phân loại độ khó",BUS/CauHoiBUS.cs,10/26/2026,27/10/2026,2,Backend Dev,Chưa bắt đầu
+T-20,Sprint 2,Tuần 4,GUI,"Kết nối NganHangCauHoiView: form nhập câu hỏi, xem preview",GUI/Views/GiangVien/NganHangCauHoiView.xaml.cs,10/27/2026,28/10/2026,2,Frontend Dev,Chưa bắt đầu
+T-21,Sprint 2,Tuần 4,DAL/BUS,"Xây dựng DeThiDAL & DeThiBUS: tạo đề, gán câu hỏi vào đề",DAL/DeThiDAL.cs & BUS/DeThiBUS.cs,10/28/2026,29/10/2026,2,Backend Dev,Chưa bắt đầu
+T-22,Sprint 2,Tuần 4,GUI,"Kết nối DeThiLuyenTapView: popup tạo đề thi, chọn câu hỏi",GUI/Views/GiangVien/DeThiLuyenTapView.xaml.cs,10/29/2026,30/10/2026,2,Frontend Dev,Chưa bắt đầu
+T-23,Sprint 2,Tuần 4,QA,"Kiểm thử chức năng soạn bài, tạo câu hỏi & phát hành đề thi",Test Cases Sprint 2,10/30/2026,30/10/2026,1,Tester / QA,Chưa bắt đầu
+T-24,Sprint 3,Tuần 5,Service,Xây dựng AIService: cấu hình kết nối API AI sinh câu hỏi chuẩn JSON,BUS/Services/AIService.cs,11/2/2026,03/11/2026,2,AI / Backend Dev,Chưa bắt đầu
+T-25,Sprint 3,Tuần 5,BUS,Xây dựng logic bóc tách tệp Excel/Word nhập câu hỏi hàng loạt,BUS/FileImportBUS.cs,11/3/2026,04/11/2026,2,Backend Dev,Chưa bắt đầu
+T-26,Sprint 3,Tuần 5,GUI,"Kết nối AISinhDeView: gọi AI async, thanh loading, duyệt câu hỏi",GUI/Views/GiangVien/AISinhDeView.xaml.cs,11/4/2026,05/11/2026,2,Frontend Dev,Chưa bắt đầu
+T-27,Sprint 3,Tuần 5,DAL/BUS,Xây dựng logic bài thi Khảo sát đầu vào (Placement Test),BUS/KhaoSatBUS.cs & DAL/KhaoSatDAL.cs,11/5/2026,06/11/2026,2,Backend Dev,Chưa bắt đầu
+T-28,Sprint 3,Tuần 6,GUI,Kết nối KhaoSatDauVaoView: cấu hình thang điểm quy đổi trình độ,GUI/Views/GiangVien/KhaoSatDauVaoView.xaml.cs,11/9/2026,10/11/2026,2,Frontend Dev,Chưa bắt đầu
+T-29,Sprint 3,Tuần 6,DAL/BUS,"Viết query tổng hợp phổ điểm, tỷ lệ đậu/rớt, kỹ năng yếu",DAL/GiamSatDAL.cs & BUS/GiamSatBUS.cs,11/10/2026,11/11/2026,2,Backend Dev,Chưa bắt đầu
+T-30,Sprint 3,Tuần 6,GUI,Kết nối GiamSatHeThongView: vẽ biểu đồ phổ điểm & xuất Excel,GUI/Views/GiangVien/GiamSatHeThongView.xaml.cs,11/11/2026,12/11/2026,2,Frontend Dev,Chưa bắt đầu
+T-31,Sprint 3,Tuần 6,QA,Kiểm thử toàn diện 3 Sprint (End-to-End System Testing),Full System Test Suite,11/12/2026,13/11/2026,2,Tester / QA,Chưa bắt đầu

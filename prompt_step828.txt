@@ -1,0 +1,160 @@
+﻿<USER_REQUEST>
+# CHỈNH SỬA TRỰC TIẾP HAI FILE WORD TEST CASE ĐÃ TẠO — KHÔNG TẠO LẠI TỪ ĐẦU
+
+Bạn đã tạo cho tôi hai tài liệu Word test case cho Sprint 1 và Sprint 2 của dự án EnglishAI/EAI theo file kế hoạch `Kehoachtrienkhai.xlsx`.
+
+Hiện tại, tôi muốn bạn **chỉnh sửa trực tiếp hai file Word đã tạo ở các lượt trước**, vì định dạng hiện tại trình bày mỗi test case thành một biểu mẫu dọc rất dài, khiến tài liệu vượt quá 100 trang và khó sử dụng khi kiểm thử.
+
+## 1. Hai file cần chỉnh sửa
+
+Giữ nguyên hai tài liệu theo đúng phân công:
+
+1. `TestCases_Sprint1_Sprint2_Minh_HocVien.docx` — phần Học viên của Minh.
+2. `TestCases_Sprint1_Sprint2_Em_GiangVien_Admin.docx` — phần Giảng viên/Admin của Êm.
+
+Hãy tìm và sử dụng chính hai file hiện có trong workspace, thư mục đầu ra hoặc các tệp được tạo trong cuộc trò chuyện trước.
+
+**Không tạo một bộ test case mới từ đầu. Không thay thế tài liệu cũ bằng nội dung mới viết lại hoàn toàn.** Hãy dùng các test case hiện có làm nguồn chính, chỉnh sửa cấu trúc và hợp nhất có kiểm soát.
+
+Nếu không truy cập được hai file hiện có, hãy yêu cầu tôi cung cấp lại chính hai file đó. Không tự tạo file thay thế rồi tuyên bố đã chỉnh sửa thành công.
+
+## 2. Thay đổi định dạng sang bảng ngang như Excel
+
+Đây là yêu cầu quan trọng nhất.
+
+Chuyển phần test case từ dạng biểu mẫu dọc sang dạng **bảng kiểm thử ngang**, trong đó mỗi test case thông thường chiếm một hàng.
+
+Sử dụng:
+- Khổ giấy A4 ngang (Landscape).
+- Bảng có hàng tiêu đề rõ ràng.
+- Font khoảng 9–10 pt, dễ đọc.
+- Viền bảng mảnh, màu header nhẹ nhàng.
+- Khoảng cách đoạn và padding trong ô vừa phải.
+- Header bảng lặp lại ở các trang tiếp theo.
+- Tiêu đề nhóm theo Sprint và module.
+- Ngắt trang hợp lý, không tạo trang riêng cho từng test case.
+
+Cấu trúc bảng đề xuất:
+
+| Test Case ID | Sprint | Module / Task / US | Scenario / Điều kiện | Test Data | Test Steps | Expected Result | Type / Priority | Actual Result / Status | Evidence / Defect ID |
+|---|---|---|---|---|---|---|---|---|---|
+
+Có thể điều chỉnh độ rộng cột và gộp một số trường thực thi nếu cần, nhưng không được loại bỏ những thông tin quan trọng của test case.
+
+Không thu nhỏ font quá mức để ép tất cả vào một trang. Hãy tối ưu nội dung, độ rộng cột và cách ngắt trang để bảng dễ đọc, dễ in và thuận tiện khi sử dụng.
+
+Các bước thực hiện phải được rút gọn vừa đủ, vẫn có thứ tự rõ ràng. Kết quả mong đợi phải cụ thể và có thể xác minh.
+
+## 3. Tinh gọn số lượng test case nhưng không làm mất phạm vi kiểm thử
+
+Hai tài liệu hiện tại quá dài. Hãy rà soát và giảm số trang bằng cách hợp nhất các trường hợp kiểm thử thực sự tương đương.
+
+### Được phép gộp khi:
+- Nhiều test case kiểm tra cùng một quy tắc nghiệp vụ.
+- Các bước thao tác và kết quả mong đợi giống nhau.
+- Chỉ khác bộ dữ liệu đầu vào có thể trình bày trong một bảng data-driven.
+- Nhiều trường hợp kiểm tra lặp lại cùng một hành vi mà không tạo thêm giá trị kiểm thử.
+
+Ví dụ, có thể gộp một số trường hợp validation email vào một test case có bảng dữ liệu đầu vào và kết quả mong đợi riêng cho từng dòng.
+
+### Không được gộp nếu:
+- Quy trình hoặc kết quả mong đợi khác nhau đáng kể.
+- Một trường hợp thành công và một trường hợp thất bại kiểm tra hai nhánh nghiệp vụ khác nhau.
+- Có nguy cơ khiến người kiểm thử không biết bước nào thất bại.
+- Là luồng quan trọng cần xác minh độc lập.
+
+Ví dụ, không gộp tùy tiện đăng nhập thành công với đăng nhập thất bại; tạo danh mục với ngăn xóa danh mục đang được tham chiếu; nộp bài thủ công với tự nộp khi hết giờ; hoặc lưu dữ liệu thành công với xử lý khi database mất kết nối.
+
+Không áp đặt một số lượng test case cố định. Hãy giảm những phần trùng lặp thực sự, nhưng tiếp tục bao phủ tất cả chức năng và tiêu chí chấp nhận quan trọng của Sprint 1 và Sprint 2.
+
+## 4. Bảo toàn nội dung và mã truy vết
+
+Đây là chỉnh sửa trên tài liệu đã có, vì vậy:
+
+- Giữ nguyên các Test Case ID hiện có nếu test case chưa thay đổi bản chất.
+- Nếu hợp nhất nhiều test case, tạo quy tắc ánh xạ mã cũ sang mã mới và cập nhật Traceability Matrix.
+- Không giữ các Test Case ID trùng nhau trong cùng một tài liệu.
+- Giữ mã Sprint, Task/User Story và tên module.
+- Giữ nguyên các yêu cầu nghiệp vụ đã được xác định trong file kế hoạch.
+- Không bỏ các chức năng khó kiểm thử chỉ để giảm số trang.
+- Không tự nhận một chức năng đã hoàn thành nếu kế hoạch chưa xác nhận.
+- Ghi chú những yêu cầu còn mơ hồ hoặc mâu thuẫn, không tự suy diễn thành yêu cầu chính thức.
+
+Đối với tài liệu Minh, chỉ giữ phạm vi Học viên.
+
+Đối với tài liệu Êm, chỉ giữ phạm vi Giảng viên/Admin.
+
+Không chuyển test case từ người này sang tài liệu của người kia chỉ vì chúng có liên quan đến cùng một module.
+
+## 5. Giữ trạng thái kiểm thử đúng
+
+Hai file là tài liệu chuẩn bị để kiểm thử thủ công, không phải báo cáo kết quả đã chạy.
+
+Do đó:
+- Expected Result phải được giữ hoặc cải thiện cho rõ ràng.
+- Actual Result để trống.
+- Status giữ `NOT RUN`.
+- Evidence để trống.
+- Defect ID để trống.
+
+Không tự ghi Pass/Fail hoặc tạo bằng chứng giả.
+
+Nếu gộp nhiều test case thành một test case data-driven, phải thể hiện rõ từng dòng dữ liệu và kết quả mong đợi để người kiểm thử vẫn ghi nhận được trường hợp nào thất bại.
+
+## 6. Những phần cần giữ trong tài liệu
+
+Giữ lại và định dạng gọn:
+- Thông tin dự án và người phụ trách.
+- Phạm vi Sprint 1 và Sprint 2.
+- Điều kiện và dữ liệu kiểm thử chung.
+- Các bảng test case.
+- Traceability Matrix.
+- Tổng hợp trạng thái thực thi.
+- Mẫu ghi nhận lỗi.
+
+Không tạo trang riêng cho từng module hoặc từng test case nếu không cần thiết. Có thể đặt tiêu đề module ngay trước bảng tương ứng.
+
+Traceability Matrix phải phản ánh các test case thực tế sau khi hợp nhất, không được tiếp tục tham chiếu tới những mã đã bị xóa mà không có ánh xạ.
+
+## 7. Tên file đầu ra
+
+Sau khi sửa, xuất lại hai file Word với đúng tên:
+
+1. `TestCases_Sprint1_Sprint2_Minh_HocVien.docx`
+2. `TestCases_Sprint1_Sprint2_Em_GiangVien_Admin.docx`
+
+Đây là **phiên bản đã chỉnh sửa của các tài liệu hiện có**. Nếu môi trường cho phép, hãy lưu bản gốc dự phòng trước khi ghi đè. Nếu không thể ghi đè an toàn, hãy xuất hai phiên bản sửa đổi với hậu tố `_Revised` và không xóa bản gốc.
+
+## 8. Kiểm tra trước khi bàn giao
+
+Sau khi chỉnh sửa:
+
+1. Mở hoặc kiểm tra cấu trúc cả hai file Word.
+2. Xác nhận bảng nằm ngang và có nhiều test case trên mỗi trang.
+3. Kiểm tra độ rộng cột, ngắt trang, font và khả năng đọc.
+4. Kiểm tra không mất Test Case ID, Sprint hoặc Task/User Story.
+5. Đối chiếu lại phạm vi bằng `Kehoachtrienkhai.xlsx`.
+6. Kiểm tra Traceability Matrix sau khi hợp nhất.
+7. Xác nhận Actual Result, Evidence và Defect ID vẫn để trống, Status vẫn là `NOT RUN`.
+8. Báo cáo số trang trước và sau, số test case trước và sau, các nhóm đã gộp và những Task/User Story còn cần xác minh.
+
+Không tuyên bố đã sửa file nếu mới chỉ đưa ra hướng dẫn định dạng.
+
+**Kết quả mong muốn:** Hai file Word hiện có được chuyển sang bảng test case ngang kiểu Excel, gọn và chuyên nghiệp hơn, giảm đáng kể số trang nhưng vẫn đủ chức năng và tiêu chí nghiệm thu của Sprint 1 và Sprint 2 để Minh và Êm sử dụng khi kiểm thử.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-10-23T22:48:56+07:00.
+
+The user's current state is as follows:
+Active Document: d:\TDC\HK5\CDPTUD\EAI\.gitignore (LANGUAGE_UNSPECIFIED)
+Cursor is on line: 1
+Other open documents:
+- d:\TDC\HK5\CDPTUD\EAI\.gitignore (LANGUAGE_UNSPECIFIED)
+- d:\TDC\HK5\CDPTUD\EAI\EAI\GUI\Views\GiangVien\.gitkeep (LANGUAGE_UNSPECIFIED)
+- d:\TDC\HK5\CDPTUD\EAI\EAI\Database\Update_Rich_BaiHoc_Content.sql (LANGUAGE_UNSPECIFIED)
+- d:\TDC\HK5\CDPTUD\EAI\EAI\Database\Create_NoiDungHocTapAIBaiHoc.sql (LANGUAGE_UNSPECIFIED)
+- d:\TDC\HK5\CDPTUD\EAI\EAI\Database\EAI_seed.sql (LANGUAGE_UNSPECIFIED)
+</ADDITIONAL_METADATA>
+<USER_SETTINGS_CHANGE>
+The user changed setting `Model Selection` from Gemini 3.8 Flash (High) to Claude Opus 4.6 (Thinking). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
+</USER_SETTINGS_CHANGE>

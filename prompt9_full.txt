@@ -1,0 +1,166 @@
+﻿<USER_REQUEST>
+Há»§y bá» prompt phÃ­a trÃªn thá»±c hiá»‡n prompt má»›i sau Ä‘Ã¢y:
+# CHá»ˆNH Sá»¬A HAI FILE WORD TEST CASE HIá»†N CÃ“ â€” Tá»I GIáº¢N CÃ’N 5 Cá»˜T
+
+HÃ£y chá»‰nh sá»­a trá»±c tiáº¿p hai file Word test case Ä‘Ã£ táº¡o trÆ°á»›c Ä‘Ã³ cho dá»± Ã¡n EnglishAI/EAI:
+
+1. `TestCases_Sprint1_Sprint2_Minh_HocVien.docx` â€” pháº§n Há»c viÃªn cá»§a Minh.
+2. `TestCases_Sprint1_Sprint2_Em_GiangVien_Admin.docx` â€” pháº§n Giáº£ng viÃªn/Admin cá»§a ÃŠm.
+
+Nguá»“n yÃªu cáº§u gá»‘c lÃ  file `Kehoachtrienkhai.xlsx`.
+
+**KhÃ´ng táº¡o láº¡i bá»™ test case tá»« Ä‘áº§u.** HÃ£y sá»­ dá»¥ng hai file hiá»‡n cÃ³, giá»¯ láº¡i nhá»¯ng test case cÃ³ giÃ¡ trá»‹, tinh gá»n cÃ¡c trÆ°á»ng há»£p trÃ¹ng láº·p vÃ  thay Ä‘á»•i Ä‘á»‹nh dáº¡ng theo yÃªu cáº§u dÆ°á»›i Ä‘Ã¢y.
+
+Náº¿u khÃ´ng truy cáº­p Ä‘Æ°á»£c hai file Word hiá»‡n cÃ³, hÃ£y yÃªu cáº§u tÃ´i gá»­i láº¡i chÃºng. KhÃ´ng tá»± táº¡o tÃ i liá»‡u thay tháº¿ rá»“i tuyÃªn bá»‘ Ä‘Ã£ chá»‰nh sá»­a thÃ nh cÃ´ng.
+
+## 1. Báº®T BUá»˜C CHá»ˆ Sá»¬ Dá»¤NG 5 Cá»˜T
+
+Chuyá»ƒn toÃ n bá»™ pháº§n test case sang báº£ng ngang giá»‘ng Excel vá»›i Ä‘Ãºng 5 cá»™t:
+
+| MÃ£ TC | TÃªn TC | Thá»±c nghiá»‡m | Káº¿t quáº£ mong Ä‘á»£i | Pass/Fail |
+|---|---|---|---|---|
+
+Ã nghÄ©a cá»§a tá»«ng cá»™t:
+
+**1. MÃ£ TC**
+- MÃ£ test case duy nháº¥t.
+- Giá»¯ mÃ£ hiá»‡n cÃ³ náº¿u váº«n dÃ¹ng Ä‘Æ°á»£c.
+- Náº¿u gá»™p test case, cáº­p nháº­t mÃ£ vÃ  cÃ¡c tham chiáº¿u liÃªn quan nháº¥t quÃ¡n.
+
+**2. TÃªn TC**
+- TÃªn ngáº¯n gá»n, mÃ´ táº£ chÃ­nh xÃ¡c tÃ¬nh huá»‘ng kiá»ƒm thá»­.
+- KhÃ´ng Ä‘Æ°a cáº£ Ä‘oáº¡n mÃ´ táº£ dÃ i vÃ o tÃªn.
+- TÃªn pháº£i giÃºp ngÆ°á»i kiá»ƒm thá»­ nháº­n biáº¿t Ä‘Æ°á»£c má»¥c tiÃªu cá»§a test case.
+
+**3. Thá»±c nghiá»‡m**
+- Ghi Ä‘iá»u kiá»‡n cáº§n chuáº©n bá»‹, dá»¯ liá»‡u cáº§n nháº­p vÃ  cÃ¡c bÆ°á»›c thá»±c hiá»‡n cá»¥ thá»ƒ.
+- TrÃ¬nh bÃ y theo thá»© tá»± 1, 2, 3...
+- Viáº¿t ngáº¯n gá»n, dá»… lÃ m theo.
+- Náº¿u nhiá»u test case chá»‰ khÃ¡c dá»¯ liá»‡u Ä‘áº§u vÃ o nhÆ°ng cÃ¹ng má»™t quy táº¯c nghiá»‡p vá»¥, cÃ³ thá»ƒ gá»™p thÃ nh má»™t test case vÃ  liá»‡t kÃª cÃ¡c bá»™ dá»¯ liá»‡u cáº§n thá»­ ngay trong cá»™t nÃ y.
+
+**4. Káº¿t quáº£ mong Ä‘á»£i**
+- MÃ´ táº£ káº¿t quáº£ rÃµ rÃ ng, cÃ³ thá»ƒ quan sÃ¡t hoáº·c xÃ¡c minh.
+- Náº¿u liÃªn quan Ä‘áº¿n dá»¯ liá»‡u, nÃªu dá»¯ liá»‡u cáº§n Ä‘Æ°á»£c lÆ°u hoáº·c cáº­p nháº­t Ä‘Ãºng.
+- KhÃ´ng viáº¿t chung chung nhÆ° â€œHá»‡ thá»‘ng hoáº¡t Ä‘á»™ng Ä‘Ãºngâ€.
+
+**5. Pass/Fail**
+- Äá»ƒ trá»‘ng hoáº·c cung cáº¥p hai lá»±a chá»n `[ ] Pass` vÃ  `[ ] Fail` Ä‘á»ƒ ngÆ°á»i kiá»ƒm thá»­ tá»± Ä‘Ã¡nh dáº¥u.
+- KhÃ´ng tá»± Ä‘Ã¡nh dáº¥u Pass hoáº·c Fail khi chÆ°a thá»±c hiá»‡n kiá»ƒm thá»­.
+
+KhÃ´ng thÃªm cÃ¡c cá»™t Sprint, Module, Task/User Story, Priority, Actual Result, Evidence hoáº·c Notes vÃ o báº£ng test case. Náº¿u cáº§n giá»¯ thÃ´ng tin Sprint, module hoáº·c mÃ£ Task/User Story, hÃ£y dÃ¹ng tiÃªu Ä‘á» phÃ¢n nhÃ³m phÃ­a trÃªn báº£ng hoáº·c pháº§n chÃº thÃ­ch ngáº¯n, khÃ´ng tÄƒng sá»‘ cá»™t.
+
+## 2. CHIA NHÃ“M TEST CASE RÃ• RÃ€NG
+
+Trong má»—i file Word, phÃ¢n chia theo:
+- Sprint 1.
+- Sprint 2.
+- Module/chá»©c nÄƒng thuá»™c tá»«ng Sprint.
+
+VÃ­ dá»¥:
+
+**SPRINT 1 â€” QUáº¢N LÃ NGÆ¯á»œI DÃ™NG**
+
+*LiÃªn quan: US-GV03 â€” Quáº£n lÃ½ ngÆ°á»i dÃ¹ng*
+
+Sau Ä‘Ã³ lÃ  báº£ng 5 cá»™t chá»©a cÃ¡c test case cá»§a module nÃ y.
+
+Ãp dá»¥ng tÆ°Æ¡ng tá»± cho nhá»¯ng chá»©c nÄƒng cÃ²n láº¡i. KhÃ´ng táº¡o má»™t trang riÃªng cho tá»«ng module hoáº·c tá»«ng test case náº¿u khÃ´ng cáº§n thiáº¿t.
+
+Hai tÃ i liá»‡u váº«n pháº£i phÃ¢n biá»‡t Ä‘Ãºng pháº¡m vi:
+- File cá»§a Minh chá»‰ gá»“m chá»©c nÄƒng Há»c viÃªn.
+- File cá»§a ÃŠm chá»‰ gá»“m chá»©c nÄƒng Giáº£ng viÃªn/Admin.
+
+## 3. GIáº¢M Sá» LÆ¯á»¢NG TEST CASE Má»˜T CÃCH Há»¢P LÃ
+
+TÃ i liá»‡u hiá»‡n táº¡i quÃ¡ dÃ i, vÃ¬ váº­y hÃ£y rÃ  soÃ¡t vÃ  tinh gá»n trÆ°á»›c khi xuáº¥t file.
+
+### CÃ³ thá»ƒ gá»™p
+- CÃ¡c test case trÃ¹ng láº·p hoáº·c cÃ³ cÃ¹ng má»¥c tiÃªu kiá»ƒm thá»­.
+- Nhá»¯ng trÆ°á»ng há»£p chá»‰ khÃ¡c dá»¯ liá»‡u Ä‘áº§u vÃ o nhÆ°ng dÃ¹ng cÃ¹ng má»™t quy táº¯c validation.
+- Nhá»¯ng bÆ°á»›c láº·p láº¡i khÃ´ng táº¡o thÃªm giÃ¡ trá»‹ kiá»ƒm thá»­.
+
+Náº¿u gá»™p cÃ¡c trÆ°á»ng há»£p dá»¯ liá»‡u, pháº£i ghi Ä‘á»§ tá»«ng bá»™ dá»¯ liá»‡u vÃ  káº¿t quáº£ mong Ä‘á»£i tÆ°Æ¡ng á»©ng trong cá»™t Thá»±c nghiá»‡m hoáº·c Káº¿t quáº£ mong Ä‘á»£i.
+
+### Pháº£i giá»¯ riÃªng
+- ÄÄƒng nháº­p thÃ nh cÃ´ng vÃ  Ä‘Äƒng nháº­p tháº¥t báº¡i.
+- Táº¡o dá»¯ liá»‡u thÃ nh cÃ´ng vÃ  ngÄƒn táº¡o dá»¯ liá»‡u khÃ´ng há»£p lá»‡.
+- LÆ°u dá»¯ liá»‡u thÃ nh cÃ´ng vÃ  xá»­ lÃ½ lá»—i database.
+- Ná»™p bÃ i thá»§ cÃ´ng vÃ  tá»± ná»™p khi háº¿t giá».
+- CÃ¡c luá»“ng cÃ³ quy táº¯c nghiá»‡p vá»¥ hoáº·c káº¿t quáº£ mong Ä‘á»£i khÃ¡c nhau Ä‘Ã¡ng ká»ƒ.
+
+KhÃ´ng xÃ³a cÃ¡c chá»©c nÄƒng hoáº·c trÆ°á»ng há»£p lá»—i quan trá»ng chá»‰ Ä‘á»ƒ giáº£m sá»‘ trang.
+
+Äáº·c biá»‡t, tiáº¿p tá»¥c bao phá»§ toÃ n bá»™ chá»©c nÄƒng Sprint 1 vÃ  Sprint 2 trong `Kehoachtrienkhai.xlsx`. HÃ£y Ä‘á»‘i chiáº¿u cÃ¡c Task/User Story gá»‘c trÆ°á»›c vÃ  sau khi tinh gá»n Ä‘á»ƒ trÃ¡nh bá» sÃ³t.
+
+KhÃ´ng Ä‘áº·t má»¥c tiÃªu sá»‘ lÆ°á»£ng test case cá»‘ Ä‘á»‹nh. Æ¯u tiÃªn sá»‘ lÆ°á»£ng vá»«a Ä‘á»§, khÃ´ng trÃ¹ng láº·p vÃ  Ä‘á»§ Ä‘á»ƒ kiá»ƒm tra chá»©c nÄƒng má»™t cÃ¡ch cÃ³ Ã½ nghÄ©a.
+
+## 4. Äá»ŠNH Dáº NG WORD
+
+- Chuyá»ƒn cÃ¡c báº£ng test case sang khá»• A4 ngang (Landscape) náº¿u giÃºp ná»™i dung dá»… Ä‘á»c hÆ¡n.
+- Sá»­ dá»¥ng Ä‘Ãºng 5 cá»™t nhÆ° quy Ä‘á»‹nh.
+- Font chá»¯ khoáº£ng 9â€“10 pt, rÃµ rÃ ng vÃ  dá»… Ä‘á»c.
+- DÃ¹ng hÃ ng tiÃªu Ä‘á» cÃ³ ná»n mÃ u nháº¹, Ä‘Æ°á»ng viá»n máº£nh.
+- Äiá»u chá»‰nh Ä‘á»™ rá»™ng cá»™t há»£p lÃ½; cá»™t Thá»±c nghiá»‡m vÃ  Káº¿t quáº£ mong Ä‘á»£i rá»™ng hÆ¡n cÃ¡c cá»™t cÃ²n láº¡i.
+- Giáº£m khoáº£ng tráº¯ng thá»«a, khÃ´ng Ä‘á»ƒ má»—i test case chiáº¿m má»™t trang.
+- Má»™t trang cáº§n chá»©a Ä‘Æ°á»£c nhiá»u test case khi ná»™i dung cho phÃ©p.
+- Láº·p láº¡i hÃ ng tiÃªu Ä‘á» báº£ng khi sang trang má»›i.
+- TrÃ¡nh tÃ¡ch má»™t hÃ ng test case giá»¯a hai trang náº¿u cÃ³ thá»ƒ.
+- KhÃ´ng thu nhá» font quÃ¡ má»©c Ä‘á»ƒ Ã©p ná»™i dung.
+- KhÃ´ng dÃ¹ng hÃ¬nh trang trÃ­ khÃ´ng cáº§n thiáº¿t.
+
+TÃ i liá»‡u cáº§n gá»n, chuyÃªn nghiá»‡p, dá»… in vÃ  thuáº­n tiá»‡n khi dÃ¹ng trá»±c tiáº¿p Ä‘á»ƒ kiá»ƒm thá»­.
+
+## 5. GIá»® Ná»˜I DUNG VÃ€ TÃNH TRUY Váº¾T
+
+- Giá»¯ Ä‘Ãºng yÃªu cáº§u nghiá»‡p vá»¥ trong file Excel.
+- KhÃ´ng tá»± suy diá»…n chá»©c nÄƒng chÆ°a Ä‘Æ°á»£c xÃ¡c nháº­n.
+- Giá»¯ mÃ£ Task/User Story báº±ng chÃº thÃ­ch phÃ¢n nhÃ³m hoáº·c ghi chÃº Ä‘áº§u nhÃ³m.
+- KhÃ´ng lÃ m máº¥t má»‘i liÃªn há»‡ giá»¯a test case vÃ  yÃªu cáº§u gá»‘c.
+- Náº¿u gá»™p nhiá»u mÃ£ test case, ghi nháº­n viá»‡c Ã¡nh xáº¡ mÃ£ cÅ© sang mÃ£ má»›i trong pháº§n ghi chÃº cuá»‘i tÃ i liá»‡u hoáº·c báº£ng Ä‘á»‘i chiáº¿u ngáº¯n.
+- Ghi chÃº cÃ¡c yÃªu cáº§u mÃ¢u thuáº«n hoáº·c chÆ°a rÃµ Ä‘á»ƒ tÃ´i xÃ¡c minh.
+- KhÃ´ng Ä‘Æ°a káº¿t quáº£ Pass/Fail giáº£ vÃ o tÃ i liá»‡u.
+
+KhÃ´ng cáº§n giá»¯ cÃ¡c báº£ng tá»•ng há»£p dÃ i hoáº·c nhá»¯ng pháº§n hÆ°á»›ng dáº«n láº·p láº¡i. Chá»‰ giá»¯ pháº§n giá»›i thiá»‡u ngáº¯n, cÃ¡c báº£ng test case vÃ  ghi chÃº cáº§n thiáº¿t cho viá»‡c kiá»ƒm thá»­.
+
+## 6. TÃŠN FILE Äáº¦U RA
+
+Xuáº¥t láº¡i hai file Word Ä‘á»™c láº­p vá»›i Ä‘Ãºng tÃªn:
+
+1. `TestCases_Sprint1_Sprint2_Minh_HocVien.docx`
+2. `TestCases_Sprint1_Sprint2_Em_GiangVien_Admin.docx`
+
+Náº¿u khÃ´ng thá»ƒ ghi Ä‘Ã¨ an toÃ n, hÃ£y táº¡o hai file cÃ³ háº­u tá»‘ `_Revised` vÃ  giá»¯ nguyÃªn báº£n gá»‘c.
+
+## 7. KIá»‚M TRA TRÆ¯á»šC KHI BÃ€N GIAO
+
+Sau khi sá»­a:
+
+1. Kiá»ƒm tra cáº£ hai file Word thá»±c táº¿.
+2. XÃ¡c nháº­n báº£ng test case chá»‰ cÃ³ Ä‘Ãºng 5 cá»™t.
+3. XÃ¡c nháº­n nhiá»u test case Ä‘Æ°á»£c hiá»ƒn thá»‹ trÃªn má»—i trang khi phÃ¹ há»£p.
+4. Kiá»ƒm tra font chá»¯, Ä‘á»™ rá»™ng cá»™t, ngáº¯t trang vÃ  kháº£ nÄƒng Ä‘á»c.
+5. Äá»‘i chiáº¿u láº¡i pháº¡m vi Sprint 1â€“2 vá»›i file Excel.
+6. Kiá»ƒm tra cÃ¡c test case sau khi gá»™p khÃ´ng bá»‹ máº¥t bÆ°á»›c thá»±c hiá»‡n hoáº·c káº¿t quáº£ mong Ä‘á»£i.
+7. BÃ¡o cÃ¡o sá»‘ trang vÃ  sá»‘ test case trÆ°á»›c/sau cho tá»«ng file.
+8. Liá»‡t kÃª nhá»¯ng nhÃ³m test case Ä‘Ã£ gá»™p vÃ  cÃ¡c yÃªu cáº§u cÃ²n cáº§n xÃ¡c minh.
+
+KhÃ´ng tuyÃªn bá»‘ Ä‘Ã£ sá»­a file náº¿u má»›i chá»‰ Ä‘á» xuáº¥t cÃ¡ch Ä‘á»‹nh dáº¡ng.
+
+**Káº¿t quáº£ cuá»‘i cÃ¹ng:** Hai file Word hiá»‡n cÃ³ Ä‘Æ°á»£c chá»‰nh sá»­a trá»±c tiáº¿p, trÃ¬nh bÃ y test case thÃ nh báº£ng ngang chá»‰ gá»“m MÃ£ TC, TÃªn TC, Thá»±c nghiá»‡m, Káº¿t quáº£ mong Ä‘á»£i vÃ  Pass/Fail. TÃ i liá»‡u pháº£i ngáº¯n gá»n hÆ¡n Ä‘Ã¡ng ká»ƒ nhÆ°ng váº«n bao phá»§ Ä‘áº§y Ä‘á»§ cÃ¡c chá»©c nÄƒng cáº§n kiá»ƒm thá»­ cá»§a Sprint 1 vÃ  Sprint 2.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-10-23T22:59:13+07:00.
+
+The user's current state is as follows:
+Active Document: d:\TDC\HK5\CDPTUD\EAI\.gitignore (LANGUAGE_UNSPECIFIED)
+Cursor is on line: 1
+Other open documents:
+- d:\TDC\HK5\CDPTUD\EAI\test_word.ps1 (LANGUAGE_POWERSHELL)
+- d:\TDC\HK5\CDPTUD\EAI\.gitignore (LANGUAGE_UNSPECIFIED)
+- d:\TDC\HK5\CDPTUD\EAI\EAI\GUI\Views\GiangVien\.gitkeep (LANGUAGE_UNSPECIFIED)
+- d:\TDC\HK5\CDPTUD\EAI\EAI\Database\Update_Rich_BaiHoc_Content.sql (LANGUAGE_UNSPECIFIED)
+- d:\TDC\HK5\CDPTUD\EAI\EAI\Database\Create_NoiDungHocTapAIBaiHoc.sql (LANGUAGE_UNSPECIFIED)
+</ADDITIONAL_METADATA>
+<USER_SETTINGS_CHANGE>
+The user changed setting `Model Selection` from Gemini 3.8 Flash (High) to Claude Opus 4.6 (Thinking). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
+</USER_SETTINGS_CHANGE>

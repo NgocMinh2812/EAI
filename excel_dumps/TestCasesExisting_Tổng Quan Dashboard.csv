@@ -1,0 +1,30 @@
+﻿DỰ ÁN ENGLISHEAI - BÁO CÁO TỔNG QUAN BỘ KIỂM THỬ TỰ ĐỘNG & CHỨC NĂNG,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+THÔNG TIN DỰ ÁN & MÔI TRƯỜNG KIỂM THỬ,,,,,TỔNG SỐ TEST CASE,,,SỐ TEST CASE ĐẠT (PASS),
+Tên hệ thống,EnglishEAI - Nền tảng Học tiếng Anh thông minh cá nhân hóa với AI,,,,,,,,
+Công nghệ & Framework,"C# .NET 7.0 / .NET 10, WPF (Desktop App), MS SQL Server 2022",,,,54,,,54,
+Kiến trúc phần mềm,3-Tier N-Layer (GUI - BUS - DAL - DTO),,,,,,,,
+Phạm vi kiểm thử,"Sprint 1 (Tuần 1 & 2) + Sprint 2 (Tuần 3 & 4: Học tập, Luyện tập, Khảo thí)",,,,,,,,
+Môi trường thực thi,"Windows 11 x64, .NET 7.0-windows Desktop SDK, MS SQL LocalDB/Express",,,,TỶ LỆ THÀNH CÔNG,,,SỐ LỖI (FAIL),
+Ngày hoàn thiện,21/10/2026,,,,100%,,,0,
+Trạng thái nghiệm thu,ĐẠT 100% (54/54 Test Cases Passed),,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+BẢNG TỔNG HỢP PHÂN BỔ TEST CASE THEO PHÂN HỆ & SPRINT,,,,,,,,,
+STT,Giai Đoạn (Sprint),Phân Hệ / Module Kiểm Thử,Số Lượng TC,Số TC Đạt,Số TC Lỗi,Tỷ Lệ Pass,Mức Độ Nghiêm Trọng,Trạng Thái,Ghi Chú
+1,Sprint 2 (Tuần 3),Task 01: Giao diện Trang chủ Sinh viên (TrangChuView),3,3,0,100%,High,PASS,"Thống kê KPI, Bài học gần đây"
+2,Sprint 2 (Tuần 3),Task 02: Phân hệ Học tập theo Lộ trình (HocTapView),3,3,0,100%,Critical,PASS,"Nạp CSDL, 5 kỹ năng, đọc lý thuyết"
+3,Sprint 2 (Tuần 3),Task 03: Tích hợp Audio Player Dual Engine (MediaPlayer + AI),3,3,0,100%,High,PASS,WPF Media + System.Speech Fallback
+4,Sprint 2 (Tuần 3),Task 04: Ghi nhận Thời gian & Tiến độ vào SQL Server,3,3,0,100%,Critical,PASS,"Cộng dồn phút học, ràng buộc 100%"
+5,Sprint 2 (Tuần 4),Task 05: Phân hệ Luyện tập theo Kỹ năng (LuyenTapView),3,3,0,100%,High,PASS,"Flashcard từ vựng, thuật toán Dictation"
+6,Sprint 2 (Tuần 4),Task 06: Động cơ Thi thử Chuẩn hóa (ThiThuView),3,3,0,100%,Critical,PASS,"Nạp đề IELTS/TOEIC, cắm cờ (Flag)"
+7,Sprint 2 (Tuần 4),Task 07: Chấm điểm Đề thi & Lưu Lịch sử Khảo thí,3,3,0,100%,Critical,PASS,"Thang điểm 10 chuẩn, lưu LuotLamBai"
+8,Sprint 2 (Tuần 4),Task 08: Màn hình Xem lại Chi tiết Bài thi (Review Mode),3,3,0,100%,High,PASS,"Đối chiếu đáp án đúng/sai, lời giải"
+9,Sprint 2 (Tuần 4),Task 09: Sprint Review & Động cơ Khảo thí toàn diện,3,3,0,100%,Critical,PASS,"Timer đếm ngược, tự động nộp bài khi hết giờ"
+10,Sprint 1 (Tuần 1),Xác thực Đăng nhập & Phân quyền Người dùng,6,6,0,100%,Critical,PASS,"Auth Giảng viên, Sinh viên, Admin"
+11,Sprint 1 (Tuần 1),Quản lý Cây Thư mục & Danh mục Học liệu (TreeView),6,6,0,100%,High,PASS,"Thêm, sửa, xóa, di chuyển thư mục"
+12,Sprint 1 (Tuần 2),"Tải lên & Xử lý Học liệu (Upload Word .docx, PDF)",6,6,0,100%,High,PASS,"Trích xuất văn bản, chống trùng tên"
+13,Sprint 1 (Tuần 2),Quản trị Người dùng & Phân quyền Hệ thống (Admin),5,5,0,100%,High,PASS,"CRUD người dùng, cascade FK safe"
+14,NFR / Phi chức năng,"Kiểm thử Phi chức năng: Hiệu năng, Bảo mật, Giao dịch",5,5,0,100%,Critical,PASS,"Tối ưu N+1 query, bảo mật pass, timeout"
+TỔNG CỘNG TOÀN DỰ ÁN,,,54,54,0,100%,TẤT CẢ TEST CASES ĐẠT CHUẨN XÁC THỰC,,

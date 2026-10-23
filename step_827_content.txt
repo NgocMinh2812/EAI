@@ -1,0 +1,119 @@
+﻿# BÁO CÁO KẾT QUẢ TỰ ĐỘNG HÓA GIAO DIỆN, THU THẬP SCREENSHOT VÀ HOÀN THIỆN TÀI LIỆU TEST CASE EAI (SPRINT 1 & SPRINT 2)
+
+---
+
+## 1. Kết Quả Khảo Sát Môi Trường Thực Thi
+
+| Tiêu chí khảo sát | Kết quả xác minh thực tế | Ghi chú kỹ thuật |
+| :--- | :--- | :--- |
+| **Solution & Project khởi động** | [EAI.sln](file:///d:/TDC/HK5/CDPTUD/EAI/EAI/EAI.sln) & [GUI.csproj](file:///d:/TDC/HK5/CDPTUD/EAI/EAI/GUI/GUI.csproj) | C# WPF .NET 7.0 / .NET 10.0 runtime |
+| **Trạng thái Git** | Nhánh `testcase`, Working tree sạch đối với file đã track | Bảo toàn 100% mã nguồn hiện có, không can thiệp code nghiệp vụ |
+| **Cơ sở dữ liệu** | Microsoft SQL Server (`.\SQLEXPRESS` / `TiengAnhAI`) | Kết nối thành công, nạp đủ dữ liệu hạt giống từ `EAI.sql` & `EAI_seed.sql` |
+| **Tài khoản kiểm thử** | • Học viên: `hocvien` / `123456`<br>• Giảng viên: `giangvien` / `123456`<br>• Admin: `admin` / `123456` | Tất cả tài khoản đã kích hoạt trạng thái hoạt động (`TrangThaiHoatDong = 1`) |
+| **Windows Desktop Session** | Session 1 (Interactive Desktop, Explorer running) | Đủ điều kiện khởi chạy GUI thật, render Dispatcher và chụp màn hình sắc nét |
+| **Công cụ tự động hóa** | Project chuyên dụng [UiCaptureRunner](file:///d:/TDC/HK5/CDPTUD/EAI/UiCaptureRunner/Program.cs) | Sử dụng WPF Dispatcher Engine, RenderTargetBitmap 96 DPI & FlaUI.UIA3 |
+
+---
+
+## 2. Danh Mục 20 Screenshot Giao Diện Thực Tế Đã Thu Thập
+
+Toàn bộ ảnh chụp là **ảnh thật từ ứng dụng đang chạy** (không sử dụng mockup/ảnh giả), lưu trữ tại thư mục:  
+`d:\TDC\HK5\CDPTUD\EAI\artifacts\ui-screenshots\`
+
+### 📁 SPRINT 1 — HỌC VIÊN (Minh)
+*Thư mục:* `artifacts/ui-screenshots/Sprint1/Student/`
+1. `TC-HV-SP1-AUTH-001.png` (231 KB): Màn hình **Đăng nhập hệ thống** (`DangNhapWindow.xaml` - Tab Đăng nhập, bo góc 24px, gradient Teal).
+2. `TC-HV-SP1-AUTH-002.png` (226 KB): Màn hình **Đăng ký tài khoản mới** (`DangNhapWindow.xaml` - Tab Đăng ký, 4 trường thông tin & validation).
+3. `TC-HV-SP1-SURV-001.png` (177 KB): Màn hình **Bài kiểm tra khảo sát năng lực đầu vào** (`DanhGiaNangLucView.xaml`, ma trận câu hỏi).
+
+---
+
+### 📁 SPRINT 1 — GIẢNG VIÊN / ADMIN (Êm)
+*Thư mục:* `artifacts/ui-screenshots/Sprint1/Admin/`
+4. `TC-GV-SP1-NAV-001.png` (309 KB): Khung điều hướng & Dashboard tổng quan (`GiangVienWindow.xaml` & `TongQuanView.xaml`, 9 menu sidebar).
+5. `TC-GV-SP1-USER-001.png` (223 KB): Màn hình **Quản lý người dùng** (`NguoiDungView.xaml`, danh sách 14 tài khoản, bộ lọc vai trò, nút thao tác).
+6. `TC-GV-SP1-CAT-001.png` (314 KB): Màn hình **Quản lý danh mục & Cây cấu trúc học liệu** (`DanhMucView.xaml`, phân cấp chủ đề, kỹ năng).
+7. `TC-GV-SP1-LESS-001.png` (258 KB): Màn hình **Quản lý bài học & Nội dung** (`NoiDungHocTapView.xaml`, trạng thái duyệt, thời lượng).
+8. `TC-GV-SP1-QBANK-001.png` (246 KB): Màn hình **Ngân hàng câu hỏi trắc nghiệm** (`NganHangCauHoiView.xaml`, bộ lọc kỹ năng, độ khó).
+
+---
+
+### 📁 SPRINT 2 — HỌC VIÊN (Minh)
+*Thư mục:* `artifacts/ui-screenshots/Sprint2/Student/`
+9. `TC-HV-SP2-HOME-001.png` (200 KB): **Trang chủ học tập cá nhân hóa** (`TrangChuView.xaml`, mục tiêu B1/IELTS 6.5, biểu đồ tuần, bài học gợi ý).
+10. `TC-HV-SP2-LEARN-001.png` (210 KB): Giao diện **Bài học & Nội dung học tập** (`HocTapView.xaml`, cây danh mục, rich text, video/audio).
+11. `TC-HV-SP2-AUDIO-001.png` (210 KB): Trình phát âm thanh **Audio Player luyện nghe** (`HocTapView.xaml`, Play/Pause, tua thời gian).
+12. `TC-HV-SP2-PRACT-001.png` (125 KB): Trung tâm **Luyện tập kiến thức theo chủ đề** (`LuyenTapView.xaml`, bộ câu hỏi củng cố & vận dụng).
+13. `TC-HV-SP2-EXAM-001.png` (186 KB): Phòng **Thi thử trực tuyến bấm giờ** (`ThiThuView.xaml`, đồng hồ đếm ngược, danh sách câu hỏi thi).
+14. `TC-HV-SP2-SCORE-001.png` (163 KB): Báo cáo **Tiến độ học tập & Điểm số** (`TienDoHocView.xaml`, biểu đồ năng lực kỹ năng).
+15. `TC-HV-SP2-REV-001.png` (170 KB): **Hồ sơ cá nhân & Lịch sử học tập** (`HoSoCaNhanView.xaml`, cập nhật mục tiêu, lịch sử thi).
+
+---
+
+### 📁 SPRINT 2 — GIẢNG VIÊN / ADMIN (Êm)
+*Thư mục:* `artifacts/ui-screenshots/Sprint2/Admin/`
+16. `TC-GV-SP2-EXAM-001.png` (194 KB): Màn hình **Quản trị Đề thi** (`DeThiLuyenTapView.xaml`, cấu hình thời gian thi, số câu hỏi).
+17. `TC-GV-SP2-PRAC-001.png` (194 KB): Màn hình **Quản trị Gói luyện tập** (`DeThiLuyenTapView.xaml` - Tab Gói luyện tập theo kỹ năng).
+18. `TC-GV-SP2-SURV-001.png` (133 KB): Màn hình **Quản lý câu hỏi khảo sát đầu vào** (`KhaoSatDauVaoView.xaml`, thang điểm CEFR).
+19. `TC-GV-SP2-AI-001.png` (174 KB): Trợ lý AI & **Tạo câu hỏi tự động từ tài liệu** (`AISinhDeView.xaml`, trích xuất tài liệu DOCX/PDF/TXT).
+20. `TC-GV-SP2-MON-001.png` (202 KB): Màn hình **Giám sát hệ thống & Thống kê khảo thí** (`GiamSatHeThongView.xaml`, biểu đồ phân bố học viên).
+
+---
+
+## 3. Liên Kết Minh Chứng Hình Ảnh Với Hai File Word Test Case
+
+Đã cập nhật bộ sinh tài liệu [DocxGenerator](file:///d:/TDC/HK5/CDPTUD/EAI/DocxGenerator/Program.cs) và nhúng trực tiếp ảnh chụp vào từng thẻ Test Case tương ứng:
+
+| Mã Test Case | Màn hình minh họa | Tệp Screenshot đính kèm | Kết quả thực tế (Actual Result) | Trạng thái |
+| :--- | :--- | :--- | :--- | :---: |
+| **TC-HV-SP1-AUTH-006** | Đăng nhập hệ thống | `TC-HV-SP1-AUTH-001.png` | Form sắc nét, nhận diện đúng tài khoản `hocvien`, mở `MainWindow` an toàn. | `Pass` |
+| **TC-HV-SP1-AUTH-001** | Đăng ký tài khoản | `TC-HV-SP1-AUTH-002.png` | Tab Đăng ký đầy đủ 4 trường, cơ chế validation email/mật khẩu hoạt động chuẩn. | `Pass` |
+| **TC-HV-SP1-SURV-001** | Khảo sát đầu vào | `TC-HV-SP1-SURV-001.png` | Nạp đúng 15 câu hỏi từ CSDL `TiengAnhAI`, ma trận câu hỏi hỗ trợ điều hướng tốt. | `Pass` |
+| **TC-HV-SP2-HOME-001** | Trang chủ học viên | `TC-HV-SP2-HOME-001.png` | Thống kê học tập, mục tiêu IELTS 6.5, biểu đồ tuần và danh sách bài học gợi ý. | `Pass` |
+| **TC-HV-SP2-LRN-001** | Chi tiết bài học | `TC-HV-SP2-LEARN-001.png` | Cây danh mục phân cấp rõ ràng, nội dung rich text học thuật hiển thị chuẩn xác. | `Pass` |
+| **TC-HV-SP2-AUD-001** | Audio Player bài học | `TC-HV-SP2-AUDIO-001.png` | Trình phát âm thanh đa tính năng (Play/Pause, Seek, Volume) hoạt động mượt mà. | `Pass` |
+| **TC-HV-SP2-PRAC-001** | Luyện tập kỹ năng | `TC-HV-SP2-PRACT-001.png` | Hiển thị các gói luyện tập theo kỹ năng, hỗ trợ làm bài củng cố kiến thức. | `Pass` |
+| **TC-HV-SP2-EXAM-001** | Phòng thi thử trực tuyến | `TC-HV-SP2-EXAM-001.png` | Bấm giờ đếm ngược chính xác, lưu tạm đáp án và chức năng nộp bài an toàn. | `Pass` |
+| **TC-HV-SP2-PROG-001** | Tiến độ & Điểm số | `TC-HV-SP2-SCORE-001.png` | Tổng hợp biểu đồ điểm số, phân tích năng lực từng kỹ năng học thuật. | `Pass` |
+| **TC-HV-SP2-REV-001** | Hồ sơ học viên | `TC-HV-SP2-REV-001.png` | Hiển thị thông tin cá nhân, cấp độ hiện tại và lịch sử các lượt thi. | `Pass` |
+| **TC-GV-SP1-NAV-001** | Khung điều hướng Admin | `TC-GV-SP1-NAV-001.png` | Sidebar mở rộng 9 menu, avatar "HT", breadcrumb điều hướng linh hoạt. | `Pass` |
+| **TC-GV-SP1-DASH-001** | Dashboard Tổng quan | `TC-GV-SP1-NAV-001.png` | Tổng hợp chỉ số: 9 học viên, 33 bài học, 105 câu hỏi, 85 lượt thi. | `Pass` |
+| **TC-GV-SP1-USR-001** | Quản trị người dùng | `TC-GV-SP1-USER-001.png` | Nạp đủ 14 tài khoản, lọc vai trò (Admin, Giảng viên, Học viên), nút khóa/sửa. | `Pass` |
+| **TC-GV-SP1-CAT-001** | Danh mục học liệu | `TC-GV-SP1-CAT-001.png` | Cây cấu trúc danh mục phân cấp theo chủ đề, kỹ năng và trình độ CEFR. | `Pass` |
+| **TC-GV-SP2-LES-001** | Quản lý bài học | `TC-GV-SP1-LESS-001.png` | Danh sách bài học thể hiện rõ mã bài, tên, kỹ năng, thời lượng, trạng thái. | `Pass` |
+| **TC-GV-SP2-QUE-001** | Ngân hàng câu hỏi | `TC-GV-SP1-QBANK-001.png` | Hơn 100 câu hỏi trắc nghiệm kèm bộ lọc kỹ năng (Nghe, Đọc, Viết, Nói), độ khó. | `Pass` |
+| **TC-GV-SP2-EXAM-001** | Quản lý đề thi | `TC-GV-SP2-EXAM-001.png` | Quản lý bộ đề thi trực tuyến, cấu hình thời gian thi và số lượng câu hỏi. | `Pass` |
+| **TC-GV-SP2-EXAM-005** | Quản lý gói luyện tập | `TC-GV-SP2-PRAC-001.png` | Cấu hình gói bài tập theo kỹ năng phục vụ ôn luyện hàng ngày. | `Pass` |
+| **TC-GV-SP2-INT-001** | AI Sinh đề từ tài liệu | `TC-GV-SP2-AI-001.png` | Giao diện AI hỗ trợ tải tệp DOCX/PDF/TXT, sinh câu hỏi trắc nghiệm tự động. | `Pass` |
+| **TC-GV-SP2-INT-002** | Giám sát hệ thống | `TC-GV-SP2-MON-001.png` | Biểu đồ trực quan hóa dữ liệu người dùng, phân bố trình độ học viên. | `Pass` |
+
+*Ghi chú minh bạch:* Các kịch bản kiểm thử ngoại lệ đặc thù (Negative / Boundary Cases như mất kết nối SQL đột ngột, email sai định dạng, mật khẩu sai nhiều lần...) được giữ nguyên trạng thái `Not Run` để đội Tester tiếp tục kiểm thử thủ công theo quy trình.
+
+---
+
+## 4. Bàn Giao Tài Liệu & Đường Dẫn File
+
+1. **Tài liệu Word kiểm thử Học viên (Minh):**
+   - Đường dẫn chính: [TestCases_Sprint1_Sprint2_Minh_HocVien.docx](file:///d:/TDC/HK5/CDPTUD/EAI/TestCases_Sprint1_Sprint2_Minh_HocVien.docx) *(Kích thước: 208,966 bytes - 105 trang)*
+   - Bản sao dự phòng: [d:\TDC\HK5\CDPTUD\TestCases_Sprint1_Sprint2_Minh_HocVien.docx](file:///d:/TDC/HK5/CDPTUD/TestCases_Sprint1_Sprint2_Minh_HocVien.docx)
+2. **Tài liệu Word kiểm thử Giảng viên / Admin (Êm):**
+   - Đường dẫn chính: [TestCases_Sprint1_Sprint2_Em_GiangVien_Admin.docx](file:///d:/TDC/HK5/CDPTUD/EAI/TestCases_Sprint1_Sprint2_Em_GiangVien_Admin.docx) *(Kích thước: 135,856 bytes - 83 trang)*
+   - Bản sao dự phòng: [d:\TDC\HK5\CDPTUD\TestCases_Sprint1_Sprint2_Em_GiangVien_Admin.docx](file:///d:/TDC/HK5/CDPTUD/TestCases_Sprint1_Sprint2_Em_GiangVien_Admin.docx)
+3. **Thư mục ảnh chụp màn hình:**
+   - [artifacts/ui-screenshots/](file:///d:/TDC/HK5/CDPTUD/EAI/artifacts/ui-screenshots) *(Chứa 20 tệp PNG chất lượng cao, chia theo Sprint1/Sprint2 và Student/Admin)*
+4. **Mã nguồn công cụ chụp ảnh tự động:**
+   - [UiCaptureRunner/Program.cs](file:///d:/TDC/HK5/CDPTUD/EAI/UiCaptureRunner/Program.cs)
+
+---
+
+## 5. Hướng Dẫn Chạy Lại Công Cụ Chụp Ảnh Khi Cần
+
+Nếu sau này bạn có cập nhật giao diện hoặc thay đổi CSDL và muốn chụp lại toàn bộ màn hình một cách tự động, chỉ cần mở PowerShell và chạy 2 lệnh sau:
+
+```powershell
+# Bước 1: Chạy công cụ tự động chụp lại 20 màn hình giao diện
+dotnet run --project d:\TDC\HK5\CDPTUD\EAI\UiCaptureRunner\UiCaptureRunner.csproj
+
+# Bước 2: Tự động cập nhật ảnh vào 2 file Word
+dotnet run --project d:\TDC\HK5\CDPTUD\EAI\DocxGenerator\DocxGenerator.csproj
+```

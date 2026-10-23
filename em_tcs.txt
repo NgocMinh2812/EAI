@@ -1,0 +1,71 @@
+﻿TC-GV-SP1-NAV-001 | US-GV01 / T-05 | Chuyá»ƒn page mÆ°á»£t mÃ  qua NavigationService giá»¯a cÃ¡c menu chá»©c nÄƒng giáº£ng viÃªn
+TC-GV-SP1-NAV-002 | US-GV01 / T-05 | Breadcrumb thanh Ä‘iá»u hÆ°á»›ng cáº­p nháº­t chÃ­nh xÃ¡c theo trang Ä‘ang má»Ÿ
+TC-GV-SP1-NAV-003 | US-GV01 / T-05 | Sidebar menu cáº­p nháº­t tráº¡ng thÃ¡i active highlight nÃºt Ä‘ang Ä‘Æ°á»£c chá»n
+TC-GV-SP1-NAV-004 | US-GV01 / T-05 | Hiá»ƒn thá»‹ thÃ´ng tin Profile giáº£ng viÃªn, há» tÃªn vÃ  avatar initials trÃªn header
+TC-GV-SP1-NAV-005 | US-GV01 / T-05 | ÄÄƒng xuáº¥t an toÃ n, giáº£i phÃ³ng SessionHelper.CurrentUser vÃ  Ä‘Ã³ng cá»­a sá»• giáº£ng viÃªn
+TC-GV-SP1-NAV-006 | US-GV01 / T-05 | Cháº·n tÃ i khoáº£n há»c viÃªn (SinhVien) Ä‘Äƒng nháº­p truy cáº­p vÃ o GiangVienWindow
+TC-GV-SP1-DASH-001 | US-GV02 / T-11, T-12 | Hiá»ƒn thá»‹ 4 tháº» KPI Ä‘á»™ng: Sá»‘ há»c viÃªn, BÃ i há»c, CÃ¢u há»i vÃ  LÆ°á»£t thi tá»« CSDL tháº­t
+TC-GV-SP1-DASH-002 | US-GV02 / T-11, T-12 | Xá»­ lÃ½ logic tÃ­nh toÃ¡n pháº§n trÄƒm tÄƒng trÆ°á»Ÿng so vá»›i tuáº§n trÆ°á»›c
+TC-GV-SP1-DASH-003 | US-GV02 / T-11, T-12 | Xá»­ lÃ½ trÆ°á»ng há»£p CSDL má»›i khá»Ÿi táº¡o chÆ°a cÃ³ dá»¯ liá»‡u (Hiá»ƒn thá»‹ giÃ¡ trá»‹ 0 an toÃ n)
+TC-GV-SP1-DASH-004 | US-GV02 / T-11, T-12 | Náº¡p danh sÃ¡ch hoáº¡t Ä‘á»™ng gáº§n Ä‘Ã¢y cá»§a há»c viÃªn trÃªn há»‡ thá»‘ng
+TC-GV-SP1-DASH-005 | US-GV02 / T-11, T-12 | Biá»ƒu Ä‘á»“ xu hÆ°á»›ng há»c táº­p hiá»ƒn thá»‹ sá»‘ liá»‡u trá»±c quan vÃ  chÃ­nh xÃ¡c
+TC-GV-SP1-DASH-006 | US-GV02 / T-11, T-12 | Báº¥m nÃºt 'LÃ m má»›i' (Refresh) cáº­p nháº­t tá»©c thÃ¬ dá»¯ liá»‡u má»›i nháº¥t tá»« CSDL
+TC-GV-SP1-DASH-007 | US-GV02 / T-11, T-12 | Xá»­ lÃ½ lá»—i truy váº¥n CSDL: KhÃ´ng hiá»ƒn thá»‹ sá»‘ liá»‡u giáº£ máº¡o lÃ m dá»¯ liá»‡u tháº­t
+TC-GV-SP1-USR-001 | US-GV03 / T-03, T-04, T-06 | Náº¡p danh sÃ¡ch ngÆ°á»i dÃ¹ng kÃ¨m phÃ¢n trang báº±ng SQL OFFSET FETCH NEXT
+TC-GV-SP1-USR-002 | US-GV03 / T-03, T-04, T-06 | Chuyá»ƒn trang phÃ¢n trang qua láº¡i (Trang Ä‘áº§u, Trang káº¿, Trang cuá»‘i)
+TC-GV-SP1-USR-003 | US-GV03 / T-03, T-04, T-06 | TÃ¬m kiáº¿m ngÆ°á»i dÃ¹ng realtime theo Há» tÃªn hoáº·c Email (cÃ³ debounce)
+TC-GV-SP1-USR-004 | US-GV03 / T-03, T-04, T-06 | Lá»c danh sÃ¡ch ngÆ°á»i dÃ¹ng theo Vai trÃ² (Giáº£ng viÃªn, Sinh viÃªn)
+TC-GV-SP1-USR-005 | US-GV03 / T-03, T-04, T-06 | Lá»c danh sÃ¡ch ngÆ°á»i dÃ¹ng theo Tráº¡ng thÃ¡i (Hoáº¡t Ä‘á»™ng, ÄÃ£ khÃ³a)
+TC-GV-SP1-USR-006 | US-GV03 / T-03, T-04, T-06 | KhÃ³a tÃ i khoáº£n ngÆ°á»i dÃ¹ng trá»±c tiáº¿p trÃªn lÆ°á»›i dá»¯ liá»‡u
+TC-GV-SP1-USR-007 | US-GV03 / T-03, T-04, T-06 | Má»Ÿ khÃ³a tÃ i khoáº£n ngÆ°á»i dÃ¹ng Ä‘Ã£ bá»‹ khÃ³a
+TC-GV-SP1-USR-008 | US-GV03 / T-03, T-04, T-06 | Cháº·n khÃ´ng cho phÃ©p giáº£ng viÃªn/admin tá»± khÃ³a chÃ­nh tÃ i khoáº£n cá»§a mÃ¬nh Ä‘ang Ä‘Äƒng nháº­p
+TC-GV-SP1-USR-009 | US-GV03 / T-03, T-04, T-06 | Reset máº­t kháº©u há»c viÃªn vá» máº­t kháº©u máº·c Ä‘á»‹nh an toÃ n (123456)
+TC-GV-SP1-USR-010 | US-GV03 / T-03, T-04, T-06 | Validation dá»¯ liá»‡u Ä‘áº§u vÃ o khi thÃªm/sá»­a tÃ i khoáº£n trong NguoiDungDialog
+TC-GV-SP1-USR-011 | US-GV03 / T-03, T-04, T-06 | Cáº­p nháº­t tráº¡ng thÃ¡i khÃ³a tÃ i khoáº£n cÃ³ hiá»‡u lá»±c tá»©c thÃ¬ Ä‘á»‘i vá»›i phiÃªn Ä‘Äƒng nháº­p
+TC-GV-SP1-CAT-001 | US-GV04 / T-07, T-08, T-09, T-10 | Xem danh má»¥c TrÃ¬nh Ä‘á»™ CEFR chuáº©n (A1 - C1) tá»« báº£ng TrinhDo
+TC-GV-SP1-CAT-002 | US-GV04 / T-07, T-08, T-09, T-10 | Náº¡p cáº¥u trÃºc cÃ¢y thÆ° má»¥c chá»§ Ä‘á» phÃ¢n cáº¥p cha - con (TreeView) qua thuáº­t toÃ¡n Ä‘á»‡ quy
+TC-GV-SP1-CAT-003 | US-GV04 / T-07, T-08, T-09, T-10 | ThÃªm má»›i má»™t thÆ° má»¥c / chá»§ Ä‘á» con dÆ°á»›i má»™t thÆ° má»¥c cha Ä‘Æ°á»£c chá»n
+TC-GV-SP1-CAT-004 | US-GV04 / T-07, T-08, T-09, T-10 | Chá»‰nh sá»­a tÃªn vÃ  thÃ´ng tin mÃ´ táº£ cá»§a chá»§ Ä‘á» Ä‘Ã£ tá»“n táº¡i
+TC-GV-SP1-CAT-005 | US-GV04 / T-07, T-08, T-09, T-10 | Di chuyá»ƒn thÆ° má»¥c sang nhÃ¡nh thÆ° má»¥c cha khÃ¡c qua DiChuyenThuMucDialog
+TC-GV-SP1-CAT-006 | US-GV04 / T-07, T-08, T-09, T-10 | Báº­t/táº¯t tráº¡ng thÃ¡i áº©n/hiá»‡n (TrangThaiHoatDong) cá»§a chá»§ Ä‘á» há»c liá»‡u
+TC-GV-SP1-CAT-007 | US-GV04 / T-07, T-08, T-09, T-10 | Thuáº­t toÃ¡n kiá»ƒm tra chá»‘ng táº¡o quan há»‡ cha - con vÃ²ng láº·p gÃ¢y chu trÃ¬nh Ä‘á»‡ quy vÃ´ háº¡n
+TC-GV-SP1-CAT-008 | US-GV04 / T-07, T-08, T-09, T-10 | Cháº·n xÃ³a chá»§ Ä‘á» náº¿u chá»§ Ä‘á» Ä‘Ã³ Ä‘ang chá»©a bÃ i há»c hoáº·c cÃ¢u há»i tham chiáº¿u (RÃ ng buá»™c FK)
+TC-GV-SP1-CAT-009 | US-GV04 / T-07, T-08, T-09, T-10 | XÃ³a thÃ nh cÃ´ng thÆ° má»¥c rá»—ng khÃ´ng cÃ³ dá»¯ liá»‡u con
+TC-GV-SP1-CAT-010 | US-GV04 / T-07, T-08, T-09, T-10 | Cáº¥u trÃºc cÃ¢y thÆ° má»¥c sau khi chá»‰nh sá»­a Ä‘Æ°á»£c lÆ°u vÃ  hiá»ƒn thá»‹ nháº¥t quÃ¡n khi táº£i láº¡i á»©ng dá»¥ng
+TC-GV-SP1-INT-001 | T-13 | Kiá»ƒm thá»­ liÃªn thÃ´ng Sprint 1: Táº¡o chá»§ Ä‘á» má»›i -> ThÃªm tÃ i khoáº£n há»c viÃªn -> Kiá»ƒm tra hiá»ƒn thá»‹ trÃªn Dashboard
+TC-GV-SP1-INT-002 | T-13 | KhÃ³a tÃ i khoáº£n há»c viÃªn trÃªn NguoiDungView, sau Ä‘Ã³ thá»­ Ä‘Äƒng nháº­p báº±ng tÃ i khoáº£n Ä‘Ã³ á»Ÿ DangNhapWindow
+TC-GV-SP2-LES-001 | US-GV05 / T-14 Ä‘áº¿n T-17 | Táº¡o má»›i bÃ i há»c theo Chá»§ Ä‘á» vÃ  TrÃ¬nh Ä‘á»™ vá»›i Ä‘áº§y Ä‘á»§ thÃ´ng tin há»£p lá»‡
+TC-GV-SP2-LES-002 | US-GV05 / T-14 Ä‘áº¿n T-17 | Validation báº¯t buá»™c cÃ¡c trÆ°á»ng TiÃªu Ä‘á», Chá»§ Ä‘á», TrÃ¬nh Ä‘á»™ vÃ  Thá»i lÆ°á»£ng khi soáº¡n bÃ i
+TC-GV-SP2-LES-003 | US-GV05 / T-14 Ä‘áº¿n T-17 | PhÃ¢n loáº¡i ká»¹ nÄƒng bÃ i há»c gá»“m 5 ká»¹ nÄƒng: Tá»« vá»±ng, Ngá»¯ phÃ¡p, Äá»c, Nghe, Viáº¿t
+TC-GV-SP2-LES-004 | US-GV05 / T-14 Ä‘áº¿n T-17 | ÄÃ­nh kÃ¨m file audio (.mp3) cho bÃ i há»c Nghe kÃ¨m tÃ­nh nÄƒng nghe thá»­ preview
+TC-GV-SP2-LES-005 | US-GV05 / T-14 Ä‘áº¿n T-17 | ÄÃ­nh kÃ¨m áº£nh minh há»a (.png, .jpg) cho bÃ i há»c kÃ¨m hiá»ƒn thá»‹ áº£nh preview
+TC-GV-SP2-LES-006 | US-GV05 / T-14 Ä‘áº¿n T-17 | Xá»­ lÃ½ khi chá»n file Ä‘Ã­nh kÃ¨m sai Ä‘á»‹nh dáº¡ng hoáº·c file bá»‹ há»ng
+TC-GV-SP2-LES-007 | US-GV05 / T-14 Ä‘áº¿n T-17 | Chuyá»ƒn Ä‘á»•i tráº¡ng thÃ¡i xuáº¥t báº£n bÃ i há»c (Báº­t/táº¯t cá» DaXuatBan)
+TC-GV-SP2-LES-008 | US-GV05 / T-14 Ä‘áº¿n T-17 | BÃ i há»c chÆ°a xuáº¥t báº£n (DaXuatBan = 0) bá»‹ áº©n hoÃ n toÃ n khá»i phÃ¢n há»‡ Há»c viÃªn
+TC-GV-SP2-LES-009 | US-GV05 / T-14 Ä‘áº¿n T-17 | Chá»‰nh sá»­a ná»™i dung bÃ i há»c vÃ  Ä‘áº£m báº£o khÃ´ng máº¥t file audio/áº£nh Ä‘Ã£ Ä‘Ã­nh kÃ¨m
+TC-GV-SP2-LES-010 | US-GV05 / T-14 Ä‘áº¿n T-17 | LÆ°u bÃ i há»c an toÃ n vÃ o báº£ng BaiHoc, báº¯t ngoáº¡i lá»‡ SQL Transaction khi lá»—i
+TC-GV-SP2-QUE-001 | US-GV06 / T-18 Ä‘áº¿n T-20 | ThÃªm má»›i cÃ¢u há»i tráº¯c nghiá»‡m 4 lá»±a chá»n A, B, C, D vÃ  Ä‘Ãºng 1 Ä‘Ã¡p Ã¡n Ä‘Ãºng
+TC-GV-SP2-QUE-002 | US-GV06 / T-18 Ä‘áº¿n T-20 | ThÃªm má»›i cÃ¢u há»i loáº¡i Äiá»n khuyáº¿t vÃ  kiá»ƒm tra format hiá»ƒn thá»‹
+TC-GV-SP2-QUE-003 | US-GV06 / T-18 Ä‘áº¿n T-20 | ThÃªm cÃ¢u há»i Äá»c hiá»ƒu Ä‘Ã­nh kÃ¨m Ä‘oáº¡n vÄƒn Reading Passage
+TC-GV-SP2-QUE-004 | US-GV06 / T-18 Ä‘áº¿n T-20 | ThÃªm cÃ¢u há»i Nghe Ä‘Ã­nh kÃ¨m file audio nghe vÃ  nghe thá»­ preview
+TC-GV-SP2-QUE-005 | US-GV06 / T-18 Ä‘áº¿n T-20 | Nháº­p lá»i giáº£i thÃ­ch Ä‘Ã¡p Ã¡n chi tiáº¿t vÃ  phÃ¢n tÃ­ch ngá»¯ phÃ¡p
+TC-GV-SP2-QUE-006 | US-GV06 / T-18 Ä‘áº¿n T-20 | Gáº¯n tháº» Ä‘á»™ khÃ³ (Dá»…, Trung bÃ¬nh, KhÃ³) vÃ  cá» kiá»ƒm duyá»‡t DaKiemDuyet
+TC-GV-SP2-QUE-007 | US-GV06 / T-18 Ä‘áº¿n T-20 | Validation: Cháº·n lÆ°u cÃ¢u há»i náº¿u Ã­t hÆ¡n 2 phÆ°Æ¡ng Ã¡n hoáº·c chÆ°a chá»n Ä‘Ã¡p Ã¡n Ä‘Ãºng
+TC-GV-SP2-QUE-008 | US-GV06 / T-18 Ä‘áº¿n T-20 | Validation: Cháº·n Ä‘Ã¡nh dáº¥u nhiá»u hÆ¡n 1 Ä‘Ã¡p Ã¡n Ä‘Ãºng cho cÃ¢u há»i tráº¯c nghiá»‡m Ä‘Æ¡n
+TC-GV-SP2-QUE-009 | US-GV06 / T-18 Ä‘áº¿n T-20 | LÆ°u cÃ¢u há»i vÃ  cÃ¡c lá»±a chá»n Ä‘Ã¡p Ã¡n báº±ng SqlTransaction Ä‘áº£m báº£o tÃ­nh toÃ n váº¹n
+TC-GV-SP2-QUE-010 | US-GV06 / T-18 Ä‘áº¿n T-20 | TÃ¬m kiáº¿m cÃ¢u há»i theo tá»« khÃ³a ná»™i dung vÃ  lá»c theo ká»¹ nÄƒng / Ä‘á»™ khÃ³
+TC-GV-SP2-QUE-011 | US-GV06 / T-18 Ä‘áº¿n T-20 | Chá»‰nh sá»­a ná»™i dung cÃ¢u há»i vÃ  cÃ¡c phÆ°Æ¡ng Ã¡n tráº£ lá»i
+TC-GV-SP2-EXAM-001 | US-GV07 / T-21, T-22 | Táº¡o Ä‘á» thi má»›i dáº¡ng Mock Test cÃ³ cÃ i Ä‘áº·t thá»i gian lÃ m bÃ i (tÃ­nh giá»)
+TC-GV-SP2-EXAM-002 | US-GV07 / T-21, T-22 | Táº¡o gÃ³i bÃ i luyá»‡n táº­p tá»± do khÃ´ng Ã¡p lá»±c thá»i gian (ThoiGian = 0 hoáº·c null)
+TC-GV-SP2-EXAM-003 | US-GV07 / T-21, T-22 | Chá»n táº­p há»£p cÃ¢u há»i tá»« NgÃ¢n hÃ ng cÃ¢u há»i Ä‘Æ°a vÃ o Ä‘á» thi
+TC-GV-SP2-EXAM-004 | US-GV07 / T-21, T-22 | Thay Ä‘á»•i thá»© tá»± hiá»ƒn thá»‹ cÃ¢u há»i vÃ  cáº¥u hÃ¬nh Ä‘iá»ƒm sá»‘ tá»«ng cÃ¢u trong Ä‘á»
+TC-GV-SP2-EXAM-005 | US-GV07 / T-21, T-22 | Cáº¥u hÃ¬nh Ä‘iá»ƒm Ä‘áº¡t (DiemDat), tá»•ng Ä‘iá»ƒm, báº­t/táº¯t xÃ¡o trá»™n cÃ¢u há»i
+TC-GV-SP2-EXAM-006 | US-GV07 / T-21, T-22 | Validation: Kiá»ƒm tra thá»i gian lÃ m bÃ i > 0 vÃ  tá»•ng sá»‘ cÃ¢u há»i > 0
+TC-GV-SP2-EXAM-007 | US-GV07 / T-21, T-22 | PhÃ¡t hÃ nh Ä‘á» thi (Chuyá»ƒn tráº¡ng thÃ¡i sang DaPhatHanh = 1)
+TC-GV-SP2-EXAM-008 | US-GV07 / T-21, T-22 | Snapshot dá»¯ liá»‡u cÃ¢u há»i trong CauHoiBaiTap Ä‘á»ƒ Ä‘á» thi báº¥t biáº¿n khi cÃ¢u há»i nguá»“n thay Ä‘á»•i
+TC-GV-SP2-EXAM-009 | US-GV07 / T-21, T-22 | Xem trÆ°á»›c Ä‘á» thi hoÃ n chá»‰nh qua XemTruocDeThiDialog
+TC-GV-SP2-EXAM-010 | US-GV07 / T-21, T-22 | LÆ°u vÃ  náº¡p láº¡i thÃ´ng tin Ä‘á» thi an toÃ n trong CSDL SQL Server
+TC-GV-SP2-INT-001 | T-23 | Kiá»ƒm thá»­ chu trÃ¬nh xuáº¥t báº£n há»c liá»‡u: Soáº¡n bÃ i -> ÄÃ­nh kÃ¨m audio -> Xuáº¥t báº£n -> XÃ¡c nháº­n há»c viÃªn tháº¥y
+TC-GV-SP2-INT-002 | T-23 | Kiá»ƒm thá»­ chu trÃ¬nh kháº£o thÃ­: Táº¡o cÃ¢u há»i -> Táº¡o Ä‘á» thi -> PhÃ¡t hÃ nh Ä‘á» -> Há»c viÃªn thi -> Thá»‘ng kÃª cáº­p nháº­t
+TC-GV-E2E-001 | US-GV04, US-GV05, US-GV06, US-GV07 | Chu trÃ¬nh quáº£n trá»‹ há»c liá»‡u vÃ  kháº£o thÃ­ toÃ n diá»‡n tá»« CÃ¢y danh má»¥c Ä‘áº¿n PhÃ¡t hÃ nh Ä‘á» thi
+TC-GV-E2E-002 | US-GV01, US-GV03 | Kiá»ƒm tra quáº£n trá»‹ ngÆ°á»i dÃ¹ng, khÃ³a tÃ i khoáº£n vi pháº¡m vÃ  giÃ¡m sÃ¡t báº£o máº­t há»‡ thá»‘ng
