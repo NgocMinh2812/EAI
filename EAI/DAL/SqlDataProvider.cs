@@ -153,11 +153,15 @@ namespace DAL
                             ALTER TABLE BaiTapDeThi ADD ChoXemLoiGiai BIT NOT NULL DEFAULT 1;
                         IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'SoLuotLamToiDa' AND Object_ID = OBJECT_ID('BaiTapDeThi'))
                             ALTER TABLE BaiTapDeThi ADD SoLuotLamToiDa INT NOT NULL DEFAULT 0;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'DuongDanAudio' AND Object_ID = OBJECT_ID('BaiTapDeThi'))
+                            ALTER TABLE BaiTapDeThi ADD DuongDanAudio NVARCHAR(500) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'SoLanPhatAudio' AND Object_ID = OBJECT_ID('BaiTapDeThi'))
+                            ALTER TABLE BaiTapDeThi ADD SoLanPhatAudio INT NOT NULL DEFAULT 0;
                         IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'TrangThai' AND Object_ID = OBJECT_ID('BaiTapDeThi'))
-                        BEGIN
                             ALTER TABLE BaiTapDeThi ADD TrangThai NVARCHAR(30) NOT NULL DEFAULT N'BanNhap';
-                            EXEC('UPDATE BaiTapDeThi SET TrangThai = CASE WHEN DaPhatHanh = 1 THEN N''DaXuatBan'' ELSE N''BanNhap'' END WHERE TrangThai = N''BanNhap''');
-                        END;
+
+                        -- Đồng bộ trạng thái đề thi xuất bản giữa Giảng viên và Sinh viên
+                        EXEC('UPDATE BaiTapDeThi SET TrangThai = N''DaXuatBan'' WHERE DaPhatHanh = 1 AND (TrangThai IS NULL OR TrangThai = N''BanNhap'')');
                     END;
 
                     -- BẢO TOÀN NỘI DUNG ĐỀ ĐÃ XUẤT BẢN: SNAPSHOT TRONG BẢNG CauHoiBaiTap

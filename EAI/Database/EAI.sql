@@ -253,6 +253,8 @@ CREATE TABLE BaiTapDeThi (
     ChoXemLoiGiai BIT NOT NULL DEFAULT 1,
     SoLuotLamToiDa INT NOT NULL DEFAULT 0,
     TrangThai NVARCHAR(30) NOT NULL DEFAULT N'BanNhap', -- BanNhap / DaXuatBan / DaDong
+    DuongDanAudio NVARCHAR(500) NULL,
+    SoLanPhatAudio INT NOT NULL DEFAULT 0,
     NguoiTao INT NULL,
     NgayTao DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     CONSTRAINT FK_BaiTapDeThi_BaiHoc

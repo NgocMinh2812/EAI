@@ -107,36 +107,6 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-
-        <Style x:Key="FilterChipButton" TargetType="Button">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="{StaticResource TextGray}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderLight}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="12.5"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="16" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#F8FAFC"/>
-                    <Setter Property="BorderBrush" Value="#CBD5E1"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
     </Page.Resources>
 
     <Grid Background="#F4F7F6">

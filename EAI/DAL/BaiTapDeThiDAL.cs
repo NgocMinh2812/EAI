@@ -45,7 +45,7 @@ namespace DAL
                   AND (@TrinhDo IS NULL OR @TrinhDo = 'All' OR td.MaCapDo = @TrinhDo)
                   AND (@TrangThai IS NULL OR @TrangThai = 'All' OR ISNULL(dt.TrangThai, CASE WHEN dt.DaPhatHanh = 1 THEN N'DaXuatBan' ELSE N'BanNhap' END) = @TrangThai)
                   AND (@TuKhoa IS NULL OR @TuKhoa = '' OR dt.TenBaiTapDeThi LIKE N'%' + @TuKhoa + N'%' OR dt.MoTa LIKE N'%' + @TuKhoa + N'%')
-                  AND (@ChiLayDaXuatBan = 0 OR (dt.DaPhatHanh = 1 AND ISNULL(dt.TrangThai, N'DaXuatBan') = N'DaXuatBan'))
+                  AND (@ChiLayDaXuatBan = 0 OR dt.DaPhatHanh = 1 OR dt.TrangThai = N'DaXuatBan')
                 ORDER BY dt.NgayTao DESC, dt.MaBaiTapDeThi DESC";
 
             SqlParameter[] parameters = new[]
@@ -100,30 +100,6 @@ namespace DAL
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[BaiTapDeThiDAL] Lỗi lấy danh sách đề: {ex.Message}");
-            }
-
-            // Đảm bảo luôn có đề thi cho tất cả các cấp độ A1, A2, B1, B2, C1
-            var standards = TaoDanhSachDeThiChuanHoaTatCaCapDo();
-            var existingLevels = list.Select(x => x.MaCapDo?.ToUpper()).Where(x => !string.IsNullOrEmpty(x)).ToHashSet();
-
-            foreach (var std in standards)
-            {
-                // Nếu DB chưa có đề thi cho cấp độ này hoặc danh sách DB trống, bổ sung đề chuẩn hóa
-                if (!existingLevels.Contains(std.MaCapDo.ToUpper()))
-                {
-                    list.Add(std);
-                }
-            }
-
-            // Nếu người dùng lọc theo trình độ hoặc loại hình
-            if (!string.IsNullOrWhiteSpace(trinhDo) && trinhDo != "All")
-            {
-                list = list.Where(x => string.Equals(x.MaCapDo, trinhDo, StringComparison.OrdinalIgnoreCase)).ToList();
-            }
-
-            if (!string.IsNullOrWhiteSpace(loaiHinh) && loaiHinh != "All")
-            {
-                list = list.Where(x => string.Equals(x.LoaiHinh, loaiHinh, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
             return list;
@@ -195,9 +171,7 @@ namespace DAL
             {
                 System.Diagnostics.Debug.WriteLine($"[BaiTapDeThiDAL] Lỗi lấy chi tiết đề: {ex.Message}");
             }
-
-            // Fallback từ danh sách chuẩn hóa
-            return TaoDanhSachDeThiChuanHoaTatCaCapDo().FirstOrDefault(x => x.MaBaiTapDeThi == maDeThi);
+            return null;
         }
 
         /// <summary>
@@ -233,8 +207,10 @@ namespace DAL
                            ch.LoaiCauHoi, ch.DoKho, ch.DuongDanAudio AS AudioPath
                     FROM CauHoi ch
                     LEFT JOIN TrinhDo td ON ch.MaTrinhDo = td.MaTrinhDo
-                    WHERE chbt.MaBaiTapDeThi = @MaDe
-                    ORDER BY chbt.ThuTuCauHoi ASC";
+                    WHERE ch.DaKiemDuyet = 1
+                    ORDER BY ch.MaCauHoi ASC";
+                dt = SqlDataProvider.Instance.ExecuteQuery(fallbackQuery);
+            }
 
             int thuTu = 1;
             var needLiveOptions = new List<CauHoiKhaoSatDTO>();
@@ -904,8 +880,12 @@ namespace DAL
                 WHERE ct.MaLuotLamBai = @MaLuot
                 ORDER BY ct.MaChiTietTraLoi ASC";
 
-                DataRow row = dt.Rows[0];
-                var dto = new LuotLamBaiDTO
+            DataTable dtCT = SqlDataProvider.Instance.ExecuteQuery(queryCT, new[] { new SqlParameter("@MaLuot", maLuotLamBai) });
+            int thuTu = 1;
+            foreach (DataRow r in dtCT.Rows)
+            {
+                int maCH = Convert.ToInt32(r["MaCauHoi"]);
+                var item = new ChiTietTraLoiDTO
                 {
                     MaChiTietTraLoi = Convert.ToInt32(r["MaChiTietTraLoi"]),
                     MaLuotLamBai = maLuotLamBai,
@@ -926,73 +906,25 @@ namespace DAL
                     GiaiThichDapAn = r["GiaiThichDapAn"] == DBNull.Value ? null : r["GiaiThichDapAn"]?.ToString()
                 };
 
-                // Lấy danh sách câu hỏi kèm đáp án chọn và giải thích
-                string queryCT = @"
-                    SELECT ct.MaChiTietTraLoi, ct.MaCauHoi, ch.NoiDungCauHoi, ch.DoanVanDoc, ch.KyNang,
-                           ch.GiaiThichDapAn, ct.MaLuaChonDaChon, ct.KetQuaDungSai, ct.DiemSo,
-                           lcChon.KyHieuLuaChon AS KyHieuDaChon, lcChon.NoiDungLuaChon AS NoiDungDaChon,
-                           lcDung.MaLuaChon AS MaLuaChonDung, lcDung.KyHieuLuaChon AS KyHieuDapAnDung, lcDung.NoiDungLuaChon AS NoiDungDapAnDung
-                    FROM ChiTietTraLoi ct
-                    INNER JOIN CauHoi ch ON ct.MaCauHoi = ch.MaCauHoi
-                    LEFT JOIN LuaChonDapAn lcChon ON ct.MaLuaChonDaChon = lcChon.MaLuaChon
-                    LEFT JOIN LuaChonDapAn lcDung ON ch.MaCauHoi = lcDung.MaCauHoi AND lcDung.LaDapAnDung = 1
-                    WHERE ct.MaLuotLamBai = @MaLuot
-                    ORDER BY ct.MaChiTietTraLoi ASC";
-
-                DataTable dtCT = SqlDataProvider.Instance.ExecuteQuery(queryCT, new[] { new SqlParameter("@MaLuot", maLuotLamBai) });
-                int thuTu = 1;
-                foreach (DataRow r in dtCT.Rows)
+                // Lấy tất cả lựa chọn
+                string queryLC = "SELECT MaLuaChon, MaCauHoi, KyHieuLuaChon, NoiDungLuaChon, LaDapAnDung FROM LuaChonDapAn WHERE MaCauHoi = @MaCauHoi ORDER BY KyHieuLuaChon ASC";
+                DataTable dtLC = SqlDataProvider.Instance.ExecuteQuery(queryLC, new[] { new SqlParameter("@MaCauHoi", maCH) });
+                foreach (DataRow rLC in dtLC.Rows)
                 {
-                    int maCH = Convert.ToInt32(r["MaCauHoi"]);
-                    var item = new ChiTietTraLoiDTO
+                    item.DanhSachLuaChon.Add(new LuaChonDapAnDTO
                     {
-                        MaChiTietTraLoi = Convert.ToInt32(r["MaChiTietTraLoi"]),
-                        MaLuotLamBai = maLuotLamBai,
-                        MaCauHoi = maCH,
-                        ThuTuCauHoi = thuTu++,
-                        NoiDungCauHoi = r["NoiDungCauHoi"]?.ToString() ?? "",
-                        DoanVanDoc = r["DoanVanDoc"] == DBNull.Value ? null : r["DoanVanDoc"]?.ToString(),
-                        KyNang = r["KyNang"]?.ToString() ?? "Doc",
-                        MaLuaChonDaChon = r["MaLuaChonDaChon"] == DBNull.Value ? null : Convert.ToInt32(r["MaLuaChonDaChon"]),
-                        KyHieuDaChon = r["KyHieuDaChon"]?.ToString() ?? "",
-                        NoiDungDaChon = r["NoiDungDaChon"]?.ToString() ?? "",
-                        MaLuaChonDung = r["MaLuaChonDung"] == DBNull.Value ? 0 : Convert.ToInt32(r["MaLuaChonDung"]),
-                        KyHieuDapAnDung = r["KyHieuDapAnDung"]?.ToString() ?? "",
-                        NoiDungDapAnDung = r["NoiDungDapAnDung"]?.ToString() ?? "",
-                        KetQuaDungSai = r["KetQuaDungSai"] == DBNull.Value ? false : Convert.ToBoolean(r["KetQuaDungSai"]),
-                        DiemSo = r["DiemSo"] == DBNull.Value ? 0 : Convert.ToDecimal(r["DiemSo"]),
-                        GiaiThichDapAn = r["GiaiThichDapAn"] == DBNull.Value ? null : r["GiaiThichDapAn"]?.ToString()
-                    };
-
-                    // Lấy tất cả lựa chọn
-                    try
-                    {
-                        string queryLC = "SELECT MaLuaChon, MaCauHoi, KyHieuLuaChon, NoiDungLuaChon, LaDapAnDung FROM LuaChonDapAn WHERE MaCauHoi = @MaCauHoi ORDER BY KyHieuLuaChon ASC";
-                        DataTable dtLC = SqlDataProvider.Instance.ExecuteQuery(queryLC, new[] { new SqlParameter("@MaCauHoi", maCH) });
-                        foreach (DataRow rLC in dtLC.Rows)
-                        {
-                            item.DanhSachLuaChon.Add(new LuaChonDapAnDTO
-                            {
-                                MaLuaChon = Convert.ToInt32(rLC["MaLuaChon"]),
-                                MaCauHoi = Convert.ToInt32(rLC["MaCauHoi"]),
-                                KyHieuLuaChon = rLC["KyHieuLuaChon"]?.ToString() ?? "",
-                                NoiDungLuaChon = rLC["NoiDungLuaChon"]?.ToString() ?? "",
-                                LaDapAnDung = Convert.ToBoolean(rLC["LaDapAnDung"])
-                            });
-                        }
-                    }
-                    catch { }
-
-                    dto.DanhSachChiTiet.Add(item);
+                        MaLuaChon = Convert.ToInt32(rLC["MaLuaChon"]),
+                        MaCauHoi = Convert.ToInt32(rLC["MaCauHoi"]),
+                        KyHieuLuaChon = rLC["KyHieuLuaChon"]?.ToString() ?? "",
+                        NoiDungLuaChon = rLC["NoiDungLuaChon"]?.ToString() ?? "",
+                        LaDapAnDung = Convert.ToBoolean(rLC["LaDapAnDung"])
+                    });
                 }
 
-                return dto;
+                dto.DanhSachChiTiet.Add(item);
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[BaiTapDeThiDAL.LayChiTietKetQuaLamBai] {ex.Message}");
-                return null;
-            }
+
+            return dto;
         }
 
         public List<LuotLamBaiDTO> LayLichSuThi(int maNguoiDung, int top = 10)

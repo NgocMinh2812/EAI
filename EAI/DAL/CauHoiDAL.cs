@@ -19,7 +19,7 @@ namespace DAL
         {
             if (danhSach == null || danhSach.Count == 0) return;
 
-            var ids = danhSach.Select(q => q.MaCauHoi).Where(id => id > 0).Distinct().ToList();
+            var ids = danhSach.Select(q => q.MaCauHoi).Where(id => id >= 0).Distinct().ToList();
             if (ids.Count == 0) return;
 
             try
