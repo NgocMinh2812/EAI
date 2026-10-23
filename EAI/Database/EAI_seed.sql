@@ -325,11 +325,11 @@ VALUES
 
 (@cdTenses, @tdA2, @gvId, N'Phân biệt Quá khứ Đơn (Past Simple) và Quá khứ Tiếp diễn (Past Continuous)', N'NguPhap',
  N'Cách dùng cấu trúc When và While để diễn tả hành động đang xảy ra thì có hành động khác xen vào.',
- N'<h3>Past Simple vs. Past Continuous</h3><ul><li>S + was/were + V-ing WHEN S + V2/ed.</li><li>"I was studying for the exam when the phone suddenly rang."</li></ul>', 20, 1),
+ N'<h3>Past Simple vs. Past Continuous</h3><p><strong>Công thức phối hợp thì:</strong><br/>• S + was/were + V-ing + WHEN + S + V2/ed.<br/>• WHILE + S + was/were + V-ing, S + was/were + V-ing.</p><h4>Ví dụ minh họa:</h4><ul><li>"I was debugging the backend API when the power suddenly tripped." (Tôi đang sửa lỗi API thì đột nhiên bị sập nguồn điện.)</li><li>"While the marketing director was presenting, the CEO was taking notes." (Trong khi giám đốc tiếp thị thuyết trình, CEO đang ghi chép.)</li></ul>', 20, 1),
 
 (@cdTenses, @tdA1, @gvId, N'Làm chủ Tương lai Đơn (Will) và Tương lai Gần (Be Going To)', N'NguPhap',
  N'Phân biệt quyết định tức thời tại thời điểm nói với kế hoạch hoặc dự đoán có căn cứ xác thực.',
- N'<h3>Will vs. Be Going To</h3><ul><li><strong>Will:</strong> Quyết định bột phát ("I will help you with that heavy box").</li><li><strong>Be going to:</strong> Kế hoạch có từ trước ("Look at the clouds, it is going to rain").</li></ul>', 15, 1),
+ N'<h3>Will vs. Be Going To</h3><p><strong>Bản chất khác biệt:</strong><br/>• <strong>Will:</strong> Quyết định bột phát tức thì, lời hứa, lời đề nghị.<br/>• <strong>Be going to:</strong> Kế hoạch có từ trước, hoặc dự đoán dựa trên bằng chứng hiện tại.</p><h4>Ví dụ cụ thể:</h4><ul><li>"The phone is ringing. - Don''t worry, I will answer it!" (Điện thoại đang reo. - Đừng lo, tôi sẽ nghe máy ngay!)</li><li>"Look at those dark storm clouds! It is going to rain heavily." (Hãy nhìn những đám mây đen kia kìa! Trời sắp mưa to rồi - Có bằng chứng thực tế.)</li></ul>', 15, 1),
 
 -- Ngữ pháp: Mệnh đề quan hệ & Bị động
 (@cdMenhDe, @tdB2, @gvId, N'Bí quyết Rút gọn Mệnh đề Quan hệ dạng V-ing, V-ed và To-Infinitive', N'NguPhap',
@@ -616,39 +616,68 @@ GO
 -- ===================================================================
 -- 10. NẠP ĐỀ THI THỬ & LUYỆN TẬP (BaiTapDeThi & CauHoiBaiTap)
 -- ===================================================================
-DECLARE @tdB2 INT = (SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = N'B2');
+DECLARE @tdA1 INT = (SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = N'A1');
+DECLARE @tdA2 INT = (SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = N'A2');
 DECLARE @tdB1 INT = (SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = N'B1');
+DECLARE @tdB2 INT = (SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = N'B2');
 DECLARE @tdC1 INT = (SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = N'C1');
 DECLARE @cdIELTS INT = (SELECT TOP 1 MaChuDe FROM ChuDe WHERE TenChuDe LIKE N'%IELTS%');
 DECLARE @gvId INT = (SELECT TOP 1 MaNguoiDung FROM NguoiDung WHERE MaVaiTro = (SELECT TOP 1 MaVaiTro FROM VaiTro WHERE TenVaiTro = N'GiangVien'));
 IF @gvId IS NULL SET @gvId = 1;
 
--- Đề 1: IELTS Mock Test #05
+-- Đề A1: A1 Starter Diagnostic
 INSERT INTO BaiTapDeThi (MaChuDe, MaTrinhDo, TenBaiTapDeThi, LoaiHinh, MoTa, ThoiGianLamBaiPhut, DaPhatHanh, NguoiTao)
-VALUES (@cdIELTS, @tdB2, N'IELTS Academic Reading & Listening Mini Mock Test #05', N'ThiThu', 
-        N'Bao gồm bài đọc Skimming/Scanning, phân tích từ vựng học thuật C1 và cấu trúc ngữ pháp đảo ngữ.', 40, 1, @gvId);
-DECLARE @de1 INT = SCOPE_IDENTITY();
+VALUES (@cdIELTS, @tdA1, N'A1 Starter Diagnostic: Phản Xạ Từ Vựng & Ngữ Pháp Căn Bản', N'ThiThu', 
+        N'Kiểm tra phản xạ từ vựng cơ bản, động từ To Be, thì hiện tại đơn và câu chào hỏi thường nhật.', 20, 1, @gvId);
+DECLARE @deA1 INT = SCOPE_IDENTITY();
 INSERT INTO CauHoiBaiTap (MaBaiTapDeThi, MaCauHoi, ThuTuCauHoi, DiemSo)
-SELECT @de1, MaCauHoi, ROW_NUMBER() OVER(ORDER BY MaCauHoi ASC), 1.0
-FROM CauHoi WHERE MaCauHoi IN (SELECT TOP 10 MaCauHoi FROM CauHoi ORDER BY MaCauHoi DESC);
+SELECT @deA1, MaCauHoi, ROW_NUMBER() OVER(ORDER BY MaCauHoi ASC), 1.0
+FROM CauHoi WHERE MaTrinhDo = @tdA1 OR MaTrinhDo IS NULL;
 
--- Đề 2: TOEIC Reading Comprehension
+-- Đề A2: A2 Elementary Reading & Grammar
+INSERT INTO BaiTapDeThi (MaChuDe, MaTrinhDo, TenBaiTapDeThi, LoaiHinh, MoTa, ThoiGianLamBaiPhut, DaPhatHanh, NguoiTao)
+VALUES (@cdIELTS, @tdA2, N'A2 Elementary Reading & Grammar: Thì Quá Khứ & So Sánh', N'ThiThu', 
+        N'Part 5-6 định dạng TOEIC Bridge: Động từ bất quy tắc, thì quá khứ đơn và cấu trúc so sánh.', 30, 1, @gvId);
+DECLARE @deA2 INT = SCOPE_IDENTITY();
+INSERT INTO CauHoiBaiTap (MaBaiTapDeThi, MaCauHoi, ThuTuCauHoi, DiemSo)
+SELECT @deA2, MaCauHoi, ROW_NUMBER() OVER(ORDER BY MaCauHoi ASC), 1.0
+FROM CauHoi WHERE MaTrinhDo = @tdA2 OR MaTrinhDo IS NULL;
+
+-- Đề B1: TOEIC Reading Comprehension
 INSERT INTO BaiTapDeThi (MaChuDe, MaTrinhDo, TenBaiTapDeThi, LoaiHinh, MoTa, ThoiGianLamBaiPhut, DaPhatHanh, NguoiTao)
 VALUES (@cdIELTS, @tdB1, N'TOEIC Reading Comprehension Diagnostic Test', N'ThiThu', 
         N'Part 5 (Hoàn thành câu), Part 6 (Điền đoạn văn) và Part 7 (Đọc hiểu văn bản thương mại).', 45, 1, @gvId);
-DECLARE @de2 INT = SCOPE_IDENTITY();
+DECLARE @deB1 INT = SCOPE_IDENTITY();
 INSERT INTO CauHoiBaiTap (MaBaiTapDeThi, MaCauHoi, ThuTuCauHoi, DiemSo)
-SELECT @de2, MaCauHoi, ROW_NUMBER() OVER(ORDER BY MaCauHoi ASC), 1.0
+SELECT @deB1, MaCauHoi, ROW_NUMBER() OVER(ORDER BY MaCauHoi ASC), 1.0
 FROM CauHoi WHERE MaCauHoi IN (SELECT TOP 10 MaCauHoi FROM CauHoi ORDER BY MaCauHoi ASC);
 
--- Đề 3: Ngữ pháp chuyên sâu B2
+-- Đề B2: IELTS Academic Reading & Listening Mini Mock Test #05
+INSERT INTO BaiTapDeThi (MaChuDe, MaTrinhDo, TenBaiTapDeThi, LoaiHinh, MoTa, ThoiGianLamBaiPhut, DaPhatHanh, NguoiTao)
+VALUES (@cdIELTS, @tdB2, N'IELTS Academic Reading & Listening Mini Mock Test #05', N'ThiThu', 
+        N'Bao gồm bài đọc Skimming/Scanning, phân tích từ vựng học thuật C1 và cấu trúc ngữ pháp đảo ngữ.', 40, 1, @gvId);
+DECLARE @deB2 INT = SCOPE_IDENTITY();
+INSERT INTO CauHoiBaiTap (MaBaiTapDeThi, MaCauHoi, ThuTuCauHoi, DiemSo)
+SELECT @deB2, MaCauHoi, ROW_NUMBER() OVER(ORDER BY MaCauHoi ASC), 1.0
+FROM CauHoi WHERE MaCauHoi IN (SELECT TOP 10 MaCauHoi FROM CauHoi ORDER BY MaCauHoi DESC);
+
+-- Đề B2: Ngữ pháp chuyên sâu B2
 INSERT INTO BaiTapDeThi (MaChuDe, MaTrinhDo, TenBaiTapDeThi, LoaiHinh, MoTa, ThoiGianLamBaiPhut, DaPhatHanh, NguoiTao)
 VALUES (@cdIELTS, @tdB2, N'Kiểm tra Đột phá Ngữ pháp & Collocations Band B2', N'ThiThu', 
         N'25 câu trắc nghiệm câu điều kiện đảo ngữ, mệnh đề quan hệ rút gọn, liên từ nâng cao.', 25, 1, @gvId);
-DECLARE @de3 INT = SCOPE_IDENTITY();
+DECLARE @deB2_2 INT = SCOPE_IDENTITY();
 INSERT INTO CauHoiBaiTap (MaBaiTapDeThi, MaCauHoi, ThuTuCauHoi, DiemSo)
-SELECT @de3, MaCauHoi, ROW_NUMBER() OVER(ORDER BY MaCauHoi ASC), 1.0
+SELECT @deB2_2, MaCauHoi, ROW_NUMBER() OVER(ORDER BY MaCauHoi ASC), 1.0
 FROM CauHoi WHERE MaCauHoi IN (SELECT TOP 10 MaCauHoi FROM CauHoi ORDER BY NEWID());
+
+-- Đề C1: IELTS Advanced Academic Mock Test
+INSERT INTO BaiTapDeThi (MaChuDe, MaTrinhDo, TenBaiTapDeThi, LoaiHinh, MoTa, ThoiGianLamBaiPhut, DaPhatHanh, NguoiTao)
+VALUES (@cdIELTS, @tdC1, N'IELTS Advanced Academic Mock Test: Phân Tích Luận & Tư Duy Phản Biện', N'ThiThu', 
+        N'Bài thi phân tích học thuật đỉnh cao: Đoạn văn nghiên cứu khoa học, cấu trúc câu phức và từ vựng C1-C2.', 45, 1, @gvId);
+DECLARE @deC1 INT = SCOPE_IDENTITY();
+INSERT INTO CauHoiBaiTap (MaBaiTapDeThi, MaCauHoi, ThuTuCauHoi, DiemSo)
+SELECT @deC1, MaCauHoi, ROW_NUMBER() OVER(ORDER BY MaCauHoi ASC), 1.0
+FROM CauHoi WHERE MaTrinhDo = @tdC1 OR MaTrinhDo IS NULL;
 
 -- Đề 4: Luyện tập phản xạ nhanh 60s
 INSERT INTO BaiTapDeThi (MaChuDe, MaTrinhDo, TenBaiTapDeThi, LoaiHinh, MoTa, ThoiGianLamBaiPhut, DaPhatHanh, NguoiTao)

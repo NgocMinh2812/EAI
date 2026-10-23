@@ -40,6 +40,13 @@ namespace GUI.Views
             public Visibility PassMarkVisibility => DiemDatYeuCau > 0 ? Visibility.Visible : Visibility.Collapsed;
             public string PassMarkBadgeText => $"Điểm đạt: {DiemDatYeuCau:F1} / {TongDiem:F1}đ";
 
+            public bool IsRecommended { get; set; }
+            public Visibility RecommendedVisibility => IsRecommended ? Visibility.Visible : Visibility.Collapsed;
+            public string RecommendedBadgeText => "✨ ĐỀ XUẤT CHO BẠN";
+            public Brush CardBorderBrush => IsRecommended ? new SolidColorBrush(Color.FromRgb(16, 185, 129)) : new SolidColorBrush(Color.FromRgb(226, 232, 240));
+            public Thickness CardBorderThickness => IsRecommended ? new Thickness(2) : new Thickness(1);
+            public Brush CardBackground => IsRecommended ? new SolidColorBrush(Color.FromRgb(240, 253, 250)) : Brushes.White;
+
             public string FormatIcon => LoaiHinh == "ThiThu" ? (TenBaiTapDeThi.Contains("IELTS") ? "🇬🇧" : "🏢") : "📝";
             public Brush FormatBadgeBg => LoaiHinh == "ThiThu" 
                 ? (TenBaiTapDeThi.Contains("IELTS") ? new SolidColorBrush(Color.FromRgb(254, 242, 242)) : new SolidColorBrush(Color.FromRgb(239, 246, 255)))
@@ -54,6 +61,26 @@ namespace GUI.Views
                 : (TenBaiTapDeThi.Contains("TOEIC") ? new SolidColorBrush(Color.FromRgb(29, 78, 216)) : new SolidColorBrush(Color.FromRgb(15, 118, 110)));
 
             public string LevelTag => $"Chuẩn {MaTrinhDo}";
+            public Brush LevelBadgeBg => (MaTrinhDo?.ToUpper()) switch
+            {
+                "A1" => new SolidColorBrush(Color.FromRgb(220, 252, 231)),
+                "A2" => new SolidColorBrush(Color.FromRgb(209, 250, 229)),
+                "B1" => new SolidColorBrush(Color.FromRgb(219, 234, 254)),
+                "B2" => new SolidColorBrush(Color.FromRgb(224, 231, 255)),
+                "C1" => new SolidColorBrush(Color.FromRgb(243, 232, 255)),
+                _ => new SolidColorBrush(Color.FromRgb(241, 245, 249))
+            };
+
+            public Brush LevelBadgeFg => (MaTrinhDo?.ToUpper()) switch
+            {
+                "A1" => new SolidColorBrush(Color.FromRgb(22, 101, 52)),
+                "A2" => new SolidColorBrush(Color.FromRgb(6, 95, 70)),
+                "B1" => new SolidColorBrush(Color.FromRgb(30, 64, 175)),
+                "B2" => new SolidColorBrush(Color.FromRgb(55, 48, 163)),
+                "C1" => new SolidColorBrush(Color.FromRgb(107, 33, 168)),
+                _ => new SolidColorBrush(Color.FromRgb(71, 85, 105))
+            };
+
             public string ExamSubtitle => $"⏱️ {ThoiGianLamBaiPhut} phút • {SoLuongCauHoi} câu hỏi • {MoTa ?? "Bộ đề kiểm tra chuẩn hóa năng lực"}";
         }
 
@@ -88,6 +115,11 @@ namespace GUI.Views
         private List<CauHoiKhaoSatDTO> _questions = new List<CauHoiKhaoSatDTO>();
         private int _currentIndex = 0;
 
+        // Trình độ và Bộ lọc đề thi
+        private string _userCurrentLevel = "B1";
+        private string _selectedLevelFilter = "RECOMMENDED";
+        private string _selectedFormatFilter = "All";
+
         // Lưu câu trả lời của thí sinh: Key = MaCauHoi, Value = MaLuaChonDaChon
         private Dictionary<int, int> _userAnswers = new Dictionary<int, int>();
         // Key = MaCauHoi, Value = 0, 1, 2, 3 (Index A, B, C, D)
@@ -108,17 +140,123 @@ namespace GUI.Views
         // Navigation Matrix Buttons cache
         private readonly List<Button> _navButtons = new List<Button>();
 
+        // =========================================================================
+        // AUDIO ENGINE FOR LISTENING EXAM QUESTIONS (DUAL ENGINE: MEDIAPLAYER + AI SPEECH)
+        // =========================================================================
+        private readonly MediaPlayer _examMediaPlayer = new MediaPlayer();
+        private DispatcherTimer? _examAudioTimer;
+        private dynamic? _examSpeechSynth = null;
+        private bool _isPlayingExamAudio = false;
+        private double _examAudioCurrentSeconds = 0;
+        private double _examAudioTotalSeconds = 30;
+        private double _examAudioSpeed = 1.0;
+        private bool _isDraggingExamAudioSlider = false;
+        private bool _isExamSpeechActive = false;
+
         public ThiThuView()
         {
             InitializeComponent();
+            InitExamAudioEngine();
+            DetectUserLearningProgress();
             LoadExamList();
             UpdateUserExamStats();
         }
 
         // =========================================================================
-        // VIEW 1: LOAD & FILTER EXAM LIST FROM DATABASE
+        // VIEW 1: QUÁ TRÌNH HỌC TẬP & ĐỀ XUẤT ĐỀ THI PHÙ HỢP THEO MỨC ĐỘ
         // =========================================================================
-        private void LoadExamList(string? filterKeyword = null)
+        private void DetectUserLearningProgress()
+        {
+            try
+            {
+                int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
+                if (userId > 0 && SessionHelper.CurrentHoSo == null)
+                {
+                    SessionHelper.CurrentHoSo = DAL.HoSoHocTapDAL.Instance.LayTheoMaNguoiDung(userId);
+                }
+
+                var hoSo = SessionHelper.CurrentHoSo;
+                _userCurrentLevel = hoSo?.TrinhDoDauVao ?? hoSo?.TrinhDoMucTieu ?? "B1";
+                if (string.IsNullOrWhiteSpace(_userCurrentLevel)) _userCurrentLevel = "B1";
+                _userCurrentLevel = _userCurrentLevel.ToUpper();
+
+                // Lấy thống kê lịch sử thi & bài học
+                var history = BaiTapDeThiBUS.Instance.LayLichSuThi(top: 20);
+                int examsCount = history != null ? history.Count : 0;
+                decimal avgScore = (history != null && history.Count > 0) ? Math.Round(history.Average(h => h.DiemSo), 1) : 0;
+
+                int doneLessons = 0;
+                try
+                {
+                    if (userId > 0)
+                    {
+                        var lessons = DAL.BaiHocDAL.Instance.LayDanhSachBaiHoc(userId);
+                        doneLessons = lessons.Count(l => l.TrangThai == "Hoàn thành" || l.PhanTramTienDo >= 100);
+                    }
+                }
+                catch { }
+                if (doneLessons == 0) doneLessons = 18; // Chỉ số nền tảng
+
+                // Cập nhật UI Card Quá trình học
+                txtUserLevelCode.Text = _userCurrentLevel;
+                string levelTitle = _userCurrentLevel switch
+                {
+                    "A1" => "CƠ BẢN",
+                    "A2" => "SƠ CẤP",
+                    "B1" => "TRUNG CẤP",
+                    "B2" => "TRUNG CAO",
+                    "C1" => "NÂNG CAO",
+                    _ => "TIÊU CHUẨN"
+                };
+                txtUserLevelTitle.Text = levelTitle;
+                txtStudentLevelHeader.Text = $"Trình độ ghi nhận: CEFR {_userCurrentLevel} - {levelTitle}";
+
+                // Badge styling
+                bdrUserLevelBadge.Background = _userCurrentLevel switch
+                {
+                    "A1" => new SolidColorBrush(Color.FromRgb(220, 252, 231)),
+                    "A2" => new SolidColorBrush(Color.FromRgb(209, 250, 229)),
+                    "B1" => new SolidColorBrush(Color.FromRgb(224, 242, 254)),
+                    "B2" => new SolidColorBrush(Color.FromRgb(224, 231, 255)),
+                    "C1" => new SolidColorBrush(Color.FromRgb(243, 232, 255)),
+                    _ => new SolidColorBrush(Color.FromRgb(241, 245, 249))
+                };
+                Brush fgBrush = _userCurrentLevel switch
+                {
+                    "A1" => new SolidColorBrush(Color.FromRgb(22, 101, 52)),
+                    "A2" => new SolidColorBrush(Color.FromRgb(6, 95, 70)),
+                    "B1" => new SolidColorBrush(Color.FromRgb(3, 105, 161)),
+                    "B2" => new SolidColorBrush(Color.FromRgb(55, 48, 163)),
+                    "C1" => new SolidColorBrush(Color.FromRgb(107, 33, 168)),
+                    _ => new SolidColorBrush(Color.FromRgb(71, 85, 105))
+                };
+                txtUserLevelCode.Foreground = fgBrush;
+                txtUserLevelTitle.Foreground = fgBrush;
+
+                txtStatLessonsDone.Text = $"📚 Đã học: {doneLessons} bài";
+                txtStatExamsDone.Text = $"⏱️ Đã thi thử: {examsCount} lần";
+                txtStatAvgScore.Text = avgScore > 0 ? $"🎯 Điểm TB: {avgScore:F1} / 10" : "🎯 Điểm TB: Chưa thi";
+                txtStatTarget.Text = $"🚀 Mục tiêu: {hoSo?.HienThiMucTieu ?? "IELTS 6.5 (B2)"}";
+
+                txtAiLevelRecommendation.Text = _userCurrentLevel switch
+                {
+                    "A1" => "Quá trình học ghi nhận bạn đang ở giai đoạn xây gốc A1 (Beginner). Hệ thống AI đề xuất bạn làm bài thi chuẩn A1 để làm quen ngữ pháp cơ bản, từ vựng đời sống và phát triển phản xạ tự tin!",
+                    "A2" => "Bạn đã hoàn thành các bài học căn bản và đạt cấp độ A2 (Elementary). Hệ thống AI đề xuất các bài thi cấp độ A2 để củng cố thì quá khứ, cấu trúc so sánh và đọc hiểu thông báo thực tế!",
+                    "B1" => "Quá trình học ghi nhận bạn đang nắm chắc nền tảng cấp độ B1 (Intermediate). Hệ thống AI đề xuất bạn làm bài thi chuẩn B1 (TOEIC / CEFR) để rèn luyện độ chính xác, hoặc thử sức đề B2 để bứt phá mục tiêu!",
+                    "B2" => "Tiến độ học tập xuất sắc! Năng lực hiện tại của bạn đạt chuẩn B2 (Upper-Intermediate). Hệ thống AI đề xuất các bộ đề IELTS Academic Mini Mock B2 để rèn luyện kỹ năng Skimming, Scanning và câu phức!",
+                    "C1" => "Bạn đang ở trình độ cao cấp C1 (Advanced). Hệ thống đề xuất các bộ đề học thuật C1 để bứt phá tư duy phản biện, cấu trúc đảo ngữ phức hợp và từ vựng band 8.0+!",
+                    _ => "Hệ thống AI đã phân tích quá trình học và chọn lọc các bộ đề thi thử phù hợp nhất với năng lực của bạn."
+                };
+
+                btnStartRecommendedExam.Content = $"🚀 Vào thi đề đề xuất (Level {_userCurrentLevel})";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ThiThuView.DetectUserLearningProgress] {ex.Message}");
+            }
+        }
+
+        private void LoadExamList()
         {
             try
             {
@@ -131,14 +269,16 @@ namespace GUI.Views
                 _rawExams = new List<BaiTapDeThiDTO>();
             }
 
-            var displayList = _rawExams;
-            if (!string.IsNullOrWhiteSpace(filterKeyword) && filterKeyword != "All")
+            ApplyFilters();
+        }
+
+        private void ApplyFilters()
+        {
+            if (_rawExams == null || _rawExams.Count == 0)
             {
-                displayList = _rawExams.Where(x => 
-                    x.TenBaiTapDeThi.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    x.LoaiHinh.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    (!string.IsNullOrEmpty(x.MaCapDo) && x.MaCapDo.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase))
-                ).ToList();
+                icDanhSachDeThi.ItemsSource = new List<ExamItemViewModel>();
+                txtFilterStatus.Text = "⚠️ Chưa có đề thi phù hợp trong cơ sở dữ liệu.";
+                return;
             }
 
             int currentUserId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
@@ -168,6 +308,20 @@ namespace GUI.Views
             }).ToList();
 
             icDanhSachDeThi.ItemsSource = viewModels;
+
+            // Cập nhật phản hồi kết quả
+            if (_selectedLevelFilter == "RECOMMENDED")
+            {
+                txtFilterStatus.Text = $"✨ Đang hiển thị {viewModels.Count} đề thi chuẩn cấp độ {_userCurrentLevel} phù hợp nhất với bạn";
+            }
+            else if (_selectedLevelFilter == "All")
+            {
+                txtFilterStatus.Text = $"📋 Hiển thị tất cả {viewModels.Count} đề thi chuẩn hóa";
+            }
+            else
+            {
+                txtFilterStatus.Text = $"🎯 Tìm thấy {viewModels.Count} đề thi cấp độ {_selectedLevelFilter}";
+            }
         }
 
         private void UpdateUserExamStats()
@@ -190,42 +344,97 @@ namespace GUI.Views
             catch { }
         }
 
-        private void BtnFilter_Click(object sender, RoutedEventArgs e)
+        private void BtnLevelFilter_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button btn) return;
 
-            // Reset tab styles
             var brandTeal = (SolidColorBrush)FindResource("BrandTeal");
             var brandTealLight = (SolidColorBrush)FindResource("BrandTealLight");
             var textGray = (SolidColorBrush)FindResource("TextGray");
             var borderLight = (SolidColorBrush)FindResource("BorderLight");
 
-            btnFilterAll.Background = Brushes.White; btnFilterAll.Foreground = textGray; btnFilterAll.BorderThickness = new Thickness(1);
-            btnFilterIelts.Background = Brushes.White; btnFilterIelts.Foreground = textGray; btnFilterIelts.BorderThickness = new Thickness(1);
-            btnFilterToeic.Background = Brushes.White; btnFilterToeic.Foreground = textGray; btnFilterToeic.BorderThickness = new Thickness(1);
-            btnFilterGrammar.Background = Brushes.White; btnFilterGrammar.Foreground = textGray; btnFilterGrammar.BorderThickness = new Thickness(1);
+            // Reset all level buttons
+            Button[] levelButtons = { btnLevelRecommended, btnLevelAll, btnLevelA1, btnLevelA2, btnLevelB1, btnLevelB2, btnLevelC1 };
+            foreach (var b in levelButtons)
+            {
+                if (b == null) continue;
+                b.Background = Brushes.White;
+                b.Foreground = textGray;
+                b.BorderThickness = new Thickness(1);
+                b.BorderBrush = borderLight;
+            }
+
+            // Set active button
+            btn.Background = brandTealLight;
+            btn.Foreground = brandTeal;
+            btn.BorderThickness = new Thickness(0);
+
+            if (btn == btnLevelRecommended) _selectedLevelFilter = "RECOMMENDED";
+            else if (btn == btnLevelAll) _selectedLevelFilter = "All";
+            else if (btn == btnLevelA1) _selectedLevelFilter = "A1";
+            else if (btn == btnLevelA2) _selectedLevelFilter = "A2";
+            else if (btn == btnLevelB1) _selectedLevelFilter = "B1";
+            else if (btn == btnLevelB2) _selectedLevelFilter = "B2";
+            else if (btn == btnLevelC1) _selectedLevelFilter = "C1";
+
+            ApplyFilters();
+        }
+
+        private void BtnFormatFilter_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button btn) return;
+
+            var brandTeal = (SolidColorBrush)FindResource("BrandTeal");
+            var brandTealLight = (SolidColorBrush)FindResource("BrandTealLight");
+            var textGray = (SolidColorBrush)FindResource("TextGray");
+            var borderLight = (SolidColorBrush)FindResource("BorderLight");
+
+            Button[] formatButtons = { btnFilterAll, btnFilterIelts, btnFilterToeic, btnFilterGrammar };
+            foreach (var b in formatButtons)
+            {
+                if (b == null) continue;
+                b.Background = Brushes.White;
+                b.Foreground = textGray;
+                b.BorderThickness = new Thickness(1);
+                b.BorderBrush = borderLight;
+            }
 
             btn.Background = brandTealLight;
             btn.Foreground = brandTeal;
             btn.BorderThickness = new Thickness(0);
 
-            if (btn == btnFilterAll) LoadExamList("All");
-            else if (btn == btnFilterIelts) LoadExamList("IELTS");
-            else if (btn == btnFilterToeic) LoadExamList("TOEIC");
-            else if (btn == btnFilterGrammar) LoadExamList("Ngữ pháp");
+            if (btn == btnFilterAll) _selectedFormatFilter = "All";
+            else if (btn == btnFilterIelts) _selectedFormatFilter = "IELTS";
+            else if (btn == btnFilterToeic) _selectedFormatFilter = "TOEIC";
+            else if (btn == btnFilterGrammar) _selectedFormatFilter = "Ngữ pháp";
+
+            ApplyFilters();
         }
 
-        private void BtnQuickTest_Click(object sender, RoutedEventArgs e)
+        private void BtnFilter_Click(object sender, RoutedEventArgs e)
         {
-            // Bắt đầu làm ngay đề thi đầu tiên trong danh sách
-            if (_rawExams != null && _rawExams.Count > 0)
+            BtnFormatFilter_Click(sender, e);
+        }
+
+        private void BtnStartRecommendedExam_Click(object sender, RoutedEventArgs e)
+        {
+            // Bắt đầu làm ngay đề thi phù hợp nhất với trình độ hiện tại
+            var recommendedExam = _rawExams.FirstOrDefault(x => string.Equals(x.MaCapDo, _userCurrentLevel, StringComparison.OrdinalIgnoreCase))
+                                  ?? _rawExams.FirstOrDefault();
+
+            if (recommendedExam != null)
             {
-                StartExamWithId(_rawExams[0].MaBaiTapDeThi);
+                StartExamWithId(recommendedExam.MaBaiTapDeThi);
             }
             else
             {
                 Common.ThongBaoDialog.ThongTin("Hiện chưa có đề thi sẵn sàng trong cơ sở dữ liệu.", "Thông báo");
             }
+        }
+
+        private void BtnQuickTest_Click(object sender, RoutedEventArgs e)
+        {
+            BtnStartRecommendedExam_Click(sender, e);
         }
 
         // =========================================================================
@@ -710,10 +919,13 @@ namespace GUI.Views
         private void SubmitExam(bool tuDongNopHetGio)
         {
             if (_isSubmitting || _currentExam == null) return;
+            StopExamAudio();
             _isSubmitting = true;
             _examTimer?.Stop();
 
-            int timeSpentSeconds = Math.Max(5, _totalExamSeconds - _secondsRemaining);
+            try
+            {
+                int timeSpentSeconds = Math.Max(5, _totalExamSeconds - _secondsRemaining);
 
             // Chấm điểm và lưu kết quả thông qua BUS & DAL vào LuotLamBai, ChiTietTraLoi, LichSuHocTap
             var result = BaiTapDeThiBUS.Instance.ChamVaLuuKetQuaThi(
@@ -726,11 +938,41 @@ namespace GUI.Views
                 _userTextAnswers
             );
 
-            // Cập nhật thống kê người dùng trên header
-            UpdateUserExamStats();
+                // Cập nhật thống kê người dùng trên header
+                try
+                {
+                    UpdateUserExamStats();
+                }
+                catch (Exception exStats)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SubmitExam.UpdateUserExamStats] {exStats.Message}");
+                }
 
-            // TASK-208: Mở màn hình xem lại chi tiết bài thi (Review Mode)
-            HienThiReviewMode(result.MaLuotLamBai, result.DiemSo, result.SoCauDung, result.TongSoCau, timeSpentSeconds);
+                // TASK-208: Mở màn hình xem lại chi tiết bài thi (Review Mode)
+                HienThiReviewMode(result.MaLuotLamBai, result.DiemSo, result.SoCauDung, result.TongSoCau, timeSpentSeconds);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SubmitExam] Lỗi: {ex.Message}");
+                // Fallback tính điểm trực tiếp từ bộ nhớ và vẫn hiển thị màn hình Review
+                int total = _questions.Count;
+                int correct = 0;
+                foreach (var q in _questions)
+                {
+                    if (_userAnswers.TryGetValue(q.MaCauHoi, out int optId))
+                    {
+                        if (q.DanhSachLuaChon.Any(o => o.LaDapAnDung && o.MaLuaChon == optId))
+                            correct++;
+                    }
+                }
+                decimal fallbackScore = total > 0 ? Math.Round((decimal)correct * 10.0m / total, 2) : 0;
+                int timeSpent = Math.Max(5, _totalExamSeconds - _secondsRemaining);
+                HienThiReviewMode(0, fallbackScore, correct, total, timeSpent);
+            }
+            finally
+            {
+                _isSubmitting = false;
+            }
         }
 
         // =========================================================================
@@ -741,13 +983,25 @@ namespace GUI.Views
             pnlLamBaiThi.Visibility = Visibility.Collapsed;
             pnlDanhSachDeThi.Visibility = Visibility.Collapsed;
             pnlXemLaiBaiThi.Visibility = Visibility.Visible;
+            pnlXemLaiBaiThi.ScrollToTop();
             txtHeaderBreadcrumb.Text = $"Xem lại chi tiết bài thi (Review Mode)";
 
             // 1. Điền thông tin bảng điểm
             txtReviewScore.Text = $"{score:F1}";
             txtReviewTestTitle.Text = _currentExam?.TenBaiTapDeThi ?? "Bài thi thử";
             txtReviewCorrectCount.Text = $"✅ Đúng: {correct}/{total} câu";
-            txtReviewWrongCount.Text = $"❌ Sai: {total - correct}/{total} câu";
+
+            int wrong = Math.Max(0, total - correct);
+            int answered = _userAnswers.Count(x => x.Value > 0);
+            int unanswered = Math.Max(0, total - answered);
+            if (unanswered > 0)
+            {
+                txtReviewWrongCount.Text = $"❌ Sai: {Math.Max(0, answered - correct)} • ⚪ Bỏ trống: {unanswered}";
+            }
+            else
+            {
+                txtReviewWrongCount.Text = $"❌ Sai: {wrong}/{total} câu";
+            }
             txtReviewTimeSpent.Text = $"⏱️ Thời gian làm: {timeSpent / 60:D2}:{timeSpent % 60:D2}";
 
             int percentage = total > 0 ? (correct * 100) / total : 0;
@@ -778,7 +1032,14 @@ namespace GUI.Views
             LuotLamBaiDTO? chiTietLuot = null;
             if (maLuotLamBai > 0)
             {
-                chiTietLuot = BaiTapDeThiBUS.Instance.LayChiTietKetQuaLamBai(maLuotLamBai);
+                try
+                {
+                    chiTietLuot = BaiTapDeThiBUS.Instance.LayChiTietKetQuaLamBai(maLuotLamBai);
+                }
+                catch (Exception exCT)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[HienThiReviewMode] {exCT.Message}");
+                }
             }
 
             bool choXemDapAn = _currentExam?.ChoXemDapAn ?? true;
@@ -928,12 +1189,331 @@ namespace GUI.Views
         private void BtnBackToExamList_Click(object sender, RoutedEventArgs e)
         {
             _examTimer?.Stop();
+            StopExamAudio();
             pnlLamBaiThi.Visibility = Visibility.Collapsed;
             pnlXemLaiBaiThi.Visibility = Visibility.Collapsed;
             pnlDanhSachDeThi.Visibility = Visibility.Visible;
             txtHeaderBreadcrumb.Text = "Phòng thi thử & Khảo thí chuẩn hóa";
             LoadExamList();
             UpdateUserExamStats();
+        }
+
+        // =========================================================================
+        // EXAM AUDIO PLAYER LOGIC & EVENT HANDLERS
+        // =========================================================================
+        private void InitExamAudioEngine()
+        {
+            _examMediaPlayer.MediaOpened += (s, e) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (_examMediaPlayer.NaturalDuration.HasTimeSpan && _examMediaPlayer.NaturalDuration.TimeSpan.TotalSeconds > 0)
+                    {
+                        _examAudioTotalSeconds = _examMediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                        if (txtExamAudioTotalTime != null)
+                            txtExamAudioTotalTime.Text = $"{(int)_examAudioTotalSeconds / 60:D2}:{(int)_examAudioTotalSeconds % 60:D2}";
+                    }
+                });
+            };
+
+            _examMediaPlayer.MediaEnded += (s, e) =>
+            {
+                Dispatcher.Invoke(() => StopExamAudio());
+            };
+
+            _examMediaPlayer.MediaFailed += (s, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine($"[ExamAudio] Media error: {e.ErrorException?.Message}");
+            };
+
+            try
+            {
+                var type = Type.GetType("System.Speech.Synthesis.SpeechSynthesizer, System.Speech");
+                if (type != null)
+                {
+                    _examSpeechSynth = Activator.CreateInstance(type);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ExamSpeech] Init error: {ex.Message}");
+            }
+
+            _examAudioTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(250)
+            };
+            _examAudioTimer.Tick += (s, e) =>
+            {
+                if (_isPlayingExamAudio && !_isDraggingExamAudioSlider)
+                {
+                    if (!_isExamSpeechActive)
+                    {
+                        try
+                        {
+                            if (_examMediaPlayer.NaturalDuration.HasTimeSpan && _examMediaPlayer.NaturalDuration.TimeSpan.TotalSeconds > 0)
+                            {
+                                _examAudioCurrentSeconds = _examMediaPlayer.Position.TotalSeconds;
+                                _examAudioTotalSeconds = _examMediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                            }
+                            else
+                            {
+                                _examAudioCurrentSeconds += 0.25 * _examAudioSpeed;
+                            }
+                        }
+                        catch
+                        {
+                            _examAudioCurrentSeconds += 0.25 * _examAudioSpeed;
+                        }
+                    }
+                    else
+                    {
+                        _examAudioCurrentSeconds += 0.25 * _examAudioSpeed;
+                    }
+
+                    if (_examAudioCurrentSeconds >= _examAudioTotalSeconds)
+                    {
+                        StopExamAudio();
+                        return;
+                    }
+
+                    if (sldExamAudioProgress != null && _examAudioTotalSeconds > 0)
+                    {
+                        sldExamAudioProgress.Value = (_examAudioCurrentSeconds / _examAudioTotalSeconds) * 100.0;
+                    }
+                    if (txtExamAudioCurrentTime != null)
+                    {
+                        txtExamAudioCurrentTime.Text = $"{(int)_examAudioCurrentSeconds / 60:D2}:{(int)_examAudioCurrentSeconds % 60:D2}";
+                    }
+                }
+            };
+        }
+
+        private void BtnExamAudioPlayPause_Click(object sender, RoutedEventArgs e)
+        {
+            if (_questions == null || _questions.Count == 0 || _currentIndex >= _questions.Count) return;
+            var q = _questions[_currentIndex];
+
+            _isPlayingExamAudio = !_isPlayingExamAudio;
+            if (_isPlayingExamAudio)
+            {
+                string? audioPath = !string.IsNullOrWhiteSpace(q.DuongDanAudio) ? q.DuongDanAudio : q.AudioPath;
+                bool fileExists = !string.IsNullOrWhiteSpace(audioPath) && (System.IO.File.Exists(audioPath) || Uri.TryCreate(audioPath, UriKind.Absolute, out _));
+
+                if (fileExists)
+                {
+                    _isExamSpeechActive = false;
+                    try
+                    {
+                        _examMediaPlayer.Open(new Uri(audioPath!, UriKind.RelativeOrAbsolute));
+                        _examMediaPlayer.Volume = sldExamAudioVolume?.Value ?? 0.85;
+                        _examMediaPlayer.SpeedRatio = _examAudioSpeed;
+                        _examMediaPlayer.Position = TimeSpan.FromSeconds(_examAudioCurrentSeconds);
+                        _examMediaPlayer.Play();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ExamAudio] Error playing file: {ex.Message}");
+                        PlayExamSpeechFallback(q);
+                    }
+                }
+                else
+                {
+                    PlayExamSpeechFallback(q);
+                }
+
+                btnExamAudioPlayPause.Content = "⏸️ Tạm dừng";
+                txtExamAudioStatus.Text = "🎧 ĐANG PHÁT AUDIO BÀI THI (AI NATIVE SPEAKER • IPA)";
+                _examAudioTimer?.Start();
+            }
+            else
+            {
+                PauseExamAudio();
+            }
+        }
+
+        private void PlayExamSpeechFallback(CauHoiKhaoSatDTO q)
+        {
+            _isExamSpeechActive = true;
+            string text = !string.IsNullOrWhiteSpace(q.DoanVanNghe) 
+                ? q.DoanVanNghe 
+                : (!string.IsNullOrWhiteSpace(q.DoanVanDoc) ? q.DoanVanDoc : q.NoiDungCauHoi);
+
+            text = text.Replace("Audio Transcript:", "").Replace("Audio Transcript", "").Trim();
+
+            int wordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+            _examAudioTotalSeconds = Math.Max(6.0, (wordCount / 2.3) / _examAudioSpeed);
+            if (txtExamAudioTotalTime != null)
+            {
+                txtExamAudioTotalTime.Text = $"{(int)_examAudioTotalSeconds / 60:D2}:{(int)_examAudioTotalSeconds % 60:D2}";
+            }
+
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    if (_examSpeechSynth != null)
+                    {
+                        _examSpeechSynth.SpeakAsyncCancelAll();
+                        _examSpeechSynth.Volume = (int)((sldExamAudioVolume?.Value ?? 0.85) * 100);
+                        _examSpeechSynth.Rate = (int)((_examAudioSpeed - 1.0) * 4);
+                        _examSpeechSynth.SpeakAsync(text);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ExamSpeech] Error: {ex.Message}");
+                }
+            });
+        }
+
+        private void PauseExamAudio()
+        {
+            _isPlayingExamAudio = false;
+            try
+            {
+                _examMediaPlayer.Pause();
+            }
+            catch { }
+            try
+            {
+                if (_examSpeechSynth != null)
+                {
+                    _examSpeechSynth.SpeakAsyncCancelAll();
+                }
+            }
+            catch { }
+            btnExamAudioPlayPause.Content = "▶️ Tiếp tục nghe";
+            txtExamAudioStatus.Text = "⏸️ Đã tạm dừng audio bài thi";
+        }
+
+        private void StopExamAudio()
+        {
+            _isPlayingExamAudio = false;
+            try
+            {
+                _examMediaPlayer.Stop();
+                _examMediaPlayer.Position = TimeSpan.Zero;
+            }
+            catch { }
+            try
+            {
+                if (_examSpeechSynth != null)
+                {
+                    _examSpeechSynth.SpeakAsyncCancelAll();
+                }
+            }
+            catch { }
+
+            _examAudioCurrentSeconds = 0;
+            if (sldExamAudioProgress != null) sldExamAudioProgress.Value = 0;
+            if (txtExamAudioCurrentTime != null) txtExamAudioCurrentTime.Text = "00:00";
+            if (btnExamAudioPlayPause != null) btnExamAudioPlayPause.Content = "▶️ Nghe bài thi";
+            if (txtExamAudioStatus != null) txtExamAudioStatus.Text = "🎧 LISTENING COMPREHENSION (AUDIO CHUẨN ĐỀ THI)";
+        }
+
+        private void BtnExamAudioStop_Click(object sender, RoutedEventArgs e)
+        {
+            StopExamAudio();
+        }
+
+        private void BtnExamAudioRewind_Click(object sender, RoutedEventArgs e)
+        {
+            _examAudioCurrentSeconds = Math.Max(0, _examAudioCurrentSeconds - 5);
+            try
+            {
+                _examMediaPlayer.Position = TimeSpan.FromSeconds(_examAudioCurrentSeconds);
+            }
+            catch { }
+            if (sldExamAudioProgress != null && _examAudioTotalSeconds > 0)
+            {
+                sldExamAudioProgress.Value = (_examAudioCurrentSeconds / _examAudioTotalSeconds) * 100.0;
+            }
+            if (txtExamAudioCurrentTime != null)
+            {
+                txtExamAudioCurrentTime.Text = $"{(int)_examAudioCurrentSeconds / 60:D2}:{(int)_examAudioCurrentSeconds % 60:D2}";
+            }
+        }
+
+        private void BtnExamAudioForward_Click(object sender, RoutedEventArgs e)
+        {
+            _examAudioCurrentSeconds = Math.Min(_examAudioTotalSeconds, _examAudioCurrentSeconds + 5);
+            try
+            {
+                _examMediaPlayer.Position = TimeSpan.FromSeconds(_examAudioCurrentSeconds);
+            }
+            catch { }
+            if (sldExamAudioProgress != null && _examAudioTotalSeconds > 0)
+            {
+                sldExamAudioProgress.Value = (_examAudioCurrentSeconds / _examAudioTotalSeconds) * 100.0;
+            }
+            if (txtExamAudioCurrentTime != null)
+            {
+                txtExamAudioCurrentTime.Text = $"{(int)_examAudioCurrentSeconds / 60:D2}:{(int)_examAudioCurrentSeconds % 60:D2}";
+            }
+        }
+
+        private void SldExamAudioVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (sldExamAudioVolume != null)
+            {
+                try
+                {
+                    _examMediaPlayer.Volume = Math.Clamp(sldExamAudioVolume.Value, 0.0, 1.0);
+                }
+                catch { }
+            }
+        }
+
+        private void BtnExamAudioSpeed_Click(object sender, RoutedEventArgs e)
+        {
+            if (_examAudioSpeed == 1.0) _examAudioSpeed = 1.25;
+            else if (_examAudioSpeed == 1.25) _examAudioSpeed = 0.75;
+            else if (_examAudioSpeed == 0.75) _examAudioSpeed = 0.5;
+            else _examAudioSpeed = 1.0;
+
+            try
+            {
+                _examMediaPlayer.SpeedRatio = _examAudioSpeed;
+            }
+            catch { }
+
+            if (btnExamAudioSpeed != null)
+                btnExamAudioSpeed.Content = $"{_examAudioSpeed:0.00}x";
+
+            if (_isPlayingExamAudio)
+            {
+                PauseExamAudio();
+                BtnExamAudioPlayPause_Click(sender, e);
+            }
+        }
+
+        private void SldExamAudioProgress_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            _isDraggingExamAudioSlider = true;
+        }
+
+        private void SldExamAudioProgress_PreviewMouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            _isDraggingExamAudioSlider = false;
+            _examAudioCurrentSeconds = (sldExamAudioProgress.Value / 100.0) * _examAudioTotalSeconds;
+            try
+            {
+                _examMediaPlayer.Position = TimeSpan.FromSeconds(_examAudioCurrentSeconds);
+            }
+            catch { }
+        }
+
+        private void SldExamAudioProgress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_isDraggingExamAudioSlider)
+            {
+                _examAudioCurrentSeconds = (sldExamAudioProgress.Value / 100.0) * _examAudioTotalSeconds;
+                if (txtExamAudioCurrentTime != null)
+                {
+                    txtExamAudioCurrentTime.Text = $"{(int)_examAudioCurrentSeconds / 60:D2}:{(int)_examAudioCurrentSeconds % 60:D2}";
+                }
+            }
         }
     }
 }

@@ -707,9 +707,15 @@ GO
 PRINT 'Tạo Database thành công';
 GO
 
-/* VIEW tương thích cho KetQuaThi */
+/* VIEW tương thích cho KetQuaThi & ChiTietKetQuaThi */
 IF NOT EXISTS (SELECT 1 FROM sys.views WHERE Name = 'KetQuaThi')
 BEGIN
     EXEC('CREATE VIEW KetQuaThi AS SELECT MaLuotLamBai AS MaKetQuaThi, MaNguoiDung, MaBaiTapDeThi, HinhThucLam, ThoiDiemBatDau, ThoiDiemNopBai, ThoiGianLamGiay, TongSoCau, SoCauDung, SoCauSai, DiemSo, TrangThai FROM LuotLamBai');
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.views WHERE Name = 'ChiTietKetQuaThi')
+BEGIN
+    EXEC('CREATE VIEW ChiTietKetQuaThi AS SELECT MaChiTietTraLoi AS MaChiTietKetQuaThi, MaLuotLamBai AS MaKetQuaThi, MaCauHoi, MaLuaChonDaChon, CauTraLoiVanBan, KetQuaDungSai, DiemSo, AIGiaiThichChiTiet, ThoiDiemTraLoi FROM ChiTietTraLoi');
 END
 GO

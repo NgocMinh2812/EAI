@@ -111,7 +111,7 @@ namespace DAL
             string query = @"
                 SELECT TOP (@Top) ch.MaCauHoi, ROW_NUMBER() OVER(ORDER BY ch.MaCauHoi ASC) AS ThuTuCauHoi,
                        ch.KyNang, td.MaCapDo AS MaTrinhDo, td.TenTrinhDo, ch.NoiDungCauHoi,
-                       ch.DoanVanDoc, ch.GiaiThichDapAn
+                       ch.DoanVanDoc, ch.DuongDanAudio, ch.GiaiThichDapAn
                 FROM CauHoi ch
                 LEFT JOIN TrinhDo td ON ch.MaTrinhDo = td.MaTrinhDo
                 WHERE (@KyNang IS NULL OR ch.KyNang = @KyNang)
@@ -141,6 +141,7 @@ namespace DAL
                         TenTrinhDo = row["TenTrinhDo"]?.ToString() ?? "",
                         NoiDungCauHoi = row["NoiDungCauHoi"]?.ToString() ?? "",
                         DoanVanDoc = row["DoanVanDoc"] == DBNull.Value ? null : row["DoanVanDoc"]?.ToString(),
+                        AudioPath = row["DuongDanAudio"] == DBNull.Value ? null : row["DuongDanAudio"]?.ToString(),
                         GiaiThichDapAn = row["GiaiThichDapAn"] == DBNull.Value ? null : row["GiaiThichDapAn"]?.ToString()
                     });
                 }
@@ -153,7 +154,105 @@ namespace DAL
                 System.Diagnostics.Debug.WriteLine($"[TuVungDAL] Lỗi lấy câu hỏi luyện tập: {ex.Message}");
             }
 
+            // Nếu lọc theo kỹ năng Nghe mà DB chưa có dữ liệu câu hỏi nghe -> Sinh bộ câu hỏi nghe chuẩn hóa
+            if (list.Count == 0 && (string.Equals(kyNang, "Nghe", StringComparison.OrdinalIgnoreCase) || string.Equals(kyNang, "Listening", StringComparison.OrdinalIgnoreCase)))
+            {
+                list = TaoBoCauHoiLuyenNgheChuan();
+            }
+
             return list;
+        }
+
+        public static List<CauHoiKhaoSatDTO> TaoBoCauHoiLuyenNgheChuan()
+        {
+            return new List<CauHoiKhaoSatDTO>
+            {
+                new()
+                {
+                    MaCauHoi = 9001,
+                    ThuTuCauHoi = 1,
+                    KyNang = "Nghe",
+                    MaTrinhDo = "B1",
+                    NoiDungCauHoi = "Where is the conversation most likely taking place?",
+                    DoanVanDoc = "Audio Transcript:\n\"Good afternoon, sir. Are you checking in today? Yes, I have a reservation under the name Anderson. May I see your passport and credit card, please? Here you go. Your room 402 on the fourth floor is ready. Breakfast is served from 7 to 10 AM in the restaurant.\"",
+                    GiaiThichDapAn = "Người nói dùng các từ 'checking in', 'reservation', 'room 402', 'breakfast' -> Địa điểm diễn ra là Khách sạn (Hotel).",
+                    DanhSachLuaChon = new List<LuaChonDapAnDTO>
+                    {
+                        new() { MaLuaChon = 90011, KyHieuLuaChon = "A", NoiDungLuaChon = "At a hotel front desk", LaDapAnDung = true },
+                        new() { MaLuaChon = 90012, KyHieuLuaChon = "B", NoiDungLuaChon = "At an airport gate", LaDapAnDung = false },
+                        new() { MaLuaChon = 90013, KyHieuLuaChon = "C", NoiDungLuaChon = "At a train station", LaDapAnDung = false },
+                        new() { MaLuaChon = 90014, KyHieuLuaChon = "D", NoiDungLuaChon = "At a library", LaDapAnDung = false }
+                    }
+                },
+                new()
+                {
+                    MaCauHoi = 9002,
+                    ThuTuCauHoi = 2,
+                    KyNang = "Nghe",
+                    MaTrinhDo = "B1",
+                    NoiDungCauHoi = "What time will the product launch meeting start?",
+                    DoanVanDoc = "Audio Transcript:\n\"Attention all marketing team members. Due to the client's flight delay, our quarterly product launch meeting originally scheduled for 2:00 PM has been pushed back to 3:30 PM in Conference Room B. Please be punctual.\"",
+                    GiaiThichDapAn = "Thông báo nêu rõ cuộc họp bị hoãn từ 2:00 PM sang 3:30 PM: 'has been pushed back to 3:30 PM'.",
+                    DanhSachLuaChon = new List<LuaChonDapAnDTO>
+                    {
+                        new() { MaLuaChon = 90021, KyHieuLuaChon = "A", NoiDungLuaChon = "2:00 PM", LaDapAnDung = false },
+                        new() { MaLuaChon = 90022, KyHieuLuaChon = "B", NoiDungLuaChon = "3:30 PM", LaDapAnDung = true },
+                        new() { MaLuaChon = 90023, KyHieuLuaChon = "C", NoiDungLuaChon = "4:00 PM", LaDapAnDung = false },
+                        new() { MaLuaChon = 90024, KyHieuLuaChon = "D", NoiDungLuaChon = "1:30 PM", LaDapAnDung = false }
+                    }
+                },
+                new()
+                {
+                    MaCauHoi = 9003,
+                    ThuTuCauHoi = 3,
+                    KyNang = "Nghe",
+                    MaTrinhDo = "B2",
+                    NoiDungCauHoi = "What problem is the woman addressing in the broadcast?",
+                    DoanVanDoc = "Audio Transcript:\n\"Hello listeners. Welcome back to Tech Today. Recent cybersecurity investigations revealed that thousands of smart home devices are vulnerable to unauthorized access because consumers neglect to change default factory passwords. Today we have an expert to discuss solutions.\"",
+                    GiaiThichDapAn = "Đoạn phát thanh nhấn mạnh lỗ hổng bảo mật của thiết bị nhà thông minh do không đổi mật khẩu mặc định (Security vulnerabilities of smart home devices).",
+                    DanhSachLuaChon = new List<LuaChonDapAnDTO>
+                    {
+                        new() { MaLuaChon = 90031, KyHieuLuaChon = "A", NoiDungLuaChon = "High prices of computer hardware", LaDapAnDung = false },
+                        new() { MaLuaChon = 90032, KyHieuLuaChon = "B", NoiDungLuaChon = "Security vulnerabilities in smart home devices", LaDapAnDung = true },
+                        new() { MaLuaChon = 90033, KyHieuLuaChon = "C", NoiDungLuaChon = "Power outages in the city", LaDapAnDung = false },
+                        new() { MaLuaChon = 90034, KyHieuLuaChon = "D", NoiDungLuaChon = "Slow internet download speeds", LaDapAnDung = false }
+                    }
+                },
+                new()
+                {
+                    MaCauHoi = 9004,
+                    ThuTuCauHoi = 4,
+                    KyNang = "Nghe",
+                    MaTrinhDo = "B2",
+                    NoiDungCauHoi = "What is the speaker advising passengers to do?",
+                    DoanVanDoc = "Audio Transcript:\n\"May I have your attention, please. Flight VN214 bound for London is now ready for boarding at Gate 18. All passengers traveling with infants and those requiring special assistance, please proceed to the gate now.\"",
+                    GiaiThichDapAn = "Người phát thanh yêu cầu hành khách đi cùng trẻ nhỏ hoặc cần hỗ trợ đặc biệt tiến ra cửa khởi hành (Board the plane at gate 18).",
+                    DanhSachLuaChon = new List<LuaChonDapAnDTO>
+                    {
+                        new() { MaLuaChon = 90041, KyHieuLuaChon = "A", NoiDungLuaChon = "Proceed to Gate 18 for boarding", LaDapAnDung = true },
+                        new() { MaLuaChon = 90042, KyHieuLuaChon = "B", NoiDungLuaChon = "Collect their luggage from Carousel 3", LaDapAnDung = false },
+                        new() { MaLuaChon = 90043, KyHieuLuaChon = "C", NoiDungLuaChon = "Change their ticket reservations", LaDapAnDung = false },
+                        new() { MaLuaChon = 90044, KyHieuLuaChon = "D", NoiDungLuaChon = "Exit the airport terminal", LaDapAnDung = false }
+                    }
+                },
+                new()
+                {
+                    MaCauHoi = 9005,
+                    ThuTuCauHoi = 5,
+                    KyNang = "Nghe",
+                    MaTrinhDo = "C1",
+                    NoiDungCauHoi = "According to the professor, what led to the revival of renewable architecture?",
+                    DoanVanDoc = "Audio Transcript:\n\"In the late twentieth century, urban planners largely disregarded ecological footprints. However, the unprecedented escalation of fossil fuel costs and acute climate awareness in the early 2000s precipitated a paradigm shift, prompting architects to reintegrate passive solar design and natural ventilation.\"",
+                    GiaiThichDapAn = "Giáo sư giải thích sự tăng vọt chi phí nhiên liệu hóa thạch và nhận thức về khí hậu ('escalation of fossil fuel costs and climate awareness') đã thúc đẩy sự hồi sinh của kiến trúc tái tạo.",
+                    DanhSachLuaChon = new List<LuaChonDapAnDTO>
+                    {
+                        new() { MaLuaChon = 90051, KyHieuLuaChon = "A", NoiDungLuaChon = "Escalating energy costs and climate awareness", LaDapAnDung = true },
+                        new() { MaLuaChon = 90052, KyHieuLuaChon = "B", NoiDungLuaChon = "A decline in urban population", LaDapAnDung = false },
+                        new() { MaLuaChon = 90053, KyHieuLuaChon = "C", NoiDungLuaChon = "International sports competitions", LaDapAnDung = false },
+                        new() { MaLuaChon = 90054, KyHieuLuaChon = "D", NoiDungLuaChon = "The invention of artificial lighting", LaDapAnDung = false }
+                    }
+                }
+            };
         }
     }
 }

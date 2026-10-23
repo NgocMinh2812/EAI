@@ -362,7 +362,7 @@
 
                                         <!-- Quên Mật Khẩu -->
                                         <TextBlock Text="Quên mật khẩu?" Foreground="{StaticResource BrandTeal}" FontSize="12.5" FontWeight="SemiBold" 
-                                                   HorizontalAlignment="Center" Cursor="Hand" MouseDown="ForgotPassword_Click" Margin="0,0,0,4"/>
+                                                   HorizontalAlignment="Center" Cursor="Hand" MouseDown="ForgotPassword_Click" Margin="0,4,0,4"/>
                                     </StackPanel>
 
                                     <!-- ================= FORM: ĐĂNG KÝ TÀI KHOẢN MỚI ================= -->

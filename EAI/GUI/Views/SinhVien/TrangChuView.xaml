@@ -380,11 +380,11 @@
 
                             <Grid Margin="0,0,0,10">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="2.5*"/>
-                                    <ColumnDefinition Width="1*"/>
-                                    <ColumnDefinition Width="1.5*"/>
-                                    <ColumnDefinition Width="1.5*"/>
-                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="160"/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="110"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Bài học" Foreground="{StaticResource TextGray}" FontWeight="SemiBold" FontSize="12"/>
                                 <TextBlock Grid.Column="1" Text="Điểm" Foreground="{StaticResource TextGray}" FontWeight="SemiBold" FontSize="12"/>
@@ -399,27 +399,38 @@
                             <ItemsControl x:Name="icRecentLessons">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid Margin="0,7" Cursor="Hand" MouseDown="ItemRecentLesson_MouseDown" Tag="{Binding MaBaiHoc}">
+                                        <Grid Margin="0,8" Cursor="Hand" MouseDown="ItemRecentLesson_MouseDown" Tag="{Binding MaBaiHoc}">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="2.5*"/>
-                                                <ColumnDefinition Width="1*"/>
-                                                <ColumnDefinition Width="1.5*"/>
-                                                <ColumnDefinition Width="1.5*"/>
-                                                <ColumnDefinition Width="1*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="80"/>
+                                                <ColumnDefinition Width="160"/>
+                                                <ColumnDefinition Width="120"/>
+                                                <ColumnDefinition Width="110"/>
                                             </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                                <Border Background="{Binding StatusBackground}" Width="22" Height="22" CornerRadius="6" Margin="0,0,10,0">
+                                            
+                                            <!-- Tên bài học hiển thị đầy đủ, không bị chồng chéo -->
+                                            <Grid Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Background="{Binding StatusBackground}" Width="24" Height="24" CornerRadius="6" Margin="0,0,10,0" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding IconSkill}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Border>
-                                                <TextBlock Text="{Binding TieuDe}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                            </StackPanel>
+                                                <TextBlock Grid.Column="1" Text="{Binding TieuDe}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" 
+                                                           TextWrapping="Wrap" ToolTip="{Binding TieuDe}"/>
+                                            </Grid>
+
                                             <TextBlock Grid.Column="1" Text="{Binding DiemSo}" FontWeight="Bold" Foreground="{StaticResource PrimaryGreen}" VerticalAlignment="Center"/>
+                                            
                                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <ProgressBar Value="{Binding PhanTramTienDo}" Maximum="100" Width="90" Height="6" Background="#E2E8F0" Foreground="{StaticResource PrimaryGreen}" BorderThickness="0" Margin="0,0,8,0"/>
                                                 <TextBlock Text="{Binding PhanTramTienDo, StringFormat='{}{0:0}%'}" FontSize="12" Foreground="{StaticResource TextGray}"/>
                                             </StackPanel>
+                                            
                                             <TextBlock Grid.Column="3" Text="{Binding NgayHocGanNhat}" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
-                                            <Border Grid.Column="4" Background="{Binding StatusBackground}" CornerRadius="12" Padding="14,4" HorizontalAlignment="Right">
+                                            
+                                            <Border Grid.Column="4" Background="{Binding StatusBackground}" CornerRadius="12" Padding="12,4" HorizontalAlignment="Right" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding TrangThai}" Foreground="{Binding StatusColor}" FontSize="11" FontWeight="SemiBold"/>
                                             </Border>
                                         </Grid>
