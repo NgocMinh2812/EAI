@@ -80,6 +80,14 @@
                            Foreground="#064E3B" TextAlignment="Center" Margin="0,0,0,8" TextWrapping="Wrap"/>
                 <TextBlock x:Name="txtMessage" Text="Bạn có chắc chắn muốn thực hiện hành động này?" 
                            FontSize="13.5" Foreground="#334155" TextAlignment="Center" TextWrapping="Wrap" LineHeight="20"/>
+                <TextBox x:Name="txtInput" Visibility="Collapsed" Margin="0,14,0,0" Padding="10,8" FontSize="13"
+                         BorderBrush="#94A3B8" BorderThickness="1.5">
+                    <TextBox.Resources>
+                        <Style TargetType="{x:Type Border}">
+                            <Setter Property="CornerRadius" Value="8"/>
+                        </Style>
+                    </TextBox.Resources>
+                </TextBox>
             </StackPanel>
 
             <!-- Bottom Actions Buttons -->

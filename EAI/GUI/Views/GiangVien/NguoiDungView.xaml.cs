@@ -101,6 +101,11 @@ namespace GUI.Views.GiangVien
             }
         }
 
+        private void BtnLamMoi_Click(object sender, RoutedEventArgs e)
+        {
+            ApplyFilter(resetPage: true);
+        }
+
         private void BtnPrevPage_Click(object sender, RoutedEventArgs e)
         {
             if (_currentPage > 1)

@@ -432,8 +432,28 @@
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="{Binding CatalogStatusMessage}" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                             <Button Style="{StaticResource SecondaryTestButtonStyle}" Command="{Binding ReloadCatalogCommand}" ToolTip="Tải lại danh sách mô hình trực tiếp từ API của nhà cung cấp">
+                                <Button.Triggers>
+                                    <EventTrigger RoutedEvent="ButtonBase.Click">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="icoSyncCat"
+                                                                 Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                                                 From="0" To="360" Duration="0:0:0.7">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Button.Triggers>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <local:LucideIcon Kind="RefreshCw" Size="12" Foreground="#334155" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <local:LucideIcon x:Name="icoSyncCat" Kind="RefreshCw" Size="12" Foreground="#334155" Margin="0,0,6,0"
+                                                      RenderTransformOrigin="0.5,0.5" VerticalAlignment="Center">
+                                        <local:LucideIcon.RenderTransform>
+                                            <RotateTransform Angle="0"/>
+                                        </local:LucideIcon.RenderTransform>
+                                    </local:LucideIcon>
                                     <TextBlock Text="Đồng bộ danh mục" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>

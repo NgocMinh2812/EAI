@@ -455,15 +455,38 @@
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                 <Button Command="{Binding LamMoiCommand}" Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
-                        Padding="14,9" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0">
+                        Padding="14,9" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" ToolTip="Làm mới danh sách bài học và dữ liệu">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <local:LucideIcon Kind="RefreshCw" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
+                                    <local:LucideIcon x:Name="icoRefreshNd" Kind="RefreshCw" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"
+                                                      RenderTransformOrigin="0.5,0.5" VerticalAlignment="Center">
+                                        <local:LucideIcon.RenderTransform>
+                                            <RotateTransform Angle="0"/>
+                                        </local:LucideIcon.RenderTransform>
+                                    </local:LucideIcon>
                                     <TextBlock Text="Làm mới" FontSize="12.5" FontWeight="SemiBold"/>
                                 </StackPanel>
                             </Border>
+                            <ControlTemplate.Triggers>
+                                <EventTrigger RoutedEvent="ButtonBase.Click">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="icoRefreshNd"
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                                             From="0" To="360" Duration="0:0:0.7">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bd" Property="Background" Value="#E2E8F0"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Button.Template>
                 </Button>

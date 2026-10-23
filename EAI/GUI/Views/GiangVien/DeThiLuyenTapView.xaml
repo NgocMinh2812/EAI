@@ -84,15 +84,38 @@
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Command="{Binding LamMoiDanhSachCommand}" Background="White" Foreground="{StaticResource TextGray}" 
-                                BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="12,9" Cursor="Hand" Margin="0,0,10,0">
+                                BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="12,9" Cursor="Hand" Margin="0,0,10,0" ToolTip="Làm mới danh sách đề thi từ cơ sở dữ liệu">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                    <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <local:LucideIcon Kind="RefreshCw" Size="14" Foreground="{StaticResource TextGray}" Margin="0,0,6,0"/>
+                                            <local:LucideIcon x:Name="icoRefresh" Kind="RefreshCw" Size="14" Foreground="{StaticResource TextGray}" Margin="0,0,6,0"
+                                                              RenderTransformOrigin="0.5,0.5" VerticalAlignment="Center">
+                                                <local:LucideIcon.RenderTransform>
+                                                    <RotateTransform Angle="0"/>
+                                                </local:LucideIcon.RenderTransform>
+                                            </local:LucideIcon>
                                             <TextBlock Text="Làm mới" FontSize="12.5" FontWeight="SemiBold"/>
                                         </StackPanel>
                                     </Border>
+                                    <ControlTemplate.Triggers>
+                                        <EventTrigger RoutedEvent="ButtonBase.Click">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetName="icoRefresh"
+                                                                     Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                                                     From="0" To="360" Duration="0:0:0.7">
+                                                        <DoubleAnimation.EasingFunction>
+                                                            <CubicEase EasingMode="EaseOut"/>
+                                                        </DoubleAnimation.EasingFunction>
+                                                    </DoubleAnimation>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="bd" Property="Background" Value="#F8FAFC"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Button.Template>
                         </Button>

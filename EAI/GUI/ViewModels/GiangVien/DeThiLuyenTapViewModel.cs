@@ -450,7 +450,8 @@ namespace GUI.ViewModels.GiangVien
                     SelectedSourceId, 
                     SearchQuestionKeyword, 
                     FilterSkill, 
-                    FilterDifficulty);
+                    FilterDifficulty,
+                    daKiemDuyet: true);
             }
             else
             {
@@ -458,8 +459,12 @@ namespace GUI.ViewModels.GiangVien
                     SearchQuestionKeyword, 
                     FilterSkill, 
                     FilterDifficulty, 
-                    100);
+                    100,
+                    daKiemDuyet: true);
             }
+
+            // Chỉ hiển thị câu hỏi đã được kiểm duyệt chất lượng nội dung (DaKiemDuyet == true)
+            dsCauHoi = dsCauHoi.Where(q => q.DaKiemDuyet).ToList();
 
             if (!string.IsNullOrWhiteSpace(FilterQuestionLevel) && FilterQuestionLevel != "All")
             {

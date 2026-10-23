@@ -183,8 +183,17 @@ namespace BUS
             if (string.IsNullOrWhiteSpace(cd.TenChuDe))
                 return (false, "Tên chủ đề không được để trống.");
 
-            if (cd.MaChuDeCha.HasValue && cd.MaChuDeCha.Value == cd.MaChuDe)
-                return (false, "Chủ đề cha không thể là chính chủ đề này.");
+            if (cd.MaChuDeCha.HasValue)
+            {
+                if (cd.MaChuDeCha.Value == cd.MaChuDe)
+                    return (false, "Chủ đề cha không thể là chính chủ đề này.");
+
+                var allTopics = _dal.GetAllChuDe();
+                var descendantIds = new HashSet<int>();
+                ThuThapCacChuDeConChau(cd.MaChuDe, allTopics, descendantIds);
+                if (descendantIds.Contains(cd.MaChuDeCha.Value))
+                    return (false, "Không thể chọn chủ đề con hoặc cháu làm chủ đề cha (tránh tạo vòng lặp phân cấp).");
+            }
 
             bool ok = _dal.UpdateChuDe(cd);
             if (ok)
@@ -192,6 +201,18 @@ namespace BUS
                 return (true, "Cập nhật chủ đề thành công.");
             }
             return (false, "Lỗi cập nhật chủ đề.");
+        }
+
+        private static void ThuThapCacChuDeConChau(int parentId, List<ChuDeDTO> allTopics, HashSet<int> result)
+        {
+            var children = allTopics.Where(c => c.MaChuDeCha.HasValue && c.MaChuDeCha.Value == parentId).ToList();
+            foreach (var child in children)
+            {
+                if (result.Add(child.MaChuDe))
+                {
+                    ThuThapCacChuDeConChau(child.MaChuDe, allTopics, result);
+                }
+            }
         }
 
         /// <summary>

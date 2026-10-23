@@ -195,9 +195,23 @@ namespace GUI.Views.GiangVien
             txtPreviewDocTitle.Text = fileName;
             txtPreviewDocMeta.Text = $"Định dạng: {lesson.DinhDangTep} • Dung lượng: {lesson.DungLuongHienThi} • Chủ đề: {lesson.TenChuDe} • Trình độ: {lesson.MaTrinhDo}";
             txtSimulationModule.Text = $"{lesson.TenLoaiHienThi?.ToUpper() ?? "HỌC LIỆU"} — TRÌNH ĐỘ {lesson.MaTrinhDo ?? "B1"}";
-            txtSimulationPassage.Text = string.IsNullOrWhiteSpace(lesson.TomTat) ? "Xem trước nội dung tệp" : $"Tóm tắt: {lesson.TomTat}";
+            txtSimulationPassage.Text = "Xem trước nội dung tệp";
 
             txtPassageTitle.Text = lesson.TieuDe ?? "";
+
+            // Hiển thị tóm tắt nội dung bài học vào khối riêng biệt, tự xuống dòng đầy đủ
+            if (pnlPassageSummary != null && txtPassageSummaryFull != null)
+            {
+                if (!string.IsNullOrWhiteSpace(lesson.TomTat))
+                {
+                    pnlPassageSummary.Visibility = Visibility.Visible;
+                    txtPassageSummaryFull.Text = lesson.TomTat;
+                }
+                else
+                {
+                    pnlPassageSummary.Visibility = Visibility.Collapsed;
+                }
+            }
 
             // Đọc nội dung tệp thực tế từ ổ đĩa (DOCX, PDF, TXT) chuẩn như File Explorer
             string actualContent = KhoHocLieuSyncHelper.DocNoiDungTep(lesson.DuongDanTepVatLy, lesson.NoiDung);
@@ -439,6 +453,11 @@ namespace GUI.Views.GiangVien
                     ThongBaoDialog.CanhBao(Window.GetWindow(this), msg, "Lỗi cập nhật");
                 }
             }
+        }
+
+        private void BtnLamMoiChuDe_Click(object sender, RoutedEventArgs e)
+        {
+            LoadTreeAndLessons();
         }
 
         private void BtnXoaChuDe_Click(object sender, RoutedEventArgs e)

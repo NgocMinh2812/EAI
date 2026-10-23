@@ -95,6 +95,44 @@
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Command="{Binding LamMoiCommand}" Background="White" Foreground="{StaticResource TextDark}" 
+                        BorderBrush="{StaticResource BorderLight}" BorderThickness="1"
+                        Padding="12,8" Cursor="Hand" Margin="0,0,10,0" ToolTip="Làm mới toàn bộ danh sách bộ và câu hỏi">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="bdRf" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <local:LucideIcon x:Name="icoRefreshTop" Kind="RefreshCw" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"
+                                                      RenderTransformOrigin="0.5,0.5" VerticalAlignment="Center">
+                                        <local:LucideIcon.RenderTransform>
+                                            <RotateTransform Angle="0"/>
+                                        </local:LucideIcon.RenderTransform>
+                                    </local:LucideIcon>
+                                    <TextBlock Text="Làm mới" FontSize="12" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <EventTrigger RoutedEvent="ButtonBase.Click">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="icoRefreshTop"
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                                             From="0" To="360" Duration="0:0:0.7">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bdRf" Property="Background" Value="#F1F5F9"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
                 <Button Command="{Binding TaoBoCauHoiMoiCommand}" Background="#0284C7" Foreground="White" 
                         Padding="14,8" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" ToolTip="Tạo một bộ câu hỏi trống mới">
                     <Button.Template>
@@ -128,14 +166,16 @@
         <!-- 2. Main 3-Column Split: BỘ CÂU HỎI | CÂU HỎI TRONG BỘ | CHI TIẾT & BIÊN TẬP -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <!-- CỘT 1: DANH SÁCH BỘ CÂU HỎI (MASTER) -->
-                <ColumnDefinition Width="280"/>
-                <ColumnDefinition Width="14"/>
-                <!-- CỘT 2: DANH SÁCH CÂU HỎI TRONG BỘ -->
-                <ColumnDefinition Width="340"/>
-                <ColumnDefinition Width="14"/>
-                <!-- CỘT 3: CHI TIẾT & BIÊN TẬP CÂU HỎI (DETAIL) -->
-                <ColumnDefinition Width="*"/>
+                <!-- CỘT 1: DANH SÁCH BỘ CÂU HỎI (MASTER - Rộng rãi 270px) -->
+                <ColumnDefinition Width="270" MinWidth="220" MaxWidth="400"/>
+                <!-- Splitter 1 -->
+                <ColumnDefinition Width="10"/>
+                <!-- CỘT 2: DANH SÁCH CÂU HỎI TRONG BỘ (Rộng rãi 330px) -->
+                <ColumnDefinition Width="330" MinWidth="270" MaxWidth="480"/>
+                <!-- Splitter 2 -->
+                <ColumnDefinition Width="10"/>
+                <!-- CỘT 3: CHI TIẾT & BIÊN TẬP CÂU HỎI (DETAIL - Co giãn linh hoạt) -->
+                <ColumnDefinition Width="*" MinWidth="380"/>
             </Grid.ColumnDefinitions>
 
             <!-- ================= CỘT 1: BỘ CÂU HỎI (QUESTION SETS) ================= -->
@@ -294,6 +334,24 @@
                 </Grid>
             </Border>
 
+            <!-- ================= THANH KÉO GIÃN 1 (GIỮA CỘT 1 VÀ 2) ================= -->
+            <GridSplitter Grid.Column="1" Width="10" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                          Background="Transparent" Cursor="SizeWE" ShowsPreview="False">
+                <GridSplitter.Template>
+                    <ControlTemplate TargetType="GridSplitter">
+                        <Border Background="Transparent" Width="10">
+                            <Border x:Name="spl1" Width="2" HorizontalAlignment="Center" Background="#CBD5E1" CornerRadius="1"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="spl1" Property="Background" Value="{StaticResource AdminDarkGreen}"/>
+                                <Setter TargetName="spl1" Property="Width" Value="4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </GridSplitter.Template>
+            </GridSplitter>
+
             <!-- ================= CỘT 2: DANH SÁCH CÂU HỎI TRONG BỘ ================= -->
             <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="14" Padding="12,12,3,12">
                 <Grid>
@@ -384,7 +442,7 @@
                     </StackPanel>
 
                     <!-- Questions ListBox -->
-                    <ListBox Grid.Row="2" ItemsSource="{Binding DanhSachCauHoi}" SelectedItem="{Binding CurrentCauHoi, Mode=TwoWay}"
+                    <ListBox Grid.Row="2" ItemsSource="{Binding DanhSachCauHoi}" SelectedItem="{Binding SelectedCauHoiInList, Mode=TwoWay}"
                              BorderThickness="0" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                              Padding="0,0,14,0">
                         <ListBox.ItemContainerStyle>
@@ -464,6 +522,24 @@
                 </Grid>
             </Border>
 
+            <!-- ================= THANH KÉO GIÃN 2 (GIỮA CỘT 2 VÀ 3) ================= -->
+            <GridSplitter Grid.Column="3" Width="10" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                          Background="Transparent" Cursor="SizeWE" ShowsPreview="False">
+                <GridSplitter.Template>
+                    <ControlTemplate TargetType="GridSplitter">
+                        <Border Background="Transparent" Width="10">
+                            <Border x:Name="spl2" Width="2" HorizontalAlignment="Center" Background="#CBD5E1" CornerRadius="1"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="spl2" Property="Background" Value="{StaticResource AdminDarkGreen}"/>
+                                <Setter TargetName="spl2" Property="Width" Value="4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </GridSplitter.Template>
+            </GridSplitter>
+
             <!-- ================= CỘT 3: CHI TIẾT & BIÊN TẬP CÂU HỎI (DETAIL) ================= -->
             <Border Grid.Column="4" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="14" Padding="18">
                 <Grid>
@@ -473,68 +549,89 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Top Bar of Editor -->
+                    <!-- Top Bar of Editor (Responsive: WrapPanel + Full width subtitle) -->
                     <Grid Grid.Row="0" Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="CHI TIẾT VÀ KIỂM DUYỆT CÂU HỎI" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}"/>
-                            <TextBlock Text="Chỉnh sửa nội dung, gắn audio, đoạn văn đọc hiểu, đáp án đúng và lời giải chi tiết" FontSize="12" Foreground="{StaticResource TextGray}"/>
-                        </StackPanel>
+                        <!-- Hàng 1: Tiêu đề + Badge + Nút bấm thao tác căn phải -->
+                        <DockPanel Grid.Row="0" LastChildFill="True" Margin="0,0,0,4">
+                            <!-- Nút thao tác dạt sang phải -->
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                                <Button Command="{Binding ThemCauHoiMoiCommand}"
+                                        Background="#EFF6FF" Foreground="#2563EB" BorderThickness="0" Padding="8,5" Cursor="Hand" Margin="0,0,6,0" ToolTip="Tạo mới một câu hỏi">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <local:LucideIcon Kind="Plus" Size="12.5" Foreground="#2563EB" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                    <TextBlock Text="Tạo câu hỏi mới" FontSize="11" FontWeight="Bold" Foreground="#2563EB" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
 
-                        <!-- Actions: Create New Question + Delete Question -->
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Button Command="{Binding ThemCauHoiMoiCommand}"
-                                    Background="#EFF6FF" Foreground="#2563EB" BorderThickness="0" Padding="10,6" Cursor="Hand" Margin="0,0,8,0" ToolTip="Tạo mới một câu hỏi">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <local:LucideIcon Kind="Plus" Size="13" Foreground="#2563EB" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                                                <TextBlock Text="Tạo câu hỏi mới" FontSize="11.5" FontWeight="Bold" Foreground="#2563EB" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
+                                <Button Command="{Binding XoaCauHoiVinhVienCommand}" CommandParameter="{Binding CurrentCauHoi}"
+                                        Background="#FEE2E2" Foreground="#DC2626" BorderThickness="0" Padding="8,5" Cursor="Hand" ToolTip="Xóa câu hỏi khỏi toàn bộ hệ thống">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <local:LucideIcon Kind="Trash2" Size="12.5" Foreground="#DC2626" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                    <TextBlock Text="Xóa câu hỏi" FontSize="11" FontWeight="Bold" Foreground="#DC2626" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </StackPanel>
 
-                            <Button Command="{Binding XoaCauHoiVinhVienCommand}" CommandParameter="{Binding CurrentCauHoi}"
-                                    Background="#FEE2E2" Foreground="#DC2626" BorderThickness="0" Padding="10,6" Cursor="Hand" ToolTip="Xóa câu hỏi khỏi toàn bộ hệ thống">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <local:LucideIcon Kind="Trash2" Size="13" Foreground="#DC2626" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                                <TextBlock Text="Xóa câu hỏi" FontSize="11.5" FontWeight="Bold" Foreground="#DC2626" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
-                        </StackPanel>
+                            <!-- Tiêu đề và badge tự wrap mượt mà nếu không gian hẹp -->
+                            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="CHI TIẾT VÀ KIỂM DUYỆT CÂU HỎI" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextDark}" Margin="0,0,8,2" VerticalAlignment="Center"/>
+                                <Border Background="#FEF3C7" CornerRadius="6" Padding="6,2" VerticalAlignment="Center" Margin="0,0,0,2">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding CurrentCauHoi.MaCauHoi}" Value="-1">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="✨ Đang tạo câu hỏi mới" FontWeight="Bold" FontSize="10.5" Foreground="#B45309"/>
+                                </Border>
+                            </WrapPanel>
+                        </DockPanel>
+
+                        <!-- Hàng 2: Mô tả phụ - Chiếm toàn bộ chiều rộng và tự wrap, không bị che bởi các nút -->
+                        <TextBlock Grid.Row="1" Text="Chỉnh sửa nội dung, gắn audio, đoạn văn đọc hiểu, đáp án đúng và lời giải chi tiết." 
+                                   FontSize="11.5" Foreground="{StaticResource TextGray}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                     </Grid>
 
                     <!-- Main Editor Fields (Scrollable) -->
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,12,0" Margin="0,0,2,0">
                         <StackPanel>
-                            <!-- Row 1: Kỹ năng, Độ khó, Trình độ CEFR, Loại câu hỏi -->
+                            <!-- Row 1: Kỹ năng, Độ khó, Trình độ CEFR, Loại câu hỏi (Bố cục 2 cột x 2 hàng giúp dropdown text dài không bao giờ bị cắt) -->
                             <Grid Margin="0,0,0,12">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="1*"/>
-                                    <ColumnDefinition Width="10"/>
-                                    <ColumnDefinition Width="1*"/>
-                                    <ColumnDefinition Width="10"/>
-                                    <ColumnDefinition Width="1*"/>
-                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="12"/>
                                     <ColumnDefinition Width="1*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <StackPanel Grid.Column="0">
+                                <!-- Hàng 1 - Cột 0: Kỹ năng -->
+                                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,8">
                                     <TextBlock Text="Kỹ năng:" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.KyNang, Mode=TwoWay}" SelectedValuePath="Tag" Padding="6,5" FontSize="12">
+                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.KyNang, Mode=TwoWay}" SelectedValuePath="Tag" Padding="8,5" FontSize="12">
                                         <ComboBoxItem Content="Đọc hiểu" Tag="Doc"/>
                                         <ComboBoxItem Content="Nghe hiểu" Tag="Nghe"/>
                                         <ComboBoxItem Content="Ngữ pháp" Tag="NguPhap"/>
@@ -543,18 +640,20 @@
                                     </ComboBox>
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="2">
+                                <!-- Hàng 1 - Cột 2: Độ khó -->
+                                <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,8">
                                     <TextBlock Text="Độ khó:" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.DoKho, Mode=TwoWay}" SelectedValuePath="Tag" Padding="6,5" FontSize="12">
+                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.DoKho, Mode=TwoWay}" SelectedValuePath="Tag" Padding="8,5" FontSize="12">
                                         <ComboBoxItem Content="Dễ" Tag="De"/>
                                         <ComboBoxItem Content="Trung bình" Tag="TrungBinh"/>
                                         <ComboBoxItem Content="Khó" Tag="Kho"/>
                                     </ComboBox>
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="4">
+                                <!-- Hàng 2 - Cột 0: Trình độ CEFR -->
+                                <StackPanel Grid.Row="1" Grid.Column="0">
                                     <TextBlock Text="Trình độ CEFR:" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.MaTrinhDo, Mode=TwoWay}" SelectedValuePath="Tag" Padding="6,5" FontSize="12">
+                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.MaTrinhDo, Mode=TwoWay}" SelectedValuePath="Tag" Padding="8,5" FontSize="12">
                                         <ComboBoxItem Content="A1" Tag="A1"/>
                                         <ComboBoxItem Content="A2" Tag="A2"/>
                                         <ComboBoxItem Content="B1" Tag="B1"/>
@@ -563,9 +662,10 @@
                                     </ComboBox>
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="6">
+                                <!-- Hàng 2 - Cột 2: Loại câu hỏi (Rộng rãi, hiển thị trọn vẹn không bị cắt chữ) -->
+                                <StackPanel Grid.Row="1" Grid.Column="2">
                                     <TextBlock Text="Loại câu hỏi:" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.LoaiCauHoi, Mode=TwoWay}" SelectedValuePath="Tag" Padding="6,5" FontSize="12">
+                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.LoaiCauHoi, Mode=TwoWay}" SelectedValuePath="Tag" Padding="8,5" FontSize="12">
                                         <ComboBoxItem Content="Trắc nghiệm (4 lựa chọn)" Tag="TracNghiem"/>
                                         <ComboBoxItem Content="Đúng / Sai (True / False)" Tag="DungSai"/>
                                         <ComboBoxItem Content="True / False / Not Given" Tag="TrueFalseNotGiven"/>
@@ -712,7 +812,8 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="Các phương án trả lời (chọn nút tròn để đánh dấu đáp án đúng):" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="0" Text="Các phương án trả lời (chọn nút tròn để đánh dấu đáp án đúng):" 
+                                               FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextDark}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,0"/>
                                     <Button Grid.Column="1" Command="{Binding ThemDapAnCommand}" Background="#F1F5F9" Foreground="#334155" BorderThickness="0" Padding="8,4" Cursor="Hand">
                                         <Button.Template>
                                             <ControlTemplate TargetType="Button">
@@ -845,20 +946,31 @@
                                        Visibility="{Binding ThongBaoThanhCong, Converter={StaticResource StringNotEmptyToVisConverter}}"/>
                         </StackPanel>
 
-                        <!-- Save button -->
-                        <Button Grid.Column="1" Command="{Binding LuuCauHoiCommand}" Background="{StaticResource AdminDarkGreen}" Foreground="White"
-                                Padding="20,9" BorderThickness="0" Cursor="Hand">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" CornerRadius="9" Padding="{TemplateBinding Padding}">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <local:LucideIcon Kind="Check" Size="14" Foreground="White" Margin="0,0,6,0"/>
-                                            <TextBlock Text="Lưu thay đổi câu hỏi" FontSize="12.5" FontWeight="Bold" Foreground="White"/>
-                                        </StackPanel>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                        <!-- Save button & Notification pill -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <!-- Thông báo text nhỏ khi lưu thành công -->
+                            <Border Background="#ECFDF5" BorderBrush="#10B981" BorderThickness="1" CornerRadius="8" Padding="12,6" Margin="0,0,10,0"
+                                    Visibility="{Binding HienThongBaoLuuNho, Converter={StaticResource BoolToVisConverter}}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <local:LucideIcon Kind="CheckCircle2" Size="14" Foreground="#059669" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding ThongBaoLuuNho}" Foreground="#047857" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Button Command="{Binding LuuCauHoiCommand}" Background="{StaticResource AdminDarkGreen}" Foreground="White"
+                                    Padding="20,9" BorderThickness="0" Cursor="Hand" ToolTip="Lưu thay đổi câu hỏi vào hệ thống">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" CornerRadius="9" Padding="{TemplateBinding Padding}">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <local:LucideIcon Kind="Check" Size="14" Foreground="White" Margin="0,0,6,0"/>
+                                                <TextBlock Text="Lưu thay đổi câu hỏi" FontSize="12.5" FontWeight="Bold" Foreground="White"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
                     </Grid>
                 </Grid>
             </Border>

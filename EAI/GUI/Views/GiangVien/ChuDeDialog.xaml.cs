@@ -21,10 +21,17 @@ namespace GUI.Views.GiangVien
                 new ChuDeDTO { MaChuDe = 0, TenChuDe = "— Không có (Chủ đề gốc) —" }
             };
 
+            // Khi sửa, loại trừ chính chủ đề này và toàn bộ các chủ đề con/cháu (tránh tạo vòng lặp)
+            var excludedIds = new HashSet<int>();
+            if (_isEditMode && existing != null)
+            {
+                excludedIds.Add(existing.MaChuDe);
+                ThuThapCacChuDeConChau(existing.MaChuDe, danhSachChuDe, excludedIds);
+            }
+
             foreach (var item in danhSachChuDe)
             {
-                // Khi sửa, không cho phép chọn chính mình làm cha
-                if (_isEditMode && existing != null && item.MaChuDe == existing.MaChuDe)
+                if (excludedIds.Contains(item.MaChuDe))
                     continue;
 
                 parentList.Add(item);
@@ -101,6 +108,18 @@ namespace GUI.Views.GiangVien
             if (e.ButtonState == System.Windows.Input.MouseButtonState.Pressed)
             {
                 DragMove();
+            }
+        }
+
+        private static void ThuThapCacChuDeConChau(int parentId, List<ChuDeDTO> allTopics, HashSet<int> result)
+        {
+            var children = allTopics.Where(c => c.MaChuDeCha.HasValue && c.MaChuDeCha.Value == parentId).ToList();
+            foreach (var child in children)
+            {
+                if (result.Add(child.MaChuDe))
+                {
+                    ThuThapCacChuDeConChau(child.MaChuDe, allTopics, result);
+                }
             }
         }
     }

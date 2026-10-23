@@ -84,7 +84,7 @@ namespace DAL
         /// <summary>
         /// Lấy danh sách câu hỏi thuộc một bộ câu hỏi cụ thể
         /// </summary>
-        public List<CauHoiKhaoSatDTO> LayDanhSachCauHoiTheoBo(int maBoCauHoi, string? tuKhoa = null, string? kyNang = null, string? doKho = null)
+        public List<CauHoiKhaoSatDTO> LayDanhSachCauHoiTheoBo(int maBoCauHoi, string? tuKhoa = null, string? kyNang = null, string? doKho = null, bool? daKiemDuyet = null)
         {
             var list = new List<CauHoiKhaoSatDTO>();
             string query = @"
@@ -99,6 +99,7 @@ namespace DAL
                   AND (@TuKhoa IS NULL OR @TuKhoa = '' OR ch.NoiDungCauHoi LIKE N'%' + @TuKhoa + N'%')
                   AND (@KyNang IS NULL OR @KyNang = 'All' OR ch.KyNang = @KyNang)
                   AND (@DoKho IS NULL OR @DoKho = 'All' OR ch.DoKho = @DoKho)
+                  AND (@DaKiemDuyet IS NULL OR ch.DaKiemDuyet = @DaKiemDuyet)
                 ORDER BY bc.ThuTu ASC, ch.MaCauHoi ASC";
 
             var parameters = new[]
@@ -106,7 +107,8 @@ namespace DAL
                 new SqlParameter("@MaBo", maBoCauHoi),
                 new SqlParameter("@TuKhoa", string.IsNullOrWhiteSpace(tuKhoa) ? DBNull.Value : (object)tuKhoa.Trim()),
                 new SqlParameter("@KyNang", string.IsNullOrWhiteSpace(kyNang) ? DBNull.Value : (object)kyNang.Trim()),
-                new SqlParameter("@DoKho", string.IsNullOrWhiteSpace(doKho) ? DBNull.Value : (object)doKho.Trim())
+                new SqlParameter("@DoKho", string.IsNullOrWhiteSpace(doKho) ? DBNull.Value : (object)doKho.Trim()),
+                new SqlParameter("@DaKiemDuyet", daKiemDuyet.HasValue ? (object)daKiemDuyet.Value : DBNull.Value)
             };
 
             try
@@ -149,7 +151,7 @@ namespace DAL
         /// <summary>
         /// Lấy toàn bộ câu hỏi trong hệ thống (Hỗ trợ tab "Tất cả câu hỏi")
         /// </summary>
-        public List<CauHoiKhaoSatDTO> LayTatCaCauHoi(string? tuKhoa = null, string? kyNang = null, string? doKho = null, int top = 100)
+        public List<CauHoiKhaoSatDTO> LayTatCaCauHoi(string? tuKhoa = null, string? kyNang = null, string? doKho = null, int top = 100, bool? daKiemDuyet = null)
         {
             var list = new List<CauHoiKhaoSatDTO>();
             string query = $@"
@@ -162,13 +164,15 @@ namespace DAL
                 WHERE (@TuKhoa IS NULL OR @TuKhoa = '' OR ch.NoiDungCauHoi LIKE N'%' + @TuKhoa + N'%')
                   AND (@KyNang IS NULL OR @KyNang = 'All' OR ch.KyNang = @KyNang)
                   AND (@DoKho IS NULL OR @DoKho = 'All' OR ch.DoKho = @DoKho)
+                  AND (@DaKiemDuyet IS NULL OR ch.DaKiemDuyet = @DaKiemDuyet)
                 ORDER BY ch.MaCauHoi DESC";
 
             var parameters = new[]
             {
                 new SqlParameter("@TuKhoa", string.IsNullOrWhiteSpace(tuKhoa) ? DBNull.Value : (object)tuKhoa.Trim()),
                 new SqlParameter("@KyNang", string.IsNullOrWhiteSpace(kyNang) ? DBNull.Value : (object)kyNang.Trim()),
-                new SqlParameter("@DoKho", string.IsNullOrWhiteSpace(doKho) ? DBNull.Value : (object)doKho.Trim())
+                new SqlParameter("@DoKho", string.IsNullOrWhiteSpace(doKho) ? DBNull.Value : (object)doKho.Trim()),
+                new SqlParameter("@DaKiemDuyet", daKiemDuyet.HasValue ? (object)daKiemDuyet.Value : DBNull.Value)
             };
 
             try

@@ -12,7 +12,8 @@ namespace GUI.Views.Common
         Success,
         Warning,
         Error,
-        Info
+        Info,
+        Prompt
     }
 
     public partial class ThongBaoDialog : Window
@@ -129,6 +130,23 @@ namespace GUI.Views.Common
                     btnCancel.Visibility = Visibility.Collapsed;
                     Grid.SetColumn(btnConfirm, 0);
                     Grid.SetColumnSpan(btnConfirm, 3);
+                    break;
+
+                case ThongBaoType.Prompt:
+                    icoSymbol.Kind = LucideIconKind.Pencil;
+                    icoSymbol.Icon = null;
+                    icoSymbol.Size = 30;
+                    icoSymbol.StrokeThickness = 2.4;
+                    icoSymbol.Foreground = (Brush)new BrushConverter().ConvertFrom("#2563EB")!;
+                    borderIconBadge.Background = (Brush)new BrushConverter().ConvertFrom("#EFF6FF")!;
+                    borderMain.BorderBrush = (Brush)new BrushConverter().ConvertFrom("#93C5FD")!;
+                    txtTitle.Foreground = (Brush)new BrushConverter().ConvertFrom("#1E3A8A")!;
+                    btnConfirm.Background = (Brush)new BrushConverter().ConvertFrom("#2563EB")!;
+                    btnCancel.Visibility = Visibility.Visible;
+                    txtInput.Visibility = Visibility.Visible;
+                    Grid.SetColumn(btnConfirm, 2);
+                    Grid.SetColumnSpan(btnConfirm, 1);
+                    Loaded += (s, e) => { txtInput.Focus(); txtInput.SelectAll(); };
                     break;
             }
         }
@@ -250,5 +268,18 @@ namespace GUI.Views.Common
 
         public static void ThongTin(string message, string title = "Thông báo") =>
             ThongTin(null, message, title);
+
+        public static string? NhapLieu(Window? owner, string message, string title, string defaultText = "",
+                                       string confirmText = "Lưu", string cancelText = "Hủy bỏ")
+        {
+            var dlg = new ThongBaoDialog(message, title, ThongBaoType.Prompt, confirmText, cancelText);
+            dlg.txtInput.Text = defaultText;
+            bool? ok = ModalHelper.ShowDialogWithDim(dlg, GetActiveWindow(owner));
+            return ok == true ? dlg.txtInput.Text : null;
+        }
+
+        public static string? NhapLieu(string message, string title, string defaultText = "",
+                                       string confirmText = "Lưu", string cancelText = "Hủy bỏ") =>
+            NhapLieu(null, message, title, defaultText, confirmText, cancelText);
     }
 }

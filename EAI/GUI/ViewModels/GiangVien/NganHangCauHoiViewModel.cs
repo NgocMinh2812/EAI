@@ -27,6 +27,10 @@ namespace GUI.ViewModels.GiangVien
         private string _audioTotalTimeText = "00:00";
         private string _thongBaoLoi = string.Empty;
         private string _thongBaoThanhCong = string.Empty;
+        private string _thongBaoLuuNho = string.Empty;
+        private bool _hienThongBaoLuuNho;
+        private System.Windows.Threading.DispatcherTimer? _luuTimer;
+        private CauHoiKhaoSatDTO? _selectedCauHoiInList;
 
         // Bộ lọc bộ câu hỏi
         private string _tuKhoaTimKiemBo = string.Empty;
@@ -91,6 +95,21 @@ namespace GUI.ViewModels.GiangVien
             }
         }
 
+        public CauHoiKhaoSatDTO? SelectedCauHoiInList
+        {
+            get => _selectedCauHoiInList;
+            set
+            {
+                if (SetProperty(ref _selectedCauHoiInList, value))
+                {
+                    if (value != null)
+                    {
+                        ChonCauHoiDeSua(value);
+                    }
+                }
+            }
+        }
+
         public string ThongBaoLoi
         {
             get => _thongBaoLoi;
@@ -101,6 +120,18 @@ namespace GUI.ViewModels.GiangVien
         {
             get => _thongBaoThanhCong;
             set => SetProperty(ref _thongBaoThanhCong, value);
+        }
+
+        public string ThongBaoLuuNho
+        {
+            get => _thongBaoLuuNho;
+            set => SetProperty(ref _thongBaoLuuNho, value);
+        }
+
+        public bool HienThongBaoLuuNho
+        {
+            get => _hienThongBaoLuuNho;
+            set => SetProperty(ref _hienThongBaoLuuNho, value);
         }
 
         public bool IsPlayingAudio
@@ -196,6 +227,7 @@ namespace GUI.ViewModels.GiangVien
         public ICommand TogglePlayAudioCommand { get; }
         public ICommand LuuCauHoiCommand { get; }
         public ICommand ThemCauHoiMoiCommand { get; }
+        public ICommand LamMoiCommand { get; }
 
         public NganHangCauHoiViewModel()
         {
@@ -212,6 +244,7 @@ namespace GUI.ViewModels.GiangVien
             TogglePlayAudioCommand = new RelayCommand(_ => ThucHienToggleAudio());
             LuuCauHoiCommand = new RelayCommand(_ => ThucHienLuuCauHoi());
             ThemCauHoiMoiCommand = new RelayCommand(_ => KhoiTaoCauHoiMoi());
+            LamMoiCommand = new RelayCommand(_ => ThucHienLamMoi());
 
             _audioTimer = new System.Windows.Threading.DispatcherTimer
             {
@@ -363,6 +396,11 @@ namespace GUI.ViewModels.GiangVien
         public void ChonCauHoiDeSua(CauHoiKhaoSatDTO? ch)
         {
             if (ch == null) return;
+            if (_selectedCauHoiInList != ch)
+            {
+                _selectedCauHoiInList = ch;
+                OnPropertyChanged(nameof(SelectedCauHoiInList));
+            }
             CurrentCauHoi = ch;
             NapDapAnChoCauHoiHienTai();
         }
@@ -506,6 +544,9 @@ namespace GUI.ViewModels.GiangVien
 
         public void KhoiTaoCauHoiMoi()
         {
+            _selectedCauHoiInList = null;
+            OnPropertyChanged(nameof(SelectedCauHoiInList));
+
             var newCh = new CauHoiKhaoSatDTO
             {
                 MaCauHoi = -1,
@@ -523,6 +564,18 @@ namespace GUI.ViewModels.GiangVien
 
             CurrentCauHoi = newCh;
             NapDapAnChoCauHoiHienTai();
+        }
+
+        private void ThucHienLamMoi()
+        {
+            NapDanhMuc();
+            NapDanhSachBoCauHoi();
+            ThongBaoLuuNho = "✓ Đã làm mới dữ liệu!";
+            HienThongBaoLuuNho = true;
+            _luuTimer?.Stop();
+            _luuTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(2.5) };
+            _luuTimer.Tick += (s, e) => { _luuTimer.Stop(); HienThongBaoLuuNho = false; };
+            _luuTimer.Start();
         }
 
         private void ThucHienThemDapAn()
@@ -775,12 +828,22 @@ namespace GUI.ViewModels.GiangVien
                 }
 
                 ThongBaoThanhCong = "Đã lưu thay đổi câu hỏi vào ngân hàng thành công!";
+                ThongBaoLuuNho = "✓ Đã lưu thay đổi câu hỏi!";
+                HienThongBaoLuuNho = true;
+                _luuTimer?.Stop();
+                _luuTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(3.5) };
+                _luuTimer.Tick += (s, e) => { _luuTimer.Stop(); HienThongBaoLuuNho = false; };
+                _luuTimer.Start();
+
                 NapDanhSachBoCauHoi(savedId);
+                SelectedCauHoiInList = DanhSachCauHoi.FirstOrDefault(x => x.MaCauHoi == savedId);
             }
             else
             {
                 ThongBaoLoi = "Lỗi khi lưu câu hỏi: " + err;
                 ThongBaoThanhCong = string.Empty;
+                ThongBaoLuuNho = string.Empty;
+                HienThongBaoLuuNho = false;
             }
         }
 
@@ -830,9 +893,15 @@ namespace GUI.ViewModels.GiangVien
         {
             if (bo == null || bo.MaBoCauHoi == 0) return;
 
-            // Mở prompt đơn giản đổi tên
-            string tenMoi = Microsoft.VisualBasic.Interaction.InputBox("Nhập tên mới cho bộ câu hỏi:", "Đổi tên bộ câu hỏi", bo.TenBoCauHoi);
-            if (!string.IsNullOrWhiteSpace(tenMoi) && tenMoi != bo.TenBoCauHoi)
+            // Mở prompt đổi tên hiện đại
+            string? tenMoi = GUI.Views.Common.ThongBaoDialog.NhapLieu(
+                "Nhập tên mới cho bộ câu hỏi:", 
+                "Đổi tên bộ câu hỏi", 
+                defaultText: bo.TenBoCauHoi, 
+                confirmText: "Lưu tên", 
+                cancelText: "Hủy bỏ");
+
+            if (!string.IsNullOrWhiteSpace(tenMoi) && tenMoi.Trim() != bo.TenBoCauHoi)
             {
                 bool ok = BoCauHoiBUS.Instance.DoiTenBoCauHoi(bo.MaBoCauHoi, tenMoi.Trim(), out string err);
                 if (ok)
@@ -841,11 +910,11 @@ namespace GUI.ViewModels.GiangVien
                     OnPropertyChanged(nameof(SelectedBoCauHoi));
                     OnPropertyChanged(nameof(TieuDeBoHienTai));
                     NapDanhSachBoCauHoi();
-                    ThongBaoThanhCong = "Đổi tên bộ câu hỏi thành công!";
+                    GUI.Views.Common.ThongBaoDialog.ThanhCong("Đổi tên bộ câu hỏi thành công!", "Thành công");
                 }
                 else
                 {
-                    ThongBaoLoi = "Lỗi khi đổi tên: " + err;
+                    GUI.Views.Common.ThongBaoDialog.Loi("Lỗi khi đổi tên: " + err, "Lỗi");
                 }
             }
         }
@@ -854,23 +923,23 @@ namespace GUI.ViewModels.GiangVien
         {
             if (bo == null || bo.MaBoCauHoi == 0) return;
 
-            var result = System.Windows.MessageBox.Show(
+            bool confirm = GUI.Views.Common.ThongBaoDialog.XacNhan(
                 $"Bạn có chắc chắn muốn xóa bộ câu hỏi \"{bo.TenBoCauHoi}\"?\n\nLưu ý: Các câu hỏi bên trong vẫn được bảo toàn an toàn trong Ngân hàng câu hỏi để sử dụng cho các bài tập / đề thi khác.",
                 "Xác nhận xóa bộ câu hỏi",
-                System.Windows.MessageBoxButton.YesNo,
-                System.Windows.MessageBoxImage.Question);
+                confirmText: "Xóa bộ",
+                cancelText: "Hủy bỏ");
 
-            if (result == System.Windows.MessageBoxResult.Yes)
+            if (confirm)
             {
                 bool ok = BoCauHoiBUS.Instance.XoaBoCauHoi(bo.MaBoCauHoi, out string err);
                 if (ok)
                 {
-                    ThongBaoThanhCong = $"Đã xóa bộ câu hỏi \"{bo.TenBoCauHoi}\" thành công!";
+                    GUI.Views.Common.ThongBaoDialog.ThanhCong($"Đã xóa bộ câu hỏi \"{bo.TenBoCauHoi}\" thành công!", "Đã xóa");
                     NapDanhSachBoCauHoi();
                 }
                 else
                 {
-                    ThongBaoLoi = "Lỗi khi xóa bộ câu hỏi: " + err;
+                    GUI.Views.Common.ThongBaoDialog.Loi("Lỗi khi xóa bộ câu hỏi: " + err, "Lỗi");
                 }
             }
         }
@@ -881,24 +950,24 @@ namespace GUI.ViewModels.GiangVien
             if (ch == null || SelectedBoCauHoi == null || SelectedBoCauHoi.MaBoCauHoi == 0) return;
             if (ch.MaCauHoi < 0) return;
 
-            var result = System.Windows.MessageBox.Show(
-                $"Bạn có muốn gỡ câu hỏi #{ch.ThuTuCauHoi} khỏi bộ \"{SelectedBoCauHoi.TenBoCauHoi}\"?\n(Câu hỏi vẫn được lưu trữ đầy đủ trong ngân hàng)",
+            bool confirm = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                $"Bạn có muốn gỡ câu hỏi #{ch.ThuTuCauHoi} khỏi bộ \"{SelectedBoCauHoi.TenBoCauHoi}\"?\n\n(Câu hỏi vẫn được lưu trữ đầy đủ trong ngân hàng câu hỏi)",
                 "Xác nhận gỡ câu hỏi khỏi bộ",
-                System.Windows.MessageBoxButton.YesNo,
-                System.Windows.MessageBoxImage.Question);
+                confirmText: "Gỡ khỏi bộ",
+                cancelText: "Hủy bỏ");
 
-            if (result == System.Windows.MessageBoxResult.Yes)
+            if (confirm)
             {
                 bool ok = BoCauHoiBUS.Instance.XoaCauHoiKhoiBo(SelectedBoCauHoi.MaBoCauHoi, ch.MaCauHoi, out string err);
                 if (ok)
                 {
-                    ThongBaoThanhCong = "Đã gỡ câu hỏi khỏi bộ thành công!";
+                    GUI.Views.Common.ThongBaoDialog.ThanhCong("Đã gỡ câu hỏi khỏi bộ thành công!", "Đã gỡ câu hỏi");
                     NapDanhSachCauHoi();
                     NapDanhSachBoCauHoi();
                 }
                 else
                 {
-                    ThongBaoLoi = "Lỗi khi gỡ câu hỏi: " + err;
+                    GUI.Views.Common.ThongBaoDialog.Loi("Lỗi khi gỡ câu hỏi: " + err, "Lỗi");
                 }
             }
         }
@@ -914,18 +983,16 @@ namespace GUI.ViewModels.GiangVien
                 return;
             }
 
-            var result = System.Windows.MessageBox.Show(
-                $"CẢNH BÁO: Bạn có chắc chắn muốn XÓA câu hỏi #{ch.ThuTuCauHoi} khỏi toàn bộ hệ thống?\n(Thao tác này sẽ gỡ câu hỏi khỏi tất cả bộ câu hỏi và cơ sở dữ liệu)",
-                "Xác nhận xóa câu hỏi",
-                System.Windows.MessageBoxButton.YesNo,
-                System.Windows.MessageBoxImage.Warning);
+            bool confirm = GUI.Views.Common.ThongBaoDialog.XacNhanXoa(
+                $"CẢNH BÁO: Bạn có chắc chắn muốn XÓA câu hỏi #{ch.ThuTuCauHoi} khỏi toàn bộ hệ thống?\n\n(Thao tác này sẽ gỡ câu hỏi khỏi tất cả bộ câu hỏi và cơ sở dữ liệu)",
+                "Xác nhận xóa câu hỏi");
 
-            if (result == System.Windows.MessageBoxResult.Yes)
+            if (confirm)
             {
                 bool ok = BoCauHoiBUS.Instance.XoaCauHoiVinhVien(ch.MaCauHoi, out string err);
                 if (ok)
                 {
-                    ThongBaoThanhCong = "Đã xóa câu hỏi khỏi hệ thống!";
+                    GUI.Views.Common.ThongBaoDialog.ThanhCong("Đã xóa câu hỏi khỏi toàn bộ hệ thống thành công!", "Xóa thành công");
                     NapDanhSachCauHoi();
                     NapDanhSachBoCauHoi();
                     KhoiTaoCauHoiMoi();
@@ -933,7 +1000,7 @@ namespace GUI.ViewModels.GiangVien
                 else
                 {
                     ThongBaoLoi = err;
-                    System.Windows.MessageBox.Show(err, "Không thể xóa", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                    GUI.Views.Common.ThongBaoDialog.CanhBao(err, "Không thể xóa");
                 }
             }
         }

@@ -16,15 +16,15 @@ namespace BUS
             return BoCauHoiDAL.Instance.LayDanhSachBoCauHoi(tuKhoa, nguonTao);
         }
 
-        public List<CauHoiKhaoSatDTO> LayDanhSachCauHoiTheoBo(int maBoCauHoi, string? tuKhoa = null, string? kyNang = null, string? doKho = null)
+        public List<CauHoiKhaoSatDTO> LayDanhSachCauHoiTheoBo(int maBoCauHoi, string? tuKhoa = null, string? kyNang = null, string? doKho = null, bool? daKiemDuyet = null)
         {
             if (maBoCauHoi <= 0) return new List<CauHoiKhaoSatDTO>();
-            return BoCauHoiDAL.Instance.LayDanhSachCauHoiTheoBo(maBoCauHoi, tuKhoa, kyNang, doKho);
+            return BoCauHoiDAL.Instance.LayDanhSachCauHoiTheoBo(maBoCauHoi, tuKhoa, kyNang, doKho, daKiemDuyet);
         }
 
-        public List<CauHoiKhaoSatDTO> LayTatCaCauHoi(string? tuKhoa = null, string? kyNang = null, string? doKho = null, int top = 500)
+        public List<CauHoiKhaoSatDTO> LayTatCaCauHoi(string? tuKhoa = null, string? kyNang = null, string? doKho = null, int top = 500, bool? daKiemDuyet = null)
         {
-            return BoCauHoiDAL.Instance.LayTatCaCauHoi(tuKhoa, kyNang, doKho, top);
+            return BoCauHoiDAL.Instance.LayTatCaCauHoi(tuKhoa, kyNang, doKho, top, daKiemDuyet);
         }
 
         public int DemTongSoCauHoi()
