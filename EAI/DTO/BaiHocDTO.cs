@@ -22,6 +22,22 @@ namespace DTO
         public string? DapAnVanBan { get; set; }
         public string? TieuChiCham { get; set; }
         public string? AudioScript { get; set; }
+
+        /// <summary>
+        /// Chuẩn hóa nội dung lựa chọn trắc nghiệm, loại bỏ tiền tố A., B., C., D., A), (A), [A], A - ...
+        /// tránh tình trạng bị hiển thị lặp "A. A. option" hoặc "B. B. option".
+        /// </summary>
+        public static string StripOptionPrefix(string? rawText)
+        {
+            if (string.IsNullOrWhiteSpace(rawText)) return string.Empty;
+            string trimmed = rawText.Trim();
+            string stripped = System.Text.RegularExpressions.Regex.Replace(
+                trimmed,
+                @"^(?:(?:\([A-Da-d]\)|\[[A-Da-d]\]|[A-Da-d][\.\)\:\-])\s*)+",
+                ""
+            ).Trim();
+            return string.IsNullOrEmpty(stripped) ? trimmed : stripped;
+        }
     }
 
     public class BaiHocDTO : INotifyPropertyChanged

@@ -48,7 +48,7 @@ namespace DAL
                         MaLuaChon = Convert.ToInt32(row["MaLuaChon"]),
                         MaCauHoi = maCauHoi,
                         KyHieuLuaChon = row["KyHieuLuaChon"]?.ToString() ?? "",
-                        NoiDungLuaChon = row["NoiDungLuaChon"]?.ToString() ?? "",
+                        NoiDungLuaChon = CauHoiDTO.StripOptionPrefix(row["NoiDungLuaChon"]?.ToString() ?? ""),
                         LaDapAnDung = Convert.ToBoolean(row["LaDapAnDung"])
                     });
                 }

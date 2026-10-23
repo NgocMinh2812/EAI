@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Media;
 using BUS;
+using BUS.AI;
+using DAL;
 using DTO;
 
 namespace TestSprint2
@@ -48,6 +50,8 @@ namespace TestSprint2
             Test_Task07_ChamDiemVaLuuLichSuThi();
             Test_Task08_ReviewMode();
             Test_Task09_SprintReviewVaKiemThuDongCo();
+            Test_Task10_IntelligentLearningContent_And_AccessControl();
+            Test_Task11_AiQuizSets_CungCo_And_VanDung();
 
             // =========================================================================
             // TỔNG KẾT KẾT QUẢ KIỂM THỬ
@@ -473,6 +477,252 @@ namespace TestSprint2
             AssertTest("TC-SP2-09.3", "Kiểm thử ca biên: Thí sinh nộp bài bỏ trống toàn bộ",
                 zeroResult.DiemSo == 0.0m && zeroResult.SoCauDung == 0,
                 $"Điểm số ca biên: {zeroResult.DiemSo} điểm (Đúng 0/{questions.Count} câu, không lỗi chia 0)");
+        }
+
+        // =========================================================================
+        // TASK 10: NỘI DUNG HỌC TẬP THÔNG MINH AI & KIỂM SOÁT QUYỀN TRUY CẬP
+        // =========================================================================
+        private static void Test_Task10_IntelligentLearningContent_And_AccessControl()
+        {
+            Console.WriteLine("\n--------------------------------------------------------------------------------");
+            Console.WriteLine(">>> TASK 10: NỘI DUNG HỌC TẬP THÔNG MINH AI & KIỂM SOÁT QUYỀN TRUY CẬP BÀI HỌC");
+            Console.WriteLine("--------------------------------------------------------------------------------");
+
+            // TC-SP2-10.1: Kiểm soát quyền truy cập bài học (Access Control DaXuatBan)
+            bool accessAllowed = BaiHocBUS.KiemTraQuyenTruyCap(0);
+            bool accessBlockedForNonExistent = BaiHocBUS.KiemTraQuyenTruyCap(999999);
+            var studentLessons = BaiHocBUS.LayDanhSachBaiHoc();
+            bool allStudentLessonsPublished = studentLessons.All(b => b.DaXuatBan);
+
+            AssertTest("TC-SP2-10.1", "Kiểm soát quyền truy cập bài học (Access Control qua DaXuatBan)",
+                accessAllowed && !accessBlockedForNonExistent && allStudentLessonsPublished,
+                $"Quyền truy cập hợp lệ: Bài #0={accessAllowed}, Bài không tồn tại/chưa xuất bản={accessBlockedForNonExistent}, 100% bài học sinh viên thấy đều có DaXuatBan=1 ({studentLessons.Count} bài)");
+
+            // TC-SP2-10.2: Thuật toán ContentHash chống phân tích lặp & phát hiện thay đổi nội dung
+            var sampleLesson = new BaiHocDTO
+            {
+                MaBaiHoc = 999,
+                TieuDe = "Skimming & Scanning Techniques",
+                LoaiBaiHoc = "Doc",
+                MaTrinhDo = "B2",
+                NoiDung = "Reading strategies for academic texts...",
+                AudioPath = ""
+            };
+            string hash1 = NoiDungHocTapAIService.TinhContentHash(sampleLesson);
+            string hash2 = NoiDungHocTapAIService.TinhContentHash(sampleLesson);
+            sampleLesson.NoiDung = "Reading strategies for academic texts... [Updated version by Teacher]";
+            string hashModified = NoiDungHocTapAIService.TinhContentHash(sampleLesson);
+
+            AssertTest("TC-SP2-10.2", "Thuật toán ContentHash SHA-256 xác thực toàn vẹn & cơ chế làm mới khi sửa bài",
+                !string.IsNullOrEmpty(hash1) && hash1.Length == 64 && hash1 == hash2 && hash1 != hashModified,
+                $"Hash chuẩn 64 hex, tính toán tất định 100%, tự động làm mới khi giảng viên sửa nội dung ({hash1.Substring(0, 8)} != {hashModified.Substring(0, 8)})");
+
+            // TC-SP2-10.3: Chuẩn hóa kỹ năng và phân loại thẻ học tập thông minh
+            string skillListening = NoiDungHocTapAIService.ChuanHoaKyNang(new BaiHocDTO { LoaiBaiHoc = "Nghe", TieuDe = "Airport Announcement" });
+            string skillReading = NoiDungHocTapAIService.ChuanHoaKyNang(new BaiHocDTO { LoaiBaiHoc = "Doc", TieuDe = "Science Article" });
+            string skillVocab = NoiDungHocTapAIService.ChuanHoaKyNang(new BaiHocDTO { LoaiBaiHoc = "TuVung", TieuDe = "Business Terms" });
+            string skillGrammar = NoiDungHocTapAIService.ChuanHoaKyNang(new BaiHocDTO { LoaiBaiHoc = "NguPhap", TieuDe = "Present Perfect" });
+
+            var fallbackContent = NoiDungHocTapAIService.TaoTheHocTuNoiDungNguon(
+                new BaiHocDTO 
+                { 
+                    MaBaiHoc = 1, 
+                    TieuDe = "Greetings & Introduction", 
+                    LoaiBaiHoc = "Nghe",
+                    NoiDung = "A: Hello, nice to meet you!\nB: Hi! Nice to meet you too.\nNew words: Greeting (n) /'ɡriːtɪŋ/ - lời chào",
+                    AudioPath = "KhoHocLieu/audio/sample.mp3"
+                }, 
+                "Listening"
+            );
+
+            bool structureValid = fallbackContent != null && 
+                                  fallbackContent.Count >= 2 && 
+                                  fallbackContent.Any(c => c.CardType == "AudioSection" || c.CardType == "Objective");
+
+            AssertTest("TC-SP2-10.3", "Chuẩn hóa kỹ năng và tạo cấu trúc thẻ học tập phù hợp (Learning Cards Structure)",
+                skillListening == "Listening" && skillReading == "Reading" && skillVocab == "Vocabulary" && skillGrammar == "Grammar" && structureValid,
+                $"Chuẩn hóa kỹ năng chính xác (Nghe->Listening, Đọc->Reading), sinh {fallbackContent?.Count} thẻ bài học với nguồn audio/từ vựng");
+
+            // TC-SP2-10.4: Cơ chế bộ nhớ đệm cơ sở dữ liệu (Database Persistent Cache) & Khóa phân tán
+            string testHash = "testhash" + Guid.NewGuid().ToString("N");
+            var (leaseStatus, _) = BaiHocAIContentDAL.Instance.KiemTraVaGiuKhoaXuLy(0, testHash);
+
+            var testDto = new BaiHocAIContentDTO
+            {
+                MaBaiHoc = 0,
+                ContentHash = testHash,
+                KyNang = "Listening",
+                MucTieuBaiHoc = "Hiểu được cách chào hỏi cơ bản và giới thiệu bản thân bằng tiếng Anh.",
+                MoHinhAI = "Gemini-2.0-Flash",
+                TrangThai = "HoanThanh",
+                DanhSachTheHoc = new List<LearningCardDTO>
+                {
+                    new LearningCardDTO
+                    {
+                        OrderIndex = 1,
+                        Title = "Mục tiêu bài học",
+                        CardType = "Objective",
+                        Content = "Nắm vững các câu chào hỏi thường gặp."
+                    },
+                    new LearningCardDTO
+                    {
+                        OrderIndex = 2,
+                        Title = "Từ vựng trọng tâm",
+                        CardType = "Vocabulary",
+                        VocabularyItems = new List<VocabularyItemDTO>
+                        {
+                            new VocabularyItemDTO { Word = "Hello", Ipa = "/həˈləʊ/", Meaning = "Xin chào", Example = "Hello, everyone!" }
+                        }
+                    }
+                }
+            };
+
+            bool saved = BaiHocAIContentDAL.Instance.LuuKetQuaHoanThanh(testDto);
+            var loadedFromDb = BaiHocAIContentDAL.Instance.LayNoiDungAI(0, testHash);
+            var (leaseAfterSave, _) = BaiHocAIContentDAL.Instance.KiemTraVaGiuKhoaXuLy(0, testHash);
+
+            AssertTest("TC-SP2-10.4", "Lưu trữ nội dung AI vào Database (Persistent Cache) & Chống gọi AI trùng lặp",
+                leaseStatus == AILeaseStatus.LeaseAcquired && saved && loadedFromDb != null && loadedFromDb.DanhSachTheHoc.Count == 2 && leaseAfterSave == AILeaseStatus.AlreadyCompleted,
+                $"Cơ chế khóa hoạt động đúng, lưu và truy xuất {loadedFromDb?.DanhSachTheHoc.Count} thẻ từ bảng NoiDungHocTapAIBaiHoc, tái sử dụng không cần gọi AI");
+        }
+
+        // =========================================================================
+        // SPRINT 2 - TASK 11: BÀI TẬP CỦNG CỐ 10 CÂU & BỘ 10 CÂU VẬN DỤNG BẰNG AI
+        // =========================================================================
+        private static void Test_Task11_AiQuizSets_CungCo_And_VanDung()
+        {
+            Console.WriteLine("\n--------------------------------------------------------------------------------");
+            Console.WriteLine(">>> TASK 11: BÀI TẬP CỦNG CỐ 10 CÂU (BỘ A) & BỘ 10 CÂU VẬN DỤNG (BỘ B) BẰNG AI");
+            Console.WriteLine("--------------------------------------------------------------------------------");
+
+            var dsBaiHoc = BaiHocBUS.LayDanhSachBaiHoc();
+            var baiHocMau = dsBaiHoc.FirstOrDefault(b => b.DaXuatBan) ?? new BaiHocDTO
+            {
+                MaBaiHoc = 1,
+                TieuDe = "Thì Quá khứ đơn và Quá khứ tiếp diễn (Past Simple & Past Continuous)",
+                LoaiBaiHoc = "NguPhap",
+                MaTrinhDo = "B1",
+                TomTat = "Phân biệt hành động đang diễn ra và hành động xen vào trong quá khứ.",
+                NoiDung = "Công thức: S + was/were + V-ing while/when S + V2/ed. Ví dụ: While I was studying, the phone rang.",
+                DaXuatBan = true
+            };
+
+            // TC-SP2-11.1: Tạo Bộ A (10 câu Củng cố kiến thức) và lưu vào Database
+            var taskA = BaiHocQuizBUS.Instance.LayHoacTaoBoCauHoiAsync(baiHocMau, "CungCo");
+            taskA.Wait();
+            var (quizA, isCacheA, errA) = taskA.Result;
+
+            bool tc1Success = quizA != null && 
+                              quizA.DanhSachCauHoi.Count == 10 && 
+                              quizA.DanhSachCauHoi.All(q => q.DanhSachLuaChon != null && q.DanhSachLuaChon.Count == 4 && q.DapAnDungIndex.HasValue && !string.IsNullOrWhiteSpace(q.GiaiThichChiTiet));
+
+            AssertTest("TC-SP2-11.1", "Khởi tạo Bộ A (10 câu Củng cố kiến thức) và lưu CSDL",
+                tc1Success,
+                $"Tạo thành công {quizA?.DanhSachCauHoi.Count} câu hỏi chuẩn hóa (4 phương án, 1 đáp án đúng, có lời giải chi tiết), MaBo: #{quizA?.MaBoCauHoi}");
+
+            // TC-SP2-11.2: Tái sử dụng Bộ A từ CSDL (Persistent Cache - Không gọi lại AI)
+            var taskA2 = BaiHocQuizBUS.Instance.LayHoacTaoBoCauHoiAsync(baiHocMau, "CungCo");
+            taskA2.Wait();
+            var (quizA2, isCacheA2, _) = taskA2.Result;
+
+            bool tc2Success = isCacheA2 && quizA2 != null && quizA2.MaBoCauHoi == quizA?.MaBoCauHoi && quizA2.DanhSachCauHoi.Count == 10;
+            AssertTest("TC-SP2-11.2", "Tái sử dụng Bộ A từ CSDL cho các lần truy cập tiếp theo (Cache Hit)",
+                tc2Success,
+                $"Tải trực tiếp từ CSDL (IsFromCache = {isCacheA2}), không gọi lại AI, tái sử dụng 100% câu hỏi dùng chung");
+
+            // TC-SP2-11.3: Dùng chung câu hỏi nhưng kết quả bài làm của từng sinh viên lưu độc lập
+            // Sinh viên 1: Trả lời 10/10 câu đúng
+            for (int i = 0; i < quizA!.DanhSachCauHoi.Count; i++)
+            {
+                quizA.DanhSachCauHoi[i].LuaChonCuaNguoiDung = quizA.DanhSachCauHoi[i].DapAnDungIndex ?? 0;
+            }
+            bool nopSv1 = BaiHocQuizBUS.Instance.NopBaiTapSinhVien(
+                maNguoiDung: 1,
+                baiHocMau,
+                quizA,
+                thoiGianLamGiay: 120,
+                out string diemHienThi1,
+                out int correct1,
+                out decimal diemSo1
+            );
+
+            // Sinh viên 2: Trả lời 6/10 câu đúng
+            var quizForSv2 = new BaiHocQuizDTO
+            {
+                MaBoCauHoi = quizA.MaBoCauHoi,
+                MaBaiHoc = quizA.MaBaiHoc,
+                LoaiBoCauHoi = quizA.LoaiBoCauHoi,
+                ContentHash = quizA.ContentHash,
+                DanhSachCauHoi = quizA.DanhSachCauHoi.Select(q => new CauHoiDTO
+                {
+                    MaCauHoi = q.MaCauHoi,
+                    NoiDungCauHoi = q.NoiDungCauHoi,
+                    DanhSachLuaChon = q.DanhSachLuaChon,
+                    DapAnDungIndex = q.DapAnDungIndex,
+                    GiaiThichChiTiet = q.GiaiThichChiTiet,
+                    LuaChonCuaNguoiDung = -1
+                }).ToList()
+            };
+
+            for (int i = 0; i < quizForSv2.DanhSachCauHoi.Count; i++)
+            {
+                // 6 câu đầu đúng, 4 câu sau sai
+                quizForSv2.DanhSachCauHoi[i].LuaChonCuaNguoiDung = (i < 6) 
+                    ? (quizForSv2.DanhSachCauHoi[i].DapAnDungIndex ?? 0) 
+                    : ((quizForSv2.DanhSachCauHoi[i].DapAnDungIndex ?? 0) + 1) % 4;
+            }
+
+            bool nopSv2 = BaiHocQuizBUS.Instance.NopBaiTapSinhVien(
+                maNguoiDung: 2,
+                baiHocMau,
+                quizForSv2,
+                thoiGianLamGiay: 180,
+                out string diemHienThi2,
+                out int correct2,
+                out decimal diemSo2
+            );
+
+            // Kiểm tra truy vấn kết quả của từng sinh viên
+            var kqSv1 = BaiHocQuizBUS.Instance.LayKetQuaSinhVien(1, baiHocMau.MaBaiHoc, quizA.ContentHash, "CungCo");
+            var kqSv2 = BaiHocQuizBUS.Instance.LayKetQuaSinhVien(2, baiHocMau.MaBaiHoc, quizA.ContentHash, "CungCo");
+
+            bool tc3Success = nopSv1 && nopSv2 && kqSv1 != null && kqSv2 != null &&
+                              kqSv1.DiemSo == 10.0m && kqSv1.SoCauDung == 10 &&
+                              kqSv2.DiemSo == 6.0m && kqSv2.SoCauDung == 6;
+
+            AssertTest("TC-SP2-11.3", "Phân biệt bộ câu hỏi dùng chung với kết quả bài làm riêng của từng học viên",
+                tc3Success,
+                $"SV1 đạt {kqSv1?.DiemSo}/10 ({kqSv1?.SoCauDung}/10 đúng), SV2 đạt {kqSv2?.DiemSo}/10 ({kqSv2?.SoCauDung}/10 đúng) -> Lưu độc lập trong CSDL");
+
+            // TC-SP2-11.4: Tạo Bộ B (10 câu Vận dụng tình huống mới) lưu độc lập với Bộ A
+            var taskB = BaiHocQuizBUS.Instance.LayHoacTaoBoCauHoiAsync(baiHocMau, "VanDung");
+            taskB.Wait();
+            var (quizB, isCacheB, errB) = taskB.Result;
+
+            bool tc4Success = quizB != null && 
+                              quizB.DanhSachCauHoi.Count == 10 && 
+                              quizB.LoaiBoCauHoi == "VanDung" && 
+                              quizB.MaBoCauHoi != quizA.MaBoCauHoi;
+
+            AssertTest("TC-SP2-11.4", "Khởi tạo Bộ B (10 câu Vận dụng tình huống mới) lưu độc lập với Bộ A",
+                tc4Success,
+                $"Bộ B lưu độc lập (MaBo: #{quizB?.MaBoCauHoi}, Loai: {quizB?.LoaiBoCauHoi}, {quizB?.DanhSachCauHoi.Count} câu hỏi ngữ cảnh mới)");
+
+            // TC-SP2-11.5: Quản lý phiên bản bài học qua ContentHash SHA-256
+            string hashGoc = NoiDungHocTapAIService.TinhContentHash(baiHocMau);
+            var baiHocSuaDoi = baiHocMau.Clone();
+            baiHocSuaDoi.NoiDung = baiHocMau.NoiDung + "\nBổ sung kiến thức: Used to + V-infinitive.";
+            string hashMoi = NoiDungHocTapAIService.TinhContentHash(baiHocSuaDoi);
+
+            var boCu = BaiHocQuizDAL.Instance.LayBoCauHoi(baiHocMau.MaBaiHoc, hashGoc, "CungCo");
+            var boMoiChuaCo = BaiHocQuizDAL.Instance.LayBoCauHoi(baiHocMau.MaBaiHoc, hashMoi, "CungCo");
+
+            bool tc5Success = !string.Equals(hashGoc, hashMoi, StringComparison.OrdinalIgnoreCase) &&
+                              boCu != null && boMoiChuaCo == null;
+
+            AssertTest("TC-SP2-11.5", "Quản lý phiên bản bài học qua ContentHash & Giữ nguyên lịch sử phiên bản cũ",
+                tc5Success,
+                $"Hash cũ: {hashGoc.Substring(0, 8)} != Hash mới: {hashMoi.Substring(0, 8)}, bộ câu hỏi và kết quả phiên bản cũ được bảo toàn");
         }
     }
 }

@@ -33,8 +33,18 @@ namespace BUS
             return _cacheBaiHoc;
         }
 
-        public static BaiHocDTO? LayChiTietBaiHoc(int maBaiHoc)
+        public static bool KiemTraQuyenTruyCap(int maBaiHoc)
         {
+            return _baiHocDAL.KiemTraQuyenTruyCap(maBaiHoc);
+        }
+
+        public static BaiHocDTO? LayChiTietBaiHoc(int maBaiHoc, bool kiemTraQuyen = true)
+        {
+            if (kiemTraQuyen && !KiemTraQuyenTruyCap(maBaiHoc))
+            {
+                return null;
+            }
+
             var list = LayDanhSachBaiHoc();
             var item = list.FirstOrDefault(b => b.MaBaiHoc == maBaiHoc);
             if (item != null)

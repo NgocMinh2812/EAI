@@ -196,10 +196,10 @@ namespace GUI.Views
             }
 
             // Gán nội dung các đáp án
-            txtOptionA.Text = q.DanhSachLuaChon.Count > 0 ? q.DanhSachLuaChon[0].NoiDungLuaChon : "A";
-            txtOptionB.Text = q.DanhSachLuaChon.Count > 1 ? q.DanhSachLuaChon[1].NoiDungLuaChon : "B";
-            txtOptionC.Text = q.DanhSachLuaChon.Count > 2 ? q.DanhSachLuaChon[2].NoiDungLuaChon : "C";
-            txtOptionD.Text = q.DanhSachLuaChon.Count > 3 ? q.DanhSachLuaChon[3].NoiDungLuaChon : "D";
+            txtOptionA.Text = q.DanhSachLuaChon.Count > 0 ? CauHoiDTO.StripOptionPrefix(q.DanhSachLuaChon[0].NoiDungLuaChon) : "A";
+            txtOptionB.Text = q.DanhSachLuaChon.Count > 1 ? CauHoiDTO.StripOptionPrefix(q.DanhSachLuaChon[1].NoiDungLuaChon) : "B";
+            txtOptionC.Text = q.DanhSachLuaChon.Count > 2 ? CauHoiDTO.StripOptionPrefix(q.DanhSachLuaChon[2].NoiDungLuaChon) : "C";
+            txtOptionD.Text = q.DanhSachLuaChon.Count > 3 ? CauHoiDTO.StripOptionPrefix(q.DanhSachLuaChon[3].NoiDungLuaChon) : "D";
 
             // Khôi phục lựa chọn đã chọn
             int ans = _userAnswers[index];

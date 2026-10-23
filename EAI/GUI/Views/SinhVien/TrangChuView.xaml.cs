@@ -159,6 +159,15 @@ namespace GUI.Views
         {
             if (sender is FrameworkElement elem && elem.Tag is int maBaiHoc)
             {
+                if (!BaiHocBUS.KiemTraQuyenTruyCap(maBaiHoc))
+                {
+                    GUI.Views.Common.ThongBaoDialog.CanhBao(
+                        Window.GetWindow(this),
+                        "Bài học này chưa được giảng viên cho phép truy cập hoặc đã bị thu hồi quyền.",
+                        "Không có quyền truy cập"
+                    );
+                    return;
+                }
                 this.NavigationService?.Navigate(new HocTapView(maBaiHoc));
             }
         }

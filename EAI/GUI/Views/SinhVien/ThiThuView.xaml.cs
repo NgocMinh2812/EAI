@@ -492,10 +492,10 @@ namespace GUI.Views
                 pnlEssayAnswer.Visibility = Visibility.Collapsed;
 
                 var options = q.DanhSachLuaChon;
-                txtOptA.Text = options.Count > 0 ? $"{options[0].KyHieuLuaChon}. {options[0].NoiDungLuaChon}" : "A.";
-                txtOptB.Text = options.Count > 1 ? $"{options[1].KyHieuLuaChon}. {options[1].NoiDungLuaChon}" : "B.";
-                txtOptC.Text = options.Count > 2 ? $"{options[2].KyHieuLuaChon}. {options[2].NoiDungLuaChon}" : "C.";
-                txtOptD.Text = options.Count > 3 ? $"{options[3].KyHieuLuaChon}. {options[3].NoiDungLuaChon}" : "D.";
+                txtOptA.Text = options.Count > 0 ? $"{options[0].KyHieuLuaChon}. {CauHoiDTO.StripOptionPrefix(options[0].NoiDungLuaChon)}" : "A.";
+                txtOptB.Text = options.Count > 1 ? $"{options[1].KyHieuLuaChon}. {CauHoiDTO.StripOptionPrefix(options[1].NoiDungLuaChon)}" : "B.";
+                txtOptC.Text = options.Count > 2 ? $"{options[2].KyHieuLuaChon}. {CauHoiDTO.StripOptionPrefix(options[2].NoiDungLuaChon)}" : "C.";
+                txtOptD.Text = options.Count > 3 ? $"{options[3].KyHieuLuaChon}. {CauHoiDTO.StripOptionPrefix(options[3].NoiDungLuaChon)}" : "D.";
 
                 rbOptC.Visibility = options.Count > 2 ? Visibility.Visible : Visibility.Collapsed;
                 rbOptD.Visibility = options.Count > 3 ? Visibility.Visible : Visibility.Collapsed;

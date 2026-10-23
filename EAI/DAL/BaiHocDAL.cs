@@ -26,7 +26,7 @@ namespace DAL
                 LEFT JOIN TrinhDo td ON bh.MaTrinhDo = td.MaTrinhDo
                 LEFT JOIN ChuDe cd ON bh.MaChuDe = cd.MaChuDe
                 LEFT JOIN TienDoBaiHoc tdbh ON bh.MaBaiHoc = tdbh.MaBaiHoc AND tdbh.MaNguoiDung = @MaND
-                WHERE bh.DaXuatBan = 1 OR bh.DaXuatBan = 0
+                WHERE ISNULL(bh.DaXuatBan, 0) = 1
                 ORDER BY bh.MaBaiHoc ASC";
 
             try
@@ -134,6 +134,25 @@ namespace DAL
             return list;
         }
 
+        /// <summary>
+        /// Kiểm tra quyền truy cập bài học ở tầng dữ liệu: bài học phải tồn tại và DaXuatBan = 1
+        /// </summary>
+        public bool KiemTraQuyenTruyCap(int maBaiHoc)
+        {
+            if (maBaiHoc < 0) return false;
+            try
+            {
+                const string query = "SELECT COUNT(1) FROM BaiHoc WHERE MaBaiHoc = @MaBaiHoc AND ISNULL(DaXuatBan, 0) = 1;";
+                object? res = DatabaseHelper.ExecuteScalar(query, new[] { new SqlParameter("@MaBaiHoc", maBaiHoc) });
+                return res != null && Convert.ToInt32(res) > 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BaiHocDAL.KiemTraQuyenTruyCap] {ex.Message}");
+                return false;
+            }
+        }
+
         public void CapNhatTienDo(int maNguoiDung, int maBaiHoc, double phanTram, string trangThai)
         {
             string query = @"
@@ -199,7 +218,7 @@ namespace DAL
                 INNER JOIN BaiHoc bh ON tdbh.MaBaiHoc = bh.MaBaiHoc
                 LEFT JOIN TrinhDo td ON bh.MaTrinhDo = td.MaTrinhDo
                 LEFT JOIN ChuDe cd ON bh.MaChuDe = cd.MaChuDe
-                WHERE tdbh.MaNguoiDung = @MaND
+                WHERE tdbh.MaNguoiDung = @MaND AND ISNULL(bh.DaXuatBan, 0) = 1
                 ORDER BY tdbh.LanTruyCapCuoi DESC";
 
             try
@@ -288,7 +307,7 @@ namespace DAL
                 string queryBai = @"
                     SELECT 
                         (SELECT COUNT(*) FROM TienDoBaiHoc WHERE MaNguoiDung = @MaND AND TrangThai = N'HoanThanh') AS SoHoanThanh,
-                        (SELECT COUNT(*) FROM BaiHoc WHERE DaXuatBan = 1 OR DaXuatBan = 0) AS TongBai,
+                        (SELECT COUNT(*) FROM BaiHoc WHERE ISNULL(DaXuatBan, 0) = 1) AS TongBai,
                         (SELECT ISNULL(SoPhutHocTichLuy, 0) FROM HoSoHocTap WHERE MaNguoiDung = @MaND) AS SoPhut,
                         (SELECT COUNT(*) FROM LuotLamBai WHERE MaNguoiDung = @MaND AND TrangThai = N'DaNop') AS TongLuotThi,
                         (SELECT AVG(DiemSo * 10) FROM LuotLamBai WHERE MaNguoiDung = @MaND AND TrangThai = N'DaNop') AS DiemTBThi,

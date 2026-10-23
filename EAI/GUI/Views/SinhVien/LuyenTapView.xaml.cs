@@ -398,16 +398,16 @@ namespace GUI.Views
                 ResetPracticeOptionButtons();
                 var options = q.DanhSachLuaChon;
 
-                btnChoiceA.Content = options.Count > 0 ? $"A. {options[0].NoiDungLuaChon}" : "A.";
+                btnChoiceA.Content = options.Count > 0 ? $"A. {CauHoiDTO.StripOptionPrefix(options[0].NoiDungLuaChon)}" : "A.";
                 btnChoiceA.Tag = options.Count > 0 ? options[0] : null;
 
-                btnChoiceB.Content = options.Count > 1 ? $"B. {options[1].NoiDungLuaChon}" : "B.";
+                btnChoiceB.Content = options.Count > 1 ? $"B. {CauHoiDTO.StripOptionPrefix(options[1].NoiDungLuaChon)}" : "B.";
                 btnChoiceB.Tag = options.Count > 1 ? options[1] : null;
 
-                btnChoiceC.Content = options.Count > 2 ? $"C. {options[2].NoiDungLuaChon}" : "C.";
+                btnChoiceC.Content = options.Count > 2 ? $"C. {CauHoiDTO.StripOptionPrefix(options[2].NoiDungLuaChon)}" : "C.";
                 btnChoiceC.Tag = options.Count > 2 ? options[2] : null;
 
-                btnChoiceD.Content = options.Count > 3 ? $"D. {options[3].NoiDungLuaChon}" : "D.";
+                btnChoiceD.Content = options.Count > 3 ? $"D. {CauHoiDTO.StripOptionPrefix(options[3].NoiDungLuaChon)}" : "D.";
                 btnChoiceD.Tag = options.Count > 3 ? options[3] : null;
 
                 btnChoiceC.Visibility = options.Count > 2 ? Visibility.Visible : Visibility.Collapsed;
