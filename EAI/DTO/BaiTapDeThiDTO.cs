@@ -23,15 +23,47 @@ namespace DTO
         private string _trangThai = "BanNhap";
         private string _maCapDo = "B2";
 
+        private string? _duongDanAudio;
+        private int _soLanPhatAudio = 2; // Default: 2 cho ThiThu, 0 (vô hạn) cho LuyenTap
+
         public int MaBaiTapDeThi { get; set; }
         public int? MaBaiHoc { get; set; }
         public int? MaChuDe { get; set; }
         public int? MaTrinhDo { get; set; }
-        public string MaCapDo { get => _maCapDo; set { _maCapDo = value; NotifyPropertyChanged(); } }
+        public string MaCapDo
+        {
+            get => _maCapDo;
+            set
+            {
+                _maCapDo = value;
+                NotifyPropertyChanged();
+                NotifyPropertyChanged(nameof(LevelTag));
+            }
+        }
+        public string LevelTag => string.IsNullOrWhiteSpace(MaCapDo) ? "Chuẩn B2" : $"Chuẩn {MaCapDo}";
         public string TenTrinhDo { get; set; } = "Trung cấp";
         public string TenChuDe { get; set; } = "Tổng hợp";
         public string TenBaiTapDeThi { get => _tenBaiTapDeThi; set { _tenBaiTapDeThi = value; NotifyPropertyChanged(); } }
-        public string LoaiHinh { get => _loaiHinh; set { _loaiHinh = value; NotifyPropertyChanged(); NotifyPropertyChanged(nameof(LoaiHinhHienThi)); } }
+        public string LoaiHinh
+        {
+            get => _loaiHinh;
+            set
+            {
+                _loaiHinh = value;
+                NotifyPropertyChanged();
+                NotifyPropertyChanged(nameof(LoaiHinhHienThi));
+                NotifyPropertyChanged(nameof(BadgeBackground));
+                NotifyPropertyChanged(nameof(BadgeForeground));
+                NotifyPropertyChanged(nameof(IconLoaiHinh));
+                NotifyPropertyChanged(nameof(QuyTacAudioHienThi));
+                NotifyPropertyChanged(nameof(QuyTacAudioIcon));
+                NotifyPropertyChanged(nameof(QuyTacAudioText));
+                NotifyPropertyChanged(nameof(QuyTacAudioBg));
+                NotifyPropertyChanged(nameof(QuyTacAudioFg));
+                NotifyPropertyChanged(nameof(QuyTacAudioBorder));
+                NotifyPropertyChanged(nameof(SoLanPhatAudio));
+            }
+        }
         public string MoTa { get => _moTa; set { _moTa = value; NotifyPropertyChanged(); } }
         public int ThoiGianLamBaiPhut { get => _thoiGianLamBaiPhut; set { _thoiGianLamBaiPhut = value; NotifyPropertyChanged(); NotifyPropertyChanged(nameof(ThoiGianHienThi)); } }
         public int ThoiGianLamBai { get => ThoiGianLamBaiPhut; set => ThoiGianLamBaiPhut = value; }
@@ -54,6 +86,40 @@ namespace DTO
         public DateTime? NgayTao { get; set; }
         public DateTime? NgayCapNhat { get; set; }
         public int SoLuotDaThi { get; set; } = 0;
+
+        // Audio nghe & Quy tắc phát (Luyện tập: vô hạn | Thi thử Mock Test: 2 lần)
+        public string? DuongDanAudio
+        {
+            get => _duongDanAudio;
+            set
+            {
+                _duongDanAudio = value;
+                NotifyPropertyChanged();
+                NotifyPropertyChanged(nameof(HasAudio));
+                NotifyPropertyChanged(nameof(TenFileAudioHienThi));
+            }
+        }
+        public bool HasAudio => !string.IsNullOrWhiteSpace(DuongDanAudio);
+        public string TenFileAudioHienThi => string.IsNullOrWhiteSpace(DuongDanAudio) ? "Chưa đính kèm file audio nghe chung" : System.IO.Path.GetFileName(DuongDanAudio);
+
+        public int SoLanPhatAudio
+        {
+            get => LoaiHinh == "ThiThu" ? 2 : 0; // 0: không giới hạn, 2: 2 lần cho Mock test
+            set
+            {
+                _soLanPhatAudio = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public string QuyTacAudioHienThi => LoaiHinh == "ThiThu" ? "Nghe tối đa 2 lần (Mock Test)" : "Nghe vô hạn lần (Luyện tập)";
+        public string QuyTacAudioIcon => LoaiHinh == "ThiThu" ? "⏱️" : "♾️";
+        public string QuyTacAudioText => LoaiHinh == "ThiThu" 
+            ? "Hình thức Thi thử (Mock Test): Thí sinh chỉ được phát nghe Audio tối đa 2 lần khi làm bài kiểm tra chính thức."
+            : "Hình thức Luyện tập tự do: Học viên được tự do nghe lại và tua Audio vô hạn lần để rèn luyện kỹ năng nghe.";
+        public string QuyTacAudioBg => LoaiHinh == "ThiThu" ? "#FEF3C7" : "#EFF6FF";
+        public string QuyTacAudioFg => LoaiHinh == "ThiThu" ? "#B45309" : "#1D4ED8";
+        public string QuyTacAudioBorder => LoaiHinh == "ThiThu" ? "#FDE68A" : "#BFDBFE";
 
         // UI Helpers
         public string ThoiGianHienThi => ThoiGianLamBaiPhut > 0 ? $"{ThoiGianLamBaiPhut} phút" : "Không giới hạn";

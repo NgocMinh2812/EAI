@@ -195,14 +195,42 @@ namespace GUI.ViewModels.GiangVien
         }
 
         // Filters - Question Bank Selection
+        private QuestionSourceOption? _selectedNguonCauHoi;
+        public QuestionSourceOption? SelectedNguonCauHoi
+        {
+            get => _selectedNguonCauHoi;
+            set
+            {
+                if (SetProperty(ref _selectedNguonCauHoi, value))
+                {
+                    _selectedSourceId = value?.Id ?? 0;
+                    OnPropertyChanged(nameof(SelectedSourceId));
+                    NapCauHoiTheoBoLoc();
+                }
+            }
+        }
+
         public int SelectedSourceId
         {
             get => _selectedSourceId;
             set
             {
                 if (SetProperty(ref _selectedSourceId, value))
+                {
+                    _selectedNguonCauHoi = DanhSachNguonCauHoi.FirstOrDefault(x => x.Id == value) ?? DanhSachNguonCauHoi.FirstOrDefault();
+                    OnPropertyChanged(nameof(SelectedNguonCauHoi));
                     NapCauHoiTheoBoLoc();
+                }
             }
+        }
+
+        // Audio state
+        private System.Windows.Media.MediaPlayer? _mediaPlayer;
+        private bool _isPlayingAudio = false;
+        public bool IsPlayingAudio
+        {
+            get => _isPlayingAudio;
+            set => SetProperty(ref _isPlayingAudio, value);
         }
 
         public string FilterSkill
@@ -278,6 +306,10 @@ namespace GUI.ViewModels.GiangVien
         public ICommand DiChuyenCauXuongCommand { get; }
         public ICommand LamMoiDanhSachCommand { get; }
 
+        public ICommand ChonAudioDeThiCommand { get; }
+        public ICommand XoaAudioDeThiCommand { get; }
+        public ICommand TogglePlayAudioDeThiCommand { get; }
+
         // =========================================================================
         // CONSTRUCTOR
         // =========================================================================
@@ -304,6 +336,10 @@ namespace GUI.ViewModels.GiangVien
             DiChuyenCauXuongCommand = new RelayCommand<QuestionSelectionItem>(ThucHienDiChuyenCauXuong);
             LamMoiDanhSachCommand = new RelayCommand(TaiDuLieuDeThi);
 
+            ChonAudioDeThiCommand = new RelayCommand(ThucHienChonAudioDeThi);
+            XoaAudioDeThiCommand = new RelayCommand(ThucHienXoaAudioDeThi);
+            TogglePlayAudioDeThiCommand = new RelayCommand(ThucHienTogglePlayAudioDeThi);
+
             KhoiTaoDeThiMoi();
             TaiDuLieuDeThi();
             NapCauHoiTheoBoLoc();
@@ -325,7 +361,8 @@ namespace GUI.ViewModels.GiangVien
             var dsBo = BoCauHoiDAL.Instance.LayDanhSachBoCauHoi();
             DanhSachBoCauHoi.Clear();
             DanhSachNguonCauHoi.Clear();
-            DanhSachNguonCauHoi.Add(new QuestionSourceOption { Id = 0, DisplayText = "Toàn bộ ngân hàng đề" });
+            var defaultOption = new QuestionSourceOption { Id = 0, DisplayText = "Toàn bộ ngân hàng đề" };
+            DanhSachNguonCauHoi.Add(defaultOption);
 
             foreach (var bo in dsBo)
             {
@@ -337,6 +374,12 @@ namespace GUI.ViewModels.GiangVien
                     DisplayText = $"📁 {bo.TenBoCauHoi}{nguon}"
                 });
             }
+
+            // Luôn đặt mặc định là Toàn bộ ngân hàng đề
+            _selectedSourceId = 0;
+            _selectedNguonCauHoi = defaultOption;
+            OnPropertyChanged(nameof(SelectedNguonCauHoi));
+            OnPropertyChanged(nameof(SelectedSourceId));
 
             ApDungBoLocDeThi();
             CapNhatThongKeKpi();
@@ -357,7 +400,14 @@ namespace GUI.ViewModels.GiangVien
 
             if (!string.IsNullOrWhiteSpace(FilterExamLevel) && FilterExamLevel != "All")
             {
-                query = query.Where(d => string.Equals(d.MaCapDo, FilterExamLevel, StringComparison.OrdinalIgnoreCase));
+                if (FilterExamLevel == "Basic")
+                    query = query.Where(d => string.Equals(d.MaCapDo, "A1", StringComparison.OrdinalIgnoreCase) || string.Equals(d.MaCapDo, "A2", StringComparison.OrdinalIgnoreCase));
+                else if (FilterExamLevel == "Intermediate")
+                    query = query.Where(d => string.Equals(d.MaCapDo, "B1", StringComparison.OrdinalIgnoreCase) || string.Equals(d.MaCapDo, "B2", StringComparison.OrdinalIgnoreCase));
+                else if (FilterExamLevel == "Advanced")
+                    query = query.Where(d => string.Equals(d.MaCapDo, "C1", StringComparison.OrdinalIgnoreCase) || string.Equals(d.MaCapDo, "C2", StringComparison.OrdinalIgnoreCase));
+                else
+                    query = query.Where(d => string.Equals(d.MaCapDo, FilterExamLevel, StringComparison.OrdinalIgnoreCase));
             }
 
             if (!string.IsNullOrWhiteSpace(FilterExamStatus) && FilterExamStatus != "All")
@@ -494,6 +544,14 @@ namespace GUI.ViewModels.GiangVien
                 TrangThai = "BanNhap",
                 MaCapDo = "B2"
             };
+
+            var tdDefault = DanhSachTrinhDo.FirstOrDefault(x => string.Equals(x.MaCapDo, "B2", StringComparison.OrdinalIgnoreCase));
+            if (tdDefault != null)
+            {
+                CurrentDeThi.MaTrinhDo = tdDefault.MaTrinhDo;
+                CurrentDeThi.TenTrinhDo = tdDefault.TenTrinhDo;
+            }
+
             ThongBaoLoi = string.Empty;
             NapCauHoiTheoBoLoc();
         }
@@ -637,8 +695,65 @@ namespace GUI.ViewModels.GiangVien
 
         private void ThucHienQuayLaiDanhSach()
         {
+            StopAudio();
             IsDanhSachMode = true;
             TaiDuLieuDeThi();
+        }
+
+        private void ThucHienChonAudioDeThi()
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Chọn tệp âm thanh nghe cho đề thi",
+                Filter = "Tệp âm thanh (*.mp3;*.wav;*.m4a;*.aac)|*.mp3;*.wav;*.m4a;*.aac|Tất cả các tệp (*.*)|*.*"
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                CurrentDeThi.DuongDanAudio = dlg.FileName;
+            }
+        }
+
+        private void ThucHienXoaAudioDeThi()
+        {
+            StopAudio();
+            CurrentDeThi.DuongDanAudio = null;
+        }
+
+        private void ThucHienTogglePlayAudioDeThi()
+        {
+            if (string.IsNullOrWhiteSpace(CurrentDeThi.DuongDanAudio)) return;
+
+            if (IsPlayingAudio)
+            {
+                StopAudio();
+            }
+            else
+            {
+                try
+                {
+                    _mediaPlayer ??= new System.Windows.Media.MediaPlayer();
+                    _mediaPlayer.MediaEnded += (s, e) => { IsPlayingAudio = false; };
+                    _mediaPlayer.MediaFailed += (s, e) => { IsPlayingAudio = false; };
+                    _mediaPlayer.Open(new Uri(CurrentDeThi.DuongDanAudio, UriKind.RelativeOrAbsolute));
+                    _mediaPlayer.Play();
+                    IsPlayingAudio = true;
+                }
+                catch
+                {
+                    IsPlayingAudio = false;
+                }
+            }
+        }
+
+        private void StopAudio()
+        {
+            try
+            {
+                _mediaPlayer?.Stop();
+                _mediaPlayer?.Close();
+            }
+            catch { }
+            IsPlayingAudio = false;
         }
 
         private void ThucHienDiChuyenCauLen(QuestionSelectionItem? item)
@@ -698,6 +813,17 @@ namespace GUI.ViewModels.GiangVien
             CurrentDeThi.TrangThai = xuatBan ? "DaXuatBan" : "BanNhap";
             CurrentDeThi.TongDiem = TongDiemDeThi;
             CurrentDeThi.TongSoCau = TongSoCauDaChon;
+
+            // Đồng bộ MaTrinhDo và TenTrinhDo từ MaCapDo được chọn
+            if (!string.IsNullOrWhiteSpace(CurrentDeThi.MaCapDo))
+            {
+                var td = DanhSachTrinhDo.FirstOrDefault(x => string.Equals(x.MaCapDo, CurrentDeThi.MaCapDo, StringComparison.OrdinalIgnoreCase));
+                if (td != null)
+                {
+                    CurrentDeThi.MaTrinhDo = td.MaTrinhDo;
+                    CurrentDeThi.TenTrinhDo = td.TenTrinhDo;
+                }
+            }
 
             var dsChiTiet = NgânHangCauHoiChon
                 .Where(x => x.IsSelected)

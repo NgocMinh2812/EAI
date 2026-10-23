@@ -189,7 +189,8 @@ namespace BUS
             if (string.IsNullOrWhiteSpace(loaiBaiHoc) && !string.IsNullOrWhiteSpace(module) &&
                 !module.Equals("NoiDungHocTap", StringComparison.OrdinalIgnoreCase) &&
                 !module.Equals("DanhMuc", StringComparison.OrdinalIgnoreCase) &&
-                !module.Equals("DanhMucCauTruc", StringComparison.OrdinalIgnoreCase))
+                !module.Equals("DanhMucCauTruc", StringComparison.OrdinalIgnoreCase) &&
+                !module.StartsWith("AI_", StringComparison.OrdinalIgnoreCase))
             {
                 loaiBaiHoc = module;
             }
@@ -473,7 +474,7 @@ QUY TẮC BẮT BUỘC:
         /// Tạo bộ 10 câu hỏi trắc nghiệm chất lượng cao bám sát nội dung, trình độ và kỹ năng
         /// Sử dụng làm bộ đề chuẩn hóa khi offline / hết quota
         /// </summary>
-        public static List<CauHoiDTO> TaoCauHoiThongMinhTheoNoiDung(string tieuDe, string noiDung, string trinhDo = "B1", string loaiBaiHoc = "")
+        public static List<CauHoiDTO> TaoCauHoiThongMinhTheoNoiDung(string tieuDe, string noiDung, string trinhDo = "B1", string loaiBaiHoc = "", int soLuong = 10)
         {
             var list = new List<CauHoiDTO>();
             string loaiLower = (loaiBaiHoc ?? "").ToLowerInvariant();
@@ -831,6 +832,71 @@ QUY TẮC BẮT BUỘC:
                     DoanVanDoc = audioScript,
                     GiaiThichChiTiet = "➔ Dẫn chứng bài nghe: 'We'll post real-time updates in the deployment Slack channel'."
                 });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 6 (Listening - Speaker Attitude & Perception):\nHow does Emma perceive David's proposed mitigation strategy?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. As a viable and pragmatic workaround to keep the launch on track. (Đúng ✓)",
+                        "B. As an unrealistic proposal that must be rejected immediately.",
+                        "C. As an unnecessary delay that will upset clients.",
+                        "D. As a costly measure requiring board authorization."
+                    },
+                    DapAnDungIndex = 0,
+                    LoaiCauHoi = "TracNghiem",
+                    KyNang = "Nghe",
+                    DoanVanDoc = audioScript,
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài nghe: Emma đánh giá: 'Sounds like a viable workaround'."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 7 (Listening - Technical Condition & Prerequisite):\nWhat condition must be satisfied before load simulations can be rerun tonight?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. A hotfix to optimize the database query cache must be pushed today. (Đúng ✓)",
+                        "B. New physical servers must be ordered from the vendor.",
+                        "C. All concurrent users must be disconnected from the network.",
+                        "D. Emma must submit an incident ticket to senior management."
+                    },
+                    DapAnDungIndex = 0,
+                    LoaiCauHoi = "TracNghiem",
+                    KyNang = "Nghe",
+                    DoanVanDoc = audioScript,
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài nghe: David nói: 'If we push a hotfix to optimize the database query cache today, we can rerun load simulations by tonight'."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 8 (Listening - True / False / Not Given):\nThe memory leak caused customer financial data to be exposed during the crash.",
+                    DanhSachLuaChon = new List<string> { "A. True", "B. False", "C. Not Given (Đúng ✓)" },
+                    DapAnDungIndex = 2,
+                    LoaiCauHoi = "TrueFalseNotGiven",
+                    KyNang = "Nghe",
+                    DoanVanDoc = audioScript,
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài nghe: Cuộc đối thoại chỉ nhắc đến lỗi bộ nhớ do quá tải người dùng, hoàn toàn không đề cập đến việc dữ liệu tài chính bị lộ -> Not Given."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 9 (Listening - Information Completion):\nComplete the phrase heard in the recording: David and Marcus will push a hotfix to optimize the database query ________ today.",
+                    DapAnVanBan = "cache",
+                    LoaiCauHoi = "DienKhuyet",
+                    KyNang = "Nghe",
+                    DoanVanDoc = audioScript,
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài nghe: '...to optimize the database query cache today'."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 10 (Listening - Short Answer):\nWhen is the major enterprise rollout originally scheduled to occur?",
+                    DapAnVanBan = "next Monday|Monday",
+                    LoaiCauHoi = "TraLoiNgan",
+                    KyNang = "Nghe",
+                    DoanVanDoc = audioScript,
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài nghe: Emma hỏi: 'Is this issue likely to postpone next Monday's enterprise rollout?'."
+                });
             }
             else if (loaiLower.Contains("viet") || loaiLower.Contains("writing"))
             {
@@ -878,6 +944,58 @@ QUY TẮC BẮT BUỘC:
                     KyNang = "Viet",
                     TieuChiCham = "Tiêu chí chấm (IELTS Rubric): Task Response (>=150 từ, lập luận 2 chiều), Coherence & Cohesion (phân đoạn, liên từ nối), Lexical Resource (từ vựng học thuật C1/B2), Grammatical Range & Accuracy (câu phức, bị động, mệnh đề quan hệ).",
                     GiaiThichChiTiet = "➔ Hướng dẫn chấm bài tự luận: Đạt điểm cao khi nêu đủ 2 quan điểm (ưu điểm của họp trực tiếp vs lợi ích của báo cáo bất đồng bộ), đưa ra quan điểm cá nhân rõ ràng và bảo đảm độ dài tối thiểu 150 từ."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 6 (Sentence Transformation - Purpose Clause):\nRewrite the sentence using 'IN ORDER TO' without changing its meaning:\n\"The DevOps team optimized database queries so that they could reduce response latency.\"",
+                    DapAnVanBan = "The DevOps team optimized database queries in order to reduce response latency.",
+                    LoaiCauHoi = "VietLaiCau",
+                    KyNang = "Viet",
+                    GiaiThichChiTiet = "➔ Cấu trúc viết lại: 'so that + S + could + V' chuyển thành 'in order to + V-infinitive'."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 7 (Error Correction - Subjunctive Mood):\nIdentify and correct the grammatical error in this recommendation: \"The technical lead recommended that the developer tests the backup system before deployment.\"",
+                    DapAnVanBan = "test|tests -> test",
+                    LoaiCauHoi = "SuaLoiSai",
+                    KyNang = "Viet",
+                    GiaiThichChiTiet = "➔ Giải thích sửa lỗi: Sau động từ 'recommend that', mệnh đề dùng thể giả định (subjunctive) với động từ nguyên thể không chia 'test'."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 8 (Sentence Transformation - Inversion with Negative Adverbs):\nRewrite the sentence beginning with 'NEVER BEFORE':\n\"Our team had never before encountered such an unprecedented system outage.\"",
+                    DapAnVanBan = "Never before had our team encountered such an unprecedented system outage.",
+                    LoaiCauHoi = "VietLaiCau",
+                    KyNang = "Viet",
+                    GiaiThichChiTiet = "➔ Cấu trúc đảo ngữ: 'Never before + had + S + V3/ed'."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 9 (Academic Lexical Choice in Technical Writing):\nSelect the most formal transition word to show strong contrast in a formal report:",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. Conversely (Đúng ✓)",
+                        "B. But also",
+                        "C. In a nutshell",
+                        "D. By the way"
+                    },
+                    DapAnDungIndex = 0,
+                    LoaiCauHoi = "TracNghiem",
+                    KyNang = "Viet",
+                    GiaiThichChiTiet = "➔ Giải thích: 'Conversely' (ngược lại) là liên từ mang sắc thái học thuật và văn phong trang trọng chuẩn mực."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 10 (Sentence Transformation - Impersonal Passive):\nRewrite using impersonal passive: \"People widely recognize that regular code audits minimize security vulnerabilities.\"",
+                    DapAnVanBan = "It is widely recognized that regular code audits minimize security vulnerabilities.",
+                    LoaiCauHoi = "VietLaiCau",
+                    KyNang = "Viet",
+                    GiaiThichChiTiet = "➔ Cấu trúc bị động khách quan: 'It is widely recognized that + Clause'."
                 });
             }
             else
@@ -952,6 +1070,57 @@ QUY TẮC BẮT BUỘC:
                     KyNang = "Doc",
                     GiaiThichChiTiet = "➔ Dẫn chứng bài học: 'Impediment (/ɪmˈped.ɪ.mənt/) - [Noun]: Trở ngại, rào cản tiến độ'."
                 });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 7 (Reading - Vocabulary in Context):\nIn organizational development, what does the phrase 'psychological safety' specifically imply?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. A shared belief that the team is safe for interpersonal risk-taking without fear of humiliation. (Đúng ✓)",
+                        "B. Having mandatory physical security guards stationed outside meeting rooms.",
+                        "C. Suppressing opposing opinions to prevent arguments during discussions.",
+                        "D. Guaranteeing lifetime employment regardless of work performance."
+                    },
+                    DapAnDungIndex = 0,
+                    LoaiCauHoi = "TracNghiem",
+                    KyNang = "Doc",
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài học: 'Psychological safety' (an toàn tâm lý) là trạng thái các thành viên thoải mái đóng góp ý kiến, nêu lỗi sai hoặc đặt câu hỏi mà không sợ bị phán xét hay khiển trách."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 8 (Reading - Logical Inference):\nWhat can be logically inferred about teams that fail to practice timely problem escalation?",
+                    DanhSachLuaChon = new List<string>
+                    {
+                        "A. Minor blockers will accumulate into critical bottlenecks that jeopardize release schedules. (Đúng ✓)",
+                        "B. They will inevitably outperform organizations using agile frameworks.",
+                        "C. Their daily meetings will become shorter and much more productive.",
+                        "D. Project clients will automatically waive all deliverable requirements."
+                    },
+                    DapAnDungIndex = 0,
+                    LoaiCauHoi = "TracNghiem",
+                    KyNang = "Doc",
+                    GiaiThichChiTiet = "➔ Dẫn chứng suy luận: Khi các rào cản (impediments) không được báo cáo và tháo gỡ kịp thời, chúng sẽ tích tụ và gây tê liệt tiến độ bàn giao của cả dự án."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 9 (Reading - True / False):\nDaily stand-up meetings are designed to be in-depth technical debugging sessions lasting over one hour.",
+                    DanhSachLuaChon = new List<string> { "A. True", "B. False (Đúng ✓)" },
+                    DapAnDungIndex = 1,
+                    LoaiCauHoi = "DungSai",
+                    KyNang = "Doc",
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài học: Cuộc họp stand-up được thiết kế ngắn gọn (15 phút), không phải là buổi tranh luận kỹ thuật chuyên sâu kéo dài."
+                });
+
+                list.Add(new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Question 10 (Reading - Short Answer):\nAccording to the passage, what type of communication culture empowers cross-functional teams to proactively address impediments?",
+                    DapAnVanBan = "transparent escalation|transparent|transparent communication",
+                    LoaiCauHoi = "TraLoiNgan",
+                    KyNang = "Doc",
+                    GiaiThichChiTiet = "➔ Dẫn chứng bài học: 'Environments that champion transparent escalation empower cross-functional teams to proactively address impediments'."
+                });
             }
 
             string determinedKyNang = BoCauHoiBUS.ChuankHoaKyNang(loaiBaiHoc);
@@ -966,6 +1135,11 @@ QUY TẮC BẮT BUỘC:
                 {
                     q.DoanVanDoc = passage;
                 }
+            }
+
+            if (soLuong > 0 && list.Count > soLuong)
+            {
+                return list.Take(soLuong).ToList();
             }
 
             return list;

@@ -328,7 +328,7 @@ QUY TẮC BẮT BUỘC ĐỂ ĐA DẠNG HÓA CÂU HỎI:
             }
 
             // Fallback thông minh nội bộ
-            return GeminiAIService.TaoCauHoiThongMinhTheoNoiDung(tieuDe, cleanContent, trinhDo, loaiBaiHoc);
+            return GeminiAIService.TaoCauHoiThongMinhTheoNoiDung(tieuDe, cleanContent, trinhDo, loaiBaiHoc, soLuong);
         }
 
         /// <summary>

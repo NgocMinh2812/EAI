@@ -33,6 +33,7 @@ namespace DAL
                        ISNULL(dt.SoLuotLamToiDa, 0) AS SoLuotLamToiDa,
                        ISNULL(dt.TrangThai, CASE WHEN dt.DaPhatHanh = 1 THEN N'DaXuatBan' ELSE N'BanNhap' END) AS TrangThai,
                        dt.NguoiTao, nd.HoTen AS TenNguoiTao, dt.NgayTao,
+                       dt.DuongDanAudio, ISNULL(dt.SoLanPhatAudio, 0) AS SoLanPhatAudio,
                        td.MaCapDo, td.TenTrinhDo, cd.TenChuDe,
                        (SELECT COUNT(*) FROM CauHoiBaiTap chbt WHERE chbt.MaBaiTapDeThi = dt.MaBaiTapDeThi) AS SoLuongCauHoi,
                        (SELECT COUNT(*) FROM LuotLamBai lb WHERE lb.MaBaiTapDeThi = dt.MaBaiTapDeThi) AS SoLuotDaThi
@@ -83,6 +84,8 @@ namespace DAL
                         ChoXemLoiGiai = row["ChoXemLoiGiai"] == DBNull.Value || Convert.ToBoolean(row["ChoXemLoiGiai"]),
                         SoLuotLamToiDa = row["SoLuotLamToiDa"] == DBNull.Value ? 0 : Convert.ToInt32(row["SoLuotLamToiDa"]),
                         TrangThai = row["TrangThai"]?.ToString() ?? "BanNhap",
+                        DuongDanAudio = row.Table.Columns.Contains("DuongDanAudio") && row["DuongDanAudio"] != DBNull.Value ? row["DuongDanAudio"]?.ToString() : null,
+                        SoLanPhatAudio = row.Table.Columns.Contains("SoLanPhatAudio") && row["SoLanPhatAudio"] != DBNull.Value ? Convert.ToInt32(row["SoLanPhatAudio"]) : 0,
                         NguoiTaoId = row["NguoiTao"] == DBNull.Value ? null : Convert.ToInt32(row["NguoiTao"]),
                         TenNguoiTao = row["TenNguoiTao"] == DBNull.Value ? "Hệ thống" : row["TenNguoiTao"]?.ToString(),
                         NgayTao = row["NgayTao"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(row["NgayTao"]),
@@ -113,6 +116,7 @@ namespace DAL
                        ISNULL(dt.SoLuotLamToiDa, 0) AS SoLuotLamToiDa,
                        ISNULL(dt.TrangThai, CASE WHEN dt.DaPhatHanh = 1 THEN N'DaXuatBan' ELSE N'BanNhap' END) AS TrangThai,
                        dt.NguoiTao, nd.HoTen AS TenNguoiTao, dt.NgayTao,
+                       dt.DuongDanAudio, ISNULL(dt.SoLanPhatAudio, 0) AS SoLanPhatAudio,
                        td.MaCapDo, td.TenTrinhDo, cd.TenChuDe,
                        (SELECT COUNT(*) FROM CauHoiBaiTap chbt WHERE chbt.MaBaiTapDeThi = dt.MaBaiTapDeThi) AS SoLuongCauHoi,
                        (SELECT COUNT(*) FROM LuotLamBai lb WHERE lb.MaBaiTapDeThi = dt.MaBaiTapDeThi) AS SoLuotDaThi
@@ -150,6 +154,8 @@ namespace DAL
                         ChoXemLoiGiai = row["ChoXemLoiGiai"] == DBNull.Value || Convert.ToBoolean(row["ChoXemLoiGiai"]),
                         SoLuotLamToiDa = row["SoLuotLamToiDa"] == DBNull.Value ? 0 : Convert.ToInt32(row["SoLuotLamToiDa"]),
                         TrangThai = row["TrangThai"]?.ToString() ?? "BanNhap",
+                        DuongDanAudio = row.Table.Columns.Contains("DuongDanAudio") && row["DuongDanAudio"] != DBNull.Value ? row["DuongDanAudio"]?.ToString() : null,
+                        SoLanPhatAudio = row.Table.Columns.Contains("SoLanPhatAudio") && row["SoLanPhatAudio"] != DBNull.Value ? Convert.ToInt32(row["SoLanPhatAudio"]) : 0,
                         NguoiTaoId = row["NguoiTao"] == DBNull.Value ? null : Convert.ToInt32(row["NguoiTao"]),
                         TenNguoiTao = row["TenNguoiTao"] == DBNull.Value ? "Hệ thống" : row["TenNguoiTao"]?.ToString(),
                         NgayTao = row["NgayTao"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(row["NgayTao"]),
@@ -325,17 +331,35 @@ namespace DAL
                     ? (deThi.DaPhatHanh ? "DaXuatBan" : "BanNhap")
                     : deThi.TrangThai;
 
+                // Tự động giải quyết MaTrinhDo từ MaCapDo (A1, A2, B1, B2, C1, C2) nếu chưa có MaTrinhDo
+                if ((deThi.MaTrinhDo == null || deThi.MaTrinhDo <= 0) && !string.IsNullOrWhiteSpace(deThi.MaCapDo))
+                {
+                    try
+                    {
+                        using var cmdTd = new SqlCommand("SELECT TOP 1 MaTrinhDo FROM TrinhDo WHERE MaCapDo = @CapDo", conn, trans);
+                        cmdTd.Parameters.AddWithValue("@CapDo", deThi.MaCapDo.Trim());
+                        var tdObj = cmdTd.ExecuteScalar();
+                        if (tdObj != null && tdObj != DBNull.Value)
+                        {
+                            deThi.MaTrinhDo = Convert.ToInt32(tdObj);
+                        }
+                    }
+                    catch { }
+                }
+
                 if (maDeThi <= 0)
                 {
                     string sqlInsert = @"
                         INSERT INTO BaiTapDeThi (
                             TenBaiTapDeThi, LoaiHinh, MaTrinhDo, MaChuDe, ThoiGianLamBaiPhut,
                             DiemDat, TongDiem, TongSoCau, XaoTronCauHoi, DaPhatHanh,
-                            ChoXemDapAn, ChoXemLoiGiai, SoLuotLamToiDa, TrangThai, NguoiTao, NgayTao)
+                            ChoXemDapAn, ChoXemLoiGiai, SoLuotLamToiDa, TrangThai, NguoiTao, NgayTao,
+                            DuongDanAudio, SoLanPhatAudio)
                         VALUES (
                             @TenDe, @LoaiHinh, @MaTrinhDo, @MaChuDe, @ThoiGian, 
                             @DiemDat, @TongDiem, @TongSoCau, @XaoTron, @DaPhatHanh,
-                            @ChoXemDapAn, @ChoXemLoiGiai, @SoLuotLamToiDa, @TrangThai, @NguoiTao, SYSDATETIME());
+                            @ChoXemDapAn, @ChoXemLoiGiai, @SoLuotLamToiDa, @TrangThai, @NguoiTao, SYSDATETIME(),
+                            @DuongDanAudio, @SoLanPhatAudio);
                         SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
                     using var cmd = new SqlCommand(sqlInsert, conn, trans);
@@ -354,6 +378,8 @@ namespace DAL
                     cmd.Parameters.AddWithValue("@SoLuotLamToiDa", deThi.SoLuotLamToiDa);
                     cmd.Parameters.AddWithValue("@TrangThai", trangThai);
                     cmd.Parameters.AddWithValue("@NguoiTao", nguoiTaoId > 0 ? (object)nguoiTaoId : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@DuongDanAudio", string.IsNullOrWhiteSpace(deThi.DuongDanAudio) ? DBNull.Value : (object)deThi.DuongDanAudio);
+                    cmd.Parameters.AddWithValue("@SoLanPhatAudio", deThi.SoLanPhatAudio);
 
                     maDeThi = (int)cmd.ExecuteScalar();
                     deThi.MaBaiTapDeThi = maDeThi;
@@ -375,7 +401,9 @@ namespace DAL
                             ChoXemDapAn = @ChoXemDapAn,
                             ChoXemLoiGiai = @ChoXemLoiGiai,
                             SoLuotLamToiDa = @SoLuotLamToiDa,
-                            TrangThai = @TrangThai
+                            TrangThai = @TrangThai,
+                            DuongDanAudio = @DuongDanAudio,
+                            SoLanPhatAudio = @SoLanPhatAudio
                         WHERE MaBaiTapDeThi = @MaDe;
                         DELETE FROM CauHoiBaiTap WHERE MaBaiTapDeThi = @MaDe;";
 
@@ -395,6 +423,8 @@ namespace DAL
                     cmd.Parameters.AddWithValue("@ChoXemLoiGiai", deThi.ChoXemLoiGiai);
                     cmd.Parameters.AddWithValue("@SoLuotLamToiDa", deThi.SoLuotLamToiDa);
                     cmd.Parameters.AddWithValue("@TrangThai", trangThai);
+                    cmd.Parameters.AddWithValue("@DuongDanAudio", string.IsNullOrWhiteSpace(deThi.DuongDanAudio) ? DBNull.Value : (object)deThi.DuongDanAudio);
+                    cmd.Parameters.AddWithValue("@SoLanPhatAudio", deThi.SoLanPhatAudio);
 
                     cmd.ExecuteNonQuery();
                 }

@@ -193,9 +193,15 @@
                         <!-- Lọc Trình độ -->
                         <ComboBox Grid.Column="2" SelectedValue="{Binding FilterExamLevel}" SelectedValuePath="Tag" Padding="10,7">
                             <ComboBoxItem Content="Tất cả trình độ" Tag="All" IsSelected="True"/>
-                            <ComboBoxItem Content="Cơ bản (A1 - A2)" Tag="A2"/>
-                            <ComboBoxItem Content="Trung cấp (B1 - B2)" Tag="B1"/>
-                            <ComboBoxItem Content="Nâng cao (C1)" Tag="C1"/>
+                            <ComboBoxItem Content="Cơ bản (A1 - A2)" Tag="Basic"/>
+                            <ComboBoxItem Content="Trung cấp (B1 - B2)" Tag="Intermediate"/>
+                            <ComboBoxItem Content="Nâng cao (C1 - C2)" Tag="Advanced"/>
+                            <ComboBoxItem Content="Chuẩn A1" Tag="A1"/>
+                            <ComboBoxItem Content="Chuẩn A2" Tag="A2"/>
+                            <ComboBoxItem Content="Chuẩn B1" Tag="B1"/>
+                            <ComboBoxItem Content="Chuẩn B2" Tag="B2"/>
+                            <ComboBoxItem Content="Chuẩn C1" Tag="C1"/>
+                            <ComboBoxItem Content="Chuẩn C2" Tag="C2"/>
                         </ComboBox>
 
                         <!-- Lọc Trạng thái -->
@@ -568,15 +574,81 @@
 
                                     <StackPanel Grid.Column="2">
                                         <TextBlock Text="Khung trình độ áp dụng" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                        <ComboBox SelectedValue="{Binding CurrentDeThi.MaCapDo}" SelectedValuePath="Content" Height="36" Padding="8,6">
+                                        <ComboBox SelectedValue="{Binding CurrentDeThi.MaCapDo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Content" Height="36" Padding="8,6">
                                             <ComboBoxItem Content="A1"/>
                                             <ComboBoxItem Content="A2"/>
                                             <ComboBoxItem Content="B1"/>
-                                            <ComboBoxItem Content="B2" IsSelected="True"/>
+                                            <ComboBoxItem Content="B2"/>
                                             <ComboBoxItem Content="C1"/>
+                                            <ComboBoxItem Content="C2"/>
                                         </ComboBox>
                                     </StackPanel>
                                 </Grid>
+
+                                <!-- Tệp đính kèm Audio Đề thi & Quy tắc phát -->
+                                <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,14">
+                                    <StackPanel>
+                                        <TextBlock Text="AUDIO ĐỀ THI &amp; QUY TẮC PHÁT (LISTENING)" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextGray}" Margin="0,0,0,8"/>
+
+                                        <!-- Nút đính kèm audio và tên file -->
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Button Grid.Column="0" Command="{Binding ChonAudioDeThiCommand}" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="10,6" Cursor="Hand">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <local:LucideIcon Kind="Headphones" Size="13" Foreground="#10B981" Margin="0,0,5,0"/>
+                                                                <TextBlock Text="Đính kèm Audio" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+
+                                            <TextBlock Grid.Column="1" Text="{Binding CurrentDeThi.TenFileAudioHienThi}"
+                                                       FontSize="11.5" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="10,0,8,0"/>
+
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                                                        Visibility="{Binding CurrentDeThi.HasAudio, Converter={StaticResource BoolToVisConverter}}">
+                                                <Button Command="{Binding TogglePlayAudioDeThiCommand}" Background="#10B981" Foreground="White" BorderThickness="0" Padding="8,4" Cursor="Hand" Margin="0,0,4,0">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <local:LucideIcon Kind="Play" Size="11" Foreground="White" Margin="0,0,4,0"/>
+                                                                    <TextBlock Text="Nghe thử" FontSize="11" FontWeight="SemiBold" Foreground="White"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                                <Button Command="{Binding XoaAudioDeThiCommand}" Background="#FEE2E2" Foreground="#DC2626" BorderThickness="0" Padding="6,4" Cursor="Hand" ToolTip="Gỡ tệp âm thanh này">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                                                                <local:LucideIcon Kind="X" Size="12" Foreground="#DC2626"/>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Thông báo quy tắc số lần phát audio theo hình thức thi -->
+                                        <Border Background="{Binding CurrentDeThi.QuyTacAudioBg}" BorderBrush="{Binding CurrentDeThi.QuyTacAudioBorder}" BorderThickness="1" CornerRadius="6" Padding="8,6">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding CurrentDeThi.QuyTacAudioIcon}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding CurrentDeThi.QuyTacAudioText}" FontSize="11" FontWeight="SemiBold" Foreground="{Binding CurrentDeThi.QuyTacAudioFg}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
 
                                 <!-- Tùy chọn đề thi -->
                                 <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,14">
@@ -652,10 +724,10 @@
                                     <!-- Nguồn -->
                                     <ComboBox Grid.Column="0" 
                                               ItemsSource="{Binding DanhSachNguonCauHoi}"
-                                              SelectedValue="{Binding SelectedSourceId}"
-                                              SelectedValuePath="Id"
+                                              SelectedItem="{Binding SelectedNguonCauHoi}"
                                               DisplayMemberPath="DisplayText"
-                                              Height="36" Padding="8,6" FontSize="12"/>
+                                              Height="36" Padding="8,6" FontSize="12"
+                                              Validation.ErrorTemplate="{x:Null}"/>
 
                                     <!-- Ô tìm kiếm câu hỏi -->
                                     <Grid Grid.Column="2">
@@ -757,23 +829,36 @@
                                                 <!-- Checkbox chọn câu -->
                                                 <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}"
                                                           Command="{Binding DataContext.CapNhatLuaChonCauHoiCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                          VerticalAlignment="Center" Margin="0,0,12,0"/>
 
-                                                <!-- Nội dung câu hỏi & Tags -->
+                                                <!-- Nội dung câu hỏi & Tags chi tiết -->
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
-                                                        <Border Background="#EFF6FF" CornerRadius="4" Padding="5,2" Margin="0,0,6,0">
-                                                            <TextBlock Text="{Binding CauHoi.KyNang}" FontSize="9.5" FontWeight="Bold" Foreground="#1D4ED8"/>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                                        <Border Background="#EFF6FF" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                                                            <TextBlock Text="{Binding CauHoi.KyNangHienThi, FallbackValue='Kỹ năng'}" FontSize="10" FontWeight="Bold" Foreground="#1D4ED8"/>
                                                         </Border>
-                                                        <Border Background="#F1F5F9" CornerRadius="4" Padding="5,2" Margin="0,0,6,0">
-                                                            <TextBlock Text="{Binding CauHoi.MaTrinhDo}" FontSize="9.5" FontWeight="SemiBold" Foreground="{StaticResource TextGray}"/>
+                                                        <Border Background="#F1F5F9" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                                                            <TextBlock Text="{Binding CauHoi.MaTrinhDo}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextGray}"/>
                                                         </Border>
-                                                        <Border Background="#FEF3C7" CornerRadius="4" Padding="5,2" Margin="0,0,6,0">
-                                                            <TextBlock Text="{Binding CauHoi.DoKhoHienThi}" FontSize="9.5" FontWeight="SemiBold" Foreground="#B45309"/>
+                                                        <Border Background="#FEF3C7" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                                                            <TextBlock Text="{Binding CauHoi.DoKhoHienThi}" FontSize="10" FontWeight="SemiBold" Foreground="#B45309"/>
+                                                        </Border>
+                                                        <!-- Badge Có Audio nghe -->
+                                                        <Border Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="0,0,6,0"
+                                                                Visibility="{Binding CauHoi.DuongDanAudio, Converter={StaticResource StringNotEmptyToVisConverter}}">
+                                                            <TextBlock Text="🎧 Có Audio" FontSize="9.5" FontWeight="Bold" Foreground="#047857"/>
                                                         </Border>
                                                     </StackPanel>
 
-                                                    <TextBlock Text="{Binding CauHoi.NoiDungCauHoi}" FontSize="12.5" FontWeight="SemiBold" TextWrapping="Wrap" MaxHeight="40" Foreground="{StaticResource TextDark}"/>
+                                                    <!-- Tiêu đề & Nội dung đầy đủ không bị cắt -->
+                                                    <TextBlock Text="{Binding CauHoi.NoiDungCauHoi}" FontSize="13" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{StaticResource TextDark}" LineHeight="18" Margin="0,0,0,4"/>
+
+                                                    <!-- Xem trước Đoạn trích bài đọc / Kịch bản nghe nếu có -->
+                                                    <Border Background="#FEF9C3" BorderBrush="#FDE047" BorderThickness="1" CornerRadius="5" Padding="7,4" Margin="0,2,0,0"
+                                                            Visibility="{Binding CauHoi.DoanVanDoc, Converter={StaticResource StringNotEmptyToVisConverter}}">
+                                                        <TextBlock Text="{Binding CauHoi.DoanVanDoc, StringFormat='📖 Kịch bản / Ngữ liệu: {0}'}" 
+                                                                   FontSize="11.5" Foreground="#78350F" TextWrapping="Wrap" MaxHeight="38" TextTrimming="CharacterEllipsis"/>
+                                                    </Border>
                                                 </StackPanel>
 
                                                 <!-- Điểm số & Thứ tự -->
