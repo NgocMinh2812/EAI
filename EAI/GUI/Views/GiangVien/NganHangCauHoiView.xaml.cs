@@ -17,8 +17,11 @@ namespace GUI.Views.GiangVien
         {
             if (DataContext is NganHangCauHoiViewModel vm)
             {
-                vm.NapDanhMuc();
-                vm.NapDanhSachBoCauHoi();
+                if (vm.DanhSachBoCauHoi.Count == 0)
+                {
+                    vm.NapDanhMuc();
+                    vm.NapDanhSachBoCauHoi();
+                }
             }
         }
 
@@ -44,6 +47,31 @@ namespace GUI.Views.GiangVien
             {
                 vm.KetThucTuaAudio(slider.Value);
             }
+        }
+
+        private void Smooth_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            GUI.Views.Common.ScrollHelper.HandleSmoothPreviewMouseWheel(sender, e);
+        }
+
+        private void OnColumnScrollChanged(object sender, System.Windows.Controls.ScrollChangedEventArgs e)
+        {
+            if (e.VerticalChange != 0 || e.HorizontalChange != 0)
+            {
+                GUI.Views.Common.ScrollHelper.CloseAllOpenComboBoxes();
+            }
+        }
+
+        private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
+                if (child is T typedChild) return typedChild;
+                var found = FindVisualChild<T>(child);
+                if (found != null) return found;
+            }
+            return null;
         }
     }
 }

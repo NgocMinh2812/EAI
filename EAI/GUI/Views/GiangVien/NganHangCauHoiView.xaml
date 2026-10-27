@@ -6,6 +6,10 @@
       xmlns:conv="clr-namespace:GUI.ViewModels.Common"
       Title="Ngân hàng câu hỏi - Admin Dashboard"
       FontFamily="Segoe UI"
+      UseLayoutRounding="True"
+      SnapsToDevicePixels="True"
+      TextOptions.TextFormattingMode="Display"
+      TextOptions.TextRenderingMode="ClearType"
       Background="#F8FAFC">
 
     <Page.DataContext>
@@ -230,7 +234,7 @@
                             </TextBlock>
                         </Grid>
 
-                        <ComboBox SelectedValue="{Binding FilterNguonTaoBo}" SelectedValuePath="Tag" Padding="8,5" FontSize="12">
+                        <ComboBox SelectedValue="{Binding FilterNguonTaoBo}" SelectedValuePath="Tag" Padding="8,5" FontSize="12" MaxDropDownHeight="240">
                             <ComboBox.Resources>
                                 <Style TargetType="{x:Type Border}">
                                     <Setter Property="CornerRadius" Value="8"/>
@@ -245,7 +249,14 @@
 
                     <!-- Sets ListBox -->
                     <ListBox Grid.Row="2" ItemsSource="{Binding DanhSachBoCauHoi}" SelectedItem="{Binding SelectedBoCauHoi, Mode=TwoWay}"
-                             BorderThickness="0" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             BorderThickness="0" Background="Transparent" 
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             ScrollViewer.CanContentScroll="True"
+                             VirtualizingPanel.IsVirtualizing="True"
+                             VirtualizingPanel.VirtualizationMode="Recycling"
+                             VirtualizingPanel.ScrollUnit="Pixel"
+                             PreviewMouseWheel="Smooth_PreviewMouseWheel"
                              Padding="0,0,14,0">
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
@@ -413,7 +424,7 @@
                                 <ColumnDefinition Width="1*"/>
                             </Grid.ColumnDefinitions>
 
-                            <ComboBox Grid.Column="0" SelectedValue="{Binding FilterKyNang}" SelectedValuePath="Tag" Padding="6,5" FontSize="11.5">
+                            <ComboBox Grid.Column="0" SelectedValue="{Binding FilterKyNang}" SelectedValuePath="Tag" Padding="6,5" FontSize="11.5" MaxDropDownHeight="240">
                                 <ComboBox.Resources>
                                     <Style TargetType="{x:Type Border}">
                                         <Setter Property="CornerRadius" Value="6"/>
@@ -427,7 +438,7 @@
                                 <ComboBoxItem Content="Viết" Tag="Viet"/>
                             </ComboBox>
 
-                            <ComboBox Grid.Column="2" SelectedValue="{Binding FilterDoKho}" SelectedValuePath="Tag" Padding="6,5" FontSize="11.5">
+                            <ComboBox Grid.Column="2" SelectedValue="{Binding FilterDoKho}" SelectedValuePath="Tag" Padding="6,5" FontSize="11.5" MaxDropDownHeight="240">
                                 <ComboBox.Resources>
                                     <Style TargetType="{x:Type Border}">
                                         <Setter Property="CornerRadius" Value="6"/>
@@ -439,11 +450,25 @@
                                 <ComboBoxItem Content="Khó" Tag="Kho"/>
                             </ComboBox>
                         </Grid>
+
+                        <!-- Loading Indicator -->
+                        <ProgressBar IsIndeterminate="True" Height="2.5" Margin="0,8,0,0"
+                                     Foreground="{StaticResource AdminMint}" BorderThickness="0" Background="#F1F5F9"
+                                     Visibility="{Binding IsLoadingQuestions, Converter={StaticResource BoolToVisConverter}}"/>
                     </StackPanel>
 
-                    <!-- Questions ListBox -->
+                    <!-- Questions ListBox with High-Performance Virtualization -->
                     <ListBox Grid.Row="2" ItemsSource="{Binding DanhSachCauHoi}" SelectedItem="{Binding SelectedCauHoiInList, Mode=TwoWay}"
-                             BorderThickness="0" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             BorderThickness="0" Background="Transparent" 
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             ScrollViewer.CanContentScroll="True"
+                             VirtualizingPanel.IsVirtualizing="True"
+                             VirtualizingPanel.VirtualizationMode="Recycling"
+                             VirtualizingPanel.ScrollUnit="Pixel"
+                             VirtualizingPanel.CacheLength="5,5"
+                             VirtualizingPanel.CacheLengthUnit="Item"
+                             PreviewMouseWheel="Smooth_PreviewMouseWheel"
                              Padding="0,0,14,0">
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
@@ -614,7 +639,7 @@
                     </Grid>
 
                     <!-- Main Editor Fields (Scrollable) -->
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,12,0" Margin="0,0,2,0">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,12,0" Margin="0,0,2,0" PreviewMouseWheel="Smooth_PreviewMouseWheel" ScrollChanged="OnColumnScrollChanged">
                         <StackPanel>
                             <!-- Row 1: Kỹ năng, Độ khó, Trình độ CEFR, Loại câu hỏi (Bố cục 2 cột x 2 hàng giúp dropdown text dài không bao giờ bị cắt) -->
                             <Grid Margin="0,0,0,12">
@@ -631,7 +656,7 @@
                                 <!-- Hàng 1 - Cột 0: Kỹ năng -->
                                 <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,8">
                                     <TextBlock Text="Kỹ năng:" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.KyNang, Mode=TwoWay}" SelectedValuePath="Tag" Padding="8,5" FontSize="12">
+                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.KyNang, Mode=TwoWay}" SelectedValuePath="Tag" Padding="8,5" FontSize="12" MaxDropDownHeight="240">
                                         <ComboBoxItem Content="Đọc hiểu" Tag="Doc"/>
                                         <ComboBoxItem Content="Nghe hiểu" Tag="Nghe"/>
                                         <ComboBoxItem Content="Ngữ pháp" Tag="NguPhap"/>
@@ -643,7 +668,7 @@
                                 <!-- Hàng 1 - Cột 2: Độ khó -->
                                 <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,8">
                                     <TextBlock Text="Độ khó:" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.DoKho, Mode=TwoWay}" SelectedValuePath="Tag" Padding="8,5" FontSize="12">
+                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.DoKho, Mode=TwoWay}" SelectedValuePath="Tag" Padding="8,5" FontSize="12" MaxDropDownHeight="240">
                                         <ComboBoxItem Content="Dễ" Tag="De"/>
                                         <ComboBoxItem Content="Trung bình" Tag="TrungBinh"/>
                                         <ComboBoxItem Content="Khó" Tag="Kho"/>
@@ -653,7 +678,7 @@
                                 <!-- Hàng 2 - Cột 0: Trình độ CEFR -->
                                 <StackPanel Grid.Row="1" Grid.Column="0">
                                     <TextBlock Text="Trình độ CEFR:" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.MaTrinhDo, Mode=TwoWay}" SelectedValuePath="Tag" Padding="8,5" FontSize="12">
+                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.MaTrinhDo, Mode=TwoWay}" SelectedValuePath="Tag" Padding="8,5" FontSize="12" MaxDropDownHeight="240">
                                         <ComboBoxItem Content="A1" Tag="A1"/>
                                         <ComboBoxItem Content="A2" Tag="A2"/>
                                         <ComboBoxItem Content="B1" Tag="B1"/>
@@ -665,7 +690,7 @@
                                 <!-- Hàng 2 - Cột 2: Loại câu hỏi (Rộng rãi, hiển thị trọn vẹn không bị cắt chữ) -->
                                 <StackPanel Grid.Row="1" Grid.Column="2">
                                     <TextBlock Text="Loại câu hỏi:" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.LoaiCauHoi, Mode=TwoWay}" SelectedValuePath="Tag" Padding="8,5" FontSize="12">
+                                    <ComboBox SelectedValue="{Binding CurrentCauHoi.LoaiCauHoi, Mode=TwoWay}" SelectedValuePath="Tag" Padding="8,5" FontSize="12" MaxDropDownHeight="240">
                                         <ComboBoxItem Content="Trắc nghiệm (4 lựa chọn)" Tag="TracNghiem"/>
                                         <ComboBoxItem Content="Đúng / Sai (True / False)" Tag="DungSai"/>
                                         <ComboBoxItem Content="True / False / Not Given" Tag="TrueFalseNotGiven"/>

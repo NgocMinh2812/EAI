@@ -180,7 +180,7 @@ namespace BUS
             decimal tyLe = tongSoCau > 0 ? (decimal)soCauDung * 100m / tongSoCau : 0m;
 
             return LuyenTapDAL.Instance.LuuKetQuaPhienLuyenTap(
-                userId, thoiLuongGiay, tongSoCau, soCauDung, tyLe, chiTiet);
+                userId, tieuDe, thoiLuongGiay, tongSoCau, soCauDung, tyLe, chiTiet);
         }
 
         /// <summary>

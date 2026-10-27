@@ -4,6 +4,7 @@
       xmlns:local="clr-namespace:GUI"
       xmlns:vm="clr-namespace:GUI.ViewModels.GiangVien"
       xmlns:conv="clr-namespace:GUI.ViewModels.Common"
+      xmlns:common="clr-namespace:GUI.Views.Common"
       Title="Nội dung học tập - Admin Dashboard"
       FontFamily="Segoe UI"
       UseLayoutRounding="True"
@@ -132,6 +133,7 @@
             <Setter Property="BorderThickness" Value="1.2"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Height" Value="38"/>
+            <Setter Property="MaxDropDownHeight" Value="240"/>
             <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -178,7 +180,11 @@
                                             CornerRadius="8"
                                             Padding="4"
                                             RenderOptions.ClearTypeHint="Enabled">
-                                        <ScrollViewer SnapsToDevicePixels="True" VerticalScrollBarVisibility="Auto">
+                                        <ScrollViewer SnapsToDevicePixels="True" 
+                                                      CanContentScroll="False"
+                                                      VirtualizingPanel.ScrollUnit="Pixel"
+                                                      VerticalScrollBarVisibility="Auto" 
+                                                      common:ScrollHelper.FixMouseWheelBubble="True">
                                             <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
                                         </ScrollViewer>
                                     </Border>
@@ -590,7 +596,11 @@
                     <ListBox x:Name="lstBaiHoc" Grid.Row="1" ItemsSource="{Binding DanhSachBaiHoc}" SelectedItem="{Binding SelectedBaiHocInList, Mode=TwoWay}"
                              BorderThickness="0" Background="Transparent" Margin="0,0,2,8" Padding="14,0,12,6"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                             ScrollViewer.VerticalScrollBarVisibility="Auto">
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             ScrollViewer.CanContentScroll="False"
+                             VirtualizingPanel.ScrollUnit="Pixel"
+                             VirtualizingPanel.IsVirtualizing="True"
+                             PreviewMouseWheel="Smooth_PreviewMouseWheel">
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
                                 <Setter Property="Padding" Value="0"/>
@@ -673,7 +683,7 @@
             <!-- CỘT PHẢI: TRÌNH SOẠN THẢO BÀI HỌC (ScrollBar đẩy sát viền phải, nội dung đệm 18px không che controls) -->
             <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="14" Padding="0">
                 <Grid>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,0,2,0">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,0,2,0" PreviewMouseWheel="Smooth_PreviewMouseWheel" ScrollChanged="OnColumnScrollChanged">
                         <StackPanel Margin="20,18,18,20">
                             <!-- Tiêu đề Panel & Nút Soạn bài mới -->
                             <Grid Margin="0,0,0,14">

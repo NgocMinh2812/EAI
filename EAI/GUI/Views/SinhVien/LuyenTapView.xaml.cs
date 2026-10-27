@@ -13,14 +13,112 @@ namespace GUI.Views
     public partial class LuyenTapView : Page
     {
         // =========================================================================
-        // VIEW MODELS FOR PRACTICE HUB
+        // VIEW MODELS FOR PRACTICE HUB & PACKAGES
         // =========================================================================
+        public class PracticePackageViewModel
+        {
+            public int MaBaiTapDeThi { get; set; }
+            public string TenBaiTapDeThi { get; set; } = string.Empty;
+            public string LoaiHinh { get; set; } = "LuyenTap";
+            public string? MoTa { get; set; }
+            public int ThoiGianLamBaiPhut { get; set; } = 20;
+            public int SoLuongCauHoi { get; set; } = 10;
+            public string MaTrinhDo { get; set; } = "B2";
+            public decimal DiemDatYeuCau { get; set; } = 5;
+            public decimal TongDiem { get; set; } = 10;
+
+            public string FormatIcon
+            {
+                get
+                {
+                    if (TenBaiTapDeThi.Contains("Điều Kiện") || TenBaiTapDeThi.Contains("Ngữ Pháp") || TenBaiTapDeThi.Contains("Đảo Ngữ")) return "🧩";
+                    if (TenBaiTapDeThi.Contains("Từ Vựng") || TenBaiTapDeThi.Contains("Oxford") || TenBaiTapDeThi.Contains("Idioms") || TenBaiTapDeThi.Contains("Thành Ngữ")) return "📚";
+                    if (TenBaiTapDeThi.Contains("Đọc Hiểu") || TenBaiTapDeThi.Contains("Reading")) return "📖";
+                    if (TenBaiTapDeThi.Contains("Viết") || TenBaiTapDeThi.Contains("Lỗi Sai") || TenBaiTapDeThi.Contains("Writing")) return "✍️";
+                    if (TenBaiTapDeThi.Contains("Phản Xạ")) return "⚡";
+                    return "🎯";
+                }
+            }
+
+            public Brush FormatBadgeBg
+            {
+                get
+                {
+                    if (TenBaiTapDeThi.Contains("Điều Kiện") || TenBaiTapDeThi.Contains("Ngữ Pháp") || TenBaiTapDeThi.Contains("Đảo Ngữ")) return new SolidColorBrush(Color.FromRgb(240, 253, 244));
+                    if (TenBaiTapDeThi.Contains("Từ Vựng") || TenBaiTapDeThi.Contains("Oxford") || TenBaiTapDeThi.Contains("Idioms") || TenBaiTapDeThi.Contains("Thành Ngữ")) return new SolidColorBrush(Color.FromRgb(254, 243, 199));
+                    if (TenBaiTapDeThi.Contains("Đọc Hiểu") || TenBaiTapDeThi.Contains("Reading")) return new SolidColorBrush(Color.FromRgb(239, 246, 255));
+                    if (TenBaiTapDeThi.Contains("Viết") || TenBaiTapDeThi.Contains("Lỗi Sai") || TenBaiTapDeThi.Contains("Writing")) return new SolidColorBrush(Color.FromRgb(250, 245, 255));
+                    if (TenBaiTapDeThi.Contains("Phản Xạ")) return new SolidColorBrush(Color.FromRgb(254, 242, 242));
+                    return new SolidColorBrush(Color.FromRgb(204, 251, 241));
+                }
+            }
+
+            public string FormatTag
+            {
+                get
+                {
+                    if (TenBaiTapDeThi.Contains("Điều Kiện") || TenBaiTapDeThi.Contains("Đảo Ngữ")) return "CHUYÊN ĐỀ ĐIỀU KIỆN & ĐẢO NGỮ";
+                    if (TenBaiTapDeThi.Contains("Từ Vựng") || TenBaiTapDeThi.Contains("Oxford")) return "TỪ VỰNG & COLLOCATIONS";
+                    if (TenBaiTapDeThi.Contains("Idioms") || TenBaiTapDeThi.Contains("Thành Ngữ")) return "THÀNH NGỮ NÂNG CAO C1";
+                    if (TenBaiTapDeThi.Contains("Đọc Hiểu") || TenBaiTapDeThi.Contains("Reading")) return "ĐỌC HIỂU CHUYÊN SÂU";
+                    if (TenBaiTapDeThi.Contains("Viết") || TenBaiTapDeThi.Contains("Lỗi Sai")) return "CẤU TRÚC VIẾT & SỬA LỖI";
+                    if (TenBaiTapDeThi.Contains("Phản Xạ")) return "PHẢN XẠ NHANH 60S";
+                    if (TenBaiTapDeThi.Contains("Căn Bản") || TenBaiTapDeThi.Contains("Giao Tiếp")) return "TỔNG HỢP CĂN BẢN A2";
+                    return "LUYỆN TẬP THEO CHỦ ĐỀ";
+                }
+            }
+
+            public Brush FormatTagBg
+            {
+                get
+                {
+                    if (TenBaiTapDeThi.Contains("Điều Kiện") || TenBaiTapDeThi.Contains("Đảo Ngữ")) return new SolidColorBrush(Color.FromRgb(220, 252, 231));
+                    if (TenBaiTapDeThi.Contains("Từ Vựng") || TenBaiTapDeThi.Contains("Oxford")) return new SolidColorBrush(Color.FromRgb(254, 240, 138));
+                    if (TenBaiTapDeThi.Contains("Idioms") || TenBaiTapDeThi.Contains("Thành Ngữ")) return new SolidColorBrush(Color.FromRgb(254, 215, 170));
+                    if (TenBaiTapDeThi.Contains("Đọc Hiểu") || TenBaiTapDeThi.Contains("Reading")) return new SolidColorBrush(Color.FromRgb(219, 234, 254));
+                    if (TenBaiTapDeThi.Contains("Viết") || TenBaiTapDeThi.Contains("Lỗi Sai")) return new SolidColorBrush(Color.FromRgb(243, 232, 255));
+                    if (TenBaiTapDeThi.Contains("Phản Xạ")) return new SolidColorBrush(Color.FromRgb(254, 226, 226));
+                    return new SolidColorBrush(Color.FromRgb(204, 251, 241));
+                }
+            }
+
+            public Brush FormatTagFg
+            {
+                get
+                {
+                    if (TenBaiTapDeThi.Contains("Điều Kiện") || TenBaiTapDeThi.Contains("Đảo Ngữ")) return new SolidColorBrush(Color.FromRgb(21, 128, 61));
+                    if (TenBaiTapDeThi.Contains("Từ Vựng") || TenBaiTapDeThi.Contains("Oxford")) return new SolidColorBrush(Color.FromRgb(161, 98, 7));
+                    if (TenBaiTapDeThi.Contains("Idioms") || TenBaiTapDeThi.Contains("Thành Ngữ")) return new SolidColorBrush(Color.FromRgb(194, 65, 12));
+                    if (TenBaiTapDeThi.Contains("Đọc Hiểu") || TenBaiTapDeThi.Contains("Reading")) return new SolidColorBrush(Color.FromRgb(29, 78, 216));
+                    if (TenBaiTapDeThi.Contains("Viết") || TenBaiTapDeThi.Contains("Lỗi Sai")) return new SolidColorBrush(Color.FromRgb(126, 34, 206));
+                    if (TenBaiTapDeThi.Contains("Phản Xạ")) return new SolidColorBrush(Color.FromRgb(185, 28, 28));
+                    return new SolidColorBrush(Color.FromRgb(15, 118, 110));
+                }
+            }
+
+            public string LevelTag => $"Chuẩn {MaTrinhDo}";
+            public string PracticeSubtitle => $"⏱️ {ThoiGianLamBaiPhut} phút • {SoLuongCauHoi} câu hỏi • {MoTa ?? "Gói luyện tập chuyên sâu theo chủ đề"}";
+        }
+
+        public static string LayTenTiengVietKyNang(string? kyNang)
+        {
+            if (string.IsNullOrWhiteSpace(kyNang)) return "Kỹ năng tổng hợp";
+            string k = kyNang.Trim().ToLowerInvariant();
+            if (k.Contains("tuvung") || k.Contains("vocab")) return "Từ vựng";
+            if (k.Contains("nghe") || k.Contains("listen")) return "Nghe hiểu";
+            if (k.Contains("nguphap") || k.Contains("grammar")) return "Ngữ pháp";
+            if (k.Contains("doc") || k.Contains("read")) return "Đọc hiểu";
+            if (k.Contains("viet") || k.Contains("writ")) return "Viết";
+            if (k.Contains("noi") || k.Contains("speak")) return "Nói";
+            return kyNang;
+        }
+
         public class SessionQuestionResultViewModel
         {
             public int QuestionNumber { get; set; }
             public string QuestionNumberText => $"Câu {QuestionNumber}";
             public string? KyNang { get; set; }
-            public string KyNangTag => $"KỸ NĂNG: {KyNang?.ToUpper() ?? "CHUNG"}";
+            public string KyNangTag => $"Kỹ năng: {LayTenTiengVietKyNang(KyNang)}";
             public string NoiDungCauHoi { get; set; } = string.Empty;
             public string StudentChoiceText { get; set; } = string.Empty;
             public string CorrectChoiceText { get; set; } = string.Empty;
@@ -38,7 +136,7 @@ namespace GUI.Views
         {
             public int MaCauHoi { get; set; }
             public string? KyNang { get; set; }
-            public string KyNangTag => $"KỸ NĂNG: {KyNang?.ToUpper() ?? "CHUNG"}";
+            public string KyNangTag => $"Kỹ năng: {LayTenTiengVietKyNang(KyNang)}";
             public string NoiDungCauHoi { get; set; } = string.Empty;
             public string GiaiThichText { get; set; } = string.Empty;
             public string ThoiGianSaiText { get; set; } = string.Empty;
@@ -57,14 +155,18 @@ namespace GUI.Views
         // STATE FIELDS: PRACTICE HUB (REQUIREMENT 4)
         // =========================================================================
         private List<CauHoiKhaoSatDTO> _sessionQuestions = new List<CauHoiKhaoSatDTO>();
-        private int _sessionIndex = 0;
         private readonly Dictionary<int, int> _sessionUserAnswers = new Dictionary<int, int>();
         private readonly Dictionary<int, string> _sessionUserTextAnswers = new Dictionary<int, string>();
         private DateTime _sessionStartTime;
         private DispatcherTimer? _sessionDurationTimer;
         private int _sessionElapsedSeconds = 0;
         private bool _isInstantFeedbackMode = true;
-        private bool _isCurrentQuestionAnswered = false;
+        private string _currentSessionTitle = "Luyện tập tự do";
+
+        // Audio Player for Listening questions
+        private readonly MediaPlayer _practiceMediaPlayer = new MediaPlayer();
+        private Button? _currentPlayingAudioBtn = null;
+        private int _currentPlayingQuestionId = -1;
 
         // List of wrong questions in current session for targeted re-practice
         private readonly List<CauHoiKhaoSatDTO> _currentSessionWrongQuestions = new List<CauHoiKhaoSatDTO>();
@@ -72,28 +174,48 @@ namespace GUI.Views
         // Cache for overall wrong questions in DB
         private List<CauHoiKhaoSatDTO> _dbWrongQuestions = new List<CauHoiKhaoSatDTO>();
 
-        // =========================================================================
-        // STATE FIELDS: FLASHCARD & DICTATION
-        // =========================================================================
-        private List<FlashcardDTO> _flashcards = new List<FlashcardDTO>();
-        private int _currentCardIndex = 0;
-        private List<string> _dictationSentences = new List<string>();
-        private int _currentDictationIndex = 0;
-
         // User Score
         private int _score = 150;
         private bool _isInitialized = false;
+        // Raw practice packages from DB
+        private List<BaiTapDeThiDTO> _rawPracticePackages = new List<BaiTapDeThiDTO>();
 
         public LuyenTapView()
         {
             InitializeComponent();
             _isInitialized = true;
+            InitAudioPlayer();
 
             // Nạp dữ liệu ban đầu
+            LoadPracticePackages("All");
             UpdateLiveQuestionCount();
-            LoadFlashcards();
-            InitDictationSentences();
-            DisplayCurrentDictation();
+        }
+
+        private void InitAudioPlayer()
+        {
+            _practiceMediaPlayer.MediaEnded += (s, e) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (_currentPlayingAudioBtn != null)
+                    {
+                        _currentPlayingAudioBtn.Content = "▶ Nghe lại bài nói";
+                    }
+                    _currentPlayingQuestionId = -1;
+                });
+            };
+
+            _practiceMediaPlayer.MediaFailed += (s, e) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (_currentPlayingAudioBtn != null)
+                    {
+                        _currentPlayingAudioBtn.Content = "▶ Nghe bài nói (TTS)";
+                    }
+                    _currentPlayingQuestionId = -1;
+                });
+            };
         }
 
         // =========================================================================
@@ -128,31 +250,35 @@ namespace GUI.Views
         // =========================================================================
         private void TabHub_Click(object sender, RoutedEventArgs e)
         {
+            _practiceMediaPlayer.Stop();
             SetActiveTab(tabHub, pnlHub);
             UpdateLiveQuestionCount();
         }
 
         private void TabWrongQuestions_Click(object sender, RoutedEventArgs e)
         {
+            _practiceMediaPlayer.Stop();
             SetActiveTab(tabWrongQuestions, pnlWrongQuestions);
             LoadWrongQuestions();
         }
 
         private void TabHistory_Click(object sender, RoutedEventArgs e)
         {
+            _practiceMediaPlayer.Stop();
             SetActiveTab(tabHistory, pnlHistory);
             LoadPracticeHistory();
         }
 
         private void TabFlashcard_Click(object sender, RoutedEventArgs e)
         {
+            _practiceMediaPlayer.Stop();
             SetActiveTab(tabFlashcard, pnlFlashcard);
         }
 
         private void TabDictation_Click(object sender, RoutedEventArgs e)
         {
+            _practiceMediaPlayer.Stop();
             SetActiveTab(tabDictation, pnlDictation);
-            DisplayCurrentDictation();
         }
 
         private void SetActiveTab(Button activeBtn, StackPanel activePnl)
@@ -181,9 +307,107 @@ namespace GUI.Views
         }
 
         // =========================================================================
+        // SECTION: DANH SÁCH GÓI BÀI TẬP & ĐỀ LUYỆN TẬP TỪ DATABASE (LoaiHinh == "LuyenTap")
+        // =========================================================================
+        public void LoadPracticePackages(string? filterKeyword = null)
+        {
+            try
+            {
+                // Chỉ lấy các đề thuộc nhóm Luyện tập tự do / Luyện tập theo chủ đề (LoaiHinh == "LuyenTap", DaPhatHanh == true)
+                _rawPracticePackages = BaiTapDeThiBUS.Instance.LayDanhSachDeThi(chiLayDaXuatBan: true)
+                    .Where(x => string.Equals(x.LoaiHinh, "LuyenTap", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LuyenTapView] Lỗi nạp danh sách gói luyện tập: {ex.Message}");
+                _rawPracticePackages = new List<BaiTapDeThiDTO>();
+            }
+
+            var displayList = _rawPracticePackages;
+            if (!string.IsNullOrWhiteSpace(filterKeyword) && filterKeyword != "All")
+            {
+                displayList = _rawPracticePackages.Where(x =>
+                    x.TenBaiTapDeThi.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(x.MoTa) && x.MoTa.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(x.MaCapDo) && x.MaCapDo.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+
+            var viewModels = displayList.Select(p => new PracticePackageViewModel
+            {
+                MaBaiTapDeThi = p.MaBaiTapDeThi,
+                TenBaiTapDeThi = p.TenBaiTapDeThi,
+                LoaiHinh = p.LoaiHinh,
+                MoTa = p.MoTa,
+                ThoiGianLamBaiPhut = p.ThoiGianLamBaiPhut > 0 ? p.ThoiGianLamBaiPhut : 20,
+                SoLuongCauHoi = p.SoLuongCauHoi > 0 ? p.SoLuongCauHoi : (p.TongSoCau > 0 ? p.TongSoCau : 10),
+                MaTrinhDo = !string.IsNullOrEmpty(p.MaCapDo) ? p.MaCapDo : "B2",
+                DiemDatYeuCau = p.DiemDatYeuCau,
+                TongDiem = p.TongDiem > 0 ? (decimal)p.TongDiem : 10m
+            }).ToList();
+
+            if (icDanhSachGoiLuyenTap != null)
+            {
+                icDanhSachGoiLuyenTap.ItemsSource = viewModels;
+            }
+        }
+
+        private void BtnPkgFilter_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button btn) return;
+
+            var brandTeal = (SolidColorBrush)FindResource("BrandTeal");
+            var brandTealLight = (SolidColorBrush)FindResource("BrandTealLight");
+            var textGray = (SolidColorBrush)FindResource("TextGray");
+            var borderLight = (SolidColorBrush)FindResource("BorderLight");
+
+            btnPkgFilterAll.Background = Brushes.White; btnPkgFilterAll.Foreground = textGray; btnPkgFilterAll.BorderThickness = new Thickness(1);
+            btnPkgFilterGrammar.Background = Brushes.White; btnPkgFilterGrammar.Foreground = textGray; btnPkgFilterGrammar.BorderThickness = new Thickness(1);
+            btnPkgFilterVocab.Background = Brushes.White; btnPkgFilterVocab.Foreground = textGray; btnPkgFilterVocab.BorderThickness = new Thickness(1);
+            btnPkgFilterReading.Background = Brushes.White; btnPkgFilterReading.Foreground = textGray; btnPkgFilterReading.BorderThickness = new Thickness(1);
+            btnPkgFilterWriting.Background = Brushes.White; btnPkgFilterWriting.Foreground = textGray; btnPkgFilterWriting.BorderThickness = new Thickness(1);
+
+            btn.Background = brandTealLight;
+            btn.Foreground = brandTeal;
+            btn.BorderThickness = new Thickness(0);
+
+            if (btn == btnPkgFilterAll) LoadPracticePackages("All");
+            else if (btn == btnPkgFilterGrammar) LoadPracticePackages("Ngữ Pháp");
+            else if (btn == btnPkgFilterVocab) LoadPracticePackages("Từ Vựng");
+            else if (btn == btnPkgFilterReading) LoadPracticePackages("Đọc Hiểu");
+            else if (btn == btnPkgFilterWriting) LoadPracticePackages("Viết");
+        }
+
+        private void BtnStartPracticePackage_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button btn || btn.Tag == null) return;
+            if (!int.TryParse(btn.Tag.ToString(), out int maDe)) return;
+
+            var pkg = _rawPracticePackages.FirstOrDefault(x => x.MaBaiTapDeThi == maDe);
+            string packageTitle = pkg?.TenBaiTapDeThi ?? "Gói Luyện Tập Tự Do";
+
+            try
+            {
+                var questions = BaiTapDeThiBUS.Instance.LayDanhSachCauHoiCuaDeThi(maDe);
+                if (questions == null || questions.Count == 0)
+                {
+                    Common.ThongBaoDialog.CanhBao("Gói luyện tập này hiện chưa có câu hỏi trong cơ sở dữ liệu.", "Thông báo");
+                    return;
+                }
+
+                StartPracticeWithQuestions(null, null, null, questions.Count, isInstant: true, sessionTitle: packageTitle, preloadedQuestions: questions);
+            }
+            catch (Exception ex)
+            {
+                Common.ThongBaoDialog.Loi($"Không thể khởi chạy gói luyện tập: {ex.Message}", "Lỗi hệ thống");
+            }
+        }
+
+        // =========================================================================
         // TAB 1: ADAPTIVE PRACTICE ENGINE (YÊU CẦU 4.1 - 4.4)
         // =========================================================================
-        private (string? KyNang, string? CapDo, string? DoKho, int SoLuong, bool IsInstant) GetPracticeCriteria()
+        private (string? KyNang, string? CapDo, string? DoKho, int SoLuong, bool IsInstant, string SessionTitle) GetPracticeCriteria()
         {
             string? kyNang = null;
             if (cboPracticeSkill?.SelectedItem is ComboBoxItem itemSkill)
@@ -233,7 +457,20 @@ namespace GUI.Views
                 if (text.Contains("cuối phiên")) isInstant = false;
             }
 
-            return (kyNang, capDo, doKho, soLuong, isInstant);
+            string typeName = "Luyện tập củng cố";
+            if (cboPracticeType?.SelectedItem is ComboBoxItem itemType)
+            {
+                string t = itemType.Content?.ToString() ?? "";
+                if (t.Contains("phản xạ")) typeName = "Thử thách phản xạ nhanh";
+                else if (t.Contains("chuyên sâu")) typeName = "Luyện tập chuyên sâu";
+                else if (t.Contains("khắc phục")) typeName = "Ôn tập khắc phục điểm yếu";
+                else if (t.Contains("củng cố")) typeName = "Luyện tập củng cố";
+            }
+
+            string skillName = kyNang != null ? LayTenTiengVietKyNang(kyNang) : "Tổng hợp";
+            string sessionTitle = $"{typeName} - {skillName} ({soLuong} câu)";
+
+            return (kyNang, capDo, doKho, soLuong, isInstant, sessionTitle);
         }
 
         private void PracticeFilter_Changed(object sender, SelectionChangedEventArgs e)
@@ -245,7 +482,7 @@ namespace GUI.Views
         private void UpdateLiveQuestionCount()
         {
             if (txtLiveAvailableCount == null) return;
-            var (kyNang, capDo, doKho, _, _) = GetPracticeCriteria();
+            var (kyNang, capDo, doKho, _, _, _) = GetPracticeCriteria();
 
             try
             {
@@ -267,47 +504,56 @@ namespace GUI.Views
             }
         }
 
-        private void BtnQuickPractice_Click(object sender, RoutedEventArgs e)
-        {
-            StartPracticeWithQuestions(null, null, null, 5, isInstant: true);
-        }
-
         private void BtnStartPracticeSession_Click(object sender, RoutedEventArgs e)
         {
-            var (kyNang, capDo, doKho, soLuong, isInstant) = GetPracticeCriteria();
-            StartPracticeWithQuestions(kyNang, capDo, doKho, soLuong, isInstant);
+            var (kyNang, capDo, doKho, soLuong, isInstant, sessionTitle) = GetPracticeCriteria();
+            StartPracticeWithQuestions(kyNang, capDo, doKho, soLuong, isInstant, sessionTitle);
         }
 
-        private void StartPracticeWithQuestions(string? kyNang, string? capDo, string? doKho, int soLuong, bool isInstant)
+        private void StartPracticeWithQuestions(
+            string? kyNang, 
+            string? capDo, 
+            string? doKho, 
+            int soLuong, 
+            bool isInstant, 
+            string sessionTitle = "Luyện tập tự do", 
+            List<CauHoiKhaoSatDTO>? preloadedQuestions = null)
         {
-            try
+            if (preloadedQuestions != null && preloadedQuestions.Count > 0)
             {
-                int availableCount = LuyenTapBUS.Instance.DemSoCauKhaDung(kyNang, capDo, doKho);
-                if (availableCount == 0)
+                _sessionQuestions = preloadedQuestions;
+            }
+            else
+            {
+                try
                 {
-                    Common.ThongBaoDialog.CanhBao(
-                        "Không có câu hỏi nào trong Ngân hàng câu hỏi thỏa mãn bộ lọc đã chọn.\n" +
-                        "Vui lòng nới lỏng tiêu chí (chọn tất cả kỹ năng hoặc tất cả độ khó).", 
-                        "Không có câu hỏi phù hợp");
+                    int availableCount = LuyenTapBUS.Instance.DemSoCauKhaDung(kyNang, capDo, doKho);
+                    if (availableCount == 0)
+                    {
+                        Common.ThongBaoDialog.CanhBao(
+                            "Không có câu hỏi nào trong Ngân hàng câu hỏi thỏa mãn bộ lọc đã chọn.\n" +
+                            "Vui lòng nới lỏng tiêu chí (chọn tất cả kỹ năng hoặc tất cả độ khó).", 
+                            "Không có câu hỏi phù hợp");
+                        return;
+                    }
+
+                    if (availableCount < soLuong)
+                    {
+                        bool xacNhan = Common.ThongBaoDialog.XacNhan(
+                            $"Ngân hàng câu hỏi hiện chỉ có {availableCount} câu phù hợp với tiêu chí của bạn.\n" +
+                            $"Bạn có muốn bắt đầu phiên luyện tập với {availableCount} câu này không?",
+                            "Thông báo số lượng câu hỏi",
+                            "Bắt đầu ngay", "Đổi bộ lọc");
+                        if (!xacNhan) return;
+                    }
+
+                    _sessionQuestions = LuyenTapBUS.Instance.LayDanhSachCauHoiLuyenTap(kyNang, capDo, doKho, soLuong: soLuong);
+                }
+                catch (Exception ex)
+                {
+                    Common.ThongBaoDialog.Loi($"Lỗi khi lấy câu hỏi luyện tập: {ex.Message}", "Lỗi");
                     return;
                 }
-
-                if (availableCount < soLuong)
-                {
-                    bool xacNhan = Common.ThongBaoDialog.XacNhan(
-                        $"Ngân hàng câu hỏi hiện chỉ có {availableCount} câu phù hợp với tiêu chí của bạn.\n" +
-                        $"Bạn có muốn bắt đầu phiên luyện tập với {availableCount} câu này không?",
-                        "Thông báo số lượng câu hỏi",
-                        "Bắt đầu ngay", "Đổi bộ lọc");
-                    if (!xacNhan) return;
-                }
-
-                _sessionQuestions = LuyenTapBUS.Instance.LayDanhSachCauHoiLuyenTap(kyNang, capDo, doKho, soLuong: soLuong);
-            }
-            catch (Exception ex)
-            {
-                Common.ThongBaoDialog.Loi($"Lỗi khi lấy câu hỏi luyện tập: {ex.Message}", "Lỗi");
-                return;
             }
 
             if (_sessionQuestions == null || _sessionQuestions.Count == 0)
@@ -317,7 +563,7 @@ namespace GUI.Views
             }
 
             // Khởi tạo phiên luyện tập
-            _sessionIndex = 0;
+            _currentSessionTitle = sessionTitle;
             _sessionUserAnswers.Clear();
             _sessionUserTextAnswers.Clear();
             _currentSessionWrongQuestions.Clear();
@@ -332,9 +578,10 @@ namespace GUI.Views
             pnlHubSetup.Visibility = Visibility.Collapsed;
             pnlHubResult.Visibility = Visibility.Collapsed;
             pnlHubSession.Visibility = Visibility.Visible;
-            txtHeaderTitle.Text = $"Đang trong phiên luyện tập ({_sessionQuestions.Count} câu)";
+            txtHeaderTitle.Text = _currentSessionTitle;
 
-            DisplaySessionQuestion(_sessionIndex);
+            UpdateSessionProgressText();
+            RenderAllSessionQuestions();
         }
 
         private void StartSessionTimer()
@@ -354,246 +601,522 @@ namespace GUI.Views
             _sessionDurationTimer.Start();
         }
 
-        private void DisplaySessionQuestion(int index)
+        private void UpdateSessionProgressText()
         {
-            if (index < 0 || index >= _sessionQuestions.Count) return;
-
-            _sessionIndex = index;
-            _isCurrentQuestionAnswered = false;
-            var q = _sessionQuestions[index];
-
-            txtSessionProgress.Text = $"CÂU {index + 1} / {_sessionQuestions.Count}";
-            txtSessionSkillBadge.Text = $"KỸ NĂNG: {q.KyNangHienThi.ToUpper()}";
-            txtSessionModeBadge.Text = _isInstantFeedbackMode ? "CHẾ ĐỘ: PHẢN HỒI NGAY" : "CHẾ ĐỘ: TỔNG KẾT CUỐI PHIÊN";
-            txtPracticeQuestionPrompt.Text = $"Câu {index + 1}: {q.NoiDungCauHoi}";
-
-            // Passage reading box
-            if (!string.IsNullOrWhiteSpace(q.DoanVanDoc) && !q.IsKyNangNghe)
-            {
-                pnlPracticePassage.Visibility = Visibility.Visible;
-                txtPracticePassage.Text = q.DoanVanDoc;
-            }
-            else
-            {
-                pnlPracticePassage.Visibility = Visibility.Collapsed;
-            }
-
-            // Listening audio box
-            if (q.IsKyNangNghe)
-            {
-                pnlPracticeAudio.Visibility = Visibility.Visible;
-                txtPracticeAudioStatus.Text = "🎧 Bấm để nghe phát âm bài nói chuẩn bản xứ";
-            }
-            else
-            {
-                pnlPracticeAudio.Visibility = Visibility.Collapsed;
-            }
-
-            // Choice questions vs text questions
-            if (q.IsDangLuaChon)
-            {
-                pnlPracticeChoices.Visibility = Visibility.Visible;
-                pnlPracticeTextInput.Visibility = Visibility.Collapsed;
-
-                ResetPracticeOptionButtons();
-                var options = q.DanhSachLuaChon;
-
-                btnChoiceA.Content = options.Count > 0 ? $"A. {CauHoiDTO.StripOptionPrefix(options[0].NoiDungLuaChon)}" : "A.";
-                btnChoiceA.Tag = options.Count > 0 ? options[0] : null;
-
-                btnChoiceB.Content = options.Count > 1 ? $"B. {CauHoiDTO.StripOptionPrefix(options[1].NoiDungLuaChon)}" : "B.";
-                btnChoiceB.Tag = options.Count > 1 ? options[1] : null;
-
-                btnChoiceC.Content = options.Count > 2 ? $"C. {CauHoiDTO.StripOptionPrefix(options[2].NoiDungLuaChon)}" : "C.";
-                btnChoiceC.Tag = options.Count > 2 ? options[2] : null;
-
-                btnChoiceD.Content = options.Count > 3 ? $"D. {CauHoiDTO.StripOptionPrefix(options[3].NoiDungLuaChon)}" : "D.";
-                btnChoiceD.Tag = options.Count > 3 ? options[3] : null;
-
-                btnChoiceC.Visibility = options.Count > 2 ? Visibility.Visible : Visibility.Collapsed;
-                btnChoiceD.Visibility = options.Count > 3 ? Visibility.Visible : Visibility.Collapsed;
-            }
-            else
-            {
-                pnlPracticeChoices.Visibility = Visibility.Collapsed;
-                pnlPracticeTextInput.Visibility = Visibility.Visible;
-                txtPracticeStudentText.Text = string.Empty;
-                btnCheckPracticeText.IsEnabled = true;
-            }
-
-            pnlPracticeFeedbackBox.Visibility = Visibility.Collapsed;
-            btnNextPracticeQuestion.Content = (index == _sessionQuestions.Count - 1) 
-                ? "Hoàn thành & Xem kết quả ➔" 
-                : "Câu tiếp theo ➔";
+            int answered = _sessionUserAnswers.Count + _sessionUserTextAnswers.Count;
+            int total = _sessionQuestions.Count;
+            txtSessionProgress.Text = $"ĐÃ TRẢ LỜI: {answered} / {total} CÂU";
+            txtBottomProgressText.Text = $"Đã trả lời: {answered} / {total} câu hỏi";
         }
 
-        private void ResetPracticeOptionButtons()
+        private void RenderAllSessionQuestions()
         {
-            var defaultBg = Brushes.White;
-            var defaultBorder = (SolidColorBrush)FindResource("BorderLight");
+            pnlQuestionsContainer.Children.Clear();
 
-            btnChoiceA.Background = defaultBg; btnChoiceA.BorderBrush = defaultBorder; btnChoiceA.IsEnabled = true;
-            btnChoiceB.Background = defaultBg; btnChoiceB.BorderBrush = defaultBorder; btnChoiceB.IsEnabled = true;
-            btnChoiceC.Background = defaultBg; btnChoiceC.BorderBrush = defaultBorder; btnChoiceC.IsEnabled = true;
-            btnChoiceD.Background = defaultBg; btnChoiceD.BorderBrush = defaultBorder; btnChoiceD.IsEnabled = true;
+            for (int i = 0; i < _sessionQuestions.Count; i++)
+            {
+                var q = _sessionQuestions[i];
+
+                var cardBorder = new Border
+                {
+                    Background = Brushes.White,
+                    BorderBrush = (SolidColorBrush)FindResource("BorderLight"),
+                    BorderThickness = new Thickness(1.5),
+                    CornerRadius = new CornerRadius(14),
+                    Padding = new Thickness(24, 20, 24, 20),
+                    Margin = new Thickness(0, 0, 0, 18),
+                    SnapsToDevicePixels = true
+                };
+
+                var cardStack = new StackPanel();
+                cardBorder.Child = cardStack;
+
+                // 1. Header Bar of Question
+                var headerGrid = new Grid { Margin = new Thickness(0, 0, 0, 12) };
+                headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                var leftHeader = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+
+                // Badge: Câu X
+                var qNumBorder = new Border
+                {
+                    Background = new SolidColorBrush(Color.FromRgb(224, 242, 254)),
+                    CornerRadius = new CornerRadius(6),
+                    Padding = new Thickness(10, 4, 10, 4),
+                    Margin = new Thickness(0, 0, 8, 0)
+                };
+                qNumBorder.Child = new TextBlock
+                {
+                    Text = $"CÂU {i + 1}",
+                    FontWeight = FontWeights.Bold,
+                    FontSize = 12.5,
+                    Foreground = new SolidColorBrush(Color.FromRgb(2, 132, 199))
+                };
+                leftHeader.Children.Add(qNumBorder);
+
+                // Badge: Kỹ năng
+                string tenKyNang = LayTenTiengVietKyNang(q.KyNang);
+                var skillBorder = new Border
+                {
+                    Background = new SolidColorBrush(Color.FromRgb(241, 245, 249)),
+                    CornerRadius = new CornerRadius(6),
+                    Padding = new Thickness(8, 4, 8, 4),
+                    Margin = new Thickness(0, 0, 8, 0)
+                };
+                skillBorder.Child = new TextBlock
+                {
+                    Text = tenKyNang,
+                    FontWeight = FontWeights.Medium,
+                    FontSize = 12,
+                    Foreground = new SolidColorBrush(Color.FromRgb(71, 85, 105))
+                };
+                leftHeader.Children.Add(skillBorder);
+
+                // Badge: Tên bài học (nếu có)
+                if (!string.IsNullOrWhiteSpace(q.TenBaiHoc))
+                {
+                    var lessonBorder = new Border
+                    {
+                        Background = new SolidColorBrush(Color.FromRgb(254, 243, 199)),
+                        CornerRadius = new CornerRadius(6),
+                        Padding = new Thickness(8, 4, 8, 4)
+                    };
+                    lessonBorder.Child = new TextBlock
+                    {
+                        Text = $"📖 {q.TenBaiHoc}",
+                        FontWeight = FontWeights.Medium,
+                        FontSize = 12,
+                        Foreground = new SolidColorBrush(Color.FromRgb(180, 83, 9))
+                    };
+                    leftHeader.Children.Add(lessonBorder);
+                }
+
+                Grid.SetColumn(leftHeader, 0);
+                headerGrid.Children.Add(leftHeader);
+
+                // Level indicator
+                var levelText = new TextBlock
+                {
+                    Text = $"Trình độ: {q.MaTrinhDo ?? "B1"}",
+                    FontWeight = FontWeights.Normal,
+                    FontSize = 12,
+                    Foreground = (SolidColorBrush)FindResource("TextGray"),
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                Grid.SetColumn(levelText, 1);
+                headerGrid.Children.Add(levelText);
+
+                cardStack.Children.Add(headerGrid);
+
+                // 2. Reading passage (if any)
+                if (!string.IsNullOrWhiteSpace(q.DoanVanDoc) && !q.IsKyNangNghe)
+                {
+                    var passageBorder = new Border
+                    {
+                        Background = new SolidColorBrush(Color.FromRgb(248, 250, 252)),
+                        BorderBrush = new SolidColorBrush(Color.FromRgb(203, 213, 225)),
+                        BorderThickness = new Thickness(1),
+                        CornerRadius = new CornerRadius(10),
+                        Padding = new Thickness(14, 12, 14, 12),
+                        Margin = new Thickness(0, 0, 0, 14)
+                    };
+                    var passageStack = new StackPanel();
+                    passageStack.Children.Add(new TextBlock
+                    {
+                        Text = "📄 Đoạn văn đọc hiểu:",
+                        FontWeight = FontWeights.SemiBold,
+                        FontSize = 12,
+                        Foreground = (SolidColorBrush)FindResource("TextGray"),
+                        Margin = new Thickness(0, 0, 0, 6)
+                    });
+                    passageStack.Children.Add(new TextBlock
+                    {
+                        Text = q.DoanVanDoc,
+                        FontSize = 13.5,
+                        LineHeight = 22,
+                        TextWrapping = TextWrapping.Wrap,
+                        Foreground = (SolidColorBrush)FindResource("TextDark")
+                    });
+                    passageBorder.Child = passageStack;
+                    cardStack.Children.Add(passageBorder);
+                }
+
+                // 3. Audio listening box (attached from Lesson if listening question)
+                if (q.IsKyNangNghe)
+                {
+                    var audioBorder = new Border
+                    {
+                        Background = new SolidColorBrush(Color.FromRgb(239, 246, 255)),
+                        BorderBrush = new SolidColorBrush(Color.FromRgb(147, 197, 253)),
+                        BorderThickness = new Thickness(1.5),
+                        CornerRadius = new CornerRadius(10),
+                        Padding = new Thickness(16, 12, 16, 12),
+                        Margin = new Thickness(0, 0, 0, 14)
+                    };
+
+                    var audioGrid = new Grid();
+                    audioGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                    audioGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                    var audioInfoStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+                    string audioTitle = !string.IsNullOrWhiteSpace(q.TenBaiHoc) 
+                        ? $"🎧 File nghe bài học: {q.TenBaiHoc}" 
+                        : "🎧 Bài nghe kỹ năng Nghe";
+                    audioInfoStack.Children.Add(new TextBlock
+                    {
+                        Text = audioTitle,
+                        FontWeight = FontWeights.SemiBold,
+                        FontSize = 13,
+                        Foreground = new SolidColorBrush(Color.FromRgb(29, 78, 216))
+                    });
+
+                    var audioStatusTxt = new TextBlock
+                    {
+                        Text = "Bấm nút bên phải để nghe bài nói chuẩn.",
+                        FontSize = 11.5,
+                        Foreground = new SolidColorBrush(Color.FromRgb(59, 130, 246)),
+                        Margin = new Thickness(0, 2, 0, 0)
+                    };
+                    audioInfoStack.Children.Add(audioStatusTxt);
+
+                    Grid.SetColumn(audioInfoStack, 0);
+                    audioGrid.Children.Add(audioInfoStack);
+
+                    var playAudioBtn = new Button
+                    {
+                        Content = "▶ Nghe bài nói",
+                        Style = (Style)FindResource("TealActionButton"),
+                        Padding = new Thickness(16, 8, 16, 8),
+                        FontSize = 12.5,
+                        VerticalAlignment = VerticalAlignment.Center
+                    };
+
+                    var currentQ = q;
+                    playAudioBtn.Click += (s, e) => PlayAudioForQuestion(currentQ, playAudioBtn, audioStatusTxt);
+
+                    Grid.SetColumn(playAudioBtn, 1);
+                    audioGrid.Children.Add(playAudioBtn);
+
+                    audioBorder.Child = audioGrid;
+                    cardStack.Children.Add(audioBorder);
+                }
+
+                // 4. Question Prompt
+                var promptText = new TextBlock
+                {
+                    Text = $"{i + 1}. {q.NoiDungCauHoi}",
+                    FontWeight = FontWeights.SemiBold,
+                    FontSize = 14.5,
+                    Foreground = (SolidColorBrush)FindResource("TextDark"),
+                    TextWrapping = TextWrapping.Wrap,
+                    LineHeight = 22,
+                    Margin = new Thickness(0, 0, 0, 14)
+                };
+                cardStack.Children.Add(promptText);
+
+                // 5. Choices and Feedback Panel
+                var feedbackBorder = new Border
+                {
+                    CornerRadius = new CornerRadius(10),
+                    BorderThickness = new Thickness(1.5),
+                    Padding = new Thickness(16, 12, 16, 12),
+                    Margin = new Thickness(0, 12, 0, 0),
+                    Visibility = Visibility.Collapsed
+                };
+                var feedbackStack = new StackPanel();
+                var feedbackTitleTxt = new TextBlock { FontWeight = FontWeights.Bold, FontSize = 13.5, Margin = new Thickness(0, 0, 0, 4) };
+                var feedbackCorrectTxt = new TextBlock { FontWeight = FontWeights.SemiBold, FontSize = 13, Foreground = new SolidColorBrush(Color.FromRgb(55, 65, 81)), Margin = new Thickness(0, 0, 0, 4) };
+                var feedbackExpTxt = new TextBlock { FontSize = 12.5, Foreground = new SolidColorBrush(Color.FromRgb(75, 85, 99)), TextWrapping = TextWrapping.Wrap };
+                feedbackStack.Children.Add(feedbackTitleTxt);
+                feedbackStack.Children.Add(feedbackCorrectTxt);
+                feedbackStack.Children.Add(feedbackExpTxt);
+                feedbackBorder.Child = feedbackStack;
+
+                if (q.IsDangLuaChon)
+                {
+                    var choicesStack = new StackPanel();
+                    var optionButtonsList = new List<Button>();
+
+                    foreach (var opt in q.DanhSachLuaChon)
+                    {
+                        var optBtn = new Button
+                        {
+                            Style = (Style)FindResource("OptionAnswerButton"),
+                            Content = $"{opt.KyHieuLuaChon}. {CauHoiDTO.StripOptionPrefix(opt.NoiDungLuaChon)}",
+                            FontSize = 13.5,
+                            Tag = opt
+                        };
+
+                        optionButtonsList.Add(optBtn);
+                        choicesStack.Children.Add(optBtn);
+
+                        var capturedQ = q;
+                        var capturedOpt = opt;
+                        optBtn.Click += (s, e) =>
+                        {
+                            OnQuestionOptionSelected(capturedQ, capturedOpt, optionButtonsList, feedbackBorder, feedbackTitleTxt, feedbackCorrectTxt, feedbackExpTxt);
+                        };
+                    }
+
+                    cardStack.Children.Add(choicesStack);
+                }
+                else
+                {
+                    // Free text input
+                    var textInputGrid = new Grid { Margin = new Thickness(0, 0, 0, 8) };
+                    textInputGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                    textInputGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                    var inputTxt = new TextBox
+                    {
+                        Height = 40,
+                        FontSize = 13.5,
+                        Padding = new Thickness(10, 6, 10, 6),
+                        BorderBrush = (SolidColorBrush)FindResource("BorderLight"),
+                        VerticalContentAlignment = VerticalAlignment.Center
+                    };
+                    Grid.SetColumn(inputTxt, 0);
+                    textInputGrid.Children.Add(inputTxt);
+
+                    var checkBtn = new Button
+                    {
+                        Content = "Ghi nhận",
+                        Style = (Style)FindResource("TealActionButton"),
+                        Padding = new Thickness(18, 0, 18, 0),
+                        Height = 40,
+                        Margin = new Thickness(10, 0, 0, 0)
+                    };
+                    Grid.SetColumn(checkBtn, 1);
+                    textInputGrid.Children.Add(checkBtn);
+
+                    var capturedQ = q;
+                    checkBtn.Click += (s, e) =>
+                    {
+                        string answer = inputTxt.Text.Trim();
+                        if (string.IsNullOrEmpty(answer))
+                        {
+                            Common.ThongBaoDialog.CanhBao("Vui lòng nhập câu trả lời của bạn.", "Thông báo");
+                            return;
+                        }
+
+                        _sessionUserTextAnswers[capturedQ.MaCauHoi] = answer;
+                        inputTxt.IsEnabled = false;
+                        checkBtn.IsEnabled = false;
+                        UpdateSessionProgressText();
+
+                        var checkResult = LuyenTapBUS.Instance.KiemTraDapAn(capturedQ, null, answer);
+                        bool isCorrect = checkResult.IsCorrect;
+                        if (!isCorrect && !_currentSessionWrongQuestions.Any(w => w.MaCauHoi == capturedQ.MaCauHoi))
+                            _currentSessionWrongQuestions.Add(capturedQ);
+
+                        if (_isInstantFeedbackMode)
+                        {
+                            feedbackBorder.Visibility = Visibility.Visible;
+                            if (isCorrect)
+                            {
+                                feedbackBorder.Background = new SolidColorBrush(Color.FromRgb(236, 253, 245));
+                                feedbackBorder.BorderBrush = new SolidColorBrush(Color.FromRgb(16, 185, 129));
+                                feedbackTitleTxt.Text = "✅ CHÍNH XÁC!";
+                                feedbackTitleTxt.Foreground = new SolidColorBrush(Color.FromRgb(16, 185, 129));
+                                _score += 15;
+                                txtUserScore.Text = $"Điểm tích lũy: {_score} pts";
+                            }
+                            else
+                            {
+                                feedbackBorder.Background = new SolidColorBrush(Color.FromRgb(254, 242, 242));
+                                feedbackBorder.BorderBrush = new SolidColorBrush(Color.FromRgb(239, 68, 68));
+                                feedbackTitleTxt.Text = "❌ CHƯA CHÍNH XÁC";
+                                feedbackTitleTxt.Foreground = new SolidColorBrush(Color.FromRgb(220, 38, 38));
+                            }
+                            feedbackCorrectTxt.Text = $"Đáp án mẫu: {capturedQ.DapAnDungText ?? "(Theo barem chuẩn)"}";
+                            feedbackExpTxt.Text = !string.IsNullOrWhiteSpace(capturedQ.GiaiThichDapAn) ? $"💡 {capturedQ.GiaiThichDapAn}" : "💡 Hãy lưu ý chính tả.";
+                        }
+                    };
+
+                    cardStack.Children.Add(textInputGrid);
+                }
+
+                cardStack.Children.Add(feedbackBorder);
+                pnlQuestionsContainer.Children.Add(cardBorder);
+            }
         }
 
-        private void BtnPracticeChoice_Click(object sender, RoutedEventArgs e)
+        private void OnQuestionOptionSelected(
+            CauHoiKhaoSatDTO q, 
+            LuaChonDapAnDTO selectedOpt, 
+            List<Button> optionButtons, 
+            Border feedbackBorder, 
+            TextBlock feedbackTitle, 
+            TextBlock feedbackCorrect, 
+            TextBlock feedbackExplanation)
         {
-            if (_isCurrentQuestionAnswered) return;
-            if (sender is not Button clickedBtn || clickedBtn.Tag is not LuaChonDapAnDTO selectedOpt) return;
-
-            var q = _sessionQuestions[_sessionIndex];
             _sessionUserAnswers[q.MaCauHoi] = selectedOpt.MaLuaChon;
-
-            bool isCorrect = selectedOpt.LaDapAnDung;
-            if (!isCorrect)
-            {
-                if (!_currentSessionWrongQuestions.Any(w => w.MaCauHoi == q.MaCauHoi))
-                    _currentSessionWrongQuestions.Add(q);
-            }
+            UpdateSessionProgressText();
 
             if (_isInstantFeedbackMode)
             {
-                _isCurrentQuestionAnswered = true;
+                foreach (var b in optionButtons)
+                {
+                    b.IsEnabled = false;
+                }
 
-                // Disable all option buttons
-                btnChoiceA.IsEnabled = false; btnChoiceB.IsEnabled = false; btnChoiceC.IsEnabled = false; btnChoiceD.IsEnabled = false;
+                bool isCorrect = selectedOpt.LaDapAnDung;
+                if (!isCorrect)
+                {
+                    if (!_currentSessionWrongQuestions.Any(w => w.MaCauHoi == q.MaCauHoi))
+                        _currentSessionWrongQuestions.Add(q);
+                }
 
-                // Highlight correct button
-                Button? correctBtn = null;
-                if (btnChoiceA.Tag is LuaChonDapAnDTO oA && oA.LaDapAnDung) correctBtn = btnChoiceA;
-                else if (btnChoiceB.Tag is LuaChonDapAnDTO oB && oB.LaDapAnDung) correctBtn = btnChoiceB;
-                else if (btnChoiceC.Tag is LuaChonDapAnDTO oC && oC.LaDapAnDung) correctBtn = btnChoiceC;
-                else if (btnChoiceD.Tag is LuaChonDapAnDTO oD && oD.LaDapAnDung) correctBtn = btnChoiceD;
+                foreach (var b in optionButtons)
+                {
+                    if (b.Tag is LuaChonDapAnDTO opt)
+                    {
+                        if (opt.LaDapAnDung)
+                        {
+                            b.Background = new SolidColorBrush(Color.FromRgb(209, 250, 229));
+                            b.BorderBrush = new SolidColorBrush(Color.FromRgb(16, 185, 129));
+                            b.Foreground = new SolidColorBrush(Color.FromRgb(6, 95, 70));
+                            b.FontWeight = FontWeights.SemiBold;
+                        }
+                        else if (opt.MaLuaChon == selectedOpt.MaLuaChon)
+                        {
+                            b.Background = new SolidColorBrush(Color.FromRgb(254, 226, 226));
+                            b.BorderBrush = new SolidColorBrush(Color.FromRgb(239, 68, 68));
+                            b.Foreground = new SolidColorBrush(Color.FromRgb(153, 27, 27));
+                        }
+                    }
+                }
 
+                feedbackBorder.Visibility = Visibility.Visible;
                 if (isCorrect)
                 {
-                    clickedBtn.Background = new SolidColorBrush(Color.FromRgb(209, 250, 229));
-                    clickedBtn.BorderBrush = new SolidColorBrush(Color.FromRgb(16, 185, 129));
-
-                    txtPracticeFeedbackTitle.Text = "✅ CHÍNH XÁC!";
-                    txtPracticeFeedbackTitle.Foreground = new SolidColorBrush(Color.FromRgb(16, 185, 129));
-                    pnlPracticeFeedbackBox.Background = new SolidColorBrush(Color.FromRgb(236, 253, 245));
-                    pnlPracticeFeedbackBox.BorderBrush = new SolidColorBrush(Color.FromRgb(110, 231, 183));
-
+                    feedbackBorder.Background = new SolidColorBrush(Color.FromRgb(236, 253, 245));
+                    feedbackBorder.BorderBrush = new SolidColorBrush(Color.FromRgb(110, 231, 183));
+                    feedbackTitle.Text = "✅ CHÍNH XÁC!";
+                    feedbackTitle.Foreground = new SolidColorBrush(Color.FromRgb(16, 185, 129));
                     _score += 15;
                     txtUserScore.Text = $"Điểm tích lũy: {_score} pts";
                 }
                 else
                 {
-                    clickedBtn.Background = new SolidColorBrush(Color.FromRgb(254, 226, 226));
-                    clickedBtn.BorderBrush = new SolidColorBrush(Color.FromRgb(239, 68, 68));
-
-                    if (correctBtn != null)
-                    {
-                        correctBtn.Background = new SolidColorBrush(Color.FromRgb(209, 250, 229));
-                        correctBtn.BorderBrush = new SolidColorBrush(Color.FromRgb(16, 185, 129));
-                    }
-
-                    txtPracticeFeedbackTitle.Text = "❌ CHƯA CHÍNH XÁC";
-                    txtPracticeFeedbackTitle.Foreground = new SolidColorBrush(Color.FromRgb(220, 38, 38));
-                    pnlPracticeFeedbackBox.Background = new SolidColorBrush(Color.FromRgb(254, 242, 242));
-                    pnlPracticeFeedbackBox.BorderBrush = new SolidColorBrush(Color.FromRgb(252, 165, 165));
+                    feedbackBorder.Background = new SolidColorBrush(Color.FromRgb(254, 242, 242));
+                    feedbackBorder.BorderBrush = new SolidColorBrush(Color.FromRgb(252, 165, 165));
+                    feedbackTitle.Text = "❌ CHƯA CHÍNH XÁC";
+                    feedbackTitle.Foreground = new SolidColorBrush(Color.FromRgb(220, 38, 38));
                 }
 
                 var correctOpt = q.DanhSachLuaChon.FirstOrDefault(o => o.LaDapAnDung);
-                txtPracticeCorrectAnswerText.Text = correctOpt != null 
-                    ? $"Đáp án chính xác: {correctOpt.KyHieuLuaChon}. {correctOpt.NoiDungLuaChon}" 
+                feedbackCorrect.Text = correctOpt != null 
+                    ? $"Đáp án chính xác: {correctOpt.KyHieuLuaChon}. {CauHoiDTO.StripOptionPrefix(correctOpt.NoiDungLuaChon)}" 
                     : "";
-                txtPracticeExplanationText.Text = !string.IsNullOrWhiteSpace(q.GiaiThichDapAn) 
+                feedbackExplanation.Text = !string.IsNullOrWhiteSpace(q.GiaiThichDapAn) 
                     ? $"💡 Giải thích: {q.GiaiThichDapAn}" 
                     : "💡 Giải thích: Đáp án chuẩn theo ngân hàng câu hỏi đề thi.";
-
-                pnlPracticeFeedbackBox.Visibility = Visibility.Visible;
             }
             else
             {
-                // Delayed feedback: highlight selection and allow Next
-                ResetPracticeOptionButtons();
-                clickedBtn.Background = (SolidColorBrush)FindResource("BrandTealLight");
-                clickedBtn.BorderBrush = (SolidColorBrush)FindResource("BrandTeal");
+                // Chế độ Tổng kết cuối phiên: KHÔNG HIỆN THÔNG BÁO "ĐÃ GHI NHẬN LỰA CHỌN"
+                // Chỉ highlight nút được chọn như radio-button để học viên nhận biết rõ ràng
+                foreach (var b in optionButtons)
+                {
+                    if (b.Tag is LuaChonDapAnDTO opt && opt.MaLuaChon == selectedOpt.MaLuaChon)
+                    {
+                        b.Background = (SolidColorBrush)FindResource("BrandMintSoft");
+                        b.BorderBrush = (SolidColorBrush)FindResource("BrandTeal");
+                        b.Foreground = (SolidColorBrush)FindResource("BrandTealDark");
+                        b.FontWeight = FontWeights.SemiBold;
+                    }
+                    else
+                    {
+                        b.Background = Brushes.White;
+                        b.BorderBrush = (SolidColorBrush)FindResource("BorderLight");
+                        b.Foreground = (SolidColorBrush)FindResource("TextDark");
+                        b.FontWeight = FontWeights.Normal;
+                    }
+                }
 
-                // Auto advance or wait for Next
-                _isCurrentQuestionAnswered = true;
-                btnNextPracticeQuestion.Visibility = Visibility.Visible;
-                pnlPracticeFeedbackBox.Visibility = Visibility.Visible;
-                txtPracticeFeedbackTitle.Text = "Đã ghi nhận lựa chọn.";
-                txtPracticeFeedbackTitle.Foreground = (SolidColorBrush)FindResource("TextDark");
-                pnlPracticeFeedbackBox.Background = new SolidColorBrush(Color.FromRgb(241, 245, 249));
-                pnlPracticeFeedbackBox.BorderBrush = (SolidColorBrush)FindResource("BorderLight");
-                txtPracticeCorrectAnswerText.Text = "Đáp án và lời giải sẽ được hiển thị ở bảng tổng kết cuối phiên.";
-                txtPracticeExplanationText.Text = string.Empty;
+                feedbackBorder.Visibility = Visibility.Collapsed;
             }
         }
 
-        private void BtnCheckPracticeText_Click(object sender, RoutedEventArgs e)
+        private void PlayAudioForQuestion(CauHoiKhaoSatDTO q, Button playBtn, TextBlock statusTxt)
         {
-            if (_sessionIndex < 0 || _sessionIndex >= _sessionQuestions.Count) return;
-            var q = _sessionQuestions[_sessionIndex];
-            string answer = txtPracticeStudentText.Text.Trim();
-
-            _sessionUserTextAnswers[q.MaCauHoi] = answer;
-            var checkResult = LuyenTapBUS.Instance.KiemTraDapAn(q, null, answer);
-            bool isCorrect = checkResult.IsCorrect;
-            if (!isCorrect)
+            if (_currentPlayingQuestionId == q.MaCauHoi)
             {
-                if (!_currentSessionWrongQuestions.Any(w => w.MaCauHoi == q.MaCauHoi))
-                    _currentSessionWrongQuestions.Add(q);
+                _practiceMediaPlayer.Stop();
+                _currentPlayingQuestionId = -1;
+                playBtn.Content = "▶ Nghe bài nói";
+                statusTxt.Text = "⏹️ Đã dừng phát bài nghe.";
+                return;
             }
 
-            _isCurrentQuestionAnswered = true;
-            btnCheckPracticeText.IsEnabled = false;
-
-            if (_isInstantFeedbackMode)
+            if (_currentPlayingAudioBtn != null && _currentPlayingAudioBtn != playBtn)
             {
-                if (isCorrect)
+                _currentPlayingAudioBtn.Content = "▶ Nghe bài nói";
+            }
+
+            _currentPlayingAudioBtn = playBtn;
+            _currentPlayingQuestionId = q.MaCauHoi;
+
+            Uri? audioUri = HocTapView.ResolveAudioUri(q.AudioPath);
+            if (audioUri != null)
+            {
+                try
                 {
-                    txtPracticeFeedbackTitle.Text = "✅ CHÍNH XÁC!";
-                    txtPracticeFeedbackTitle.Foreground = new SolidColorBrush(Color.FromRgb(16, 185, 129));
-                    pnlPracticeFeedbackBox.Background = new SolidColorBrush(Color.FromRgb(236, 253, 245));
-                    pnlPracticeFeedbackBox.BorderBrush = new SolidColorBrush(Color.FromRgb(110, 231, 183));
-                    _score += 15;
-                    txtUserScore.Text = $"Điểm tích lũy: {_score} pts";
+                    _practiceMediaPlayer.Stop();
+                    _practiceMediaPlayer.Open(audioUri);
+                    _practiceMediaPlayer.Play();
+                    playBtn.Content = "⏸ Tạm dừng bài nghe";
+                    statusTxt.Text = $"🎧 Đang phát âm thanh bài học ({System.IO.Path.GetFileName(audioUri.LocalPath)})...";
+                    return;
                 }
-                else
+                catch (Exception ex)
                 {
-                    txtPracticeFeedbackTitle.Text = "❌ CHƯA CHÍNH XÁC";
-                    txtPracticeFeedbackTitle.Foreground = new SolidColorBrush(Color.FromRgb(220, 38, 38));
-                    pnlPracticeFeedbackBox.Background = new SolidColorBrush(Color.FromRgb(254, 242, 242));
-                    pnlPracticeFeedbackBox.BorderBrush = new SolidColorBrush(Color.FromRgb(252, 165, 165));
+                    System.Diagnostics.Debug.WriteLine($"[LuyenTapAudio] Lỗi phát MediaPlayer: {ex.Message}");
                 }
+            }
 
-                txtPracticeCorrectAnswerText.Text = $"Đáp án mẫu: {q.DapAnDungText ?? "(Theo barem chuẩn)"}";
-                txtPracticeExplanationText.Text = !string.IsNullOrWhiteSpace(q.GiaiThichDapAn) ? $"💡 {q.GiaiThichDapAn}" : "💡 Hãy chú ý chính tả và ngữ pháp.";
-                pnlPracticeFeedbackBox.Visibility = Visibility.Visible;
-            }
-            else
+            // Fallback sang TTS AI nếu không có file âm thanh bài học
+            string ttsContent = !string.IsNullOrWhiteSpace(q.DoanVanDoc) ? q.DoanVanDoc : q.NoiDungCauHoi;
+            playBtn.Content = "🔊 Đang đọc bài...";
+            statusTxt.Text = "🔊 Đang phát âm chuẩn bản xứ (TTS AI)...";
+            SpeakText(ttsContent, 0.95);
+
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(6) };
+            timer.Tick += (s, e) =>
             {
-                pnlPracticeFeedbackBox.Visibility = Visibility.Visible;
-                txtPracticeFeedbackTitle.Text = "Đã ghi nhận câu trả lời.";
-                txtPracticeFeedbackTitle.Foreground = (SolidColorBrush)FindResource("TextDark");
-                pnlPracticeFeedbackBox.Background = new SolidColorBrush(Color.FromRgb(241, 245, 249));
-                pnlPracticeFeedbackBox.BorderBrush = (SolidColorBrush)FindResource("BorderLight");
-                txtPracticeCorrectAnswerText.Text = "Kết quả chi tiết sẽ hiển thị ở cuối phiên.";
-                txtPracticeExplanationText.Text = string.Empty;
-            }
+                timer.Stop();
+                if (_currentPlayingQuestionId == q.MaCauHoi)
+                {
+                    playBtn.Content = "▶ Nghe lại bài nói";
+                    statusTxt.Text = "🎧 Bấm để nghe lại bài nói";
+                    _currentPlayingQuestionId = -1;
+                }
+            };
+            timer.Start();
         }
 
-        private void BtnNextPracticeQuestion_Click(object sender, RoutedEventArgs e)
+        private void BtnSubmitPracticeSession_Click(object sender, RoutedEventArgs e)
         {
-            if (_sessionIndex < _sessionQuestions.Count - 1)
+            int answered = _sessionUserAnswers.Count + _sessionUserTextAnswers.Count;
+            int total = _sessionQuestions.Count;
+
+            if (answered < total)
             {
-                DisplaySessionQuestion(_sessionIndex + 1);
+                bool xacNhan = Common.ThongBaoDialog.XacNhan(
+                    $"Bạn mới trả lời {answered}/{total} câu hỏi.\nBạn có chắc chắn muốn nộp bài và xem kết quả tổng kết ngay không?",
+                    "Xác nhận nộp bài",
+                    "Nộp bài ngay", "Tiếp tục làm");
+                if (!xacNhan) return;
             }
-            else
-            {
-                FinishPracticeSession();
-            }
+
+            FinishPracticeSession();
         }
 
         private void BtnStopPracticeSession_Click(object sender, RoutedEventArgs e)
         {
+            _practiceMediaPlayer.Stop();
             bool xacNhan = Common.ThongBaoDialog.XacNhan(
                 "Bạn có chắc chắn muốn dừng phiên luyện tập hiện tại?\nKết quả các câu đã làm sẽ được lưu lại.",
                 "Dừng phiên luyện tập",
@@ -606,11 +1129,12 @@ namespace GUI.Views
 
         private void FinishPracticeSession()
         {
+            _practiceMediaPlayer.Stop();
             _sessionDurationTimer?.Stop();
 
             int timeSpent = Math.Max(5, _sessionElapsedSeconds);
             int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
-            string title = $"Luyện tập {_sessionQuestions.FirstOrDefault()?.KyNangHienThi ?? "kỹ năng tổng hợp"}";
+            string title = !string.IsNullOrWhiteSpace(_currentSessionTitle) ? _currentSessionTitle : "Luyện tập tự do";
 
             // Lưu kết quả phiên luyện tập vào database (HinhThucLam = 'LuyenTap')
             try
@@ -642,13 +1166,23 @@ namespace GUI.Views
 
                 var checkResult = LuyenTapBUS.Instance.KiemTraDapAn(q, userOptId, userText);
                 bool isCorrect = checkResult.IsCorrect;
-                if (isCorrect) correct++;
+                if (isCorrect)
+                {
+                    correct++;
+                    // Loại bỏ câu hỏi đã làm đúng ra khỏi danh sách câu sai
+                    _dbWrongQuestions.RemoveAll(w => w.MaCauHoi == q.MaCauHoi);
+                }
+                else
+                {
+                    if (!_currentSessionWrongQuestions.Any(w => w.MaCauHoi == q.MaCauHoi))
+                        _currentSessionWrongQuestions.Add(q);
+                }
 
                 string studentChoiceText = "(Chưa trả lời)";
                 if (userOptId.HasValue)
                 {
                     var opt = q.DanhSachLuaChon.FirstOrDefault(o => o.MaLuaChon == userOptId.Value);
-                    if (opt != null) studentChoiceText = $"{opt.KyHieuLuaChon}. {opt.NoiDungLuaChon}";
+                    if (opt != null) studentChoiceText = $"{opt.KyHieuLuaChon}. {CauHoiDTO.StripOptionPrefix(opt.NoiDungLuaChon)}";
                 }
                 else if (!string.IsNullOrWhiteSpace(userText))
                 {
@@ -659,7 +1193,7 @@ namespace GUI.Views
                 if (q.IsDangLuaChon)
                 {
                     var cOpt = q.DanhSachLuaChon.FirstOrDefault(o => o.LaDapAnDung);
-                    correctText = cOpt != null ? $"{cOpt.KyHieuLuaChon}. {cOpt.NoiDungLuaChon}" : "Đang cập nhật";
+                    correctText = cOpt != null ? $"{cOpt.KyHieuLuaChon}. {CauHoiDTO.StripOptionPrefix(cOpt.NoiDungLuaChon)}" : "Đang cập nhật";
                 }
                 else
                 {
@@ -673,7 +1207,7 @@ namespace GUI.Views
                     NoiDungCauHoi = q.NoiDungCauHoi,
                     StudentChoiceText = studentChoiceText,
                     CorrectChoiceText = correctText,
-                    ExplanationText = !string.IsNullOrWhiteSpace(q.GiaiThichDapAn) ? $"💡 {q.GiaiThichDapAn}" : "💡 Đáp án chuẩn.",
+                    ExplanationText = !string.IsNullOrWhiteSpace(q.GiaiThichDapAn) ? $"💡 {q.GiaiThichDapAn}" : "💡 Đáp án chuẩn theo ngân hàng đề thi.",
                     IsCorrect = isCorrect
                 });
             }
@@ -682,6 +1216,7 @@ namespace GUI.Views
             int accuracyPct = total > 0 ? (correct * 100) / total : 0;
 
             // Hiển thị Card tổng kết
+            txtResultSummaryTitle.Text = $"TỔNG KẾT: {title.ToUpper()}";
             txtResultAccuracyPct.Text = $"{accuracyPct}%";
             txtResultCorrectText.Text = $"✅ Đúng: {correct} câu";
             txtResultWrongText.Text = $"❌ Sai: {wrong} câu";
@@ -689,7 +1224,7 @@ namespace GUI.Views
 
             if (accuracyPct >= 80)
             {
-                txtResultAiComment.Text = "AI Nhận xét: Bạn phản xạ rất nhanh và chuẩn xác! Hãy duy trì phong độ và thử thách với các câu hỏi khó hơn.";
+                txtResultAiComment.Text = "AI Nhận xét: Bạn xử lý các câu hỏi rất xuất sắc! Hãy duy trì phong độ và thử thách với các câu hỏi khó hơn.";
             }
             else if (accuracyPct >= 50)
             {
@@ -709,59 +1244,26 @@ namespace GUI.Views
             pnlHubSession.Visibility = Visibility.Collapsed;
             pnlHubSetup.Visibility = Visibility.Collapsed;
             pnlHubResult.Visibility = Visibility.Visible;
-            txtHeaderTitle.Text = "Tổng kết phiên luyện tập phản xạ";
+            txtHeaderTitle.Text = $"Tổng kết: {title}";
         }
 
         private void BtnRePracticeWrongInSession_Click(object sender, RoutedEventArgs e)
         {
             if (_currentSessionWrongQuestions.Count == 0) return;
-
-            _sessionQuestions = new List<CauHoiKhaoSatDTO>(_currentSessionWrongQuestions);
-            _sessionIndex = 0;
-            _sessionUserAnswers.Clear();
-            _sessionUserTextAnswers.Clear();
-            _currentSessionWrongQuestions.Clear();
-            _isInstantFeedbackMode = true; // Luôn dùng phản hồi ngay khi ôn câu sai
-            _sessionStartTime = DateTime.Now;
-            _sessionElapsedSeconds = 0;
-
-            StartSessionTimer();
-
-            pnlHubResult.Visibility = Visibility.Collapsed;
-            pnlHubSetup.Visibility = Visibility.Collapsed;
-            pnlHubSession.Visibility = Visibility.Visible;
-            txtHeaderTitle.Text = $"Ôn lại {_sessionQuestions.Count} câu sai trong phiên vừa rồi";
-
-            DisplaySessionQuestion(0);
+            var wrongCopy = new List<CauHoiKhaoSatDTO>(_currentSessionWrongQuestions);
+            StartPracticeWithQuestions(null, null, null, wrongCopy.Count, isInstant: true, sessionTitle: $"Ôn lại {wrongCopy.Count} câu sai trong phiên vừa rồi", preloadedQuestions: wrongCopy);
         }
 
         private void BtnNewPracticeSession_Click(object sender, RoutedEventArgs e)
         {
+            _practiceMediaPlayer.Stop();
             _sessionDurationTimer?.Stop();
             pnlHubSession.Visibility = Visibility.Collapsed;
             pnlHubResult.Visibility = Visibility.Collapsed;
             pnlHubSetup.Visibility = Visibility.Visible;
             txtHeaderTitle.Text = "Trung tâm luyện tập linh hoạt & Kỹ năng";
+            LoadPracticePackages("All");
             UpdateLiveQuestionCount();
-        }
-
-        private void BtnPlayPracticeAudio_Click(object sender, RoutedEventArgs e)
-        {
-            if (_sessionIndex < 0 || _sessionIndex >= _sessionQuestions.Count) return;
-            var q = _sessionQuestions[_sessionIndex];
-            string content = !string.IsNullOrWhiteSpace(q.DoanVanDoc) ? q.DoanVanDoc : q.NoiDungCauHoi;
-            txtPracticeAudioStatus.Text = "🎧 Đang phát bài nghe (TTS)...";
-            SpeakText(content);
-        }
-
-        private void BtnSpeakExplanation_Click(object sender, RoutedEventArgs e)
-        {
-            if (_sessionIndex < 0 || _sessionIndex >= _sessionQuestions.Count) return;
-            var q = _sessionQuestions[_sessionIndex];
-            if (!string.IsNullOrWhiteSpace(q.GiaiThichDapAn))
-            {
-                SpeakText(q.GiaiThichDapAn);
-            }
         }
 
         // =========================================================================
@@ -811,26 +1313,9 @@ namespace GUI.Views
         {
             if (_dbWrongQuestions.Count == 0) return;
 
-            // Chuyển sang Tab Hub và bắt đầu phiên với toàn bộ câu hỏi sai
             SetActiveTab(tabHub, pnlHub);
-
-            _sessionQuestions = new List<CauHoiKhaoSatDTO>(_dbWrongQuestions);
-            _sessionIndex = 0;
-            _sessionUserAnswers.Clear();
-            _sessionUserTextAnswers.Clear();
-            _currentSessionWrongQuestions.Clear();
-            _isInstantFeedbackMode = true;
-            _sessionStartTime = DateTime.Now;
-            _sessionElapsedSeconds = 0;
-
-            StartSessionTimer();
-
-            pnlHubSetup.Visibility = Visibility.Collapsed;
-            pnlHubResult.Visibility = Visibility.Collapsed;
-            pnlHubSession.Visibility = Visibility.Visible;
-            txtHeaderTitle.Text = $"Ôn tập {_sessionQuestions.Count} câu hỏi bạn đã từng làm sai";
-
-            DisplaySessionQuestion(0);
+            var wrongCopy = new List<CauHoiKhaoSatDTO>(_dbWrongQuestions);
+            StartPracticeWithQuestions(null, null, null, wrongCopy.Count, isInstant: true, sessionTitle: $"Ôn tập {wrongCopy.Count} câu hỏi bạn đã từng làm sai", preloadedQuestions: wrongCopy);
         }
 
         private void BtnDrillSingleWrong_Click(object sender, RoutedEventArgs e)
@@ -841,24 +1326,7 @@ namespace GUI.Views
             if (targetQ == null) return;
 
             SetActiveTab(tabHub, pnlHub);
-
-            _sessionQuestions = new List<CauHoiKhaoSatDTO> { targetQ };
-            _sessionIndex = 0;
-            _sessionUserAnswers.Clear();
-            _sessionUserTextAnswers.Clear();
-            _currentSessionWrongQuestions.Clear();
-            _isInstantFeedbackMode = true;
-            _sessionStartTime = DateTime.Now;
-            _sessionElapsedSeconds = 0;
-
-            StartSessionTimer();
-
-            pnlHubSetup.Visibility = Visibility.Collapsed;
-            pnlHubResult.Visibility = Visibility.Collapsed;
-            pnlHubSession.Visibility = Visibility.Visible;
-            txtHeaderTitle.Text = $"Luyện tập trọng điểm: Câu hỏi #{targetQ.MaCauHoi}";
-
-            DisplaySessionQuestion(0);
+            StartPracticeWithQuestions(null, null, null, 1, isInstant: true, sessionTitle: $"Luyện tập trọng điểm: Câu hỏi #{targetQ.MaCauHoi}", preloadedQuestions: new List<CauHoiKhaoSatDTO> { targetQ });
         }
 
         // =========================================================================
@@ -904,236 +1372,6 @@ namespace GUI.Views
 
                 icPracticeHistory.ItemsSource = vms;
             }
-        }
-
-        // =========================================================================
-        // TAB 4: FLASHCARD VOCABULARY (DATABASE LOADED)
-        // =========================================================================
-        private void LoadFlashcards(string? trinhDo = null)
-        {
-            try
-            {
-                _flashcards = TuVungBUS.Instance.LayDanhSachFlashcard(trinhDo);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Lỗi nạp flashcard: {ex.Message}");
-                _flashcards = new List<FlashcardDTO>();
-            }
-
-            if (_flashcards.Count == 0)
-            {
-                _flashcards = TuVungBUS.Instance.LayDanhSachFlashcard(null);
-            }
-
-            _currentCardIndex = 0;
-            UpdateCardView();
-        }
-
-        private void CboLevelFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (!_isInitialized) return;
-            if (cboLevelFilter?.SelectedItem is ComboBoxItem item)
-            {
-                string text = item.Content?.ToString() ?? "";
-                string? trinhDo = null;
-                if (text.Contains("A1")) trinhDo = "A1";
-                else if (text.Contains("A2")) trinhDo = "A2";
-                else if (text.Contains("B1")) trinhDo = "B1";
-                else if (text.Contains("B2")) trinhDo = "B2";
-                else if (text.Contains("C1")) trinhDo = "C1";
-
-                LoadFlashcards(trinhDo);
-            }
-        }
-
-        private void UpdateCardView()
-        {
-            if (!_isInitialized || txtCardWord == null || txtCardIndex == null) return;
-            if (_flashcards == null || _flashcards.Count == 0)
-            {
-                txtCardWord.Text = "Chưa có từ vựng";
-                txtCardIndex.Text = "0 / 0";
-                return;
-            }
-
-            if (_currentCardIndex < 0) _currentCardIndex = 0;
-            if (_currentCardIndex >= _flashcards.Count) _currentCardIndex = 0;
-
-            var card = _flashcards[_currentCardIndex];
-            txtCardIndex.Text = $"{_currentCardIndex + 1} / {_flashcards.Count}";
-            txtCardTopic.Text = card.TopicBadge;
-            txtCardWord.Text = card.Tu;
-            txtCardIpa.Text = card.IpaFormatted;
-            txtCardMeaning.Text = card.Nghia;
-            txtCardExample.Text = !string.IsNullOrWhiteSpace(card.CauViDu) ? $"\"{card.CauViDu}\"" : "\"No example provided.\"";
-            txtCardCollocation.Text = !string.IsNullOrWhiteSpace(card.CumTuDiKem) ? $"• {card.CumTuDiKem}" : "• Standard usage";
-
-            cardFront.Visibility = Visibility.Visible;
-            cardBack.Visibility = Visibility.Collapsed;
-        }
-
-        private void BtnFlipCard_Click(object sender, RoutedEventArgs e)
-        {
-            cardFront.Visibility = Visibility.Collapsed;
-            cardBack.Visibility = Visibility.Visible;
-        }
-
-        private void BtnRateCard_Click(object sender, RoutedEventArgs e)
-        {
-            if (_flashcards.Count == 0) return;
-
-            var card = _flashcards[_currentCardIndex];
-            bool daNho = false;
-            if (sender is Button btn && btn.Tag != null)
-            {
-                bool.TryParse(btn.Tag.ToString(), out daNho);
-            }
-
-            TuVungBUS.Instance.CapNhatKetQuaFlashcard(card.MaTuVung, daNho);
-
-            _score += daNho ? 15 : 5;
-            txtUserScore.Text = $"Điểm tích lũy: {_score} pts";
-
-            _currentCardIndex = (_currentCardIndex + 1) % _flashcards.Count;
-            UpdateCardView();
-        }
-
-        private void BtnShuffleCard_Click(object sender, RoutedEventArgs e)
-        {
-            if (_flashcards.Count <= 1) return;
-            var rnd = new Random();
-            _flashcards = _flashcards.OrderBy(x => rnd.Next()).ToList();
-            _currentCardIndex = 0;
-            UpdateCardView();
-        }
-
-        private void BtnPlayAudio_Click(object sender, RoutedEventArgs e)
-        {
-            if (_flashcards.Count == 0) return;
-            var card = _flashcards[_currentCardIndex];
-            SpeakText(card.Tu, 1.0);
-        }
-
-        private void BtnPlayExampleAudio_Click(object sender, RoutedEventArgs e)
-        {
-            if (_flashcards.Count == 0) return;
-            var card = _flashcards[_currentCardIndex];
-            if (!string.IsNullOrWhiteSpace(card.CauViDu))
-            {
-                SpeakText(card.CauViDu, 0.9);
-            }
-        }
-
-        // =========================================================================
-        // TAB 5: DICTATION - NGHE CHÉP CHÍNH TẢ
-        // =========================================================================
-        private void InitDictationSentences()
-        {
-            _dictationSentences = new List<string>
-            {
-                "Smartphones have become ubiquitous in daily modern life.",
-                "The research paper required meticulous attention to detail.",
-                "Governments must take a pragmatic and balanced approach to sustainability.",
-                "Subsequent geological studies corroborated the theory proposed by scientists.",
-                "Excessive screen time has a detrimental effect on sleep quality.",
-                "The government introduced strict policies to mitigate the adverse impacts of pollution."
-            };
-
-            if (_flashcards != null && _flashcards.Count > 0)
-            {
-                foreach (var f in _flashcards)
-                {
-                    if (!string.IsNullOrWhiteSpace(f.CauViDu) && !_dictationSentences.Contains(f.CauViDu))
-                    {
-                        _dictationSentences.Add(f.CauViDu);
-                    }
-                }
-            }
-
-            _currentDictationIndex = 0;
-        }
-
-        private void DisplayCurrentDictation()
-        {
-            if (!_isInitialized || txtDictationIndex == null || txtDictationInput == null) return;
-            if (_dictationSentences.Count == 0) return;
-            if (_currentDictationIndex >= _dictationSentences.Count) _currentDictationIndex = 0;
-
-            txtDictationIndex.Text = $"Câu {_currentDictationIndex + 1} / {_dictationSentences.Count}";
-            txtDictationInput.Text = string.Empty;
-            bdrDictationResult.Visibility = Visibility.Collapsed;
-        }
-
-        private void BtnPlayDictationNormal_Click(object sender, RoutedEventArgs e)
-        {
-            if (_dictationSentences.Count == 0) return;
-            string sentence = _dictationSentences[_currentDictationIndex];
-            SpeakText(sentence, 1.0);
-        }
-
-        private void BtnPlayDictationSlow_Click(object sender, RoutedEventArgs e)
-        {
-            if (_dictationSentences.Count == 0) return;
-            string sentence = _dictationSentences[_currentDictationIndex];
-            SpeakText(sentence, 0.75);
-        }
-
-        private void BtnCheckDictation_Click(object sender, RoutedEventArgs e)
-        {
-            string input = txtDictationInput.Text.Trim();
-            if (string.IsNullOrEmpty(input))
-            {
-                Common.ThongBaoDialog.CanhBao("Vui lòng gõ nội dung bạn nghe được trước khi kiểm tra.", "Thông báo");
-                return;
-            }
-
-            string original = _dictationSentences[_currentDictationIndex];
-            int accuracy = TinhDoChinhXac(input, original);
-
-            bdrDictationResult.Visibility = Visibility.Visible;
-            if (accuracy >= 80)
-            {
-                txtTranscriptResult.Text = $"🎉 Xuất sắc! Độ chính xác: {accuracy}%\n\n• Bạn đã gõ: \"{input}\"\n• Bản gốc: \"{original}\"";
-                _score += 25;
-            }
-            else
-            {
-                txtTranscriptResult.Text = $"⚠️ Độ chính xác: {accuracy}%\n\n• Bạn đã gõ: \"{input}\"\n• Bản gốc: \"{original}\"\n💡 Hãy bấm 'Nghe chậm' để nghe rõ từng âm vị.";
-                _score += 10;
-            }
-            txtUserScore.Text = $"Điểm tích lũy: {_score} pts";
-        }
-
-        private int TinhDoChinhXac(string input, string target)
-        {
-            char[] sep = new[] { ' ', '.', ',', '!', '?', ';', ':', '\"', '\'' };
-            var words1 = input.ToLower().Split(sep, StringSplitOptions.RemoveEmptyEntries);
-            var words2 = target.ToLower().Split(sep, StringSplitOptions.RemoveEmptyEntries);
-
-            if (words2.Length == 0) return 0;
-            int matched = words1.Count(w => words2.Contains(w));
-            int pct = (int)((matched * 100.0) / Math.Max(words1.Length, words2.Length));
-            return Math.Min(100, Math.Max(0, pct));
-        }
-
-        private void BtnShowTranscript_Click(object sender, RoutedEventArgs e)
-        {
-            if (_dictationSentences.Count == 0) return;
-            string original = _dictationSentences[_currentDictationIndex];
-            bdrDictationResult.Visibility = Visibility.Visible;
-            txtTranscriptResult.Text = $"📝 Bản gốc tiếng Anh: \"{original}\"";
-        }
-
-        private void BtnNextDictation_Click(object sender, RoutedEventArgs e)
-        {
-            _currentDictationIndex++;
-            if (_currentDictationIndex >= _dictationSentences.Count)
-            {
-                Common.ThongBaoDialog.ThanhCong("🎉 Bạn đã luyện tập hết danh sách câu nghe chép chính tả đợt này!", "Hoàn thành");
-                _currentDictationIndex = 0;
-            }
-            DisplayCurrentDictation();
         }
     }
 }

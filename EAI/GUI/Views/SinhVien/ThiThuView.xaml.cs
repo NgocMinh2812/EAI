@@ -40,18 +40,18 @@ namespace GUI.Views
             public Visibility PassMarkVisibility => DiemDatYeuCau > 0 ? Visibility.Visible : Visibility.Collapsed;
             public string PassMarkBadgeText => $"Điểm đạt: {DiemDatYeuCau:F1} / {TongDiem:F1}đ";
 
-            public string FormatIcon => LoaiHinh == "ThiThu" ? (TenBaiTapDeThi.Contains("IELTS") ? "🇬🇧" : "🏢") : "📝";
+            public string FormatIcon => LoaiHinh == "ThiThu" ? (TenBaiTapDeThi.Contains("IELTS") ? "🇬🇧" : (TenBaiTapDeThi.Contains("TOEIC") ? "🏢" : (TenBaiTapDeThi.Contains("VSTEP") ? "🇻🇳" : "📑"))) : "📝";
             public Brush FormatBadgeBg => LoaiHinh == "ThiThu" 
-                ? (TenBaiTapDeThi.Contains("IELTS") ? new SolidColorBrush(Color.FromRgb(254, 242, 242)) : new SolidColorBrush(Color.FromRgb(239, 246, 255)))
+                ? (TenBaiTapDeThi.Contains("IELTS") ? new SolidColorBrush(Color.FromRgb(254, 242, 242)) : (TenBaiTapDeThi.Contains("TOEIC") ? new SolidColorBrush(Color.FromRgb(239, 246, 255)) : (TenBaiTapDeThi.Contains("VSTEP") ? new SolidColorBrush(Color.FromRgb(254, 252, 232)) : new SolidColorBrush(Color.FromRgb(240, 253, 244)))))
                 : new SolidColorBrush(Color.FromRgb(204, 251, 241));
 
-            public string FormatTag => TenBaiTapDeThi.Contains("IELTS") ? "IELTS ACADEMIC" : (TenBaiTapDeThi.Contains("TOEIC") ? "TOEIC FORMAT" : "NGỮ PHÁP CHUYÊN SÂU");
+            public string FormatTag => TenBaiTapDeThi.Contains("IELTS") ? "IELTS ACADEMIC" : (TenBaiTapDeThi.Contains("TOEIC") ? "TOEIC FORMAT" : (TenBaiTapDeThi.Contains("VSTEP") ? "VSTEP CHUẨN HÓA" : "NGỮ PHÁP CHUYÊN SÂU"));
             public Brush FormatTagBg => TenBaiTapDeThi.Contains("IELTS") 
                 ? new SolidColorBrush(Color.FromRgb(254, 226, 226)) 
-                : (TenBaiTapDeThi.Contains("TOEIC") ? new SolidColorBrush(Color.FromRgb(219, 234, 254)) : new SolidColorBrush(Color.FromRgb(204, 251, 241)));
+                : (TenBaiTapDeThi.Contains("TOEIC") ? new SolidColorBrush(Color.FromRgb(219, 234, 254)) : (TenBaiTapDeThi.Contains("VSTEP") ? new SolidColorBrush(Color.FromRgb(254, 243, 199)) : new SolidColorBrush(Color.FromRgb(204, 251, 241))));
             public Brush FormatTagFg => TenBaiTapDeThi.Contains("IELTS") 
                 ? new SolidColorBrush(Color.FromRgb(185, 28, 28)) 
-                : (TenBaiTapDeThi.Contains("TOEIC") ? new SolidColorBrush(Color.FromRgb(29, 78, 216)) : new SolidColorBrush(Color.FromRgb(15, 118, 110)));
+                : (TenBaiTapDeThi.Contains("TOEIC") ? new SolidColorBrush(Color.FromRgb(29, 78, 216)) : (TenBaiTapDeThi.Contains("VSTEP") ? new SolidColorBrush(Color.FromRgb(180, 83, 9)) : new SolidColorBrush(Color.FromRgb(15, 118, 110))));
 
             public string LevelTag => $"Chuẩn {MaTrinhDo}";
             public string ExamSubtitle => $"⏱️ {ThoiGianLamBaiPhut} phút • {SoLuongCauHoi} câu hỏi • {MoTa ?? "Bộ đề kiểm tra chuẩn hóa năng lực"}";
@@ -122,8 +122,10 @@ namespace GUI.Views
         {
             try
             {
-                // Học viên chỉ được xem và làm các đề thi đã xuất bản (chiLayDaXuatBan: true)
-                _rawExams = BaiTapDeThiBUS.Instance.LayDanhSachDeThi(chiLayDaXuatBan: true);
+                // Học viên chỉ được xem và làm các đề thi chuẩn hóa đã xuất bản (LoaiHinh == "ThiThu", chiLayDaXuatBan: true)
+                _rawExams = BaiTapDeThiBUS.Instance.LayDanhSachDeThi(chiLayDaXuatBan: true)
+                    .Where(x => string.Equals(x.LoaiHinh, "ThiThu", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
             }
             catch (Exception ex)
             {
@@ -136,7 +138,7 @@ namespace GUI.Views
             {
                 displayList = _rawExams.Where(x => 
                     x.TenBaiTapDeThi.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    x.LoaiHinh.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(x.MoTa) && x.MoTa.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase)) ||
                     (!string.IsNullOrEmpty(x.MaCapDo) && x.MaCapDo.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase))
                 ).ToList();
             }

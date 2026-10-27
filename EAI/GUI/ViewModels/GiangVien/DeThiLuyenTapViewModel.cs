@@ -48,6 +48,13 @@ namespace GUI.ViewModels.GiangVien
                 set => SetProperty(ref _thuTu, value);
             }
 
+            private bool _isAnswersExpanded;
+            public bool IsAnswersExpanded
+            {
+                get => _isAnswersExpanded;
+                set => SetProperty(ref _isAnswersExpanded, value);
+            }
+
             public bool IsSelected
             {
                 get => _isSelected;
@@ -83,6 +90,10 @@ namespace GUI.ViewModels.GiangVien
         private string _filterQuestionLevel = "All";
         private string _filterDifficulty = "All";
         private string _searchQuestionKeyword = string.Empty;
+        private bool _isShowOnlySelected = false;
+
+        // Bộ lưu trữ master tất cả câu hỏi đã chọn trong đề thi (bảo toàn khi lọc)
+        private readonly Dictionary<int, QuestionSelectionItem> _selectedQuestionsMaster = new();
 
         // Delegates mở Dialog hiển thị ngoài toàn màn hình
         public Action<BaiTapDeThiDTO, List<LuotLamBaiDTO>>? YeuCauHienThiLichSuBaiNop { get; set; }
@@ -273,14 +284,24 @@ namespace GUI.ViewModels.GiangVien
             }
         }
 
+        public bool IsShowOnlySelected
+        {
+            get => _isShowOnlySelected;
+            set
+            {
+                if (SetProperty(ref _isShowOnlySelected, value))
+                    NapCauHoiTheoBoLoc();
+            }
+        }
+
         // Statistics
         public int TongSoDeThi => DanhSachDeThiHienCo.Count;
         public int SoDeDaXuatBan => DanhSachDeThiHienCo.Count(d => d.IsPublished);
         public int SoDeBanNhap => DanhSachDeThiHienCo.Count(d => d.IsDraft);
         public int TongLuotHocVienThi => DanhSachDeThiHienCo.Sum(d => d.SoLuotDaThi);
 
-        public int TongSoCauDaChon => NgânHangCauHoiChon.Count(x => x.IsSelected);
-        public double TongDiemDeThi => Math.Round(NgânHangCauHoiChon.Where(x => x.IsSelected).Sum(x => x.Diem), 2);
+        public int TongSoCauDaChon => _selectedQuestionsMaster.Count;
+        public double TongDiemDeThi => Math.Round(_selectedQuestionsMaster.Values.Sum(x => x.Diem), 2);
 
         // =========================================================================
         // COMMANDS
@@ -305,6 +326,9 @@ namespace GUI.ViewModels.GiangVien
         public ICommand DiChuyenCauLenCommand { get; }
         public ICommand DiChuyenCauXuongCommand { get; }
         public ICommand LamMoiDanhSachCommand { get; }
+
+        public ICommand ToggleChonCauHoiCommand { get; }
+        public ICommand ToggleXemDapAnCommand { get; }
 
         public ICommand ChonAudioDeThiCommand { get; }
         public ICommand XoaAudioDeThiCommand { get; }
@@ -335,6 +359,9 @@ namespace GUI.ViewModels.GiangVien
             DiChuyenCauLenCommand = new RelayCommand<QuestionSelectionItem>(ThucHienDiChuyenCauLen);
             DiChuyenCauXuongCommand = new RelayCommand<QuestionSelectionItem>(ThucHienDiChuyenCauXuong);
             LamMoiDanhSachCommand = new RelayCommand(TaiDuLieuDeThi);
+
+            ToggleChonCauHoiCommand = new RelayCommand<QuestionSelectionItem>(ThucHienToggleChonCauHoi);
+            ToggleXemDapAnCommand = new RelayCommand<QuestionSelectionItem>(ThucHienToggleXemDapAn);
 
             ChonAudioDeThiCommand = new RelayCommand(ThucHienChonAudioDeThi);
             XoaAudioDeThiCommand = new RelayCommand(ThucHienXoaAudioDeThi);
@@ -437,10 +464,25 @@ namespace GUI.ViewModels.GiangVien
 
         public void NapCauHoiTheoBoLoc()
         {
-            // Ghi nhớ các câu hỏi đã chọn trước đó
-            var selectedMap = NgânHangCauHoiChon
-                .Where(x => x.IsSelected)
-                .ToDictionary(x => x.CauHoi.MaCauHoi, x => (x.Diem, x.ThuTu));
+            if (IsShowOnlySelected)
+            {
+                var listSelected = _selectedQuestionsMaster.Values.OrderBy(x => x.ThuTu).ToList();
+                if (!string.IsNullOrWhiteSpace(SearchQuestionKeyword))
+                {
+                    string kw = SearchQuestionKeyword.Trim().ToLowerInvariant();
+                    listSelected = listSelected.Where(x => 
+                        (x.CauHoi.NoiDungCauHoi != null && x.CauHoi.NoiDungCauHoi.ToLowerInvariant().Contains(kw)) ||
+                        (x.CauHoi.DoanVanDoc != null && x.CauHoi.DoanVanDoc.ToLowerInvariant().Contains(kw))
+                    ).ToList();
+                }
+                NgânHangCauHoiChon.Clear();
+                foreach (var item in listSelected)
+                {
+                    NgânHangCauHoiChon.Add(item);
+                }
+                ThucHienCapNhatThongKeCauHoi();
+                return;
+            }
 
             List<CauHoiKhaoSatDTO> dsCauHoi;
 
@@ -459,7 +501,7 @@ namespace GUI.ViewModels.GiangVien
                     SearchQuestionKeyword, 
                     FilterSkill, 
                     FilterDifficulty, 
-                    100,
+                    500,
                     daKiemDuyet: true);
             }
 
@@ -474,23 +516,37 @@ namespace GUI.ViewModels.GiangVien
             }
 
             NgânHangCauHoiChon.Clear();
-            int stt = 1;
+            int stt = _selectedQuestionsMaster.Count + 1;
 
-            // Đưa các câu đã chọn lên trước nếu có
             foreach (var ch in dsCauHoi)
             {
-                bool isSelected = selectedMap.ContainsKey(ch.MaCauHoi);
-                double diem = isSelected ? selectedMap[ch.MaCauHoi].Diem : 1.0;
-                int thuTu = isSelected ? selectedMap[ch.MaCauHoi].ThuTu : stt++;
-
-                NgânHangCauHoiChon.Add(new QuestionSelectionItem
+                if (_selectedQuestionsMaster.TryGetValue(ch.MaCauHoi, out var existing))
                 {
-                    CauHoi = ch,
-                    Diem = diem,
-                    ThuTu = thuTu,
-                    IsSelected = isSelected,
-                    OnChanged = ThucHienCapNhatThongKeCauHoi
-                });
+                    NgânHangCauHoiChon.Add(existing);
+                }
+                else
+                {
+                    var newItem = new QuestionSelectionItem
+                    {
+                        CauHoi = ch,
+                        Diem = 1.0,
+                        ThuTu = stt++,
+                        IsSelected = false
+                    };
+                    newItem.OnChanged = () =>
+                    {
+                        if (newItem.IsSelected)
+                        {
+                            _selectedQuestionsMaster[newItem.CauHoi.MaCauHoi] = newItem;
+                        }
+                        else
+                        {
+                            _selectedQuestionsMaster.Remove(newItem.CauHoi.MaCauHoi);
+                        }
+                        ThucHienCapNhatThongKeCauHoi();
+                    };
+                    NgânHangCauHoiChon.Add(newItem);
+                }
             }
 
             ThucHienCapNhatThongKeCauHoi();
@@ -501,8 +557,49 @@ namespace GUI.ViewModels.GiangVien
             foreach (var item in NgânHangCauHoiChon)
             {
                 item.IsSelected = select;
+                if (select)
+                {
+                    _selectedQuestionsMaster[item.CauHoi.MaCauHoi] = item;
+                }
+                else
+                {
+                    _selectedQuestionsMaster.Remove(item.CauHoi.MaCauHoi);
+                }
+            }
+            if (!select && IsShowOnlySelected)
+            {
+                _selectedQuestionsMaster.Clear();
+                NgânHangCauHoiChon.Clear();
             }
             ThucHienCapNhatThongKeCauHoi();
+        }
+
+        private void ThucHienToggleChonCauHoi(QuestionSelectionItem? item)
+        {
+            if (item == null) return;
+            item.IsSelected = !item.IsSelected;
+            if (item.IsSelected)
+            {
+                item.IsAnswersExpanded = true;
+                _selectedQuestionsMaster[item.CauHoi.MaCauHoi] = item;
+            }
+            else
+            {
+                _selectedQuestionsMaster.Remove(item.CauHoi.MaCauHoi);
+                if (IsShowOnlySelected)
+                {
+                    NgânHangCauHoiChon.Remove(item);
+                }
+            }
+            ThucHienCapNhatThongKeCauHoi();
+        }
+
+        private void ThucHienToggleXemDapAn(QuestionSelectionItem? item)
+        {
+            if (item != null)
+            {
+                item.IsAnswersExpanded = !item.IsAnswersExpanded;
+            }
         }
 
         private void ThucHienCapNhatThongKeCauHoi()
@@ -534,6 +631,10 @@ namespace GUI.ViewModels.GiangVien
         // =========================================================================
         private void KhoiTaoDeThiMoi()
         {
+            _selectedQuestionsMaster.Clear();
+            _isShowOnlySelected = false;
+            OnPropertyChanged(nameof(IsShowOnlySelected));
+
             CurrentDeThi = new BaiTapDeThiDTO
             {
                 TenBaiTapDeThi = "Đề thi thử mới",
@@ -574,25 +675,34 @@ namespace GUI.ViewModels.GiangVien
             CurrentDeThi = deThi;
             ThongBaoLoi = string.Empty;
             IsDanhSachMode = false;
+            _isShowOnlySelected = false;
+            OnPropertyChanged(nameof(IsShowOnlySelected));
+            _selectedQuestionsMaster.Clear();
 
             // Nạp danh sách câu hỏi của đề này
             var dsCauHoiCuaDe = BaiTapDeThiBUS.Instance.LayDanhSachCauHoiCuaDeThi(deThi.MaBaiTapDeThi);
-            var selectedMap = dsCauHoiCuaDe.ToDictionary(q => q.MaCauHoi, q => q.Diem);
-
-            // Nạp ngân hàng câu hỏi
-            NapCauHoiTheoBoLoc();
-
-            // Đánh dấu các câu đã có trong đề
-            foreach (var item in NgânHangCauHoiChon)
+            int stt = 1;
+            foreach (var q in dsCauHoiCuaDe)
             {
-                if (selectedMap.TryGetValue(item.CauHoi.MaCauHoi, out double diem))
+                var item = new QuestionSelectionItem
                 {
-                    item.IsSelected = true;
-                    item.Diem = diem > 0 ? diem : 1.0;
-                }
+                    CauHoi = q,
+                    Diem = q.Diem > 0 ? q.Diem : 1.0,
+                    ThuTu = q.ThuTuTrongBo > 0 ? q.ThuTuTrongBo : stt++,
+                    IsSelected = true
+                };
+                item.OnChanged = () =>
+                {
+                    if (item.IsSelected)
+                        _selectedQuestionsMaster[item.CauHoi.MaCauHoi] = item;
+                    else
+                        _selectedQuestionsMaster.Remove(item.CauHoi.MaCauHoi);
+                    ThucHienCapNhatThongKeCauHoi();
+                };
+                _selectedQuestionsMaster[q.MaCauHoi] = item;
             }
 
-            ThucHienCapNhatThongKeCauHoi();
+            NapCauHoiTheoBoLoc();
         }
 
         private void ThucHienXemTruocDeThi(BaiTapDeThiDTO? deThi)
@@ -768,6 +878,10 @@ namespace GUI.ViewModels.GiangVien
             if (idx > 0)
             {
                 NgânHangCauHoiChon.Move(idx, idx - 1);
+                for (int i = 0; i < NgânHangCauHoiChon.Count; i++)
+                {
+                    NgânHangCauHoiChon[i].ThuTu = i + 1;
+                }
             }
         }
 
@@ -778,6 +892,10 @@ namespace GUI.ViewModels.GiangVien
             if (idx >= 0 && idx < NgânHangCauHoiChon.Count - 1)
             {
                 NgânHangCauHoiChon.Move(idx, idx + 1);
+                for (int i = 0; i < NgânHangCauHoiChon.Count; i++)
+                {
+                    NgânHangCauHoiChon[i].ThuTu = i + 1;
+                }
             }
         }
 
@@ -830,8 +948,8 @@ namespace GUI.ViewModels.GiangVien
                 }
             }
 
-            var dsChiTiet = NgânHangCauHoiChon
-                .Where(x => x.IsSelected)
+            var dsChiTiet = _selectedQuestionsMaster.Values
+                .OrderBy(x => x.ThuTu)
                 .Select((item, idx) => (item.CauHoi.MaCauHoi, ThuTu: idx + 1, item.Diem))
                 .ToList();
 

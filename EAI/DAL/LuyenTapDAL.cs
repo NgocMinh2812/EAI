@@ -67,11 +67,26 @@ namespace DAL
             string query = $@"
                 SELECT TOP ({soLuong}) ch.MaCauHoi, ch.KyNang, td.MaCapDo AS MaTrinhDo, td.TenTrinhDo,
                        ch.NoiDungCauHoi, ch.DoanVanDoc, ch.GiaiThichDapAn, ch.LoaiCauHoi, ch.DoKho,
-                       ch.DuongDanAudio AS AudioPath, ch.MaChuDe, cd.TenChuDe
+                       COALESCE(ch.DuongDanAudio, bh.DuongDanAudio, bh.AudioPath, bhAudio.AudioPath) AS AudioPath,
+                       COALESCE(ch.MaBaiHoc, bh.MaBaiHoc, bhAudio.MaBaiHoc) AS MaBaiHoc,
+                       COALESCE(bh.TieuDe, bhAudio.TieuDe, N'Bài học luyện nghe') AS TenBaiHoc,
+                       ch.MaChuDe, cd.TenChuDe
                 FROM CauHoi ch
                 LEFT JOIN TrinhDo td ON ch.MaTrinhDo = td.MaTrinhDo
                 LEFT JOIN ChuDe cd ON ch.MaChuDe = cd.MaChuDe
                 LEFT JOIN BoCauHoi_CauHoi bc ON ch.MaCauHoi = bc.MaCauHoi
+                LEFT JOIN BaiHoc bh ON ch.MaBaiHoc = bh.MaBaiHoc
+                OUTER APPLY (
+                    SELECT TOP 1 bhSub.MaBaiHoc, bhSub.TieuDe, 
+                                 COALESCE(bhSub.DuongDanAudio, bhSub.AudioPath) AS AudioPath
+                    FROM BaiHoc bhSub
+                    WHERE (ch.MaBaiHoc IS NULL OR (bh.DuongDanAudio IS NULL AND bh.AudioPath IS NULL))
+                      AND (bhSub.DuongDanAudio IS NOT NULL OR bhSub.AudioPath IS NOT NULL)
+                      AND (bhSub.LoaiBaiHoc = 'Nghe' OR bhSub.LoaiBaiHoc LIKE '%Nghe%' OR bhSub.LoaiBaiHoc LIKE '%Listen%')
+                    ORDER BY CASE WHEN bhSub.MaChuDe = ch.MaChuDe AND bhSub.MaTrinhDo = ch.MaTrinhDo THEN 1
+                                  WHEN bhSub.MaChuDe = ch.MaChuDe THEN 2
+                                  WHEN bhSub.MaTrinhDo = ch.MaTrinhDo THEN 3 ELSE 4 END
+                ) bhAudio
                 WHERE (@MaChuDe IS NULL OR ch.MaChuDe = @MaChuDe)
                   AND (@MaBoCauHoi IS NULL OR bc.MaBoCauHoi = @MaBoCauHoi)
                   AND (@KyNang IS NULL OR @KyNang = 'All' OR ch.KyNang = @KyNang)
@@ -80,7 +95,9 @@ namespace DAL
                   AND ch.DaKiemDuyet = 1
                 GROUP BY ch.MaCauHoi, ch.KyNang, td.MaCapDo, td.TenTrinhDo,
                          ch.NoiDungCauHoi, ch.DoanVanDoc, ch.GiaiThichDapAn, ch.LoaiCauHoi, ch.DoKho,
-                         ch.DuongDanAudio, ch.MaChuDe, cd.TenChuDe
+                         ch.DuongDanAudio, bh.DuongDanAudio, bh.AudioPath, bhAudio.AudioPath,
+                         ch.MaBaiHoc, bh.MaBaiHoc, bhAudio.MaBaiHoc, bh.TieuDe, bhAudio.TieuDe,
+                         ch.MaChuDe, cd.TenChuDe
                 ORDER BY NEWID()";
 
             SqlParameter[] parameters = new[]
@@ -111,6 +128,8 @@ namespace DAL
                         LoaiCauHoi = row["LoaiCauHoi"]?.ToString() ?? "TracNghiem",
                         DoKho = row["DoKho"]?.ToString() ?? "TrungBinh",
                         AudioPath = row["AudioPath"] == DBNull.Value ? null : row["AudioPath"]?.ToString(),
+                        MaBaiHoc = row["MaBaiHoc"] == DBNull.Value ? null : Convert.ToInt32(row["MaBaiHoc"]),
+                        TenBaiHoc = row["TenBaiHoc"] == DBNull.Value ? null : row["TenBaiHoc"]?.ToString(),
                         MaChuDe = row["MaChuDe"] == DBNull.Value ? null : Convert.ToInt32(row["MaChuDe"]),
                         Diem = 1.0
                     });
@@ -129,6 +148,7 @@ namespace DAL
 
         /// <summary>
         /// [Yêu cầu 4.5] Lấy danh sách các câu hỏi mà học viên đã trả lời sai trong lịch sử để ôn luyện lại
+        /// Chỉ hiển thị những câu mà lần trả lời gần nhất là SAI (nếu đã luyện lại đúng thì loại bỏ)
         /// </summary>
         public List<CauHoiKhaoSatDTO> LayDanhSachCauHoiSaiCuaNguoiDung(int maNguoiDung, int top = 20)
         {
@@ -136,20 +156,27 @@ namespace DAL
             if (maNguoiDung <= 0) return list;
 
             string query = $@"
+                WITH LatestAnswerPerQuestion AS (
+                    SELECT ct.MaCauHoi, ct.KetQuaDungSai, ct.ThoiDiemTraLoi,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY ct.MaCauHoi 
+                               ORDER BY ct.ThoiDiemTraLoi DESC, ct.MaChiTietTraLoi DESC
+                           ) AS rn
+                    FROM ChiTietTraLoi ct
+                    INNER JOIN LuotLamBai lb ON ct.MaLuotLamBai = lb.MaLuotLamBai
+                    WHERE lb.MaNguoiDung = @MaND
+                )
                 SELECT TOP ({top}) ch.MaCauHoi, ch.KyNang, td.MaCapDo AS MaTrinhDo, td.TenTrinhDo,
                        ch.NoiDungCauHoi, ch.DoanVanDoc, ch.GiaiThichDapAn, ch.LoaiCauHoi, ch.DoKho,
-                       ch.DuongDanAudio AS AudioPath, ch.MaChuDe,
-                       MAX(ct.ThoiDiemTraLoi) AS LanSaiCuoi
-                FROM ChiTietTraLoi ct
-                INNER JOIN LuotLamBai lb ON ct.MaLuotLamBai = lb.MaLuotLamBai
-                INNER JOIN CauHoi ch ON ct.MaCauHoi = ch.MaCauHoi
+                       COALESCE(ch.DuongDanAudio, bh.DuongDanAudio, bh.AudioPath) AS AudioPath,
+                       ch.MaBaiHoc, bh.TieuDe AS TenBaiHoc, ch.MaChuDe,
+                       la.ThoiDiemTraLoi AS LanSaiCuoi
+                FROM LatestAnswerPerQuestion la
+                INNER JOIN CauHoi ch ON la.MaCauHoi = ch.MaCauHoi
                 LEFT JOIN TrinhDo td ON ch.MaTrinhDo = td.MaTrinhDo
-                WHERE lb.MaNguoiDung = @MaND
-                  AND ct.KetQuaDungSai = 0
-                GROUP BY ch.MaCauHoi, ch.KyNang, td.MaCapDo, td.TenTrinhDo,
-                         ch.NoiDungCauHoi, ch.DoanVanDoc, ch.GiaiThichDapAn, ch.LoaiCauHoi, ch.DoKho,
-                         ch.DuongDanAudio, ch.MaChuDe
-                ORDER BY LanSaiCuoi DESC, ch.MaCauHoi DESC";
+                LEFT JOIN BaiHoc bh ON ch.MaBaiHoc = bh.MaBaiHoc
+                WHERE la.rn = 1 AND la.KetQuaDungSai = 0
+                ORDER BY la.ThoiDiemTraLoi DESC, ch.MaCauHoi DESC";
 
             try
             {
@@ -170,6 +197,8 @@ namespace DAL
                         LoaiCauHoi = row["LoaiCauHoi"]?.ToString() ?? "TracNghiem",
                         DoKho = row["DoKho"]?.ToString() ?? "TrungBinh",
                         AudioPath = row["AudioPath"] == DBNull.Value ? null : row["AudioPath"]?.ToString(),
+                        MaBaiHoc = row["MaBaiHoc"] == DBNull.Value ? null : Convert.ToInt32(row["MaBaiHoc"]),
+                        TenBaiHoc = row["TenBaiHoc"] == DBNull.Value ? null : row["TenBaiHoc"]?.ToString(),
                         MaChuDe = row["MaChuDe"] == DBNull.Value ? null : Convert.ToInt32(row["MaChuDe"]),
                         Diem = 1.0
                     });
@@ -186,7 +215,7 @@ namespace DAL
         }
 
         /// <summary>
-        /// [Yêu cầu 4.4] Lưu kết quả phiên luyện tập vào CSDL (bảo toàn lịch sử, không lấy điểm luyện tập làm điểm thi chính thức)
+        /// [Yêu cầu 4.4] Lưu kết quả phiên luyện tập vào CSDL kèm tiêu đề chủ đề rõ ràng
         /// </summary>
         public int LuuKetQuaPhienLuyenTap(
             int maNguoiDung,
@@ -196,8 +225,21 @@ namespace DAL
             decimal tyLeChinhXac,
             List<(int MaCauHoi, int? MaLuaChon, string? CauTraLoiVanBan, bool DungSai)> chiTiet)
         {
+            return LuuKetQuaPhienLuyenTap(maNguoiDung, "Phiên luyện tập tự do", thoiGianGiay, tongSoCau, soCauDung, tyLeChinhXac, chiTiet);
+        }
+
+        public int LuuKetQuaPhienLuyenTap(
+            int maNguoiDung,
+            string tieuDePhien,
+            int thoiGianGiay,
+            int tongSoCau,
+            int soCauDung,
+            decimal tyLeChinhXac,
+            List<(int MaCauHoi, int? MaLuaChon, string? CauTraLoiVanBan, bool DungSai)> chiTiet)
+        {
             if (maNguoiDung <= 0) return 0;
             int soCauSai = tongSoCau - soCauDung;
+            string safeTitle = string.IsNullOrWhiteSpace(tieuDePhien) ? "Phiên luyện tập tự do" : tieuDePhien.Trim();
 
             using var conn = SqlDataProvider.Instance.GetConnection();
             conn.Open();
@@ -205,14 +247,25 @@ namespace DAL
 
             try
             {
-                // Tìm hoặc tạo đề luyện tập mặc định trong BaiTapDeThi
                 int maBaiTapLuyenTap = 4;
-                string checkSql = "SELECT TOP 1 MaBaiTapDeThi FROM BaiTapDeThi WHERE LoaiHinh = N'LuyenTap'";
+                string checkSql = "SELECT TOP 1 MaBaiTapDeThi FROM BaiTapDeThi WHERE LoaiHinh = N'LuyenTap' AND TenBaiTapDeThi = @TenDe";
                 using var cmdCheck = new SqlCommand(checkSql, conn, trans);
+                cmdCheck.Parameters.AddWithValue("@TenDe", safeTitle);
                 object? res = cmdCheck.ExecuteScalar();
                 if (res != null && res != DBNull.Value)
                 {
                     maBaiTapLuyenTap = Convert.ToInt32(res);
+                }
+                else
+                {
+                    string insertDeSql = @"
+                        INSERT INTO BaiTapDeThi (TenBaiTapDeThi, LoaiHinh, DaPhatHanh, TrangThai, TongSoCau, NgayTao)
+                        VALUES (@TenDe, N'LuyenTap', 1, N'DaXuatBan', @TongSo, SYSDATETIME());
+                        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+                    using var cmdInsertDe = new SqlCommand(insertDeSql, conn, trans);
+                    cmdInsertDe.Parameters.AddWithValue("@TenDe", safeTitle);
+                    cmdInsertDe.Parameters.AddWithValue("@TongSo", tongSoCau);
+                    maBaiTapLuyenTap = (int)cmdInsertDe.ExecuteScalar();
                 }
 
                 string queryLuot = @"
@@ -231,7 +284,7 @@ namespace DAL
                 cmdLuot.Parameters.AddWithValue("@TongSo", tongSoCau);
                 cmdLuot.Parameters.AddWithValue("@SoDung", soCauDung);
                 cmdLuot.Parameters.AddWithValue("@SoSai", soCauSai);
-                cmdLuot.Parameters.AddWithValue("@Diem", Math.Round(tyLeChinhXac / 10m, 2)); // Điểm quy đổi thang 10
+                cmdLuot.Parameters.AddWithValue("@Diem", Math.Round(tyLeChinhXac / 10m, 2));
 
                 int maLuotLamBai = (int)cmdLuot.ExecuteScalar();
 

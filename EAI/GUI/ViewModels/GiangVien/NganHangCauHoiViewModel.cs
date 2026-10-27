@@ -40,6 +40,13 @@ namespace GUI.ViewModels.GiangVien
         private string _tuKhoaTimKiem = string.Empty;
         private string _filterKyNang = "All";
         private string _filterDoKho = "All";
+        private bool _isLoadingQuestions;
+
+        public bool IsLoadingQuestions
+        {
+            get => _isLoadingQuestions;
+            set => SetProperty(ref _isLoadingQuestions, value);
+        }
 
         public ObservableCollection<BoCauHoiDTO> DanhSachBoCauHoi { get; } = new();
         public ObservableCollection<CauHoiKhaoSatDTO> DanhSachCauHoi { get; } = new();
@@ -362,34 +369,52 @@ namespace GUI.ViewModels.GiangVien
             SelectedBoCauHoi = bo;
         }
 
-        public void NapDanhSachCauHoi(int? targetMaCauHoi = null)
+        public async void NapDanhSachCauHoi(int? targetMaCauHoi = null)
         {
             int currentId = targetMaCauHoi ?? CurrentCauHoi?.MaCauHoi ?? -1;
-            DanhSachCauHoi.Clear();
-            System.Collections.Generic.List<CauHoiKhaoSatDTO> ds;
+            int maBo = SelectedBoCauHoi?.MaBoCauHoi ?? 0;
+            string tuKhoa = TuKhoaTimKiem;
+            string kyNang = FilterKyNang;
+            string doKho = FilterDoKho;
 
-            if (SelectedBoCauHoi == null || SelectedBoCauHoi.MaBoCauHoi == 0)
+            IsLoadingQuestions = true;
+            try
             {
-                ds = BoCauHoiBUS.Instance.LayTatCaCauHoi(TuKhoaTimKiem, FilterKyNang, FilterDoKho, 500);
-            }
-            else
-            {
-                ds = BoCauHoiBUS.Instance.LayDanhSachCauHoiTheoBo(SelectedBoCauHoi.MaBoCauHoi, TuKhoaTimKiem, FilterKyNang, FilterDoKho);
-            }
+                var ds = await System.Threading.Tasks.Task.Run(() =>
+                {
+                    if (maBo == 0)
+                    {
+                        return BoCauHoiBUS.Instance.LayTatCaCauHoi(tuKhoa, kyNang, doKho, 500);
+                    }
+                    else
+                    {
+                        return BoCauHoiBUS.Instance.LayDanhSachCauHoiTheoBo(maBo, tuKhoa, kyNang, doKho);
+                    }
+                });
 
-            foreach (var ch in ds)
-            {
-                DanhSachCauHoi.Add(ch);
-            }
+                DanhSachCauHoi.Clear();
+                foreach (var ch in ds)
+                {
+                    DanhSachCauHoi.Add(ch);
+                }
 
-            if (DanhSachCauHoi.Count > 0)
-            {
-                var found = currentId >= 0 ? DanhSachCauHoi.FirstOrDefault(x => x.MaCauHoi == currentId) : null;
-                ChonCauHoiDeSua(found ?? DanhSachCauHoi[0]);
+                if (DanhSachCauHoi.Count > 0)
+                {
+                    var found = currentId >= 0 ? DanhSachCauHoi.FirstOrDefault(x => x.MaCauHoi == currentId) : null;
+                    ChonCauHoiDeSua(found ?? DanhSachCauHoi[0]);
+                }
+                else
+                {
+                    KhoiTaoCauHoiMoi();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                KhoiTaoCauHoiMoi();
+                System.Diagnostics.Debug.WriteLine($"[NapDanhSachCauHoi] {ex.Message}");
+            }
+            finally
+            {
+                IsLoadingQuestions = false;
             }
         }
 

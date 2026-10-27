@@ -65,6 +65,8 @@ namespace DTO
         private string _loaiCauHoi = "TracNghiem";
         private string _doKho = "TrungBinh";
         private string? _audioPath;
+        private int? _maBaiHoc;
+        private string? _tenBaiHoc;
         private bool _daKiemDuyet = true;
         private int? _nguoiTaoId;
         private DateTime? _ngayTao;
@@ -341,6 +343,18 @@ namespace DTO
         {
             get => _audioPath;
             set { if (_audioPath != value) { _audioPath = value; OnPropertyChanged(); } }
+        }
+
+        public int? MaBaiHoc
+        {
+            get => _maBaiHoc;
+            set { if (_maBaiHoc != value) { _maBaiHoc = value; OnPropertyChanged(); } }
+        }
+
+        public string? TenBaiHoc
+        {
+            get => _tenBaiHoc;
+            set { if (_tenBaiHoc != value) { _tenBaiHoc = value; OnPropertyChanged(); } }
         }
 
         public bool DaKiemDuyet
