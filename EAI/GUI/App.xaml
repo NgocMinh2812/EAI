@@ -2,7 +2,6 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:GUI"
-             xmlns:common="clr-namespace:GUI.Views.Common"
              StartupUri="Views/DangNhapWindow.xaml">
     <Application.Resources>
         <SolidColorBrush x:Key="BrandTeal" Color="#0F766E" />
@@ -125,7 +124,7 @@
                                              CornerRadius="8"
                                              Padding="4"
                                              RenderOptions.ClearTypeHint="Enabled">
-                                         <ScrollViewer SnapsToDevicePixels="True" VerticalScrollBarVisibility="Auto" common:ScrollHelper.FixMouseWheelBubble="True">
+                                         <ScrollViewer SnapsToDevicePixels="True" VerticalScrollBarVisibility="Auto">
                                              <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
                                          </ScrollViewer>
                                      </Border>

@@ -197,6 +197,7 @@ namespace GUI.ViewModels.Common
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null) return Visibility.Visible;
+            if (value is int count) return count == 0 ? Visibility.Visible : Visibility.Collapsed;
             if (value is string s && string.IsNullOrWhiteSpace(s)) return Visibility.Visible;
             if (value is System.Collections.ICollection c && c.Count == 0) return Visibility.Visible;
             return Visibility.Collapsed;
@@ -210,6 +211,7 @@ namespace GUI.ViewModels.Common
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null) return Visibility.Collapsed;
+            if (value is int count) return count > 0 ? Visibility.Visible : Visibility.Collapsed;
             if (value is string s && string.IsNullOrWhiteSpace(s)) return Visibility.Collapsed;
             if (value is System.Collections.ICollection c && c.Count == 0) return Visibility.Collapsed;
             return Visibility.Visible;

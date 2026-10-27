@@ -202,7 +202,7 @@ namespace BUS
 
         public static (bool Success, string Message) TaoDeThiThuTuBaiHoc(int maBaiHoc, string tenDeThi, int? nguoiTao = null)
         {
-            if (maBaiHoc <= 0)
+            if (maBaiHoc < 0)
                 return (false, "Mã bài học không hợp lệ.");
 
             bool ok = _baiHocDAL.TaoDeThiThuTuBaiHoc(maBaiHoc, tenDeThi, nguoiTao);
@@ -213,7 +213,7 @@ namespace BUS
 
         public static (bool Success, string Message) XoaBaiHoc(int maBaiHoc)
         {
-            if (maBaiHoc <= 0)
+            if (maBaiHoc < 0)
                 return (false, "Mã bài học không hợp lệ.");
 
             try
@@ -234,7 +234,7 @@ namespace BUS
 
         public static (bool Success, string Message) DiChuyenBaiHoc(int maBaiHoc, int maChuDeMoi)
         {
-            if (maBaiHoc <= 0)
+            if (maBaiHoc < 0)
                 return (false, "Mã bài học không hợp lệ.");
             if (maChuDeMoi <= 0)
                 return (false, "Vui lòng chọn thư mục đích hợp lệ.");

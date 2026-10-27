@@ -17,7 +17,7 @@ namespace DAL
         /// </summary>
         public BaiHocQuizDTO? LayBoCauHoi(int maBaiHoc, string contentHash, string loaiBo)
         {
-            if (maBaiHoc <= 0 || string.IsNullOrWhiteSpace(contentHash) || string.IsNullOrWhiteSpace(loaiBo))
+            if (maBaiHoc < 0 || string.IsNullOrWhiteSpace(contentHash) || string.IsNullOrWhiteSpace(loaiBo))
                 return null;
 
             try

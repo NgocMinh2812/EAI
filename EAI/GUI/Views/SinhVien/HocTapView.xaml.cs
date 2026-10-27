@@ -39,7 +39,6 @@ namespace GUI.Views
         private BaiHocQuizDTO? _currentQuizA;
         private BaiHocQuizDTO? _currentQuizB;
         private bool _isLoadingQuiz = false;
-        private bool _isSubmittedCurrentQuiz = false;
 
         public HocTapView() : this(null)
         {
@@ -487,7 +486,6 @@ namespace GUI.Views
             _currentQuizA = null;
             _currentQuizB = null;
             _currentQuizMode = "CungCo";
-            _isSubmittedCurrentQuiz = false;
             CapNhatTrangThaiNutQuiz();
 
             // Mặc định tab lý thuyết
@@ -1027,7 +1025,6 @@ namespace GUI.Views
                 q.DaTraLoiDung = null;
             }
 
-            _isSubmittedCurrentQuiz = false;
             if (pnlQuizResultSummary != null) pnlQuizResultSummary.Visibility = Visibility.Collapsed;
             if (btnLamLaiFooter != null) btnLamLaiFooter.Visibility = Visibility.Collapsed;
             if (btnNopBai != null) btnNopBai.Content = "🎯 Nộp bài & Xem kết quả";
@@ -1192,7 +1189,6 @@ namespace GUI.Views
             {
                 // Phục hồi lựa chọn của sinh viên
                 BaiHocQuizBUS.PhucHoiLuaChonSinhVien(quiz, previousResult);
-                _isSubmittedCurrentQuiz = true;
 
                 if (pnlQuizResultSummary != null)
                 {
@@ -1211,7 +1207,6 @@ namespace GUI.Views
             }
             else
             {
-                _isSubmittedCurrentQuiz = false;
                 if (pnlQuizResultSummary != null) pnlQuizResultSummary.Visibility = Visibility.Collapsed;
                 if (btnLamLaiFooter != null) btnLamLaiFooter.Visibility = Visibility.Collapsed;
                 if (btnNopBai != null) btnNopBai.Content = "🎯 Nộp bài & Xem kết quả";
@@ -1756,8 +1751,6 @@ namespace GUI.Views
                 out int correctCount,
                 out decimal scoreOutOf10
             );
-
-            _isSubmittedCurrentQuiz = true;
 
             // Cập nhật giao diện điểm và kết quả
             if (pnlQuizResultSummary != null)

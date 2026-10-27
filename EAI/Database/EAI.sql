@@ -583,6 +583,69 @@ CREATE TABLE NoiDungHocTapAIBaiHoc (
 GO
 
 
+CREATE TABLE BoCauHoi (
+    MaBoCauHoi INT IDENTITY(1,1) PRIMARY KEY,
+    TenBoCauHoi NVARCHAR(250) NOT NULL,
+    MoTa NVARCHAR(MAX) NULL,
+    NguonTao NVARCHAR(50) NOT NULL DEFAULT N'AI',
+    TenNguon NVARCHAR(250) NULL,
+    MaBaiHoc INT NULL,
+    MaChuDe INT NULL,
+    MaTrinhDo INT NULL,
+    NguoiTao INT NULL,
+    ContentHash NVARCHAR(64) NULL,
+    LoaiBoCauHoi NVARCHAR(30) NOT NULL DEFAULT N'CungCo',
+    TrangThai NVARCHAR(30) NOT NULL DEFAULT N'HoanThanh',
+    ThoiDiemBatDauXuLy DATETIME2 NULL,
+    ThongBaoLoi NVARCHAR(MAX) NULL,
+    NgayTao DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    NgayCapNhat DATETIME2 NULL,
+    CONSTRAINT FK_BoCauHoi_BaiHoc
+        FOREIGN KEY (MaBaiHoc) REFERENCES BaiHoc(MaBaiHoc) ON DELETE SET NULL,
+    CONSTRAINT FK_BoCauHoi_ChuDe
+        FOREIGN KEY (MaChuDe) REFERENCES ChuDe(MaChuDe),
+    CONSTRAINT FK_BoCauHoi_TrinhDo
+        FOREIGN KEY (MaTrinhDo) REFERENCES TrinhDo(MaTrinhDo),
+    CONSTRAINT FK_BoCauHoi_NguoiTao
+        FOREIGN KEY (NguoiTao) REFERENCES NguoiDung(MaNguoiDung)
+);
+GO
+
+CREATE TABLE BoCauHoi_CauHoi (
+    MaBoCauHoi INT NOT NULL,
+    MaCauHoi INT NOT NULL,
+    ThuTu INT NOT NULL DEFAULT 1,
+    PRIMARY KEY (MaBoCauHoi, MaCauHoi),
+    CONSTRAINT FK_BoCauHoi_CauHoi_Bo
+        FOREIGN KEY (MaBoCauHoi) REFERENCES BoCauHoi(MaBoCauHoi) ON DELETE CASCADE,
+    CONSTRAINT FK_BoCauHoi_CauHoi_CH
+        FOREIGN KEY (MaCauHoi) REFERENCES CauHoi(MaCauHoi) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE KetQuaLamBaiBoCauHoi (
+    MaKetQua INT IDENTITY(1,1) PRIMARY KEY,
+    MaNguoiDung INT NOT NULL,
+    MaBoCauHoi INT NOT NULL,
+    MaBaiHoc INT NOT NULL,
+    LoaiBoCauHoi NVARCHAR(30) NOT NULL DEFAULT N'CungCo',
+    ContentHash NVARCHAR(64) NOT NULL,
+    TongSoCau INT NOT NULL DEFAULT 10,
+    SoCauDung INT NOT NULL DEFAULT 0,
+    DiemSo DECIMAL(5,2) NOT NULL DEFAULT 0,
+    ThoiGianLamGiay INT NOT NULL DEFAULT 0,
+    TrangThai NVARCHAR(30) NOT NULL DEFAULT N'DaNop',
+    ChiTietTraLoiJson NVARCHAR(MAX) NULL,
+    NgayNop DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_KetQuaLamBaiBoCauHoi_NguoiDung
+        FOREIGN KEY (MaNguoiDung) REFERENCES NguoiDung(MaNguoiDung) ON DELETE CASCADE,
+    CONSTRAINT FK_KetQuaLamBaiBoCauHoi_BoCauHoi
+        FOREIGN KEY (MaBoCauHoi) REFERENCES BoCauHoi(MaBoCauHoi) ON DELETE CASCADE,
+    CONSTRAINT FK_KetQuaLamBaiBoCauHoi_BaiHoc
+        FOREIGN KEY (MaBaiHoc) REFERENCES BaiHoc(MaBaiHoc) ON DELETE NO ACTION
+);
+GO
+
 CREATE TABLE NhatKyGoiAPI (
     MaNhatKyAPI BIGINT IDENTITY(1,1) PRIMARY KEY,
     MaNguoiDung INT NULL,
@@ -635,6 +698,9 @@ CREATE INDEX IX_LuotLamBai_NguoiDung_Ngay ON LuotLamBai(MaNguoiDung, ThoiDiemBat
 CREATE INDEX IX_LichSuHocTap_NguoiDung_Ngay ON LichSuHocTap(MaNguoiDung, NgayGhiNhan);
 CREATE INDEX IX_PhienHoiThoaiAI_NguoiDung_Ngay ON PhienHoiThoaiAI(MaNguoiDung, NgayTao);
 CREATE INDEX IX_NhatKyGoiAPI_NgayGhiNhan ON NhatKyGoiAPI(NgayGhiNhan);
+CREATE NONCLUSTERED INDEX IX_NoiDungHocTapAIBaiHoc_Hash ON NoiDungHocTapAIBaiHoc(MaBaiHoc, ContentHash, TrangThai);
+CREATE NONCLUSTERED INDEX IX_BoCauHoi_BaiHoc ON BoCauHoi(MaBaiHoc, LoaiBoCauHoi, TrangThai);
+CREATE NONCLUSTERED INDEX IX_KetQuaLamBaiBoCauHoi_User_Lesson ON KetQuaLamBaiBoCauHoi(MaNguoiDung, MaBaiHoc, LoaiBoCauHoi, ContentHash);
 GO
 
 /* =========================================================

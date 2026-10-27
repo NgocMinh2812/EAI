@@ -97,8 +97,16 @@ namespace DAL
                 LEFT JOIN TrinhDo td ON ch.MaTrinhDo = td.MaTrinhDo
                 WHERE bc.MaBoCauHoi = @MaBo
                   AND (@TuKhoa IS NULL OR @TuKhoa = '' OR ch.NoiDungCauHoi LIKE N'%' + @TuKhoa + N'%')
-                  AND (@KyNang IS NULL OR @KyNang = 'All' OR ch.KyNang = @KyNang)
-                  AND (@DoKho IS NULL OR @DoKho = 'All' OR ch.DoKho = @DoKho)
+                  AND (@KyNang IS NULL OR @KyNang = 'All' OR @KyNang LIKE N'%All%' OR @KyNang LIKE N'%Tất cả%' OR ch.KyNang = @KyNang
+                       OR (@KyNang IN ('Nghe', 'Listening') AND ch.KyNang IN ('Nghe', 'Listening'))
+                       OR (@KyNang IN ('Doc', 'Reading') AND ch.KyNang IN ('Doc', 'Reading'))
+                       OR (@KyNang IN ('NguPhap', 'Grammar') AND ch.KyNang IN ('NguPhap', 'Grammar'))
+                       OR (@KyNang IN ('TuVung', 'Vocab', 'Vocabulary') AND ch.KyNang IN ('TuVung', 'Vocab', 'Vocabulary'))
+                       OR (@KyNang IN ('Viet', 'Writing') AND ch.KyNang IN ('Viet', 'Writing')))
+                  AND (@DoKho IS NULL OR @DoKho = 'All' OR @DoKho LIKE N'%All%' OR @DoKho LIKE N'%Tất cả%' OR ch.DoKho = @DoKho
+                       OR (@DoKho IN ('De', 'Easy') AND ch.DoKho IN ('De', 'Easy'))
+                       OR (@DoKho IN ('TrungBinh', 'Medium') AND ch.DoKho IN ('TrungBinh', 'Medium'))
+                       OR (@DoKho IN ('Kho', 'Hard') AND ch.DoKho IN ('Kho', 'Hard')))
                   AND (@DaKiemDuyet IS NULL OR ch.DaKiemDuyet = @DaKiemDuyet)
                 ORDER BY bc.ThuTu ASC, ch.MaCauHoi ASC";
 
@@ -162,8 +170,16 @@ namespace DAL
                 FROM CauHoi ch
                 LEFT JOIN TrinhDo td ON ch.MaTrinhDo = td.MaTrinhDo
                 WHERE (@TuKhoa IS NULL OR @TuKhoa = '' OR ch.NoiDungCauHoi LIKE N'%' + @TuKhoa + N'%')
-                  AND (@KyNang IS NULL OR @KyNang = 'All' OR ch.KyNang = @KyNang)
-                  AND (@DoKho IS NULL OR @DoKho = 'All' OR ch.DoKho = @DoKho)
+                  AND (@KyNang IS NULL OR @KyNang = 'All' OR @KyNang LIKE N'%All%' OR @KyNang LIKE N'%Tất cả%' OR ch.KyNang = @KyNang
+                       OR (@KyNang IN ('Nghe', 'Listening') AND ch.KyNang IN ('Nghe', 'Listening'))
+                       OR (@KyNang IN ('Doc', 'Reading') AND ch.KyNang IN ('Doc', 'Reading'))
+                       OR (@KyNang IN ('NguPhap', 'Grammar') AND ch.KyNang IN ('NguPhap', 'Grammar'))
+                       OR (@KyNang IN ('TuVung', 'Vocab', 'Vocabulary') AND ch.KyNang IN ('TuVung', 'Vocab', 'Vocabulary'))
+                       OR (@KyNang IN ('Viet', 'Writing') AND ch.KyNang IN ('Viet', 'Writing')))
+                  AND (@DoKho IS NULL OR @DoKho = 'All' OR @DoKho LIKE N'%All%' OR @DoKho LIKE N'%Tất cả%' OR ch.DoKho = @DoKho
+                       OR (@DoKho IN ('De', 'Easy') AND ch.DoKho IN ('De', 'Easy'))
+                       OR (@DoKho IN ('TrungBinh', 'Medium') AND ch.DoKho IN ('TrungBinh', 'Medium'))
+                       OR (@DoKho IN ('Kho', 'Hard') AND ch.DoKho IN ('Kho', 'Hard')))
                   AND (@DaKiemDuyet IS NULL OR ch.DaKiemDuyet = @DaKiemDuyet)
                 ORDER BY ch.MaCauHoi DESC";
 

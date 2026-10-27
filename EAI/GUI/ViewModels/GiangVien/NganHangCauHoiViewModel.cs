@@ -79,20 +79,19 @@ namespace GUI.ViewModels.GiangVien
             get => _currentCauHoi;
             set
             {
+                var target = value ?? new CauHoiKhaoSatDTO();
                 string? oldAudio = _currentCauHoi?.AudioPath?.Trim();
                 if (_currentCauHoi != null)
                 {
                     _currentCauHoi.PropertyChanged -= OnCurrentCauHoiPropertyChanged;
                 }
-                if (SetProperty(ref _currentCauHoi, value ?? new()))
+                if (EqualityComparer<CauHoiKhaoSatDTO>.Default.Equals(_currentCauHoi, target) == false)
                 {
-                    if (_currentCauHoi != null)
-                    {
-                        _currentCauHoi.PropertyChanged += OnCurrentCauHoiPropertyChanged;
-                    }
+                    _currentCauHoi = target;
+                    OnPropertyChanged();
+                    _currentCauHoi.PropertyChanged += OnCurrentCauHoiPropertyChanged;
                     NapDapAnChoCauHoiHienTai();
-                    OnPropertyChanged(nameof(CurrentCauHoi));
-                    string? newAudio = _currentCauHoi?.AudioPath?.Trim();
+                    string? newAudio = _currentCauHoi.AudioPath?.Trim();
                     if (!string.Equals(oldAudio, newAudio, StringComparison.OrdinalIgnoreCase))
                     {
                         DungAudio();

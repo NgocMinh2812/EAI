@@ -89,8 +89,9 @@ namespace BUS
             else if (!string.IsNullOrWhiteSpace(textAnswer))
             {
                 string userClean = ChuankHoaChuoiTraLoi(textAnswer);
-                var acceptableAnswers = (q.DanhSachLuaChon ?? new List<LuaChonDapAnDTO>())
-                    .Where(x => x.LaDapAnDung || q.DanhSachLuaChon.Count <= 1)
+                var choices = q.DanhSachLuaChon ?? new List<LuaChonDapAnDTO>();
+                var acceptableAnswers = choices
+                    .Where(x => x.LaDapAnDung || choices.Count <= 1)
                     .Select(x => x.NoiDungLuaChon)
                     .ToList();
 

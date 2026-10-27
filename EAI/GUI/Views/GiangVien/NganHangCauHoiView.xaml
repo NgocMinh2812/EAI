@@ -256,7 +256,6 @@
                              VirtualizingPanel.IsVirtualizing="True"
                              VirtualizingPanel.VirtualizationMode="Recycling"
                              VirtualizingPanel.ScrollUnit="Pixel"
-                             PreviewMouseWheel="Smooth_PreviewMouseWheel"
                              Padding="0,0,14,0">
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
@@ -468,7 +467,6 @@
                              VirtualizingPanel.ScrollUnit="Pixel"
                              VirtualizingPanel.CacheLength="5,5"
                              VirtualizingPanel.CacheLengthUnit="Item"
-                             PreviewMouseWheel="Smooth_PreviewMouseWheel"
                              Padding="0,0,14,0">
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
@@ -639,7 +637,7 @@
                     </Grid>
 
                     <!-- Main Editor Fields (Scrollable) -->
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,12,0" Margin="0,0,2,0" PreviewMouseWheel="Smooth_PreviewMouseWheel" ScrollChanged="OnColumnScrollChanged">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,12,0" Margin="0,0,2,0">
                         <StackPanel>
                             <!-- Row 1: Kỹ năng, Độ khó, Trình độ CEFR, Loại câu hỏi (Bố cục 2 cột x 2 hàng giúp dropdown text dài không bao giờ bị cắt) -->
                             <Grid Margin="0,0,0,12">

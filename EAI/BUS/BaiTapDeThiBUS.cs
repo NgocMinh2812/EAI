@@ -135,9 +135,9 @@ namespace BUS
                     {
                         string userClean = ChuankHoaChuoiTraLoi(textAnswer);
 
-                        // So sánh với các đáp án đúng trong danh sách lựa chọn
-                        var acceptableAnswers = (q.DanhSachLuaChon ?? new List<LuaChonDapAnDTO>())
-                            .Where(x => x.LaDapAnDung || q.DanhSachLuaChon.Count <= 1)
+                        var choices = q.DanhSachLuaChon ?? new List<LuaChonDapAnDTO>();
+                        var acceptableAnswers = choices
+                            .Where(x => x.LaDapAnDung || choices.Count <= 1)
                             .Select(x => x.NoiDungLuaChon)
                             .ToList();
 

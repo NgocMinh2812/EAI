@@ -9,7 +9,7 @@ namespace DTO
     {
         public int MaCauHoi { get; set; }
         public string NoiDungCauHoi { get; set; } = string.Empty;
-        public List<string>? DanhSachLuaChon { get; set; } = new List<string>();
+        public List<string> DanhSachLuaChon { get; set; } = new();
         public int? DapAnDungIndex { get; set; } // 0: A, 1: B, 2: C, 3: D (null nếu là câu hỏi điền từ/trả lời ngắn/tự luận)
         public string? GiaiThichChiTiet { get; set; } = string.Empty;
         public int LuaChonCuaNguoiDung { get; set; } = -1; // -1: Chưa chọn

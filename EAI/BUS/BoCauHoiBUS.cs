@@ -18,7 +18,7 @@ namespace BUS
 
         public List<CauHoiKhaoSatDTO> LayDanhSachCauHoiTheoBo(int maBoCauHoi, string? tuKhoa = null, string? kyNang = null, string? doKho = null, bool? daKiemDuyet = null)
         {
-            if (maBoCauHoi <= 0) return new List<CauHoiKhaoSatDTO>();
+            if (maBoCauHoi < 0) return new List<CauHoiKhaoSatDTO>();
             return BoCauHoiDAL.Instance.LayDanhSachCauHoiTheoBo(maBoCauHoi, tuKhoa, kyNang, doKho, daKiemDuyet);
         }
 

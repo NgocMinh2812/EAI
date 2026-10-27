@@ -85,12 +85,26 @@ namespace GUI.ViewModels.GiangVien
         private string _filterExamType = "All";
 
         // Bộ lọc chọn câu hỏi từ ngân hàng
-        private int _selectedSourceId = 0; // 0 = Toàn bộ ngân hàng đề, >0 = Mã bộ cụ thể
+        public const int ALL_SOURCE_ID = -1; // -1 = Toàn bộ ngân hàng đề, >=0 = Mã bộ cụ thể
+        private int _selectedSourceId = ALL_SOURCE_ID;
         private string _filterSkill = "All";
         private string _filterQuestionLevel = "All";
         private string _filterDifficulty = "All";
         private string _searchQuestionKeyword = string.Empty;
         private bool _isShowOnlySelected = false;
+        private bool _isLoadingQuestions = false;
+
+        public bool IsLoadingQuestions
+        {
+            get => _isLoadingQuestions;
+            set => SetProperty(ref _isLoadingQuestions, value);
+        }
+
+        // Khóa đồng bộ cho ObservableCollection cập nhật đa luồng an toàn
+        private readonly object _collectionLock = new();
+
+        // Bộ nhớ đệm danh sách item câu hỏi để tối ưu hóa hiệu năng, chống giật lag
+        private readonly Dictionary<int, QuestionSelectionItem> _allQuestionItemsCache = new();
 
         // Bộ lưu trữ master tất cả câu hỏi đã chọn trong đề thi (bảo toàn khi lọc)
         private readonly Dictionary<int, QuestionSelectionItem> _selectedQuestionsMaster = new();
@@ -214,7 +228,7 @@ namespace GUI.ViewModels.GiangVien
             {
                 if (SetProperty(ref _selectedNguonCauHoi, value))
                 {
-                    _selectedSourceId = value?.Id ?? 0;
+                    _selectedSourceId = value?.Id ?? ALL_SOURCE_ID;
                     OnPropertyChanged(nameof(SelectedSourceId));
                     NapCauHoiTheoBoLoc();
                 }
@@ -367,8 +381,11 @@ namespace GUI.ViewModels.GiangVien
             XoaAudioDeThiCommand = new RelayCommand(ThucHienXoaAudioDeThi);
             TogglePlayAudioDeThiCommand = new RelayCommand(ThucHienTogglePlayAudioDeThi);
 
-            KhoiTaoDeThiMoi();
+            // Cho phép cập nhật ObservableCollection từ luồng nền an toàn
+            System.Windows.Data.BindingOperations.EnableCollectionSynchronization(NgânHangCauHoiChon, _collectionLock);
+
             TaiDuLieuDeThi();
+            KhoiTaoDeThiMoi();
             NapCauHoiTheoBoLoc();
         }
 
@@ -388,7 +405,7 @@ namespace GUI.ViewModels.GiangVien
             var dsBo = BoCauHoiDAL.Instance.LayDanhSachBoCauHoi();
             DanhSachBoCauHoi.Clear();
             DanhSachNguonCauHoi.Clear();
-            var defaultOption = new QuestionSourceOption { Id = 0, DisplayText = "Toàn bộ ngân hàng đề" };
+            var defaultOption = new QuestionSourceOption { Id = ALL_SOURCE_ID, DisplayText = "Toàn bộ ngân hàng đề" };
             DanhSachNguonCauHoi.Add(defaultOption);
 
             foreach (var bo in dsBo)
@@ -403,7 +420,7 @@ namespace GUI.ViewModels.GiangVien
             }
 
             // Luôn đặt mặc định là Toàn bộ ngân hàng đề
-            _selectedSourceId = 0;
+            _selectedSourceId = ALL_SOURCE_ID;
             _selectedNguonCauHoi = defaultOption;
             OnPropertyChanged(nameof(SelectedNguonCauHoi));
             OnPropertyChanged(nameof(SelectedSourceId));
@@ -462,7 +479,7 @@ namespace GUI.ViewModels.GiangVien
             OnPropertyChanged(nameof(TongLuotHocVienThi));
         }
 
-        public void NapCauHoiTheoBoLoc()
+        public async void NapCauHoiTheoBoLoc()
         {
             if (IsShowOnlySelected)
             {
@@ -475,81 +492,136 @@ namespace GUI.ViewModels.GiangVien
                         (x.CauHoi.DoanVanDoc != null && x.CauHoi.DoanVanDoc.ToLowerInvariant().Contains(kw))
                     ).ToList();
                 }
-                NgânHangCauHoiChon.Clear();
-                foreach (var item in listSelected)
+
+                lock (_collectionLock)
                 {
-                    NgânHangCauHoiChon.Add(item);
+                    NgânHangCauHoiChon.Clear();
+                    foreach (var item in listSelected)
+                    {
+                        NgânHangCauHoiChon.Add(item);
+                    }
                 }
+                OnPropertyChanged(nameof(NgânHangCauHoiChon));
                 ThucHienCapNhatThongKeCauHoi();
                 return;
             }
 
-            List<CauHoiKhaoSatDTO> dsCauHoi;
+            int targetSourceId = SelectedSourceId;
+            string tuKhoa = SearchQuestionKeyword;
+            string kyNang = FilterSkill;
+            string doKho = FilterDifficulty;
+            string trinhDo = FilterQuestionLevel;
 
-            if (SelectedSourceId > 0)
+            IsLoadingQuestions = true;
+            try
             {
-                dsCauHoi = BoCauHoiDAL.Instance.LayDanhSachCauHoiTheoBo(
-                    SelectedSourceId, 
-                    SearchQuestionKeyword, 
-                    FilterSkill, 
-                    FilterDifficulty,
-                    daKiemDuyet: true);
-            }
-            else
-            {
-                dsCauHoi = BoCauHoiDAL.Instance.LayTatCaCauHoi(
-                    SearchQuestionKeyword, 
-                    FilterSkill, 
-                    FilterDifficulty, 
-                    500,
-                    daKiemDuyet: true);
-            }
-
-            // Chỉ hiển thị câu hỏi đã được kiểm duyệt chất lượng nội dung (DaKiemDuyet == true)
-            dsCauHoi = dsCauHoi.Where(q => q.DaKiemDuyet).ToList();
-
-            if (!string.IsNullOrWhiteSpace(FilterQuestionLevel) && FilterQuestionLevel != "All")
-            {
-                dsCauHoi = dsCauHoi
-                    .Where(q => string.Equals(q.MaTrinhDo, FilterQuestionLevel, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-            }
-
-            NgânHangCauHoiChon.Clear();
-            int stt = _selectedQuestionsMaster.Count + 1;
-
-            foreach (var ch in dsCauHoi)
-            {
-                if (_selectedQuestionsMaster.TryGetValue(ch.MaCauHoi, out var existing))
+                var dsCauHoi = await System.Threading.Tasks.Task.Run(() =>
                 {
-                    NgânHangCauHoiChon.Add(existing);
-                }
-                else
+                    List<CauHoiKhaoSatDTO> list;
+                    if (targetSourceId >= 0)
+                    {
+                        list = BoCauHoiDAL.Instance.LayDanhSachCauHoiTheoBo(
+                            targetSourceId, 
+                            tuKhoa, 
+                            kyNang, 
+                            doKho,
+                            daKiemDuyet: true);
+                    }
+                    else
+                    {
+                        list = BoCauHoiDAL.Instance.LayTatCaCauHoi(
+                            tuKhoa, 
+                            kyNang, 
+                            doKho, 
+                            1000,
+                            daKiemDuyet: true);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(trinhDo) && 
+                        !string.Equals(trinhDo, "All", StringComparison.OrdinalIgnoreCase) &&
+                        !trinhDo.Contains("All", StringComparison.OrdinalIgnoreCase) &&
+                        !trinhDo.Contains("Tất cả", StringComparison.OrdinalIgnoreCase))
+                    {
+                        list = list.Where(q => string.Equals(q.MaTrinhDo, trinhDo, StringComparison.OrdinalIgnoreCase)).ToList();
+                    }
+
+                    return list.Where(q => q.DaKiemDuyet).ToList();
+                });
+
+                var itemsToAdd = new List<QuestionSelectionItem>();
+                int stt = _selectedQuestionsMaster.Count + 1;
+
+                foreach (var ch in dsCauHoi)
                 {
-                    var newItem = new QuestionSelectionItem
+                    if (_selectedQuestionsMaster.TryGetValue(ch.MaCauHoi, out var existing))
                     {
-                        CauHoi = ch,
-                        Diem = 1.0,
-                        ThuTu = stt++,
-                        IsSelected = false
-                    };
-                    newItem.OnChanged = () =>
+                        itemsToAdd.Add(existing);
+                    }
+                    else
                     {
-                        if (newItem.IsSelected)
+                        if (!_allQuestionItemsCache.TryGetValue(ch.MaCauHoi, out var cachedItem))
                         {
-                            _selectedQuestionsMaster[newItem.CauHoi.MaCauHoi] = newItem;
+                            cachedItem = new QuestionSelectionItem
+                            {
+                                CauHoi = ch,
+                                Diem = 1.0,
+                                ThuTu = stt++,
+                                IsSelected = false
+                            };
+                            cachedItem.OnChanged = () =>
+                            {
+                                if (cachedItem.IsSelected)
+                                {
+                                    _selectedQuestionsMaster[cachedItem.CauHoi.MaCauHoi] = cachedItem;
+                                }
+                                else
+                                {
+                                    _selectedQuestionsMaster.Remove(cachedItem.CauHoi.MaCauHoi);
+                                }
+                                ThucHienCapNhatThongKeCauHoi();
+                            };
+                            _allQuestionItemsCache[ch.MaCauHoi] = cachedItem;
                         }
                         else
                         {
-                            _selectedQuestionsMaster.Remove(newItem.CauHoi.MaCauHoi);
+                            cachedItem.IsSelected = false;
                         }
-                        ThucHienCapNhatThongKeCauHoi();
-                    };
-                    NgânHangCauHoiChon.Add(newItem);
+                        itemsToAdd.Add(cachedItem);
+                    }
+                }
+
+                void UpdateList()
+                {
+                    lock (_collectionLock)
+                    {
+                        NgânHangCauHoiChon.Clear();
+                        foreach (var it in itemsToAdd)
+                        {
+                            NgânHangCauHoiChon.Add(it);
+                        }
+                    }
+                    OnPropertyChanged(nameof(NgânHangCauHoiChon));
+                    ThucHienCapNhatThongKeCauHoi();
+                }
+
+                var dispatcher = System.Windows.Application.Current?.Dispatcher;
+                if (dispatcher != null && !dispatcher.CheckAccess())
+                {
+                    dispatcher.Invoke(UpdateList);
+                }
+                else
+                {
+                    UpdateList();
                 }
             }
-
-            ThucHienCapNhatThongKeCauHoi();
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[NapCauHoiTheoBoLoc] {ex.Message}");
+            }
+            finally
+            {
+                IsLoadingQuestions = false;
+            }
         }
 
         private void SetAllSelection(bool select)
@@ -632,6 +704,10 @@ namespace GUI.ViewModels.GiangVien
         private void KhoiTaoDeThiMoi()
         {
             _selectedQuestionsMaster.Clear();
+            foreach (var item in _allQuestionItemsCache.Values)
+            {
+                item.IsSelected = false;
+            }
             _isShowOnlySelected = false;
             OnPropertyChanged(nameof(IsShowOnlySelected));
 
@@ -659,7 +735,6 @@ namespace GUI.ViewModels.GiangVien
             }
 
             ThongBaoLoi = string.Empty;
-            NapCauHoiTheoBoLoc();
         }
 
         private void ThucHienThemDeThiMoi()
@@ -700,6 +775,7 @@ namespace GUI.ViewModels.GiangVien
                     ThucHienCapNhatThongKeCauHoi();
                 };
                 _selectedQuestionsMaster[q.MaCauHoi] = item;
+                _allQuestionItemsCache[q.MaCauHoi] = item;
             }
 
             NapCauHoiTheoBoLoc();
