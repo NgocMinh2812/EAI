@@ -1,0 +1,168 @@
+<Window x:Class="GUI.Views.GiangVien.SuaCauHoiAIDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:GUI"
+        Title="Chỉnh sửa câu hỏi chờ duyệt"
+        Height="620" Width="720"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        FontFamily="Segoe UI"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="AdminDarkGreen" Color="#0F4C3A"/>
+        <SolidColorBrush x:Key="TextDark" Color="#0F172A"/>
+        <SolidColorBrush x:Key="TextGray" Color="#64748B"/>
+        <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0"/>
+    </Window.Resources>
+
+    <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="16" Margin="16" Padding="24">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="28" ShadowDepth="8" Opacity="0.25" Color="#0F172A"/>
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <local:LucideIcon Kind="Pencil" Size="18" Foreground="#0F4C3A" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Chỉnh sửa câu hỏi do AI tạo" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
+                    </StackPanel>
+                    <TextBlock x:Name="txtSubHeader" Text="Chỉnh sửa nội dung câu hỏi, các lựa chọn đáp án và giải thích chi tiết" FontSize="12.5" Foreground="{StaticResource TextGray}"/>
+                </StackPanel>
+
+                <Button Grid.Column="1" Click="BtnDong_Click" Background="#F1F5F9" BorderThickness="0" Width="30" Height="30" Cursor="Hand" VerticalAlignment="Top">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="15">
+                                <local:LucideIcon Kind="X" Size="14" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Grid>
+
+            <!-- Body Form Scrollable -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16" Padding="0,0,10,0">
+                <StackPanel>
+                    <!-- Kỹ năng & Trình độ Badge -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                        <Border Background="#F1F5F9" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
+                            <TextBlock x:Name="lblKyNang" Text="Kỹ năng: Đọc hiểu" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextDark}"/>
+                        </Border>
+                        <Border Background="#ECFDF5" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
+                            <TextBlock x:Name="lblTrinhDo" Text="Trình độ: B1" FontSize="12" FontWeight="SemiBold" Foreground="#065F46"/>
+                        </Border>
+                        <Border Background="#EFF6FF" CornerRadius="6" Padding="8,4">
+                            <TextBlock x:Name="lblLoaiCauHoi" Text="Dạng: Trắc nghiệm" FontSize="12" FontWeight="SemiBold" Foreground="#1E40AF"/>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Đoạn văn đọc hiểu (Optional) -->
+                    <StackPanel x:Name="pnlDoanVanDoc" Margin="0,0,0,14">
+                        <TextBlock Text="ĐOẠN VĂN THAM CHIẾU (NẾU CÓ)" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
+                        <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="10">
+                            <TextBox x:Name="txtDoanVanDoc" Height="80" TextWrapping="Wrap" AcceptsReturn="True" BorderThickness="0" Background="Transparent" FontSize="12.5"/>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Nội dung câu hỏi -->
+                    <TextBlock Text="NỘI DUNG CÂU HỎI *" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
+                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,14">
+                        <TextBox x:Name="txtNoiDungCauHoi" Height="70" TextWrapping="Wrap" AcceptsReturn="True" BorderThickness="0" Background="Transparent" FontSize="13" Foreground="{StaticResource TextDark}"/>
+                    </Border>
+
+                    <!-- Các lựa chọn đáp án -->
+                    <TextBlock Text="CÁC LỰA CHỌN ĐÁP ÁN (CHỌN NÚT TRÒN LÀ ĐÁP ÁN ĐÚNG)" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,8"/>
+                    
+                    <!-- Lựa chọn A -->
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="36"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <RadioButton x:Name="rbOptionA" GroupName="DapAnDung" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBox x:Name="txtOptionA" Grid.Column="1" Height="34" VerticalContentAlignment="Center" Padding="8,0" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1"/>
+                    </Grid>
+
+                    <!-- Lựa chọn B -->
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="36"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <RadioButton x:Name="rbOptionB" GroupName="DapAnDung" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBox x:Name="txtOptionB" Grid.Column="1" Height="34" VerticalContentAlignment="Center" Padding="8,0" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1"/>
+                    </Grid>
+
+                    <!-- Lựa chọn C -->
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="36"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <RadioButton x:Name="rbOptionC" GroupName="DapAnDung" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBox x:Name="txtOptionC" Grid.Column="1" Height="34" VerticalContentAlignment="Center" Padding="8,0" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1"/>
+                    </Grid>
+
+                    <!-- Lựa chọn D -->
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="36"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <RadioButton x:Name="rbOptionD" GroupName="DapAnDung" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBox x:Name="txtOptionD" Grid.Column="1" Height="34" VerticalContentAlignment="Center" Padding="8,0" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1"/>
+                    </Grid>
+
+                    <!-- Giải thích đáp án -->
+                    <TextBlock Text="GIẢI THÍCH CHI TIẾT ĐÁP ÁN" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
+                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="10">
+                        <TextBox x:Name="txtGiaiThich" Height="65" TextWrapping="Wrap" AcceptsReturn="True" BorderThickness="0" Background="Transparent" FontSize="12.5"/>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Footer Buttons -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Hủy bỏ" Click="BtnDong_Click" Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
+                        FontWeight="SemiBold" FontSize="13" Padding="18,9" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <Button Content="Lưu cập nhật" Click="BtnLuu_Click" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
+                        FontWeight="Bold" FontSize="13" Padding="20,9" BorderThickness="0" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

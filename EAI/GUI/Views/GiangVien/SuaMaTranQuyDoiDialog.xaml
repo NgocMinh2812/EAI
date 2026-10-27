@@ -1,0 +1,115 @@
+<Window x:Class="GUI.Views.GiangVien.SuaMaTranQuyDoiDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:GUI"
+        Title="Chỉnh sửa Ma trận Quy đổi Năng lực"
+        Height="540" Width="850"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        FontFamily="Segoe UI"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="AdminDarkGreen" Color="#0F4C3A"/>
+        <SolidColorBrush x:Key="TextDark" Color="#0F172A"/>
+        <SolidColorBrush x:Key="TextGray" Color="#64748B"/>
+        <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0"/>
+    </Window.Resources>
+
+    <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="16" Margin="16" Padding="24">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="28" ShadowDepth="8" Opacity="0.25" Color="#0F172A"/>
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <local:LucideIcon Kind="Sliders" Size="18" Foreground="#0F4C3A" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Cấu hình Ma trận Quy đổi Khung Năng lực CEFR / IELTS / TOEIC" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
+                    </StackPanel>
+                    <TextBlock Text="Dữ liệu được lưu trữ trực tiếp vào CSDL SQL Server và áp dụng ngay cho thuật toán đánh giá thích ứng của học viên." FontSize="12.5" Foreground="{StaticResource TextGray}"/>
+                </StackPanel>
+
+                <Button Grid.Column="1" Click="BtnDong_Click" Background="#F1F5F9" BorderThickness="0" Width="30" Height="30" Cursor="Hand" VerticalAlignment="Top">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="15">
+                                <local:LucideIcon Kind="X" Size="14" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Grid>
+
+            <!-- Editable DataGrid -->
+            <DataGrid Grid.Row="1" x:Name="dgMaTran" AutoGenerateColumns="False" CanUserAddRows="False" 
+                      CanUserDeleteRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                      Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Margin="0,0,0,16">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Cấp độ" Binding="{Binding MaCapDo}" IsReadOnly="True" Width="70"/>
+                    <DataGridTextColumn Header="Tên hiển thị" Binding="{Binding TenHienThi}" Width="140"/>
+                    <DataGridTextColumn Header="Từ % (Min)" Binding="{Binding DiemPhanTramMin}" Width="85"/>
+                    <DataGridTextColumn Header="Đến % (Max)" Binding="{Binding DiemPhanTramMax}" Width="85"/>
+                    <DataGridTextColumn Header="Quy đổi IELTS" Binding="{Binding QuyDoiIelts}" Width="110"/>
+                    <DataGridTextColumn Header="Quy đổi TOEIC" Binding="{Binding QuyDoiToeic}" Width="110"/>
+                    <DataGridTextColumn Header="Lộ trình đề xuất" Binding="{Binding LoTrinhDeXuat}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Footer Buttons -->
+            <Grid Grid.Row="2">
+                <Button Content="Khôi phục chuẩn CEFR" Click="BtnKhoiPhucMacDinh_Click" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1"
+                        Foreground="{StaticResource TextGray}" FontWeight="Medium" FontSize="12.5" Padding="14,8" Cursor="Hand" HorizontalAlignment="Left">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Hủy bỏ" Click="BtnDong_Click" Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
+                            FontWeight="SemiBold" FontSize="13" Padding="18,9" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <Button Content="Lưu ma trận quy đổi" Click="BtnLuu_Click" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
+                            FontWeight="Bold" FontSize="13" Padding="20,9" BorderThickness="0" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

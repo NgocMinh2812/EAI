@@ -44,5 +44,10 @@ namespace DTO
                                        : DiemSo >= 6.5m ? "Tốt! Đạt ngưỡng điểm mục tiêu."
                                        : DiemSo >= DiemDat ? "Đạt yêu cầu! Tiếp tục duy trì phong độ."
                                        : "Chưa đạt ngưỡng điểm yêu cầu, hãy ôn tập lại các câu sai.";
+
+        public string HinhThucHienThi => HinhThucLam == "ThiThu" ? "Thi thử" : "Luyện tập";
+        public double ThoiGianLamPhutHienThi => Math.Round(ThoiGianLamGiay / 60.0, 1);
+        public string SoCauDungTrenTong => $"{SoCauDung}/{TongSoCau}";
+        public string TrangThaiHienThi => TrangThai == "DaNop" ? "Đã nộp bài" : (TrangThai == "HetGio" ? "Hết giờ" : "Đang làm");
     }
 }

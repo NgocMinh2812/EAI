@@ -261,7 +261,7 @@ namespace DAL
         /// <summary>
         /// [US-GV06] Thêm mới hoặc Cập nhật Câu hỏi cùng toàn bộ Danh sách đáp án trong 1 SqlTransaction an toàn
         /// </summary>
-        public bool LuuCauHoiVaDapAn(CauHoiKhaoSatDTO cauHoi, List<LuaChonDapAnDTO> dsDapAn, int nguoiTaoId, out string errorMessage)
+        public bool LuuCauHoiVaDapAn(CauHoiKhaoSatDTO cauHoi, List<LuaChonDapAnDTO> dsDapAn, int nguoiTaoId, out string errorMessage, string nguonTao = "ThuCong")
         {
             errorMessage = string.Empty;
             using var conn = SqlDataProvider.Instance.GetConnection();
@@ -317,7 +317,7 @@ namespace DAL
                     cmd.Parameters.AddWithValue("@LoiGiai", (object?)cauHoi.GiaiThichDapAn ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@DaKiemDuyet", cauHoi.DaKiemDuyet);
                     cmd.Parameters.AddWithValue("@NguoiTao", nguoiTaoId > 0 ? (object)nguoiTaoId : DBNull.Value);
-                    cmd.Parameters.AddWithValue("@NguonTao", "ThuCong");
+                    cmd.Parameters.AddWithValue("@NguonTao", string.IsNullOrWhiteSpace(nguonTao) ? "ThuCong" : nguonTao);
 
                     maCauHoi = (int)cmd.ExecuteScalar();
                     cauHoi.MaCauHoi = maCauHoi;

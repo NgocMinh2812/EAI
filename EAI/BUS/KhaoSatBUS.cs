@@ -13,18 +13,24 @@ namespace BUS
 
         public List<CauHoiKhaoSatDTO> LayDanhSachCauHoiKhaoSat(int maBaiKhaoSat = 1)
         {
+            var list = KhaoSatDAL.Instance.LayDanhSachCauHoiTheoBaiKhaoSat(maBaiKhaoSat);
+            if (list != null && list.Count > 0)
+                return list;
+
             return CauHoiDAL.Instance.LayDanhSachCauHoiKhaoSat(maBaiKhaoSat);
         }
 
         public List<CauHoiKhaoSatDTO> LayDanhSachCauHoiTheoTrinhDo(string maCapDo)
         {
-            // 1. Thử lấy bài khảo sát chuẩn 15 câu từ CSDL
-            var list = CauHoiDAL.Instance.LayDanhSachCauHoiKhaoSat(1);
-            if (list == null || list.Count < 10)
+            // 1. Thử lấy bài khảo sát đang kích hoạt từ CSDL
+            var activeSurvey = LayBaiKhaoSatDangHoatDong();
+            var list = KhaoSatDAL.Instance.LayDanhSachCauHoiTheoBaiKhaoSat(activeSurvey.MaBaiKhaoSat);
+            
+            if (list == null || list.Count < 5)
             {
                 list = CauHoiDAL.Instance.LayDanhSachCauHoiTheoTrinhDo(maCapDo, 15);
             }
-            if (list == null || list.Count < 10)
+            if (list == null || list.Count < 5)
             {
                 list = TaoBoCauHoiKhaoSatChuan15Cau(maCapDo);
             }
@@ -53,32 +59,39 @@ namespace BUS
 
             double tyLeDung = tongSoCau > 0 ? (double)soCauDung / tongSoCau : 0;
             decimal diem10 = Math.Round((decimal)(tyLeDung * 10), 1);
+            int phanTram = (int)Math.Round(tyLeDung * 100);
 
-            // Ngưỡng đạt chuẩn là >= 60% (tương đương >= 6.0/10)
-            bool ketQuaDat = tyLeDung >= 0.60;
-            string trinhDoPhuHop;
+            // Tải ma trận quy đổi động từ bảng CauHinhQuyDoiKhaoSat trong SQL Server
+            var matrix = LayMaTranQuyDoi();
+            var matchedTier = matrix.FirstOrDefault(m => phanTram >= m.DiemPhanTramMin && phanTram <= m.DiemPhanTramMax);
+            if (matchedTier == null && matrix.Count > 0)
+            {
+                matchedTier = phanTram >= matrix.Max(m => m.DiemPhanTramMax)
+                    ? matrix.OrderByDescending(m => m.DiemPhanTramMax).First()
+                    : matrix.OrderBy(m => m.DiemPhanTramMin).First();
+            }
+
+            string trinhDoPhuHop = matchedTier?.MaCapDo ?? "B1";
+            string tenTrinhDo = matchedTier?.TenHienThi ?? $"Trình độ {trinhDoPhuHop}";
+            string ielts = matchedTier?.QuyDoiIelts ?? "IELTS 5.0 - 5.5";
+            string toeic = matchedTier?.QuyDoiToeic ?? "TOEIC 550 - 650";
+            string nhanXet = matchedTier?.LoTrinhDeXuat ?? "";
+
+            bool ketQuaDat = phanTram >= 60;
             string lyDoDieuChinh;
 
-            if (ketQuaDat)
+            if (phanTram >= 85)
             {
-                if (tyLeDung >= 0.85 && trinhDoDaChon != "C1")
-                {
-                    trinhDoPhuHop = NangCapTrinhDo(trinhDoDaChon);
-                    lyDoDieuChinh = $"Xuất sắc! Bạn trả lời đúng {soCauDung}/{tongSoCau} câu ({diem10}/10 điểm - {tyLeDung * 100:0}%), vượt trội chuẩn năng lực cấp độ {trinhDoDaChon}. Hệ thống AI đề xuất bạn nâng mục tiêu lên trình độ {trinhDoPhuHop} để tối ưu hóa tiềm năng!";
-                }
-                else
-                {
-                    trinhDoPhuHop = trinhDoDaChon;
-                    lyDoDieuChinh = $"Chúc mừng bạn! Bạn trả lời đúng {soCauDung}/{tongSoCau} câu ({diem10}/10 điểm - {tyLeDung * 100:0}%), đạt yêu cầu năng lực chuẩn của trình độ {trinhDoDaChon}.";
-                }
+                lyDoDieuChinh = $"Xuất sắc! Bạn trả lời đúng {soCauDung}/{tongSoCau} câu ({diem10}/10 điểm - {phanTram}%), đạt cấp độ {trinhDoPhuHop} ({tenTrinhDo}). Hệ thống AI đề xuất bạn theo học lộ trình {trinhDoPhuHop} để phát huy tối đa tiềm năng!";
+            }
+            else if (phanTram >= 60)
+            {
+                lyDoDieuChinh = $"Chúc mừng bạn! Bạn trả lời đúng {soCauDung}/{tongSoCau} câu ({diem10}/10 điểm - {phanTram}%), đạt chuẩn năng lực {trinhDoPhuHop} ({tenTrinhDo}).";
             }
             else
             {
-                trinhDoPhuHop = HaCapTrinhDo(trinhDoDaChon);
-                lyDoDieuChinh = $"Bạn đạt {soCauDung}/{tongSoCau} câu ({diem10}/10 điểm - {tyLeDung * 100:0}%), chưa đạt ngưỡng yêu cầu 60% của cấp độ {trinhDoDaChon}. Hệ thống AI đề xuất bạn học tập ở trình độ {trinhDoPhuHop} để củng cố nền tảng trước khi nâng cao.";
+                lyDoDieuChinh = $"Bạn đạt {soCauDung}/{tongSoCau} câu ({diem10}/10 điểm - {phanTram}%), xếp loại {trinhDoPhuHop} ({tenTrinhDo}). Hệ thống AI đề xuất bạn học tập ở lộ trình {trinhDoPhuHop} để củng cố nền tảng trước khi nâng cao.";
             }
-
-            var thongTin = LayThongTinTrinhDo(trinhDoPhuHop);
 
             var ketQua = new KetQuaKhaoSatDTO
             {
@@ -88,10 +101,10 @@ namespace BUS
                 TrinhDoDaChon = trinhDoDaChon,
                 KetQuaDat = ketQuaDat,
                 TrinhDoPhuHop = trinhDoPhuHop,
-                TenTrinhDoPhuHop = thongTin.Ten,
-                UocTinhIelts = thongTin.Ielts,
-                UocTinhToeic = thongTin.Toeic,
-                NhanXetLộTrinh = thongTin.NhanXet,
+                TenTrinhDoPhuHop = tenTrinhDo,
+                UocTinhIelts = ielts,
+                UocTinhToeic = toeic,
+                NhanXetLộTrinh = nhanXet,
                 LyDoDieuChinh = lyDoDieuChinh
             };
 
@@ -107,14 +120,22 @@ namespace BUS
             }
 
             // Lưu vào CSDL
-            // Lưu vào CSDL
             try
             {
                 if (maNguoiDung > 0)
                 {
-                    // 1. Cập nhật Hồ sơ học tập TRƯỚC TIÊN (Lưu điểm đánh giá năng lực đầu vào và trình độ vào hồ sơ cá nhân)
-                    string ghiChu = $"Đánh giá năng lực: {diem10}/10 ({soCauDung}/{tongSoCau} câu đúng) • Xếp loại {trinhDoPhuHop} ({thongTin.Ten}) • {thongTin.Ielts} • {thongTin.Toeic}";
-                    HoSoHocTapDAL.Instance.LuuKetQuaDanhGiaBanDau(maNguoiDung, trinhDoPhuHop, "CEFR", thongTin.TargetIelts, diem10, ghiChu, trinhDoDauVao: trinhDoPhuHop);
+                    decimal targetIelts = trinhDoPhuHop switch
+                    {
+                        "C1" => 8.0m,
+                        "B2" => 6.5m,
+                        "B1" => 5.5m,
+                        "A2" => 4.5m,
+                        _ => 3.5m
+                    };
+
+                    // 1. Cập nhật Hồ sơ học tập
+                    string ghiChu = $"Đánh giá năng lực: {diem10}/10 ({soCauDung}/{tongSoCau} câu đúng) • Xếp loại {trinhDoPhuHop} ({tenTrinhDo}) • {ielts} • {toeic}";
+                    HoSoHocTapDAL.Instance.LuuKetQuaDanhGiaBanDau(maNguoiDung, trinhDoPhuHop, "CEFR", targetIelts, diem10, ghiChu, trinhDoDauVao: trinhDoPhuHop);
 
                     // 2. Cập nhật cờ lần đầu đăng nhập
                     NguoiDungDAL.Instance.CapNhatTrangThaiLanDauDangNhap(maNguoiDung, false);
@@ -130,7 +151,8 @@ namespace BUS
                     // 4. Lưu lượt khảo sát lịch sử
                     try
                     {
-                        int maLuot = CauHoiDAL.Instance.LuuLuotKhaoSat(maNguoiDung, 1, tongSoCau, soCauDung, diem10, trinhDoPhuHop);
+                        var activeSurvey = LayBaiKhaoSatDangHoatDong();
+                        int maLuot = CauHoiDAL.Instance.LuuLuotKhaoSat(maNguoiDung, activeSurvey.MaBaiKhaoSat, tongSoCau, soCauDung, diem10, trinhDoPhuHop);
                         if (maLuot > 0)
                         {
                             foreach (var q in danhSachCauHoi)
@@ -154,6 +176,55 @@ namespace BUS
 
             return ketQua;
         }
+
+        #region Teacher Management APIs (US-GV09)
+
+        public (int MaBaiKhaoSat, string TenBai, string MoTa, int TongSoCau, bool DangHoatDong) LayBaiKhaoSatDangHoatDong()
+        {
+            return KhaoSatDAL.Instance.LayBaiKhaoSatDangHoatDong();
+        }
+
+        public bool CapNhatThongTinBaiKhaoSat(int maBaiKhaoSat, string tenBai, string moTa, bool dangHoatDong)
+        {
+            return KhaoSatDAL.Instance.CapNhatThongTinBaiKhaoSat(maBaiKhaoSat, tenBai, moTa, dangHoatDong);
+        }
+
+        public List<CauHoiKhaoSatDTO> LayDanhSachCauHoiTheoBaiKhaoSat(int maBaiKhaoSat)
+        {
+            return KhaoSatDAL.Instance.LayDanhSachCauHoiTheoBaiKhaoSat(maBaiKhaoSat);
+        }
+
+        public List<CauHoiKhaoSatDTO> LayDanhSachCauHoiCoTheThem(int maBaiKhaoSat, string? tuKhoa = null, string? trinhDo = null)
+        {
+            return KhaoSatDAL.Instance.LayDanhSachCauHoiCoTheThem(maBaiKhaoSat, tuKhoa, trinhDo);
+        }
+
+        public bool CapNhatCauHoiBaiKhaoSat(int maBaiKhaoSat, List<int> dsMaCauHoi, out string errorMessage)
+        {
+            return KhaoSatDAL.Instance.CapNhatCauHoiBaiKhaoSat(maBaiKhaoSat, dsMaCauHoi, out errorMessage);
+        }
+
+        public List<CauHinhQuyDoiKhaoSatDTO> LayMaTranQuyDoi()
+        {
+            return KhaoSatDAL.Instance.LayMaTranQuyDoi();
+        }
+
+        public bool LuuMaTranQuyDoi(List<CauHinhQuyDoiKhaoSatDTO> danhSach, out string errorMessage)
+        {
+            return KhaoSatDAL.Instance.LuuMaTranQuyDoi(danhSach, out errorMessage);
+        }
+
+        public List<SinhVienKhaoSatResultDTO> LayDanhSachSinhVienKhaoSat(string? tuKhoa = null, string? trinhDo = null)
+        {
+            return KhaoSatDAL.Instance.LayDanhSachSinhVienKhaoSat(tuKhoa, trinhDo);
+        }
+
+        public List<ChiTietTraLoiKhaoSatItemDTO> LayChiTietKhaoSatHocVien(int maLuotKhaoSat)
+        {
+            return KhaoSatDAL.Instance.LayChiTietKhaoSatHocVien(maLuotKhaoSat);
+        }
+
+        #endregion
 
         public KetQuaKhaoSatDTO ChamDiemVaXepLoai(List<CauHoiKhaoSatDTO> danhSachCauHoi, int maNguoiDung)
         {

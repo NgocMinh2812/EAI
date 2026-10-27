@@ -92,12 +92,12 @@
                         <!-- AI Model -->
                         <TextBlock Text="MÔ HÌNH AI" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
                         <ComboBox x:Name="cboModel" Height="36" SelectedIndex="0" Margin="0,0,0,14" Cursor="Hand">
-                            <ComboBoxItem Content="Google Gemini (gemini-3.5-flash)"/>
-                            <ComboBoxItem Content="Groq Cloud (qwen/qwen3.8-27b)"/>
-                            <ComboBoxItem Content="xKiro AI Gateway (qwen/qwen3.5-flash:free)"/>
+                            <ComboBoxItem Content="Google Gemini (gemini-1.5-flash)"/>
+                            <ComboBoxItem Content="Groq Cloud (llama-3.3-70b-versatile)"/>
+                            <ComboBoxItem Content="xKiro AI Gateway (qwen/qwen-2.5-72b-instruct)"/>
                         </ComboBox>
 
-                        <!-- Skill and Question Type (NÂNG CẤP ĐA DẠNG KỸ NĂNG) -->
+                        <!-- Skill and Question Type -->
                         <Grid Margin="0,0,0,14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -164,7 +164,6 @@
                                     <ComboBoxItem Content="10"/>
                                     <ComboBoxItem Content="15"/>
                                     <ComboBoxItem Content="20"/>
-                                    <ComboBoxItem Content="40"/>
                                 </ComboBox>
                             </StackPanel>
                         </Grid>
@@ -193,7 +192,7 @@
                                     </Button>
                                 </Grid>
                                 <ProgressBar IsIndeterminate="True" Height="4" Foreground="#D97706" Background="#FDE68A" BorderThickness="0" Margin="0,2,0,5"/>
-                                <TextBlock Text="Tiến trình vẫn tiếp tục chạy ngầm an toàn ngay cả khi bạn chuyển sang màn hình khác." FontSize="11" Foreground="#78350F" TextWrapping="Wrap"/>
+                                <TextBlock Text="Tiến trình đang gọi AI và lưu câu hỏi vào CSDL SQL Server." FontSize="11" Foreground="#78350F" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
 
@@ -218,112 +217,33 @@
                 <Border Grid.Column="2" Style="{StaticResource AdminCardStyle}">
                     <StackPanel>
                         <Grid Margin="0,0,0,16">
-                            <TextBlock Text="Kiểm duyệt câu hỏi do AI tạo" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}"/>
-                            <Border HorizontalAlignment="Right" Background="#FEF3C7" CornerRadius="6" Padding="8,3">
-                                <TextBlock x:Name="txtPendingCount" Text="2 chờ duyệt" FontSize="11.5" FontWeight="SemiBold" Foreground="#B45309"/>
-                            </Border>
+                            <TextBlock Text="Kiểm duyệt câu hỏi do AI tạo &amp; Nhập tệp" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button x:Name="btnRefreshQueue" Background="#F1F5F9" BorderThickness="0" Padding="8,4" Margin="0,0,8,0" Cursor="Hand" Click="BtnRefreshQueue_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <local:LucideIcon Kind="RefreshCw" Size="12" Foreground="{StaticResource TextDark}" Margin="0,0,4,0"/>
+                                        <TextBlock Text="Làm mới" FontSize="11.5" Foreground="{StaticResource TextDark}"/>
+                                    </StackPanel>
+                                </Button>
+                                <Border Background="#FEF3C7" CornerRadius="6" Padding="8,4">
+                                    <TextBlock x:Name="txtPendingCount" Text="0 chờ duyệt" FontSize="11.5" FontWeight="SemiBold" Foreground="#B45309"/>
+                                </Border>
+                            </StackPanel>
                         </Grid>
 
-                        <!-- Questions Container -->
-                        <StackPanel x:Name="pnlQuestionsList">
-                            <!-- Question Item 1: Present Perfect -->
-                            <Border x:Name="cardQ1" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,16">
-                                <StackPanel>
-                                    <Grid Margin="0,0,0,10">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="Present Perfect — Ngữ pháp B1" FontWeight="Bold" FontSize="13.5" Foreground="{StaticResource TextDark}" Margin="0,0,8,0"/>
-                                            <TextBlock Text="13/09 14:22 • Google Gemini" FontSize="12" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                        <Border HorizontalAlignment="Right" Background="#FEF3C7" CornerRadius="4" Padding="6,2">
-                                            <TextBlock Text="Chờ duyệt" FontSize="11" FontWeight="SemiBold" Foreground="#B45309"/>
-                                        </Border>
-                                    </Grid>
+                        <!-- Empty State -->
+                        <Border x:Name="pnlEmptyQueue" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="10" Padding="32" Visibility="Collapsed">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Border Width="48" Height="48" CornerRadius="24" Background="#E2E8F0" Margin="0,0,0,12" HorizontalAlignment="Center">
+                                    <local:LucideIcon Kind="CheckCircle2" Size="24" Foreground="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Không có câu hỏi nào đang chờ duyệt" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                <TextBlock Text="Bạn có thể tạo câu hỏi mới bằng AI hoặc nhập tệp dữ liệu đề thi ở tab bên cạnh." FontSize="12.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
 
-                                    <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,12">
-                                        <TextBlock FontFamily="Consolas" FontSize="12.5" Foreground="{StaticResource TextDark}" TextWrapping="Wrap" LineHeight="20">
-                                            Which sentence is grammatically correct?<LineBreak/>
-                                            A) She has went to school.<LineBreak/>
-                                            B) She has gone to school.<LineBreak/>
-                                            C) She have gone to school.<LineBreak/>
-                                            D) She go to school yesterday.
-                                        </TextBlock>
-                                    </Border>
-
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                        <Button Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
-                                                FontWeight="SemiBold" FontSize="12" Padding="12,6" Margin="0,0,8,0" Cursor="Hand" Click="BtnSuaQ1_Click">
-                                            <StackPanel Orientation="Horizontal">
-                                                <local:LucideIcon Kind="Pencil" Size="12" Foreground="{StaticResource TextDark}" Margin="0,0,5,0"/>
-                                                <TextBlock Text="Sửa"/>
-                                            </StackPanel>
-                                        </Button>
-                                        <Button Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" Foreground="#EF4444" 
-                                                FontWeight="SemiBold" FontSize="12" Padding="12,6" Margin="0,0,8,0" Cursor="Hand" Click="BtnTuChoiQ1_Click">
-                                            <StackPanel Orientation="Horizontal">
-                                                <local:LucideIcon Kind="X" Size="12" Foreground="#EF4444" Margin="0,0,5,0"/>
-                                                <TextBlock Text="Từ chối"/>
-                                            </StackPanel>
-                                        </Button>
-                                        <Button Background="{StaticResource AdminDarkGreen}" Foreground="White" 
-                                                FontWeight="SemiBold" FontSize="12" Padding="16,6" BorderThickness="0" Cursor="Hand" Click="BtnDuyetQ1_Click">
-                                            <StackPanel Orientation="Horizontal">
-                                                <local:LucideIcon Kind="Check" Size="12" Foreground="White" Margin="0,0,5,0"/>
-                                                <TextBlock Text="Phê duyệt"/>
-                                            </StackPanel>
-                                        </Button>
-                                    </StackPanel>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Question Item 2: Environment Vocabulary -->
-                            <Border x:Name="cardQ2" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,16">
-                                <StackPanel>
-                                    <Grid Margin="0,0,0,10">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="Từ vựng Môi trường — A2" FontWeight="Bold" FontSize="13.5" Foreground="{StaticResource TextDark}" Margin="0,0,8,0"/>
-                                            <TextBlock Text="13/09 14:23 • Groq Cloud" FontSize="12" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                        <Border HorizontalAlignment="Right" Background="#FEF3C7" CornerRadius="4" Padding="6,2">
-                                            <TextBlock Text="Chờ duyệt" FontSize="11" FontWeight="SemiBold" Foreground="#B45309"/>
-                                        </Border>
-                                    </Grid>
-
-                                    <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,12">
-                                        <TextBlock FontFamily="Consolas" FontSize="12.5" Foreground="{StaticResource TextDark}" TextWrapping="Wrap" LineHeight="20">
-                                            Choose the word meaning 'to use something again':<LineBreak/>
-                                            A) Reduce<LineBreak/>
-                                            B) Recycle<LineBreak/>
-                                            C) Refuse<LineBreak/>
-                                            D) React
-                                        </TextBlock>
-                                    </Border>
-
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                        <Button Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
-                                                FontWeight="SemiBold" FontSize="12" Padding="12,6" Margin="0,0,8,0" Cursor="Hand" Click="BtnSuaQ2_Click">
-                                            <StackPanel Orientation="Horizontal">
-                                                <local:LucideIcon Kind="Pencil" Size="12" Foreground="{StaticResource TextDark}" Margin="0,0,5,0"/>
-                                                <TextBlock Text="Sửa"/>
-                                            </StackPanel>
-                                        </Button>
-                                        <Button Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" Foreground="#EF4444" 
-                                                FontWeight="SemiBold" FontSize="12" Padding="12,6" Margin="0,0,8,0" Cursor="Hand" Click="BtnTuChoiQ2_Click">
-                                            <StackPanel Orientation="Horizontal">
-                                                <local:LucideIcon Kind="X" Size="12" Foreground="#EF4444" Margin="0,0,5,0"/>
-                                                <TextBlock Text="Từ chối"/>
-                                            </StackPanel>
-                                        </Button>
-                                        <Button Background="{StaticResource AdminDarkGreen}" Foreground="White" 
-                                                FontWeight="SemiBold" FontSize="12" Padding="16,6" BorderThickness="0" Cursor="Hand" Click="BtnDuyetQ2_Click">
-                                            <StackPanel Orientation="Horizontal">
-                                                <local:LucideIcon Kind="Check" Size="12" Foreground="White" Margin="0,0,5,0"/>
-                                                <TextBlock Text="Phê duyệt"/>
-                                            </StackPanel>
-                                        </Button>
-                                    </StackPanel>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
+                        <!-- Dynamic Questions Container -->
+                        <StackPanel x:Name="pnlQuestionsList"/>
 
                     </StackPanel>
                 </Border>
@@ -334,29 +254,38 @@
                 <Border Style="{StaticResource AdminCardStyle}">
                     <StackPanel>
                         <TextBlock Text="Bóc tách dữ liệu đề thi tự động từ file mẫu chuẩn" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
-                        <TextBlock Text="Hỗ trợ các định dạng file Excel (.xlsx), Word (.docx) hoặc JSON chuẩn hóa theo mẫu của EnglishAI." FontSize="13" Foreground="{StaticResource TextGray}" Margin="0,0,0,20"/>
+                        <TextBlock Text="Hỗ trợ các định dạng file Excel (.xlsx), Word (.docx) hoặc JSON chuẩn hóa theo cấu trúc của EnglishAI." FontSize="13" Foreground="{StaticResource TextGray}" Margin="0,0,0,20"/>
 
                         <!-- Drag and Drop Zone -->
-                        <Border Background="#F8FAFC" BorderBrush="#94A3B8" BorderThickness="2" CornerRadius="12" Padding="30" Margin="0,0,0,20" Cursor="Hand" MouseDown="BtnChonFile_Click">
+                        <Border x:Name="dropZoneBorder" Background="#F8FAFC" BorderBrush="#94A3B8" BorderThickness="2" CornerRadius="12" Padding="30" Margin="0,0,0,20" 
+                                Cursor="Hand" MouseDown="BtnChonFile_Click" AllowDrop="True" DragEnter="DropZone_DragEnter" DragOver="DropZone_DragOver" Drop="DropZone_Drop">
                             <StackPanel HorizontalAlignment="Center">
                                 <Border Width="56" Height="56" CornerRadius="28" Background="#F1F5F9" Margin="0,0,0,10" HorizontalAlignment="Center">
                                     <local:LucideIcon Kind="FolderOpen" Size="28" Foreground="#0F766E" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                                 <TextBlock Text="Kéo thả file đề thi vào đây hoặc bấm để chọn tệp từ máy tính" FontWeight="SemiBold" FontSize="14" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                                <TextBlock Text="Dung lượng tối đa 25MB • Định dạng .xlsx, .docx, .json" FontSize="12" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Hỗ trợ định dạng .xlsx, .docx, .json • Tự động nhận diện cấu trúc đề thi" FontSize="12" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Border>
 
+                        <!-- Download Template Buttons -->
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                             <Button Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
-                                    FontWeight="Medium" Padding="14,8" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" Click="BtnDownloadTemplate_Click">
+                                    FontWeight="Medium" Padding="14,8" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" Click="BtnDownloadTemplateExcel_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <local:LucideIcon Kind="Download" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
                                     <TextBlock Text="Tải file Excel mẫu (.xlsx)"/>
                                 </StackPanel>
                             </Button>
                             <Button Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
-                                    FontWeight="Medium" Padding="14,8" BorderThickness="0" Cursor="Hand" Click="BtnDownloadTemplate_Click">
+                                    FontWeight="Medium" Padding="14,8" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" Click="BtnDownloadTemplateDocx_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <local:LucideIcon Kind="Download" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Tải file Word mẫu (.docx)"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
+                                    FontWeight="Medium" Padding="14,8" BorderThickness="0" Cursor="Hand" Click="BtnDownloadTemplateJson_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <local:LucideIcon Kind="Download" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
                                     <TextBlock Text="Tải file JSON mẫu (.json)"/>
@@ -364,27 +293,71 @@
                             </Button>
                         </StackPanel>
 
-                        <!-- Preview Table of parsed questions -->
-                        <TextBlock Text="Dữ liệu mẫu sau khi bóc tách (Xem trước trước khi lưu):" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}" Margin="0,0,0,10"/>
-                        <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="14">
+                        <!-- Parsing Progress Indicator -->
+                        <Border x:Name="pnlParsingProgress" Background="#EFF6FF" BorderBrush="#93C5FD" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,0,16" Visibility="Collapsed">
                             <StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <local:LucideIcon Kind="CheckCircle2" Size="15" Foreground="#15803D" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Đã nhận diện 30 câu hỏi trắc nghiệm từ file 'IELTS_Reading_Cam18_Test1.xlsx'" FontWeight="SemiBold" FontSize="13" Foreground="#15803D" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <local:LucideIcon Kind="RefreshCw" Size="14" Foreground="#1D4ED8" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="txtParsingStatus" Text="Đang bóc tách dữ liệu câu hỏi từ tệp tin..." FontWeight="SemiBold" FontSize="12.5" Foreground="#1D4ED8"/>
                                 </StackPanel>
-                                <TextBlock Text="• Section 1: 13 câu (True/False/Not Given &amp; Multiple Choice)" FontSize="12.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                                <TextBlock Text="• Section 2: 13 câu (Matching Headings &amp; Summary Completion)" FontSize="12.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                                <TextBlock Text="• Section 3: 4 câu (Short Answer Questions)" FontSize="12.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,14"/>
-
-                                <Button Background="{StaticResource AdminDarkGreen}" Foreground="White" 
-                                        FontWeight="SemiBold" FontSize="13" Padding="18,9" HorizontalAlignment="Left" Cursor="Hand" BorderThickness="0" Click="BtnLuuTepVaoDB_Click">
-                                    <StackPanel Orientation="Horizontal">
-                                        <local:LucideIcon Kind="Save" Size="14" Foreground="White" Margin="0,0,6,0"/>
-                                        <TextBlock Text="Lưu tất cả vào Ngân hàng câu hỏi &amp; Tạo đề thi"/>
-                                    </StackPanel>
-                                </Button>
+                                <ProgressBar IsIndeterminate="True" Height="4" Foreground="#2563EB" Background="#DBEAFE" BorderThickness="0"/>
                             </StackPanel>
                         </Border>
+
+                        <!-- Preview Container After Parsing -->
+                        <StackPanel x:Name="pnlParseResult" Visibility="Collapsed">
+                            <TextBlock Text="Dữ liệu bóc tách được từ tệp tin:" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}" Margin="0,0,0,10"/>
+                            <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <!-- Result Summary -->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                        <local:LucideIcon Kind="CheckCircle2" Size="16" Foreground="#15803D" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="txtParseSummary" Text="Đã nhận diện 0 câu hỏi từ tệp tin" FontWeight="Bold" FontSize="13.5" Foreground="#15803D" VerticalAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <!-- Error Alert if any -->
+                                    <Border x:Name="pnlParseErrors" Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,0,0,12" Visibility="Collapsed">
+                                        <StackPanel>
+                                            <TextBlock Text="Các dòng dữ liệu không hợp lệ:" FontWeight="Bold" FontSize="12" Foreground="#DC2626" Margin="0,0,0,4"/>
+                                            <TextBlock x:Name="txtParseErrorDetails" Text="" FontSize="11.5" Foreground="#991B1B" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Preview Items DataGrid -->
+                                    <DataGrid x:Name="dgPreviewParsedQuestions" AutoGenerateColumns="False" CanUserAddRows="False" 
+                                              IsReadOnly="True" MaxHeight="280" GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                                              Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Margin="0,0,0,16">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="STT" Binding="{Binding ThuTuHienThi}" Width="50"/>
+                                            <DataGridTextColumn Header="Kỹ năng" Binding="{Binding KyNang}" Width="90"/>
+                                            <DataGridTextColumn Header="Trình độ" Binding="{Binding TrinhDo}" Width="75"/>
+                                            <DataGridTextColumn Header="Dạng câu hỏi" Binding="{Binding LoaiCauHoi}" Width="120"/>
+                                            <DataGridTextColumn Header="Nội dung câu hỏi" Binding="{Binding NoiDungCauHoi}" Width="*"/>
+                                            <DataGridTextColumn Header="Đáp án đúng" Binding="{Binding DapAnDungHienThi}" Width="110"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+
+                                    <!-- Save Actions -->
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button x:Name="btnLuuVaoHangDoi" Background="#D97706" Foreground="White" 
+                                                FontWeight="SemiBold" FontSize="13" Padding="18,9" Cursor="Hand" BorderThickness="0" Margin="0,0,10,0" Click="BtnLuuVaoHangDoi_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <local:LucideIcon Kind="Layers" Size="14" Foreground="White" Margin="0,0,6,0"/>
+                                                <TextBlock Text="Đưa vào Hàng đợi kiểm duyệt"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button x:Name="btnLuuVaoNganHang" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
+                                                FontWeight="SemiBold" FontSize="13" Padding="18,9" Cursor="Hand" BorderThickness="0" Click="BtnLuuVaoNganHang_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <local:LucideIcon Kind="Save" Size="14" Foreground="White" Margin="0,0,6,0"/>
+                                                <TextBlock Text="Lưu trực tiếp vào Ngân hàng câu hỏi"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
             </Grid>

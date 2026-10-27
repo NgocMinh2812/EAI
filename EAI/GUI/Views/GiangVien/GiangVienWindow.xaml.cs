@@ -55,17 +55,17 @@ namespace GUI.Views.GiangVien
         {
             _navIcons = new FrameworkElement[] {
                 icoNavTongQuan, icoNavNguoiDung, icoNavDanhMuc, icoNavNoiDung,
-                icoNavNganHang, icoNavDeThi, icoNavKhaoSat, icoNavAISinhDe,
+                icoNavNganHang, icoNavDeThi, icoNavKhaoSat, icoNavThongKeHocTap, icoNavAISinhDe,
                 icoNavGiamSat, icoNavToStudentHome
             };
             _navLabels = new TextBlock[] {
                 lblNavTongQuan, lblNavNguoiDung, lblNavDanhMuc, lblNavNoiDung,
-                lblNavNganHang, lblNavDeThi, lblNavKhaoSat, lblNavAISinhDe,
+                lblNavNganHang, lblNavDeThi, lblNavKhaoSat, lblNavThongKeHocTap, lblNavAISinhDe,
                 lblNavGiamSat, lblNavToStudentHome
             };
             _navPanels = new StackPanel[] {
                 spNavTongQuan, spNavNguoiDung, spNavDanhMuc, spNavNoiDung,
-                spNavNganHang, spNavDeThi, spNavKhaoSat, spNavAISinhDe,
+                spNavNganHang, spNavDeThi, spNavKhaoSat, spNavThongKeHocTap, spNavAISinhDe,
                 spNavGiamSat, spNavToStudentHome
             };
         }
@@ -256,6 +256,11 @@ namespace GUI.Views.GiangVien
                 SetActiveButton(btnNavKhaoSat);
                 txtBreadcrumb.Text = "Khảo sát đầu vào";
             }
+            else if (e.Content is ThongKeHocTapGiangVienView)
+            {
+                SetActiveButton(btnNavThongKeHocTap);
+                txtBreadcrumb.Text = "Thống kê học tập";
+            }
             else if (e.Content is AISinhDeView)
             {
                 SetActiveButton(btnNavAISinhDe);
@@ -287,6 +292,7 @@ namespace GUI.Views.GiangVien
                 btnNavNganHang.Style = normalStyle;
                 btnNavDeThi.Style = normalStyle;
                 btnNavKhaoSat.Style = normalStyle;
+                btnNavThongKeHocTap.Style = normalStyle;
                 btnNavAISinhDe.Style = normalStyle;
                 btnNavGiamSat.Style = normalStyle;
             }
@@ -332,6 +338,12 @@ namespace GUI.Views.GiangVien
         {
             if (AdminMainFrame.Content is not KhaoSatDauVaoView)
                 AdminMainFrame.Navigate(GetOrCreatePage<KhaoSatDauVaoView>());
+        }
+
+        private void NavThongKeHocTap_Click(object sender, RoutedEventArgs e)
+        {
+            if (AdminMainFrame.Content is not ThongKeHocTapGiangVienView)
+                AdminMainFrame.Navigate(GetOrCreatePage<ThongKeHocTapGiangVienView>());
         }
 
         private void NavAISinhDe_Click(object sender, RoutedEventArgs e)

@@ -207,6 +207,12 @@
                                 <TextBlock x:Name="lblNavKhaoSat" Text="Khảo sát đầu vào" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
+                        <Button x:Name="btnNavThongKeHocTap" Style="{StaticResource AdminNavItemStyle}" Click="NavThongKeHocTap_Click" ToolTip="Thống kê học tập">
+                            <StackPanel x:Name="spNavThongKeHocTap" Orientation="Horizontal">
+                                <local:LucideIcon x:Name="icoNavThongKeHocTap" Kind="BarChart3" Size="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="lblNavThongKeHocTap" Text="Thống kê học tập" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
 
                         <!-- TRÍ TUỆ NHÂN TẠO (AI) -->
                         <TextBlock x:Name="headerTriTueAI" Text="TRÍ TUỆ NHÂN TẠO (AI)" Style="{StaticResource NavSectionHeader}"/>

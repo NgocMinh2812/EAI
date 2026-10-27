@@ -17,6 +17,7 @@ namespace DTO
         public bool IsSelected { get; set; } = true;
         public string? KyNang { get; set; }
         public string? DoKho { get; set; }
+        public string? TrinhDo { get; set; } = "B1";
         public string? LoaiCauHoi { get; set; }
         public string? DoanVanDoc { get; set; }
         public string? DapAnVanBan { get; set; }

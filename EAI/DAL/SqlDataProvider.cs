@@ -323,6 +323,41 @@ namespace DAL
 
                         CREATE NONCLUSTERED INDEX IX_NoiDungHocTapAIBaiHoc_Hash 
                         ON NoiDungHocTapAIBaiHoc(MaBaiHoc, ContentHash, TrangThai);
+                    END;
+
+                    -- SPRINT 3: CẤU HÌNH QUY ĐỔI KHẢO SÁT & FILE IMPORT
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'CauHinhQuyDoiKhaoSat')
+                    BEGIN
+                        CREATE TABLE CauHinhQuyDoiKhaoSat (
+                            MaCauHinh INT IDENTITY(1,1) PRIMARY KEY,
+                            MaCapDo NVARCHAR(10) NOT NULL,
+                            TenHienThi NVARCHAR(100) NOT NULL,
+                            DiemPhanTramMin INT NOT NULL,
+                            DiemPhanTramMax INT NOT NULL,
+                            QuyDoiIelts NVARCHAR(50) NOT NULL,
+                            QuyDoiToeic NVARCHAR(50) NOT NULL,
+                            LoTrinhDeXuat NVARCHAR(500) NOT NULL,
+                            MauSac NVARCHAR(20) NULL,
+                            ThuTuSapXep INT NOT NULL DEFAULT 1
+                        );
+                    END;
+
+                    IF NOT EXISTS (SELECT 1 FROM CauHinhQuyDoiKhaoSat)
+                    BEGIN
+                        INSERT INTO CauHinhQuyDoiKhaoSat 
+                            (MaCapDo, TenHienThi, DiemPhanTramMin, DiemPhanTramMax, QuyDoiIelts, QuyDoiToeic, LoTrinhDeXuat, MauSac, ThuTuSapXep)
+                        VALUES
+                            (N'A1', N'A1 (Mất gốc)', 0, 30, N'IELTS < 3.0', N'TOEIC 100 - 250', N'Ngữ pháp nền tảng + 500 từ vựng cốt lõi', N'#DC2626', 1),
+                            (N'A2', N'A2 (Sơ cấp)', 31, 50, N'IELTS 3.5 - 4.5', N'TOEIC 255 - 450', N'Luyện phản xạ câu & Nghe hiểu đơn giản', N'#EA580C', 2),
+                            (N'B1', N'B1 (Trung cấp)', 51, 70, N'IELTS 5.0 - 6.0', N'TOEIC 455 - 650', N'Từ vựng học thuật B1 & Cấu trúc câu ghép', N'#2563EB', 3),
+                            (N'B2', N'B2 (Trên trung cấp)', 71, 85, N'IELTS 6.5 - 7.0', N'TOEIC 655 - 800', N'Viết luận Task 2 & Skimming/Scanning đọc hiểu', N'#15803D', 4),
+                            (N'C1', N'C1 (Nâng cao)', 86, 100, N'IELTS 7.5 - 8.5+', N'TOEIC 805 - 990', N'Thành ngữ Collocations cao cấp & Debate', N'#7E22CE', 5);
+                    END;
+
+                    IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'TepTinNhapLieu')
+                    BEGIN
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'SoCauHoiNhanDien' AND Object_ID = OBJECT_ID('TepTinNhapLieu'))
+                            ALTER TABLE TepTinNhapLieu ADD SoCauHoiNhanDien INT NULL DEFAULT 0;
                     END;";
                 ExecuteNonQuery(script);
             }

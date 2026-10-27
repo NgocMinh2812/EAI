@@ -4,10 +4,16 @@
       xmlns:local="clr-namespace:GUI"
       Title="Khảo sát đầu vào - Admin Dashboard"
       FontFamily="Segoe UI"
+      UseLayoutRounding="True"
+      SnapsToDevicePixels="True"
+      TextOptions.TextFormattingMode="Display"
+      TextOptions.TextRenderingMode="ClearType"
+      RenderOptions.ClearTypeHint="Enabled"
       Background="#F8FAFC">
 
     <Page.Resources>
         <SolidColorBrush x:Key="AdminDarkGreen" Color="#0F4C3A" />
+        <SolidColorBrush x:Key="AdminMint" Color="#10B981" />
         <SolidColorBrush x:Key="TextDark" Color="#0F172A" />
         <SolidColorBrush x:Key="TextGray" Color="#64748B" />
         <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0" />
@@ -19,7 +25,7 @@
             <Setter Property="BorderBrush" Value="{StaticResource BorderLight}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="20"/>
-            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Setter Property="Margin" Value="0,0,0,20"/>
             <Setter Property="Effect">
                 <Setter.Value>
                     <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.03" Color="Black"/>
@@ -31,7 +37,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="25">
         <StackPanel MaxWidth="1200" HorizontalAlignment="Stretch">
 
-            <!-- Top Header -->
+            <!-- ================= TOP HEADER ================= -->
             <Grid Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -40,36 +46,91 @@
 
                 <StackPanel Grid.Column="0" VerticalAlignment="Center">
                     <TextBlock Text="Khảo sát Năng lực Đầu vào &amp; Phân loại Trình độ" FontWeight="Bold" FontSize="20" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                    <TextBlock Text="Bài kiểm tra chẩn đoán ngắn gọn, thuật toán tự động quy đổi sang khung năng lực CEFR A1 - C1, IELTS &amp; TOEIC" FontSize="12.5" Foreground="{StaticResource TextGray}"/>
+                    <TextBlock Text="Cấu hình bộ đề chẩn đoán năng lực, ma trận quy đổi CEFR / IELTS / TOEIC và theo dõi kết quả khảo sát của sinh viên" FontSize="12.5" Foreground="{StaticResource TextGray}"/>
                 </StackPanel>
 
-                <Button Grid.Column="1" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
-                        FontWeight="SemiBold" FontSize="13" Padding="18,10" Cursor="Hand" BorderThickness="0" Click="BtnCapNhat_Click">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" CornerRadius="18" Padding="{TemplateBinding Padding}">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <local:LucideIcon Kind="Settings" Size="14" Foreground="White" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Cập nhật bộ đề khảo sát" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
+                            FontWeight="SemiBold" FontSize="13" Padding="16,10" Cursor="Hand" BorderThickness="0" Margin="0,0,10,0" Click="BtnSuaMaTran_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="18" Padding="{TemplateBinding Padding}">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <local:LucideIcon Kind="Sliders" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Sửa ma trận quy đổi" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <Button Background="{StaticResource AdminDarkGreen}" Foreground="White" 
+                            FontWeight="SemiBold" FontSize="13" Padding="18,10" Cursor="Hand" BorderThickness="0" Click="BtnCapNhatBoDe_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="18" Padding="{TemplateBinding Padding}">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <local:LucideIcon Kind="Settings" Size="14" Foreground="White" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Cập nhật bộ đề khảo sát" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
             </Grid>
 
-            <!-- Conversion Matrix Table -->
+            <!-- ================= ACTIVE SURVEY INFO CARD ================= -->
+            <Border Style="{StaticResource AdminCardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <TextBlock x:Name="txtTenBaiKhaoSatHienThi" Text="Khảo sát đánh giá năng lực đầu vào CEFR" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,10,0"/>
+                            <Border x:Name="badgeTrangThaiBai" Background="#ECFDF5" CornerRadius="6" Padding="8,2" VerticalAlignment="Center">
+                                <TextBlock x:Name="txtTrangThaiBai" Text="Đang kích hoạt" FontSize="11.5" FontWeight="Bold" Foreground="#065F46"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock x:Name="txtMoTaBaiKhaoSat" Text="Bài kiểm tra chẩn đoán ngắn gọn, thuật toán tự động quy đổi sang khung năng lực CEFR A1 - C1, IELTS &amp; TOEIC." FontSize="13" Foreground="{StaticResource TextGray}" TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="#F1F5F9" CornerRadius="10" Padding="14,10" Margin="0,0,10,0">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="SỐ CÂU HỎI" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="txtTongSoCauHienThi" Text="15 câu" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#F1F5F9" CornerRadius="10" Padding="14,10">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="HÌNH THỨC" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Thích ứng AI" FontSize="16" FontWeight="Bold" Foreground="#0F4C3A" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ================= CONVERSION MATRIX TABLE ================= -->
             <Border Style="{StaticResource AdminCardStyle}">
                 <StackPanel>
-                    <TextBlock Text="Ma trận Quy đổi Điểm sang Khung Năng lực Chuẩn" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}" Margin="0,0,0,14"/>
+                    <Grid Margin="0,0,0,14">
+                        <TextBlock Text="Ma trận Quy đổi Điểm sang Khung Năng lực Chuẩn (Dữ liệu SQL Server)" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}"/>
+                        <TextBlock Text="Đồng bộ tự động với bảng CauHinhQuyDoiKhaoSat" FontSize="12" Foreground="{StaticResource TextGray}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
 
                     <Grid Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="180"/>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="150"/>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="1.5*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="ĐIỂM % ĐẠT ĐƯỢC" FontWeight="Bold" FontSize="11" Foreground="{StaticResource TextGray}"/>
                         <TextBlock Grid.Column="1" Text="KHUNG CEFR" FontWeight="Bold" FontSize="11" Foreground="{StaticResource TextGray}"/>
@@ -80,60 +141,81 @@
 
                     <Rectangle Height="1" Fill="{StaticResource BorderLight}" Margin="0,0,0,10"/>
 
-                    <Grid Margin="0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="1.5*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="0% - 30%" FontSize="13" FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="1" Text="A1 (Mất gốc)" FontWeight="Bold" Foreground="#DC2626"/>
-                        <TextBlock Grid.Column="2" Text="IELTS &lt; 3.0"/>
-                        <TextBlock Grid.Column="3" Text="TOEIC 100 - 250"/>
-                        <TextBlock Grid.Column="4" Text="Ngữ pháp nền tảng + 500 từ vựng cốt lõi"/>
+                    <StackPanel x:Name="pnlMatrixContainer"/>
+                </StackPanel>
+            </Border>
+
+            <!-- ================= STUDENT SURVEY RESULTS ================= -->
+            <Border Style="{StaticResource AdminCardStyle}">
+                <StackPanel>
+                    <!-- Header with Search & Filter -->
+                    <Grid Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Kết quả Khảo sát Năng lực của Sinh viên" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}"/>
+                            <Border Background="#FEF3C7" CornerRadius="6" Padding="8,2" Margin="10,0,0,0">
+                                <TextBlock x:Name="txtTotalStudentsCount" Text="0 lượt nộp" FontSize="11.5" FontWeight="SemiBold" Foreground="#B45309"/>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <!-- Search box -->
+                            <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="8,4" Width="220" Margin="0,0,8,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <local:LucideIcon Kind="Search" Size="14" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <TextBox x:Name="txtSearchStudent" Grid.Column="1" BorderThickness="0" Background="Transparent" FontSize="12.5" 
+                                             TextChanged="TxtSearchStudent_TextChanged" VerticalContentAlignment="Center" ToolTip="Tìm theo họ tên, tài khoản..."/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Level Filter Combo -->
+                            <ComboBox x:Name="cboFilterLevel" Height="34" Width="110" SelectedIndex="0" Margin="0,0,8,0" SelectionChanged="CboFilterLevel_SelectionChanged">
+                                <ComboBoxItem Content="Tất cả cấp độ" Tag="TatCa"/>
+                                <ComboBoxItem Content="A1" Tag="A1"/>
+                                <ComboBoxItem Content="A2" Tag="A2"/>
+                                <ComboBoxItem Content="B1" Tag="B1"/>
+                                <ComboBoxItem Content="B2" Tag="B2"/>
+                                <ComboBoxItem Content="C1" Tag="C1"/>
+                            </ComboBox>
+
+                            <!-- Refresh Button -->
+                            <Button Background="#F1F5F9" BorderThickness="0" Padding="10,6" Cursor="Hand" Click="BtnRefreshStudents_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <local:LucideIcon Kind="RefreshCw" Size="13" Foreground="{StaticResource TextDark}" Margin="0,0,4,0"/>
+                                    <TextBlock Text="Làm mới" FontSize="12" Foreground="{StaticResource TextDark}"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
                     </Grid>
 
-                    <Grid Margin="0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="1.5*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="31% - 50%" FontSize="13" FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="1" Text="A2 (Sơ cấp)" FontWeight="Bold" Foreground="#EA580C"/>
-                        <TextBlock Grid.Column="2" Text="IELTS 3.5 - 4.5"/>
-                        <TextBlock Grid.Column="3" Text="TOEIC 255 - 450"/>
-                        <TextBlock Grid.Column="4" Text="Luyện phản xạ câu &amp; Nghe hiểu đơn giản"/>
-                    </Grid>
+                    <!-- Student Results DataGrid -->
+                    <DataGrid x:Name="dgSinhVienKhaoSat" AutoGenerateColumns="False" CanUserAddRows="False" 
+                              CanUserDeleteRows="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                              Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" MinHeight="180">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Mã lượt" Binding="{Binding MaLuotKhaoSat}" Width="65"/>
+                            <DataGridTextColumn Header="Họ và tên" Binding="{Binding HoTen}" Width="160"/>
+                            <DataGridTextColumn Header="Tài khoản" Binding="{Binding TenDangNhap}" Width="110"/>
+                            <DataGridTextColumn Header="Thời điểm nộp" Binding="{Binding ThoiDiemNopBaiHienThi}" Width="140"/>
+                            <DataGridTextColumn Header="Số câu đúng" Binding="{Binding SoCauDungTrenTong}" Width="95"/>
+                            <DataGridTextColumn Header="Điểm số" Binding="{Binding DiemSoHienThi}" Width="80"/>
+                            <DataGridTextColumn Header="Khung CEFR" Binding="{Binding MaCapDo}" Width="85"/>
+                            <DataGridTextColumn Header="Quy đổi IELTS" Binding="{Binding QuyDoiIelts}" Width="110"/>
+                            <DataGridTextColumn Header="Quy đổi TOEIC" Binding="{Binding QuyDoiToeic}" Width="110"/>
+                            <DataGridTemplateColumn Header="Thao tác" Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Xem chi tiết" Click="BtnXemChiTietKhaoSat_Click" Background="#E0F2FE" Foreground="#0369A1" 
+                                                FontWeight="SemiBold" FontSize="11.5" Padding="8,4" BorderThickness="0" Cursor="Hand"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
 
-                    <Grid Margin="0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="1.5*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="51% - 70%" FontSize="13" FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="1" Text="B1 (Trung cấp)" FontWeight="Bold" Foreground="#2563EB"/>
-                        <TextBlock Grid.Column="2" Text="IELTS 5.0 - 6.0"/>
-                        <TextBlock Grid.Column="3" Text="TOEIC 455 - 650"/>
-                        <TextBlock Grid.Column="4" Text="Từ vựng học thuật B1 &amp; Cấu trúc câu ghép"/>
-                    </Grid>
-
-                    <Grid Margin="0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="1.5*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="71% - 85%" FontSize="13" FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="1" Text="B2 (Trên trung cấp)" FontWeight="Bold" Foreground="#15803D"/>
-                        <TextBlock Grid.Column="2" Text="IELTS 6.5 - 7.0"/>
-                        <TextBlock Grid.Column="3" Text="TOEIC 655 - 800"/>
-                        <TextBlock Grid.Column="4" Text="Viết luận Task 2 &amp; Skimming/Scanning đọc hiểu"/>
-                    </Grid>
-
-                    <Grid Margin="0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="1.5*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="86% - 100%" FontSize="13" FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="1" Text="C1 (Nâng cao)" FontWeight="Bold" Foreground="#7E22CE"/>
-                        <TextBlock Grid.Column="2" Text="IELTS 7.5 - 8.5+"/>
-                        <TextBlock Grid.Column="3" Text="TOEIC 805 - 990"/>
-                        <TextBlock Grid.Column="4" Text="Thành ngữ Collocations cao cấp &amp; Debate"/>
-                    </Grid>
                 </StackPanel>
             </Border>
 
