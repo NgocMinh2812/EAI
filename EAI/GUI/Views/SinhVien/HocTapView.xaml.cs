@@ -496,7 +496,7 @@ namespace GUI.Views
             pnlChiTietBaiHoc.Visibility = Visibility.Visible;
         }
 
-        private async Task TaiVaHienThiNoiDungAIAsync(BaiHocDTO baiHoc)
+        private async Task TaiVaHienThiNoiDungAIAsync(BaiHocDTO baiHoc, bool forceReanalyze = false)
         {
             if (baiHoc == null) return;
 
@@ -527,13 +527,16 @@ namespace GUI.Views
 
             try
             {
-                var aiData = await NoiDungHocTapAIService.Instance.LayHoacPhanTichNoiDungAsync(baiHoc, status =>
-                {
-                    Dispatcher.Invoke(() =>
+                var aiData = await NoiDungHocTapAIService.Instance.LayHoacPhanTichNoiDungAsync(
+                    baiHoc, 
+                    status =>
                     {
-                        if (txtAiGeneratingSub != null) txtAiGeneratingSub.Text = status;
-                    });
-                });
+                        Dispatcher.Invoke(() =>
+                        {
+                            if (txtAiGeneratingSub != null) txtAiGeneratingSub.Text = status;
+                        });
+                    },
+                    forceReanalyze: forceReanalyze);
 
                 // Kiểm tra lại quyền trước khi hiển thị (phòng trường hợp giảng viên tắt quyền trong lúc AI xử lý)
                 if (!BaiHocBUS.KiemTraQuyenTruyCap(baiHoc.MaBaiHoc))
@@ -578,7 +581,7 @@ namespace GUI.Views
         {
             if (_currentBaiHoc != null)
             {
-                _ = TaiVaHienThiNoiDungAIAsync(_currentBaiHoc);
+                _ = TaiVaHienThiNoiDungAIAsync(_currentBaiHoc, forceReanalyze: true);
             }
         }
 
@@ -1130,7 +1133,8 @@ namespace GUI.Views
                         {
                             if (txtQuizLoadingSub != null) txtQuizLoadingSub.Text = status;
                         });
-                    });
+                    },
+                    forceRegenerate: forceRetry);
 
                 if (pnlQuizLoading != null) pnlQuizLoading.Visibility = Visibility.Collapsed;
 

@@ -21,7 +21,8 @@ namespace BUS
         public async Task<(BaiHocQuizDTO? Quiz, bool IsFromCache, string? ErrorMessage)> LayHoacTaoBoCauHoiAsync(
             BaiHocDTO baiHoc, 
             string loaiBo = "CungCo", 
-            Action<string>? onStatusUpdate = null)
+            Action<string>? onStatusUpdate = null,
+            bool forceRegenerate = false)
         {
             if (baiHoc == null || baiHoc.MaBaiHoc < 0)
             {
@@ -40,12 +41,15 @@ namespace BUS
             string trinhDo = string.IsNullOrWhiteSpace(baiHoc.MaTrinhDo) ? "B1" : baiHoc.MaTrinhDo.Trim();
             string tenLoaiHienThi = loaiBo == "VanDung" ? "Vận dụng tình huống mới (Bộ B)" : "Củng cố kiến thức (Bộ A)";
 
-            // BƯỚC 3: KIỂM TRA TRONG DATABASE (CACHE PERSISTENT)
-            var cached = BaiHocQuizDAL.Instance.LayBoCauHoi(baiHoc.MaBaiHoc, contentHash, loaiBo);
-            if (cached != null && cached.DanhSachCauHoi != null && cached.DanhSachCauHoi.Count == 10)
+            // BƯỚC 3: KIỂM TRA TRONG DATABASE (CACHE PERSISTENT) - Bỏ qua nếu forceRegenerate
+            if (!forceRegenerate)
             {
-                System.Diagnostics.Debug.WriteLine($"[BaiHocQuizBUS] Tải thành công {tenLoaiHienThi} từ CSDL cho bài học #{baiHoc.MaBaiHoc} (Hash: {contentHash.Substring(0, 8)}). Không gọi AI.");
-                return (cached, true, null);
+                var cached = BaiHocQuizDAL.Instance.LayBoCauHoi(baiHoc.MaBaiHoc, contentHash, loaiBo);
+                if (cached != null && cached.DanhSachCauHoi != null && cached.DanhSachCauHoi.Count == 10)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[BaiHocQuizBUS] Tải thành công {tenLoaiHienThi} từ CSDL cho bài học #{baiHoc.MaBaiHoc} (Hash: {contentHash.Substring(0, 8)}). Không gọi AI.");
+                    return (cached, true, null);
+                }
             }
 
             // BƯỚC 4: CƠ CHẾ KHÓA PHÂN TÁN CHỐNG TẠO TRÙNG ĐỒNG THỜI (CONCURRENCY LEASE)
@@ -53,28 +57,33 @@ namespace BUS
                 ? $"Bộ câu hỏi Vận dụng thực tế: {baiHoc.TieuDe}" 
                 : $"Bộ câu hỏi Củng cố kiến thức: {baiHoc.TieuDe}";
 
-            var (leaseStatus, leaseData) = BaiHocQuizDAL.Instance.KiemTraVaGiuKhoaXuLy(baiHoc.MaBaiHoc, contentHash, loaiBo, tenBo);
-            if (leaseStatus == AILeaseStatus.AlreadyCompleted && leaseData != null && leaseData.DanhSachCauHoi.Count == 10)
+            if (!forceRegenerate)
             {
-                return (leaseData, true, null);
-            }
-
-            if (leaseStatus == AILeaseStatus.CurrentlyProcessing)
-            {
-                onStatusUpdate?.Invoke($"Hệ thống đang chuẩn bị {tenLoaiHienThi}. Đang đồng bộ kết quả...");
-                for (int i = 0; i < 15; i++)
+                var (leaseStatus, leaseData) = BaiHocQuizDAL.Instance.KiemTraVaGiuKhoaXuLy(baiHoc.MaBaiHoc, contentHash, loaiBo, tenBo);
+                if (leaseStatus == AILeaseStatus.AlreadyCompleted && leaseData != null && leaseData.DanhSachCauHoi.Count == 10)
                 {
-                    await Task.Delay(1500);
-                    var polled = BaiHocQuizDAL.Instance.LayBoCauHoi(baiHoc.MaBaiHoc, contentHash, loaiBo);
-                    if (polled != null && polled.DanhSachCauHoi.Count == 10)
+                    return (leaseData, true, null);
+                }
+
+                if (leaseStatus == AILeaseStatus.CurrentlyProcessing)
+                {
+                    onStatusUpdate?.Invoke($"Hệ thống đang chuẩn bị {tenLoaiHienThi}. Đang đồng bộ kết quả...");
+                    for (int i = 0; i < 15; i++)
                     {
-                        return (polled, true, null);
+                        await Task.Delay(1500);
+                        var polled = BaiHocQuizDAL.Instance.LayBoCauHoi(baiHoc.MaBaiHoc, contentHash, loaiBo);
+                        if (polled != null && polled.DanhSachCauHoi.Count == 10)
+                        {
+                            return (polled, true, null);
+                        }
                     }
                 }
             }
 
-            // BƯỚC 5: GỌI AI BIÊN SOẠN BỘ CÂU HỎI CHẤT LƯỢNG CAO (1 LẦN DUY NHẤT)
-            onStatusUpdate?.Invoke($"Trợ lý AI đang biên soạn {tenLoaiHienThi} (10 câu hỏi chuẩn hóa)...");
+            // BƯỚC 5: GỌI AI BIÊN SOẠN BỘ CÂU HỎI CHẤT LƯỢNG CAO THEO MÔ HÌNH GIẢNG VIÊN ĐÃ LƯU
+            AI.AIServiceManager.Instance.SyncActiveConfigFromStorage();
+            string moHinhHienTai = AI.AIServiceManager.Instance.ActiveModel ?? "Mặc định";
+            onStatusUpdate?.Invoke($"Trợ lý AI ({AI.AIServiceManager.Instance.ActiveProviderType} - {moHinhHienTai}) đang biên soạn {tenLoaiHienThi} (10 câu hỏi)...");
 
             try
             {
@@ -90,16 +99,15 @@ namespace BUS
                 }
 
                 string prompt = TaoPromptTaoBoCauHoi(baiHoc, loaiBo, skill, trinhDo, cauHoiBoACu);
-                string? response = await GeminiAIService.GoiGeminiApiAsync(prompt, "NoiDungHocTap");
 
-                // Fallback qua AIServiceManager nếu GeminiAIService trả về null
+                // Ưu tiên gọi đúng mô hình AI mà Giảng viên đã chọn và lưu
+                var aiResp = await AI.AIServiceManager.Instance.ExecutePromptAsync(prompt, actionName: $"SinhCauHoiQuiz_{loaiBo}");
+                string? response = (aiResp != null && aiResp.Success && !string.IsNullOrWhiteSpace(aiResp.Text)) ? aiResp.Text : null;
+
+                // Nếu mô hình được chọn gặp sự cố, thử fallback sang GeminiAIService làm phương án dự phòng
                 if (string.IsNullOrWhiteSpace(response))
                 {
-                    var aiResp = await AI.AIServiceManager.Instance.ExecutePromptAsync(prompt, actionName: "SinhCauHoiQuiz");
-                    if (aiResp.Success && !string.IsNullOrWhiteSpace(aiResp.Text))
-                    {
-                        response = aiResp.Text;
-                    }
+                    response = await GeminiAIService.GoiGeminiApiAsync(prompt, "NoiDungHocTap");
                 }
 
                 List<CauHoiDTO> questions;
@@ -281,10 +289,20 @@ QUY TẮC BẮT BUỘC VỀ CẤU TRÚC (CRITICAL):
                 }
 
                 using var doc = JsonDocument.Parse(cleanJson);
-                if (doc.RootElement.ValueKind != JsonValueKind.Array) return list;
+                JsonElement arrayEl = doc.RootElement;
+                if (arrayEl.ValueKind == JsonValueKind.Object)
+                {
+                    if (arrayEl.TryGetProperty("questions", out var p1) && p1.ValueKind == JsonValueKind.Array) arrayEl = p1;
+                    else if (arrayEl.TryGetProperty("Questions", out var p2) && p2.ValueKind == JsonValueKind.Array) arrayEl = p2;
+                    else if (arrayEl.TryGetProperty("danhSachCauHoi", out var p3) && p3.ValueKind == JsonValueKind.Array) arrayEl = p3;
+                    else if (arrayEl.TryGetProperty("DanhSachCauHoi", out var p4) && p4.ValueKind == JsonValueKind.Array) arrayEl = p4;
+                    else if (arrayEl.TryGetProperty("items", out var p5) && p5.ValueKind == JsonValueKind.Array) arrayEl = p5;
+                }
+
+                if (arrayEl.ValueKind != JsonValueKind.Array) return list;
 
                 int index = 1;
-                foreach (var el in doc.RootElement.EnumerateArray())
+                foreach (var el in arrayEl.EnumerateArray())
                 {
                     string noiDung = el.TryGetProperty("NoiDungCauHoi", out var pQ) ? (pQ.GetString() ?? "").Trim() : "";
                     if (string.IsNullOrWhiteSpace(noiDung))

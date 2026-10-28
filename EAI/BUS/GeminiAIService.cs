@@ -92,16 +92,28 @@ namespace BUS
                 return null;
             }
 
-            // Danh sách các model theo thứ tự ưu tiên: ổn định nhất, phản hồi nhanh nhất (< 2s) đặt lên đầu
-            string[] candidateModels = new[]
+            // Đồng bộ mô hình được ưu tiên từ cấu hình
+            var candidateModels = new List<string>();
+            if (AI.AIServiceManager.Instance.ActiveProviderType == AI.Models.AIProviderType.Gemini 
+                && !string.IsNullOrWhiteSpace(AI.AIServiceManager.Instance.ActiveModel))
             {
-                "gemini-3.5-flash",
-                "gemini-3.6-flash",
-                "gemini-3.1-flash-lite",
-                "gemini-flash-latest",
-                "gemini-3.7-flash",
-                "gemini-3.8-flash"
+                candidateModels.Add(AI.AIServiceManager.Instance.ActiveModel.Trim());
+            }
+
+            string[] defaultModels = new[]
+            {
+                "gemini-2.0-flash",
+                "gemini-1.5-flash",
+                "gemini-1.5-flash-8b",
+                "gemini-1.5-pro",
+                "gemini-flash-latest"
             };
+
+            foreach (var m in defaultModels)
+            {
+                if (!candidateModels.Contains(m))
+                    candidateModels.Add(m);
+            }
 
             var requestObj = new
             {

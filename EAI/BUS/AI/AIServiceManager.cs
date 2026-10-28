@@ -30,6 +30,14 @@ namespace BUS.AI
             RegisterProvider(new GroqProvider());
             RegisterProvider(new XkioProvider());
 
+            SyncActiveConfigFromStorage();
+        }
+
+        /// <summary>
+        /// Đồng bộ tức thì cấu hình nhà cung cấp và mô hình AI đang hoạt động được lưu từ giao diện Giảng viên
+        /// </summary>
+        public void SyncActiveConfigFromStorage()
+        {
             try
             {
                 var (savedProvider, savedModel, savedFallback) = Configuration.AIConfigHelper.LoadActiveModelConfig();
@@ -79,6 +87,11 @@ namespace BUS.AI
             string actionName = "AI Generation", 
             CancellationToken ct = default)
         {
+            if (string.IsNullOrWhiteSpace(preferredProvider))
+            {
+                SyncActiveConfigFromStorage();
+            }
+
             AIProviderType targetType = ActiveProviderType;
             if (!string.IsNullOrWhiteSpace(preferredProvider) && Enum.TryParse<AIProviderType>(preferredProvider, true, out var parsedType))
             {

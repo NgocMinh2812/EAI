@@ -68,7 +68,8 @@ namespace BUS.AI
         /// </summary>
         public async Task<BaiHocAIContentDTO> LayHoacPhanTichNoiDungAsync(
             BaiHocDTO baiHoc, 
-            Action<string>? onStatusUpdate = null)
+            Action<string>? onStatusUpdate = null,
+            bool forceReanalyze = false)
         {
             if (baiHoc == null || baiHoc.MaBaiHoc < 0)
             {
@@ -78,50 +79,73 @@ namespace BUS.AI
             string contentHash = TinhContentHash(baiHoc);
             string skill = ChuanHoaKyNang(baiHoc);
 
-            // BƯỚC 1: Kiểm tra cache trong DB
-            var existing = BaiHocAIContentDAL.Instance.LayNoiDungAI(baiHoc.MaBaiHoc, contentHash);
-            if (existing != null && existing.DanhSachTheHoc != null && existing.DanhSachTheHoc.Count > 0)
+            // BƯỚC 1: Kiểm tra cache trong DB (chỉ áp dụng nếu không yêu cầu phân tích lại)
+            if (!forceReanalyze)
             {
-                System.Diagnostics.Debug.WriteLine($"[NoiDungHocTapAIService] Tái sử dụng nội dung AI đã lưu từ DB cho bài học {baiHoc.MaBaiHoc} (Hash: {contentHash.Substring(0, 8)}). Không gọi AI.");
-                return existing;
+                var existing = BaiHocAIContentDAL.Instance.LayNoiDungAI(baiHoc.MaBaiHoc, contentHash);
+                if (existing != null && existing.DanhSachTheHoc != null && existing.DanhSachTheHoc.Count > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[NoiDungHocTapAIService] Tái sử dụng nội dung AI đã lưu từ DB cho bài học {baiHoc.MaBaiHoc} (Hash: {contentHash.Substring(0, 8)}). Không gọi AI.");
+                    return existing;
+                }
             }
 
             // BƯỚC 2: Kiểm tra khóa và xử lý trùng lặp (Concurrency lease)
-            var (leaseStatus, leaseData) = BaiHocAIContentDAL.Instance.KiemTraVaGiuKhoaXuLy(baiHoc.MaBaiHoc, contentHash);
-            if (leaseStatus == AILeaseStatus.AlreadyCompleted && leaseData != null)
+            if (!forceReanalyze)
             {
-                return leaseData;
-            }
-
-            if (leaseStatus == AILeaseStatus.CurrentlyProcessing)
-            {
-                // Có tiến trình khác đang phân tích bài học này, chờ tối đa 25 giây
-                onStatusUpdate?.Invoke("Bài học đang được hệ thống phân tích. Đang đồng bộ kết quả...");
-                for (int i = 0; i < 15; i++)
+                var (leaseStatus, leaseData) = BaiHocAIContentDAL.Instance.KiemTraVaGiuKhoaXuLy(baiHoc.MaBaiHoc, contentHash);
+                if (leaseStatus == AILeaseStatus.AlreadyCompleted && leaseData != null)
                 {
-                    await Task.Delay(1500);
-                    var polled = BaiHocAIContentDAL.Instance.LayNoiDungAI(baiHoc.MaBaiHoc, contentHash);
-                    if (polled != null && polled.DanhSachTheHoc.Count > 0)
+                    return leaseData;
+                }
+
+                if (leaseStatus == AILeaseStatus.CurrentlyProcessing)
+                {
+                    // Có tiến trình khác đang phân tích bài học này, chờ tối đa 25 giây
+                    onStatusUpdate?.Invoke("Bài học đang được hệ thống phân tích. Đang đồng bộ kết quả...");
+                    for (int i = 0; i < 15; i++)
                     {
-                        return polled;
+                        await Task.Delay(1500);
+                        var polled = BaiHocAIContentDAL.Instance.LayNoiDungAI(baiHoc.MaBaiHoc, contentHash);
+                        if (polled != null && polled.DanhSachTheHoc.Count > 0)
+                        {
+                            return polled;
+                        }
                     }
                 }
             }
 
-            // BƯỚC 3: Gọi AI phân tích lần đầu
-            onStatusUpdate?.Invoke($"AI đang phân tích bài học kỹ năng {skill}...");
+            // BƯỚC 3: Đồng bộ cấu hình AI mới nhất do Giảng viên lưu và gọi AI phân tích
+            AIServiceManager.Instance.SyncActiveConfigFromStorage();
+            string moHinhHienTai = AIServiceManager.Instance.ActiveModel ?? "Mặc định";
+            onStatusUpdate?.Invoke($"Trợ lý AI ({AIServiceManager.Instance.ActiveProviderType} - {moHinhHienTai}) đang phân tích bài học {skill}...");
 
             try
             {
                 string prompt = TaoPromptPhanTichTheoKyNang(baiHoc, skill);
-                string? response = await GeminiAIService.GoiGeminiApiAsync(prompt, "NoiDungHocTap");
+
+                // Gọi mô hình AI theo đúng cấu hình mà giảng viên đã lưu
+                var aiResponse = await AIServiceManager.Instance.ExecutePromptAsync(prompt, actionName: $"PhanTichBaiHoc_{skill}");
+                string? response = aiResponse.Success ? aiResponse.Text : null;
+
+                // Nếu mô hình được chọn gặp sự cố, thử fallback sang GeminiAIService
+                if (string.IsNullOrWhiteSpace(response))
+                {
+                    response = await GeminiAIService.GoiGeminiApiAsync(prompt, "NoiDungHocTap");
+                }
+
+                string tenMoHinhDung = aiResponse.Success 
+                    ? $"{aiResponse.ProviderName} ({aiResponse.ModelUsed})" 
+                    : (!string.IsNullOrWhiteSpace(AIServiceManager.Instance.ActiveModel)
+                        ? $"{AIServiceManager.Instance.ActiveProviderType} ({AIServiceManager.Instance.ActiveModel})"
+                        : "Trợ lý AI");
 
                 BaiHocAIContentDTO resultDto = new BaiHocAIContentDTO
                 {
                     MaBaiHoc = baiHoc.MaBaiHoc,
                     ContentHash = contentHash,
                     KyNang = skill,
-                    MoHinhAI = "Google Gemini Flash",
+                    MoHinhAI = tenMoHinhDung,
                     AudioPathGoc = baiHoc.AudioPath ?? baiHoc.DuongDanAudio
                 };
 
@@ -306,11 +330,11 @@ HƯỚNG DẪN CÁC THẺ THEO KỸ NĂNG:
             {
                 // Loại bỏ markdown code blocks ```json ... ```
                 string cleanJson = jsonText.Trim();
-                if (cleanJson.StartsWith("```json"))
+                if (cleanJson.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
                 {
                     cleanJson = cleanJson.Substring(7);
                 }
-                else if (cleanJson.StartsWith("```"))
+                else if (cleanJson.StartsWith("```", StringComparison.OrdinalIgnoreCase))
                 {
                     cleanJson = cleanJson.Substring(3);
                 }
@@ -320,11 +344,24 @@ HƯỚNG DẪN CÁC THẺ THEO KỸ NĂNG:
                 }
                 cleanJson = cleanJson.Trim();
 
+                // Trích xuất khối { ... } an toàn đề phòng text mở đầu/kết thúc từ LLM
+                int startObj = cleanJson.IndexOf('{');
+                int endObj = cleanJson.LastIndexOf('}');
+                if (startObj >= 0 && endObj > startObj)
+                {
+                    cleanJson = cleanJson.Substring(startObj, endObj - startObj + 1);
+                }
+
                 using var doc = JsonDocument.Parse(cleanJson);
                 var root = doc.RootElement;
 
                 JsonElement cardsArray;
-                if (root.TryGetProperty("theHocTap", out cardsArray) && cardsArray.ValueKind == JsonValueKind.Array)
+                bool foundCards = root.TryGetProperty("theHocTap", out cardsArray) ||
+                                  root.TryGetProperty("TheHocTap", out cardsArray) ||
+                                  root.TryGetProperty("learningCards", out cardsArray) ||
+                                  root.TryGetProperty("cards", out cardsArray);
+
+                if (foundCards && cardsArray.ValueKind == JsonValueKind.Array)
                 {
                     int index = 1;
                     foreach (var elem in cardsArray.EnumerateArray())
