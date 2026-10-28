@@ -101,9 +101,9 @@ namespace BUS.AI
 
                 if (leaseStatus == AILeaseStatus.CurrentlyProcessing)
                 {
-                    // Có tiến trình khác đang phân tích bài học này, chờ tối đa 25 giây
+                    // Có tiến trình khác đang phân tích bài học này, chờ tối đa 4-5 giây
                     onStatusUpdate?.Invoke("Bài học đang được hệ thống phân tích. Đang đồng bộ kết quả...");
-                    for (int i = 0; i < 15; i++)
+                    for (int i = 0; i < 3; i++)
                     {
                         await Task.Delay(1500);
                         var polled = BaiHocAIContentDAL.Instance.LayNoiDungAI(baiHoc.MaBaiHoc, contentHash);
@@ -194,7 +194,14 @@ namespace BUS.AI
         /// </summary>
         private static string TaoPromptPhanTichTheoKyNang(BaiHocDTO baiHoc, string skill)
         {
-            string cleanContent = KhoHocLieuSyncHelper.ChuyenDoiHtmlSangVanBan(baiHoc.NoiDung ?? "");
+            string? filePath = baiHoc.DuongDanTepVatLy;
+            if (string.IsNullOrWhiteSpace(filePath) || !System.IO.File.Exists(filePath))
+            {
+                filePath = KhoHocLieuSyncHelper.TimTepVatLyChoBaiHoc(baiHoc);
+                if (!string.IsNullOrWhiteSpace(filePath)) baiHoc.DuongDanTepVatLy = filePath;
+            }
+            string rawContent = KhoHocLieuSyncHelper.DocNoiDungTep(filePath, baiHoc.NoiDung);
+            string cleanContent = KhoHocLieuSyncHelper.ChuyenDoiHtmlSangVanBan(rawContent);
             if (cleanContent.Length > 4000)
             {
                 cleanContent = cleanContent.Substring(0, 4000);
@@ -443,7 +450,14 @@ HƯỚNG DẪN CÁC THẺ THEO KỸ NĂNG:
         public static List<LearningCardDTO> TaoTheHocTuNoiDungNguon(BaiHocDTO baiHoc, string skill)
         {
             var cards = new List<LearningCardDTO>();
-            string cleanContent = KhoHocLieuSyncHelper.ChuyenDoiHtmlSangVanBan(baiHoc.NoiDung ?? "");
+            string? filePath = baiHoc.DuongDanTepVatLy;
+            if (string.IsNullOrWhiteSpace(filePath) || !System.IO.File.Exists(filePath))
+            {
+                filePath = KhoHocLieuSyncHelper.TimTepVatLyChoBaiHoc(baiHoc);
+                if (!string.IsNullOrWhiteSpace(filePath)) baiHoc.DuongDanTepVatLy = filePath;
+            }
+            string rawContent = KhoHocLieuSyncHelper.DocNoiDungTep(filePath, baiHoc.NoiDung);
+            string cleanContent = KhoHocLieuSyncHelper.ChuyenDoiHtmlSangVanBan(rawContent);
 
             // 1. Thẻ mục tiêu bài học
             string objective = !string.IsNullOrWhiteSpace(baiHoc.TomTat) 

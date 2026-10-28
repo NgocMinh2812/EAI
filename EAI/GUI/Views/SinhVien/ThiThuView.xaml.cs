@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -108,11 +109,98 @@ namespace GUI.Views
         // Navigation Matrix Buttons cache
         private readonly List<Button> _navButtons = new List<Button>();
 
+        // TASK: BỘ PHÁT AUDIO BÀI THI & QUY TẮC PHÁT (MEDIAPLAYER)
+        private readonly MediaPlayer _mediaPlayer = new MediaPlayer();
+        private readonly DispatcherTimer _audioTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+        private bool _isPlayingAudio = false;
+        private string? _currentAudioSource = null;
+        private readonly Dictionary<string, int> _audioPlayCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
         public ThiThuView()
         {
             InitializeComponent();
+            InitMediaPlayer();
+            Unloaded += (s, e) => StopExamAudio();
             LoadExamList();
             UpdateUserExamStats();
+        }
+
+        private void InitMediaPlayer()
+        {
+            _mediaPlayer.MediaOpened += (s, e) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (_mediaPlayer.NaturalDuration.HasTimeSpan && _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds > 0)
+                    {
+                        double totalSec = _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                        pbAudioProgress.Maximum = totalSec;
+                        txtAudioTotalTime.Text = TimeSpan.FromSeconds(totalSec).ToString(@"mm\:ss");
+                    }
+                });
+            };
+
+            _mediaPlayer.MediaEnded += (s, e) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    _isPlayingAudio = false;
+                    _audioTimer.Stop();
+                    pbAudioProgress.Value = pbAudioProgress.Maximum;
+                    txtAudioCurrentTime.Text = txtAudioTotalTime.Text;
+
+                    string key = _currentAudioSource ?? "";
+                    int plays = _audioPlayCounts.TryGetValue(key, out int cnt) ? cnt : 0;
+                    int max = LaySoLanPhatToiDa();
+
+                    CapNhatBadgeLuotNghe(plays, max);
+
+                    if (max > 0 && plays >= max)
+                    {
+                        btnPlayExamAudio.Content = $"🔒 Đã hết lượt nghe ({max}/{max})";
+                        btnPlayExamAudio.IsEnabled = false;
+                        txtAudioStatus.Text = $"🔒 Đã nghe đủ {max}/{max} lượt quy định theo quy chế thi.";
+                    }
+                    else
+                    {
+                        btnPlayExamAudio.Content = $"▶ Nghe lần {plays + 1}/{max}";
+                        btnPlayExamAudio.IsEnabled = true;
+                        string remain = max > 0 ? $" (Còn {max - plays} lượt)" : "";
+                        txtAudioStatus.Text = $"🎧 Đã nghe xong lần {plays}/{max} • Bấm để nghe lại{remain}";
+                    }
+                });
+            };
+
+            _mediaPlayer.MediaFailed += (s, e) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    _isPlayingAudio = false;
+                    _audioTimer.Stop();
+
+                    // Hoàn lại lượt nghe nếu lỗi phát file
+                    string key = _currentAudioSource ?? "";
+                    if (_audioPlayCounts.TryGetValue(key, out int cnt) && cnt > 0)
+                    {
+                        _audioPlayCounts[key] = cnt - 1;
+                        CapNhatBadgeLuotNghe(cnt - 1, LaySoLanPhatToiDa());
+                    }
+
+                    btnPlayExamAudio.Content = "▶ Thử nghe lại";
+                    btnPlayExamAudio.IsEnabled = true;
+                    txtAudioStatus.Text = $"⚠️ Lỗi phát audio: {e.ErrorException?.Message ?? "Không phát được file"}";
+                });
+            };
+
+            _audioTimer.Tick += (s, e) =>
+            {
+                if (_mediaPlayer.NaturalDuration.HasTimeSpan && _isPlayingAudio)
+                {
+                    double curSec = _mediaPlayer.Position.TotalSeconds;
+                    pbAudioProgress.Value = curSec;
+                    txtAudioCurrentTime.Text = TimeSpan.FromSeconds(curSec).ToString(@"mm\:ss");
+                }
+            };
         }
 
         // =========================================================================
@@ -284,6 +372,8 @@ namespace GUI.Views
             }
 
             // Reset trạng thái làm bài (TASK-206)
+            StopExamAudio();
+            _audioPlayCounts.Clear();
             _userAnswers.Clear();
             _userAnswerIndices.Clear();
             _userTextAnswers.Clear();
@@ -465,16 +555,112 @@ namespace GUI.Views
             }
 
             // Xử lý bài thi Nghe (Listening) vs Đọc (Reading)
-            bool isListening = q.IsKyNangNghe;
+            string? targetAudioPath = !string.IsNullOrWhiteSpace(q.AudioPath) 
+                ? q.AudioPath 
+                : _currentExam?.DuongDanAudio;
+
+            Uri? resolvedAudioUri = ResolveExamAudioUri(targetAudioPath);
+            bool coAudioVatLy = (resolvedAudioUri != null);
+            bool isListening = q.IsKyNangNghe || coAudioVatLy || (_currentExam != null && _currentExam.HasAudio);
+
             if (isListening)
             {
                 pnlExamAudio.Visibility = Visibility.Visible;
                 pnlExamPassage.Visibility = Visibility.Collapsed; // Ẩn transcript để bảo đảm tính khách quan khi nghe
-                txtAudioStatus.Text = "🎧 Bấm để nghe • Transcript được bảo mật trong suốt thời gian thi";
+
+                if (coAudioVatLy)
+                {
+                    string audioKey = resolvedAudioUri!.LocalPath;
+                    int maxPlays = LaySoLanPhatToiDa();
+                    int currentPlays = _audioPlayCounts.TryGetValue(audioKey, out int cp) ? cp : 0;
+                    bool daHetLuot = (maxPlays > 0 && currentPlays >= maxPlays);
+
+                    // Nếu đề thi chuyển sang file âm thanh khác hoàn toàn với file đang nạp
+                    if (!string.Equals(_currentAudioSource, audioKey, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (_isPlayingAudio)
+                        {
+                            _mediaPlayer.Stop();
+                            _isPlayingAudio = false;
+                            _audioTimer.Stop();
+                        }
+                        _mediaPlayer.Open(resolvedAudioUri);
+                        _currentAudioSource = audioKey;
+                        _mediaPlayer.Position = TimeSpan.Zero;
+                        pbAudioProgress.Value = 0;
+                        txtAudioCurrentTime.Text = "00:00";
+                    }
+
+                    // Cập nhật Badge số lượt nghe
+                    CapNhatBadgeLuotNghe(currentPlays, maxPlays);
+
+                    // Trạng thái nút bấm theo quy chế phòng thi chuẩn: Không tạm dừng, không tua
+                    if (daHetLuot)
+                    {
+                        btnPlayExamAudio.Content = $"🔒 Đã hết lượt nghe ({maxPlays}/{maxPlays})";
+                        btnPlayExamAudio.IsEnabled = false;
+                        txtAudioStatus.Text = $"🔒 Đã hoàn thành tối đa {maxPlays}/{maxPlays} lượt nghe theo đúng quy chế thi.";
+                    }
+                    else if (_isPlayingAudio)
+                    {
+                        btnPlayExamAudio.Content = $"🎧 Đang phát bài nghe ({currentPlays}/{maxPlays})...";
+                        btnPlayExamAudio.IsEnabled = false;
+                        string playInfo = maxPlays > 0 ? $" (Lần {currentPlays}/{maxPlays})" : "";
+                        txtAudioStatus.Text = $"🎧 Đang phát: {Path.GetFileName(audioKey)}{playInfo} • Quy chế: Phát liên tục một mạch.";
+                    }
+                    else
+                    {
+                        btnPlayExamAudio.Content = (currentPlays == 0) ? "▶ Bắt đầu nghe bài thi" : $"▶ Nghe lần {currentPlays + 1}/{maxPlays}";
+                        btnPlayExamAudio.IsEnabled = true;
+                        string ruleInfo = maxPlays > 0 ? $"Tối đa {maxPlays} lần" : "Không giới hạn";
+                        txtAudioStatus.Text = $"🎧 Tệp âm thanh: {Path.GetFileName(audioKey)} • Quy chế: {ruleInfo} • Bấm nghe là phát hết bài";
+                    }
+
+                    pnlAudioTimelineRow.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    // Fallback TTS nếu không tìm thấy file audio trên máy
+                    string ttsKey = $"TTS_EXAM_{_currentExam?.MaBaiTapDeThi ?? 0}";
+                    int maxPlays = LaySoLanPhatToiDa();
+                    int currentPlays = _audioPlayCounts.TryGetValue(ttsKey, out int cp) ? cp : 0;
+                    bool daHetLuot = (maxPlays > 0 && currentPlays >= maxPlays);
+
+                    CapNhatBadgeLuotNghe(currentPlays, maxPlays);
+
+                    if (daHetLuot)
+                    {
+                        btnPlayExamAudio.Content = $"🔒 Đã hết lượt nghe ({maxPlays}/{maxPlays})";
+                        btnPlayExamAudio.IsEnabled = false;
+                        txtAudioStatus.Text = $"🔒 Đã nghe đủ {maxPlays}/{maxPlays} lượt quy định theo quy chế thi.";
+                    }
+                    else if (_isPlayingAudio)
+                    {
+                        btnPlayExamAudio.Content = $"🎧 Đang đọc ({currentPlays}/{maxPlays})...";
+                        btnPlayExamAudio.IsEnabled = false;
+                        txtAudioStatus.Text = "🎧 Đang đọc bài bằng AI (TTS)... Không tạm dừng";
+                    }
+                    else
+                    {
+                        btnPlayExamAudio.Content = (currentPlays == 0) ? "▶ Bắt đầu nghe (TTS AI)" : $"▶ Nghe lần {currentPlays + 1}/{maxPlays} (TTS)";
+                        btnPlayExamAudio.IsEnabled = true;
+                        txtAudioStatus.Text = $"🎧 Đọc bài bằng AI (TTS) • Cho phép nghe tối đa {maxPlays} lần";
+                    }
+
+                    bdrAudioPlayCount.Visibility = Visibility.Visible;
+                    pnlAudioTimelineRow.Visibility = Visibility.Collapsed;
+                }
             }
             else
             {
                 pnlExamAudio.Visibility = Visibility.Collapsed;
+                if (_isPlayingAudio)
+                {
+                    _mediaPlayer.Stop();
+                    _isPlayingAudio = false;
+                    _audioTimer.Stop();
+                }
+
                 if (!string.IsNullOrWhiteSpace(q.DoanVanDoc))
                 {
                     pnlExamPassage.Visibility = Visibility.Visible;
@@ -587,9 +773,263 @@ namespace GUI.Views
             if (_currentIndex < 0 || _currentIndex >= _questions.Count) return;
             var q = _questions[_currentIndex];
 
-            string audioContent = !string.IsNullOrWhiteSpace(q.DoanVanDoc) ? q.DoanVanDoc : q.NoiDungCauHoi;
-            txtAudioStatus.Text = "🎧 Đang phát bài nghe (TTS)...";
-            SpeakText(audioContent);
+            string? targetAudioPath = !string.IsNullOrWhiteSpace(q.AudioPath) 
+                ? q.AudioPath 
+                : _currentExam?.DuongDanAudio;
+
+            Uri? resolvedAudioUri = ResolveExamAudioUri(targetAudioPath);
+
+            // NẾU CÓ TỆP AUDIO THỰC TẾ TRÊN HỆ THỐNG
+            if (resolvedAudioUri != null)
+            {
+                string audioKey = resolvedAudioUri.LocalPath;
+                int maxPlays = LaySoLanPhatToiDa();
+                int currentPlays = _audioPlayCounts.TryGetValue(audioKey, out int cp) ? cp : 0;
+
+                // Quy chế phòng thi: Đang phát thì KHÔNG CHO PHÉP can thiệp (không tạm dừng, không dừng lại)
+                if (_isPlayingAudio)
+                {
+                    return;
+                }
+
+                // Nếu đã nghe đủ số lượt quy định của bài thi
+                if (maxPlays > 0 && currentPlays >= maxPlays)
+                {
+                    btnPlayExamAudio.IsEnabled = false;
+                    btnPlayExamAudio.Content = $"🔒 Đã hết lượt nghe ({maxPlays}/{maxPlays})";
+                    Common.ThongBaoDialog.CanhBao(
+                        $"Bạn đã sử dụng hết {maxPlays} lượt nghe cho bài thi này theo đúng quy chế thi thử (Mock Test).\n" +
+                        "Hệ thống không cho phép phát lại thêm lượt mới.", 
+                        "Quy chế thi thử");
+                    return;
+                }
+
+                // Nạp tệp âm thanh
+                if (!string.Equals(_currentAudioSource, audioKey, StringComparison.OrdinalIgnoreCase))
+                {
+                    _mediaPlayer.Open(resolvedAudioUri);
+                    _currentAudioSource = audioKey;
+                }
+
+                // Tăng số lượt nghe ngay khi bắt đầu phát một lượt hoàn chỉnh
+                currentPlays++;
+                _audioPlayCounts[audioKey] = currentPlays;
+                CapNhatBadgeLuotNghe(currentPlays, maxPlays);
+
+                // Phát từ đầu đến cuối một mạch
+                _mediaPlayer.Stop();
+                _mediaPlayer.Position = TimeSpan.Zero;
+                pbAudioProgress.Value = 0;
+                txtAudioCurrentTime.Text = "00:00";
+
+                _mediaPlayer.Play();
+                _audioTimer.Start();
+                _isPlayingAudio = true;
+
+                // Vô hiệu hóa nút trong suốt quá trình phát theo quy chế phòng thi
+                btnPlayExamAudio.IsEnabled = false;
+                btnPlayExamAudio.Content = $"🎧 Đang phát bài nghe ({currentPlays}/{maxPlays})...";
+                txtAudioStatus.Text = $"🎧 Đang phát: {Path.GetFileName(audioKey)} (Lần {currentPlays}/{maxPlays}) • Quy chế: Phát liên tục không dừng.";
+            }
+            else
+            {
+                // FALLBACK SANG TTS (TEXT-TO-SPEECH) NẾU HOÀN TOÀN KHÔNG CÓ FILE AUDIO
+                string ttsKey = $"TTS_EXAM_{_currentExam?.MaBaiTapDeThi ?? 0}";
+                int maxPlays = LaySoLanPhatToiDa();
+                int currentPlays = _audioPlayCounts.TryGetValue(ttsKey, out int cp) ? cp : 0;
+
+                if (_isPlayingAudio) return;
+
+                if (maxPlays > 0 && currentPlays >= maxPlays)
+                {
+                    btnPlayExamAudio.IsEnabled = false;
+                    btnPlayExamAudio.Content = $"🔒 Đã hết lượt nghe ({maxPlays}/{maxPlays})";
+                    Common.ThongBaoDialog.CanhBao($"Bạn đã sử dụng hết {maxPlays} lượt nghe theo quy chế thi.", "Quy chế thi");
+                    return;
+                }
+
+                currentPlays++;
+                _audioPlayCounts[ttsKey] = currentPlays;
+                CapNhatBadgeLuotNghe(currentPlays, maxPlays);
+
+                _isPlayingAudio = true;
+                btnPlayExamAudio.IsEnabled = false;
+                btnPlayExamAudio.Content = $"🎧 Đang đọc ({currentPlays}/{maxPlays})...";
+                txtAudioStatus.Text = $"🎧 Đang đọc bài bằng AI (TTS - Lần {currentPlays}/{maxPlays})... Phát liên tục không tạm dừng.";
+
+                string audioContent = !string.IsNullOrWhiteSpace(q.DoanVanDoc) ? q.DoanVanDoc : q.NoiDungCauHoi;
+                SpeakText(audioContent);
+
+                // Ước tính thời gian đọc dựa vào số từ (~130 từ/phút)
+                int wordCount = audioContent.Split(new[] { ' ', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
+                int durationSec = Math.Max(5, (int)(wordCount / 2.0));
+
+                var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(durationSec) };
+                timer.Tick += (s, ev) =>
+                {
+                    timer.Stop();
+                    _isPlayingAudio = false;
+                    if (maxPlays > 0 && currentPlays >= maxPlays)
+                    {
+                        btnPlayExamAudio.Content = $"🔒 Đã hết lượt nghe ({maxPlays}/{maxPlays})";
+                        btnPlayExamAudio.IsEnabled = false;
+                        txtAudioStatus.Text = $"🔒 Đã hoàn thành {maxPlays}/{maxPlays} lượt nghe theo quy chế thi.";
+                    }
+                    else
+                    {
+                        btnPlayExamAudio.Content = $"▶ Nghe lần {currentPlays + 1}/{maxPlays} (TTS)";
+                        btnPlayExamAudio.IsEnabled = true;
+                        txtAudioStatus.Text = $"🎧 Đã nghe xong lần {currentPlays}/{maxPlays} • Bấm để nghe lại";
+                    }
+                };
+                timer.Start();
+            }
+        }
+
+        private void SldAudioVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_mediaPlayer != null)
+            {
+                _mediaPlayer.Volume = Math.Clamp(e.NewValue, 0.0, 1.0);
+            }
+        }
+
+        private int LaySoLanPhatToiDa()
+        {
+            if (_currentExam == null) return 0;
+            if (string.Equals(_currentExam.LoaiHinh, "ThiThu", StringComparison.OrdinalIgnoreCase))
+            {
+                return _currentExam.SoLanPhatAudio > 0 ? _currentExam.SoLanPhatAudio : 2;
+            }
+            return 0; // Luyện tập: không giới hạn
+        }
+
+        private void CapNhatBadgeLuotNghe(int currentPlays, int maxPlays)
+        {
+            if (maxPlays > 0)
+            {
+                bdrAudioPlayCount.Visibility = Visibility.Visible;
+                txtAudioPlayCount.Text = $"⏱️ Lượt nghe: {currentPlays}/{maxPlays}";
+                if (currentPlays >= maxPlays)
+                {
+                    bdrAudioPlayCount.Background = new SolidColorBrush(Color.FromRgb(254, 226, 226));
+                    bdrAudioPlayCount.BorderBrush = new SolidColorBrush(Color.FromRgb(254, 202, 202));
+                    txtAudioPlayCount.Foreground = new SolidColorBrush(Color.FromRgb(220, 38, 38));
+                }
+                else
+                {
+                    bdrAudioPlayCount.Background = new SolidColorBrush(Color.FromRgb(254, 243, 199));
+                    bdrAudioPlayCount.BorderBrush = new SolidColorBrush(Color.FromRgb(253, 230, 138));
+                    txtAudioPlayCount.Foreground = new SolidColorBrush(Color.FromRgb(180, 83, 9));
+                }
+            }
+            else
+            {
+                bdrAudioPlayCount.Visibility = Visibility.Visible;
+                txtAudioPlayCount.Text = "♾️ Nghe tự do";
+                bdrAudioPlayCount.Background = new SolidColorBrush(Color.FromRgb(240, 253, 244));
+                bdrAudioPlayCount.BorderBrush = new SolidColorBrush(Color.FromRgb(187, 247, 208));
+                txtAudioPlayCount.Foreground = new SolidColorBrush(Color.FromRgb(22, 101, 52));
+            }
+        }
+
+        public static Uri? ResolveExamAudioUri(string? audioPath)
+        {
+            if (string.IsNullOrWhiteSpace(audioPath)) return null;
+
+            string path = audioPath.Trim().Trim('"', '\'');
+
+            // 1. Kiểm tra trực tiếp đường dẫn tuyệt đối hoặc tương đối
+            if (File.Exists(path))
+            {
+                return new Uri(Path.GetFullPath(path));
+            }
+
+            // 2. Kiểm tra URI hợp lệ
+            if (Uri.TryCreate(path, UriKind.Absolute, out var absUri) &&
+                (absUri.Scheme == Uri.UriSchemeHttp || absUri.Scheme == Uri.UriSchemeHttps || absUri.Scheme == Uri.UriSchemeFile))
+            {
+                if (absUri.Scheme == Uri.UriSchemeFile && File.Exists(absUri.LocalPath))
+                {
+                    return absUri;
+                }
+                if (absUri.Scheme != Uri.UriSchemeFile)
+                {
+                    return absUri;
+                }
+            }
+
+            // 3. Tìm theo tên tệp trong các thư mục âm thanh phổ biến
+            string fileName = Path.GetFileName(path);
+            var searchFolders = new List<string>();
+
+            // Lấy toàn bộ thư mục gốc của KhoHocLieu
+            searchFolders.AddRange(KhoHocLieuSyncHelper.GetAllHocLieuRoots());
+
+            // Bổ sung các thư mục lưu trữ Audio hệ thống
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            searchFolders.AddRange(new[]
+            {
+                @"D:\TDC\HK5\CDPTUD\Audio",
+                @"D:\CDPTUD1\Audio",
+                @"D:\TDC\HK5\CDPTUD\EAI\KhoHocLieu",
+                @"D:\CDPTUD1\EAI\KhoHocLieu",
+                Path.Combine(baseDir, "Audio"),
+                Path.Combine(baseDir, "Data", "Audio"),
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\..\Audio")),
+                Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\Audio"))
+            });
+
+            foreach (var folder in searchFolders)
+            {
+                if (!Directory.Exists(folder)) continue;
+                try
+                {
+                    var match = Directory.GetFiles(folder, fileName, SearchOption.AllDirectories).FirstOrDefault();
+                    if (match != null && File.Exists(match))
+                    {
+                        return new Uri(Path.GetFullPath(match));
+                    }
+                }
+                catch { }
+            }
+
+            // 4. Tìm khớp theo tên không phân biệt hoa thường / ký tự
+            string nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+            foreach (var folder in searchFolders)
+            {
+                if (!Directory.Exists(folder)) continue;
+                try
+                {
+                    var match = Directory.GetFiles(folder, $"*{nameWithoutExt}*", SearchOption.AllDirectories)
+                        .FirstOrDefault(f => f.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase) || 
+                                             f.EndsWith(".wav", StringComparison.OrdinalIgnoreCase) || 
+                                             f.EndsWith(".m4a", StringComparison.OrdinalIgnoreCase));
+                    if (match != null && File.Exists(match))
+                    {
+                        return new Uri(Path.GetFullPath(match));
+                    }
+                }
+                catch { }
+            }
+
+            return null;
+        }
+
+        private void StopExamAudio()
+        {
+            try
+            {
+                if (_mediaPlayer != null)
+                {
+                    _mediaPlayer.Stop();
+                    _mediaPlayer.Close();
+                }
+                _isPlayingAudio = false;
+                _audioTimer?.Stop();
+                _currentAudioSource = null;
+            }
+            catch { }
         }
 
         private void TxtStudentTextAnswer_TextChanged(object sender, TextChangedEventArgs e)
@@ -714,6 +1154,7 @@ namespace GUI.Views
             if (_isSubmitting || _currentExam == null) return;
             _isSubmitting = true;
             _examTimer?.Stop();
+            StopExamAudio();
 
             int timeSpentSeconds = Math.Max(5, _totalExamSeconds - _secondsRemaining);
 
@@ -930,6 +1371,7 @@ namespace GUI.Views
         private void BtnBackToExamList_Click(object sender, RoutedEventArgs e)
         {
             _examTimer?.Stop();
+            StopExamAudio();
             pnlLamBaiThi.Visibility = Visibility.Collapsed;
             pnlXemLaiBaiThi.Visibility = Visibility.Collapsed;
             pnlDanhSachDeThi.Visibility = Visibility.Visible;

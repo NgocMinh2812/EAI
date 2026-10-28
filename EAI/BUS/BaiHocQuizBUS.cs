@@ -68,7 +68,7 @@ namespace BUS
                 if (leaseStatus == AILeaseStatus.CurrentlyProcessing)
                 {
                     onStatusUpdate?.Invoke($"Hệ thống đang chuẩn bị {tenLoaiHienThi}. Đang đồng bộ kết quả...");
-                    for (int i = 0; i < 15; i++)
+                    for (int i = 0; i < 3; i++)
                     {
                         await Task.Delay(1500);
                         var polled = BaiHocQuizDAL.Instance.LayBoCauHoi(baiHoc.MaBaiHoc, contentHash, loaiBo);
@@ -183,7 +183,15 @@ namespace BUS
         {
             string tieuDe = baiHoc.TieuDe ?? "Bài học tiếng Anh";
             string tomTat = baiHoc.TomTat ?? "";
-            string noiDung = baiHoc.NoiDung ?? "";
+
+            string? filePath = baiHoc.DuongDanTepVatLy;
+            if (string.IsNullOrWhiteSpace(filePath) || !System.IO.File.Exists(filePath))
+            {
+                filePath = KhoHocLieuSyncHelper.TimTepVatLyChoBaiHoc(baiHoc);
+                if (!string.IsNullOrWhiteSpace(filePath)) baiHoc.DuongDanTepVatLy = filePath;
+            }
+            string rawContent = KhoHocLieuSyncHelper.DocNoiDungTep(filePath, baiHoc.NoiDung);
+            string noiDung = KhoHocLieuSyncHelper.ChuyenDoiHtmlSangVanBan(rawContent);
             if (noiDung.Length > 5000) noiDung = noiDung.Substring(0, 5000);
 
             string moTaLoaiBo = "";

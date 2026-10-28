@@ -178,6 +178,7 @@ namespace GUI.ViewModels.GiangVien
                         _selectedModel = model.Id;
                         OnPropertyChanged(nameof(SelectedModel));
                         AIServiceManager.Instance.ActiveModel = model.Id;
+                        LuuCauHinhMoHinhTuDong();
                     }
                 }
             }
@@ -191,6 +192,7 @@ namespace GUI.ViewModels.GiangVien
                 if (SetProperty(ref _selectedModel, value))
                 {
                     AIServiceManager.Instance.ActiveModel = value;
+                    LuuCauHinhMoHinhTuDong();
                     if (!string.IsNullOrWhiteSpace(value))
                     {
                         for (int i = 0; i < AvailableModelInfos.Count; i++)
@@ -208,6 +210,26 @@ namespace GUI.ViewModels.GiangVien
                     }
                 }
             }
+        }
+
+        private void LuuCauHinhMoHinhTuDong()
+        {
+            try
+            {
+                AIProviderType targetType = AIProviderType.Gemini;
+                if (!string.IsNullOrEmpty(SelectedProvider))
+                {
+                    if (SelectedProvider.Contains("Groq")) targetType = AIProviderType.Groq;
+                    else if (SelectedProvider.IndexOf("Xkio", StringComparison.OrdinalIgnoreCase) >= 0 || SelectedProvider.IndexOf("xKiro", StringComparison.OrdinalIgnoreCase) >= 0) targetType = AIProviderType.Xkio;
+                }
+
+                AIServiceManager.Instance.ActiveProviderType = targetType;
+                AIServiceManager.Instance.ActiveModel = SelectedModel;
+                AIServiceManager.Instance.EnableFallback = IsFallbackEnabled;
+
+                BUS.AI.Configuration.AIConfigHelper.SaveActiveModelConfig(targetType.ToString(), SelectedModel ?? "", IsFallbackEnabled);
+            }
+            catch { }
         }
 
         public bool IsFallbackEnabled

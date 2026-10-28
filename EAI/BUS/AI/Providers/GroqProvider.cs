@@ -44,15 +44,33 @@ namespace BUS.AI.Providers
             string targetModel = string.IsNullOrWhiteSpace(model) ? DefaultModel : model;
             string endpoint = $"{GroqBaseUrl}/chat/completions";
 
-            var requestObj = new
+            object requestObj;
+            if (targetModel.Contains("qwen", StringComparison.OrdinalIgnoreCase))
             {
-                model = targetModel,
-                messages = new[]
+                requestObj = new
                 {
-                    new { role = "user", content = prompt }
-                },
-                temperature = 0.4
-            };
+                    model = targetModel,
+                    messages = new[]
+                    {
+                        new { role = "user", content = prompt }
+                    },
+                    temperature = 0.4,
+                    max_tokens = 900
+                };
+            }
+            else
+            {
+                requestObj = new
+                {
+                    model = targetModel,
+                    messages = new[]
+                    {
+                        new { role = "user", content = prompt }
+                    },
+                    temperature = 0.4,
+                    max_tokens = 2048
+                };
+            }
 
             string requestJson = JsonSerializer.Serialize(requestObj);
             var sw = Stopwatch.StartNew();
