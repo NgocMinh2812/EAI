@@ -383,7 +383,7 @@ namespace GUI.ViewModels.GiangVien
                 {
                     if (maBo == 0)
                     {
-                        return BoCauHoiBUS.Instance.LayTatCaCauHoi(tuKhoa, kyNang, doKho, 500);
+                        return BoCauHoiBUS.Instance.LayTatCaCauHoi(tuKhoa, kyNang, doKho, 1500);
                     }
                     else
                     {

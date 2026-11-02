@@ -246,6 +246,7 @@
                                         <ComboBoxItem Content="Từ vựng (Vocabulary)" Tag="TuVung"/>
                                         <ComboBoxItem Content="Luyện nghe (Listening)" Tag="Nghe"/>
                                         <ComboBoxItem Content="Viết luận (Writing)" Tag="Viet"/>
+                                        <ComboBoxItem Content="Luyện nói (Speaking)" Tag="Noi"/>
                                     </ComboBox>
                                 </StackPanel>
 

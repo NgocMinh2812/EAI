@@ -1,3 +1,5 @@
+using GUI.Views.SinhVien;
+using DAL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +29,9 @@ namespace GUI.Views
 
         // TASK-203: Biến điều khiển bộ phát MediaPlayer / Audio Tutor
         private readonly MediaPlayer _mediaPlayer = new MediaPlayer();
+        private readonly DAL.AudioTranscriptDAL _audioTranscriptDAL = new DAL.AudioTranscriptDAL();
+        private AudioTranscriptDTO? _currentTranscript;
+        private readonly List<Border> _segmentCardBorders = new List<Border>();
         private System.Windows.Threading.DispatcherTimer? _audioTimer;
         private bool _isPlayingAudio = false;
         private double _audioCurrentSeconds = 0;
@@ -324,6 +329,8 @@ namespace GUI.Views
                         "NguPhap" => "KỸ NĂNG: NGỮ PHÁP (GRAMMAR)",
                         "Doc" => "KỸ NĂNG: ĐỌC HIỂU (READING)",
                         "Nghe" => "KỸ NĂNG: NGHE HIỂU (LISTENING)",
+                        "Viet" => "KỸ NĂNG: VIẾT LUẬN (WRITING)",
+                        "Noi" => "KỸ NĂNG: LUYỆN NÓI (SPEAKING)",
                         _ => "LỘ TRÌNH TẤT CẢ BÀI HỌC"
                     };
                 }
@@ -335,6 +342,20 @@ namespace GUI.Views
         private void CboFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!_isInitialized) return;
+            ApplyFilter();
+        }
+
+        private void BtnResetFilterHocTap_Click(object sender, RoutedEventArgs e)
+        {
+            _selectedSkill = "All";
+            SyncSkillButtonsVisual("All");
+            if (cboTrinhDo != null) cboTrinhDo.SelectedIndex = 0;
+            if (cboTrangThai != null) cboTrangThai.SelectedIndex = 0;
+            if (txtTimKiem != null)
+            {
+                txtTimKiem.Text = SearchPlaceholder;
+                txtTimKiem.Foreground = GetBrush("TextGray", Brushes.Gray);
+            }
             ApplyFilter();
         }
 
@@ -468,6 +489,7 @@ namespace GUI.Views
                 {
                     txtAudioTotalTime.Text = $"{(int)_audioTotalSeconds / 60:D2}:{(int)_audioTotalSeconds % 60:D2}";
                 }
+                LoadTranscriptChoBaiHoc(_currentBaiHoc.MaBaiHoc, rawAudio);
             }
 
             // Cập nhật thông tin tiêu đề, thể loại, chủ đề
@@ -824,6 +846,40 @@ namespace GUI.Views
                         };
                         wpTop.Children.Add(bdrPos);
                     }
+
+                    // Nút phát âm 🔊
+                    var btnSpeakWord = new Button
+                    {
+                        Content = "🔊",
+                        FontSize = 11,
+                        Background = Brushes.Transparent,
+                        BorderThickness = new Thickness(0),
+                        Cursor = System.Windows.Input.Cursors.Hand,
+                        Padding = new Thickness(6, 1, 6, 1),
+                        Margin = new Thickness(6, 0, 0, 0),
+                        ToolTip = "Nghe phát âm chuẩn"
+                    };
+                    string vocabWord = v.Word;
+                    btnSpeakWord.Click += (s, e) => PhatAmTu(vocabWord);
+                    wpTop.Children.Add(btnSpeakWord);
+
+                    // Nút Luyện nói 🎤
+                    var btnPracticeWord = new Button
+                    {
+                        Content = "🎤 Luyện nói",
+                        FontSize = 11,
+                        FontWeight = FontWeights.Medium,
+                        Foreground = new SolidColorBrush(Color.FromRgb(15, 118, 110)),
+                        Background = new SolidColorBrush(Color.FromRgb(240, 253, 250)),
+                        BorderBrush = new SolidColorBrush(Color.FromRgb(153, 246, 228)),
+                        BorderThickness = new Thickness(1),
+                        Padding = new Thickness(6, 1, 6, 1),
+                        Margin = new Thickness(6, 0, 0, 0),
+                        Cursor = System.Windows.Input.Cursors.Hand,
+                        ToolTip = "Luyện phát âm từ này với AI"
+                    };
+                    btnPracticeWord.Click += (s, e) => MoHopThoaiLuyenNoi(vocabWord);
+                    wpTop.Children.Add(btnPracticeWord);
                     spVocabItem.Children.Add(wpTop);
 
                     // Dòng 2: Nghĩa tiếng Việt
@@ -914,6 +970,39 @@ namespace GUI.Views
                             TextWrapping = TextWrapping.Wrap
                         });
                     }
+
+                    var spLineBar = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 6, 0, 0) };
+                    var btnSpeakLine = new Button
+                    {
+                        Content = "🔊 Nghe đọc",
+                        FontSize = 11,
+                        Background = Brushes.Transparent,
+                        BorderThickness = new Thickness(0),
+                        Cursor = System.Windows.Input.Cursors.Hand,
+                        Padding = new Thickness(4, 2, 4, 2),
+                        ToolTip = "Nghe đọc câu này"
+                    };
+                    string dlgSentence = line.Text;
+                    btnSpeakLine.Click += (s, e) => PhatAmTu(dlgSentence);
+                    spLineBar.Children.Add(btnSpeakLine);
+
+                    var btnPracticeLine = new Button
+                    {
+                        Content = "🎤 Luyện nói",
+                        FontSize = 11,
+                        FontWeight = FontWeights.Medium,
+                        Foreground = new SolidColorBrush(Color.FromRgb(15, 118, 110)),
+                        Background = new SolidColorBrush(Color.FromRgb(240, 253, 250)),
+                        BorderBrush = new SolidColorBrush(Color.FromRgb(153, 246, 228)),
+                        BorderThickness = new Thickness(1),
+                        Padding = new Thickness(8, 2, 8, 2),
+                        Margin = new Thickness(6, 0, 0, 0),
+                        Cursor = System.Windows.Input.Cursors.Hand,
+                        ToolTip = "Luyện phát âm câu này với AI"
+                    };
+                    btnPracticeLine.Click += (s, e) => MoHopThoaiLuyenNoi(dlgSentence);
+                    spLineBar.Children.Add(btnPracticeLine);
+                    spLine.Children.Add(spLineBar);
 
                     bdrLine.Child = spLine;
                     spDialogue.Children.Add(bdrLine);
@@ -1511,6 +1600,30 @@ namespace GUI.Views
             string timeStr = $"{(int)_audioCurrentSeconds / 60:D2}:{(int)_audioCurrentSeconds % 60:D2}";
             if (txtAudioCurrentTime != null) txtAudioCurrentTime.Text = timeStr;
             if (txtAudioCurrentTimeQuiz != null) txtAudioCurrentTimeQuiz.Text = timeStr;
+
+            // Highlight live transcript segment
+            if (_segmentCardBorders.Count > 0)
+            {
+                foreach (var bdr in _segmentCardBorders)
+                {
+                    if (bdr.Tag is TranscriptSegmentItemDTO seg)
+                    {
+                        bool isActive = _audioCurrentSeconds >= seg.Start && _audioCurrentSeconds <= (seg.End > seg.Start ? seg.End : seg.Start + 3);
+                        if (isActive)
+                        {
+                            bdr.Background = new SolidColorBrush(Color.FromRgb(240, 253, 250));
+                            bdr.BorderBrush = new SolidColorBrush(Color.FromRgb(16, 185, 129));
+                            bdr.BorderThickness = new Thickness(1.5);
+                        }
+                        else
+                        {
+                            bdr.Background = new SolidColorBrush(Color.FromRgb(248, 250, 252));
+                            bdr.BorderBrush = new SolidColorBrush(Color.FromRgb(226, 232, 240));
+                            bdr.BorderThickness = new Thickness(1);
+                        }
+                    }
+                }
+            }
         }
 
         private void BtnAudioPlayPause_Click(object sender, RoutedEventArgs e)
@@ -1814,5 +1927,217 @@ namespace GUI.Views
             dangNhapWindow.Show();
             Window.GetWindow(this)?.Close();
         }
+    
+        #region AI AUDIO TRANSCRIPT & SPEAKING METHODS
+        private void BtnToggleTranscript_Click(object sender, RoutedEventArgs e)
+        {
+            if (pnlTranscriptCard == null) return;
+            bool isVisible = pnlTranscriptCard.Visibility == Visibility.Visible;
+            pnlTranscriptCard.Visibility = isVisible ? Visibility.Collapsed : Visibility.Visible;
+            if (btnToggleTranscript != null)
+            {
+                btnToggleTranscript.Content = isVisible ? "📜 Xem transcript" : "📜 Ẩn transcript";
+            }
+        }
+
+        private void LoadTranscriptChoBaiHoc(int maBaiHoc, string? rawAudio)
+        {
+            _segmentCardBorders.Clear();
+            if (pnlTranscriptSegmentsList != null) pnlTranscriptSegmentsList.Children.Clear();
+            _currentTranscript = null;
+
+            try
+            {
+                _currentTranscript = _audioTranscriptDAL.LayAudioChinhCuaBaiHoc(maBaiHoc);
+                if (_currentTranscript == null && !string.IsNullOrWhiteSpace(rawAudio))
+                {
+                    _currentTranscript = _audioTranscriptDAL.LayTheoDuongDanAudio(rawAudio);
+                }
+            }
+            catch { }
+
+            bool coTranscript = _currentTranscript != null 
+                                && _currentTranscript.ChoPhepSinhVienXem
+                                && (!string.IsNullOrWhiteSpace(_currentTranscript.TranscriptText) || (_currentTranscript.Segments != null && _currentTranscript.Segments.Count > 0));
+
+            if (btnToggleTranscript != null)
+            {
+                btnToggleTranscript.Visibility = coTranscript ? Visibility.Visible : Visibility.Collapsed;
+                btnToggleTranscript.Content = "📜 Xem transcript";
+            }
+
+            if (pnlTranscriptCard != null)
+            {
+                pnlTranscriptCard.Visibility = Visibility.Collapsed;
+            }
+
+            if (!coTranscript || _currentTranscript == null || pnlTranscriptSegmentsList == null)
+            {
+                return;
+            }
+
+            var segments = _currentTranscript.Segments;
+            if ((segments == null || segments.Count == 0) && !string.IsNullOrWhiteSpace(_currentTranscript.TranscriptSegmentsJson))
+            {
+                try
+                {
+                    segments = System.Text.Json.JsonSerializer.Deserialize<List<TranscriptSegmentItemDTO>>(_currentTranscript.TranscriptSegmentsJson);
+                }
+                catch { }
+            }
+
+            if (segments != null && segments.Count > 0)
+            {
+                foreach (var seg in segments)
+                {
+                    var segCard = TaoGiaoDienTranscriptSegment(seg);
+                    pnlTranscriptSegmentsList.Children.Add(segCard);
+                    _segmentCardBorders.Add(segCard);
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(_currentTranscript.TranscriptText))
+            {
+                var txtFull = new TextBlock
+                {
+                    Text = _currentTranscript.TranscriptText,
+                    FontSize = 13,
+                    LineHeight = 22,
+                    Foreground = new SolidColorBrush(Color.FromRgb(30, 41, 59)),
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin = new Thickness(6, 4, 6, 4)
+                };
+                pnlTranscriptSegmentsList.Children.Add(txtFull);
+            }
+        }
+
+        private Border TaoGiaoDienTranscriptSegment(TranscriptSegmentItemDTO seg)
+        {
+            var bdrSeg = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(248, 250, 252)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(226, 232, 240)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(10, 8, 10, 8),
+                Margin = new Thickness(0, 0, 0, 8),
+                Tag = seg
+            };
+
+            var gridSeg = new Grid();
+            gridSeg.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            gridSeg.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            gridSeg.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            // Cột 1: Nút mốc thời gian [00:05 - 00:12]
+            var btnTime = new Button
+            {
+                Content = seg.TimeRangeDisplay,
+                FontSize = 11,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(Color.FromRgb(15, 118, 110)),
+                Background = new SolidColorBrush(Color.FromRgb(240, 253, 250)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(153, 246, 228)),
+                BorderThickness = new Thickness(1),
+                Padding = new Thickness(6, 3, 6, 3),
+                Cursor = System.Windows.Input.Cursors.Hand,
+                VerticalAlignment = VerticalAlignment.Center,
+                ToolTip = "Bấm để nghe đoạn này"
+            };
+            btnTime.Click += (s, e) => TuaVaPhatDoanAudio(seg.Start);
+            Grid.SetColumn(btnTime, 0);
+            gridSeg.Children.Add(btnTime);
+
+            // Cột 2: Văn bản câu tiếng Anh
+            var txtSeg = new TextBlock
+            {
+                Text = seg.Text,
+                FontSize = 13,
+                Foreground = new SolidColorBrush(Color.FromRgb(15, 23, 42)),
+                TextWrapping = TextWrapping.Wrap,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(10, 0, 10, 0),
+                Cursor = System.Windows.Input.Cursors.Hand
+            };
+            txtSeg.MouseDown += (s, e) => TuaVaPhatDoanAudio(seg.Start);
+            Grid.SetColumn(txtSeg, 1);
+            gridSeg.Children.Add(txtSeg);
+
+            // Cột 3: Nút Luyện nói câu này
+            var btnSpeakPractice = new Button
+            {
+                Content = "🎤 Luyện nói",
+                FontSize = 11,
+                FontWeight = FontWeights.Medium,
+                Foreground = new SolidColorBrush(Color.FromRgb(15, 118, 110)),
+                Background = Brushes.White,
+                BorderBrush = new SolidColorBrush(Color.FromRgb(203, 213, 225)),
+                BorderThickness = new Thickness(1),
+                Padding = new Thickness(8, 3, 8, 3),
+                Cursor = System.Windows.Input.Cursors.Hand,
+                VerticalAlignment = VerticalAlignment.Center,
+                ToolTip = "Luyện phát âm câu này với AI"
+            };
+            string sentence = seg.Text;
+            btnSpeakPractice.Click += (s, e) => MoHopThoaiLuyenNoi(sentence);
+            Grid.SetColumn(btnSpeakPractice, 2);
+            gridSeg.Children.Add(btnSpeakPractice);
+
+            bdrSeg.Child = gridSeg;
+            return bdrSeg;
+        }
+
+        private void TuaVaPhatDoanAudio(double startSeconds)
+        {
+            try
+            {
+                _audioCurrentSeconds = Math.Max(0, startSeconds);
+                _mediaPlayer.Position = TimeSpan.FromSeconds(_audioCurrentSeconds);
+                if (!_isPlayingAudio)
+                {
+                    BtnAudioPlayPause_Click(this, new RoutedEventArgs());
+                }
+                CapNhatTienDoAudioUI();
+            }
+            catch { }
+        }
+
+        private void PhatAmTu(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+            Task.Run(() =>
+            {
+                try
+                {
+                    var type = Type.GetType("System.Speech.Synthesis.SpeechSynthesizer, System.Speech");
+                    if (type != null)
+                    {
+                        dynamic synth = Activator.CreateInstance(type)!;
+                        synth.Volume = 100;
+                        synth.Rate = 0;
+                        synth.Speak(text);
+                    }
+                }
+                catch { }
+            });
+        }
+
+        private void MoHopThoaiLuyenNoi(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+            try
+            {
+                var dialog = new LuyenNoiSpeakingDialog(text)
+                {
+                    Owner = Window.GetWindow(this)
+                };
+                dialog.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                GUI.Views.Common.ThongBaoDialog.Loi(Window.GetWindow(this), "Không thể mở màn hình luyện nói: " + ex.Message, "Lỗi");
+            }
+        }
+        #endregion
+
     }
 }

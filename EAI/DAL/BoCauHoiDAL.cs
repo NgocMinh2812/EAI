@@ -91,7 +91,8 @@ namespace DAL
                 SELECT ch.MaCauHoi, bc.ThuTu AS ThuTuCauHoi, ch.KyNang, td.MaCapDo AS MaTrinhDo, 
                        td.TenTrinhDo, ch.NoiDungCauHoi, ch.DoanVanDoc, ch.GiaiThichDapAn,
                        ch.MaChuDe, ch.MaTrinhDo AS MaTrinhDoId, ch.LoaiCauHoi, ch.DoKho,
-                       ch.DuongDanAudio AS AudioPath, ch.DaKiemDuyet, ch.NguoiTao AS NguoiTaoId, ch.NgayTao
+                       ch.DuongDanAudio AS AudioPath, ch.DaKiemDuyet, ch.NguoiTao AS NguoiTaoId, ch.NgayTao,
+                       ch.DoanVanDanChung, ch.LoaiNguon, ch.TepTinNguon, ch.MaDinhDanhSeed
                 FROM BoCauHoi_CauHoi bc
                 INNER JOIN CauHoi ch ON bc.MaCauHoi = ch.MaCauHoi
                 LEFT JOIN TrinhDo td ON ch.MaTrinhDo = td.MaTrinhDo
@@ -102,7 +103,8 @@ namespace DAL
                        OR (@KyNang IN ('Doc', 'Reading') AND ch.KyNang IN ('Doc', 'Reading'))
                        OR (@KyNang IN ('NguPhap', 'Grammar') AND ch.KyNang IN ('NguPhap', 'Grammar'))
                        OR (@KyNang IN ('TuVung', 'Vocab', 'Vocabulary') AND ch.KyNang IN ('TuVung', 'Vocab', 'Vocabulary'))
-                       OR (@KyNang IN ('Viet', 'Writing') AND ch.KyNang IN ('Viet', 'Writing')))
+                       OR (@KyNang IN ('Viet', 'Writing') AND ch.KyNang IN ('Viet', 'Writing'))
+                       OR (@KyNang IN ('Noi', 'Speaking') AND ch.KyNang IN ('Noi', 'Speaking')))
                   AND (@DoKho IS NULL OR @DoKho = 'All' OR @DoKho LIKE N'%All%' OR @DoKho LIKE N'%Tất cả%' OR ch.DoKho = @DoKho
                        OR (@DoKho IN ('De', 'Easy') AND ch.DoKho IN ('De', 'Easy'))
                        OR (@DoKho IN ('TrungBinh', 'Medium') AND ch.DoKho IN ('TrungBinh', 'Medium'))
@@ -142,7 +144,11 @@ namespace DAL
                         AudioPath = row["AudioPath"] == DBNull.Value ? null : row["AudioPath"]?.ToString(),
                         DaKiemDuyet = row["DaKiemDuyet"] != DBNull.Value && Convert.ToBoolean(row["DaKiemDuyet"]),
                         NguoiTaoId = row["NguoiTaoId"] == DBNull.Value ? null : Convert.ToInt32(row["NguoiTaoId"]),
-                        NgayTao = row["NgayTao"] == DBNull.Value ? null : Convert.ToDateTime(row["NgayTao"])
+                        NgayTao = row["NgayTao"] == DBNull.Value ? null : Convert.ToDateTime(row["NgayTao"]),
+                        DoanVanDanChung = row.Table.Columns.Contains("DoanVanDanChung") && row["DoanVanDanChung"] != DBNull.Value ? row["DoanVanDanChung"]?.ToString() : null,
+                        LoaiNguon = row.Table.Columns.Contains("LoaiNguon") && row["LoaiNguon"] != DBNull.Value ? row["LoaiNguon"]?.ToString() : "Extracted",
+                        TepTinNguon = row.Table.Columns.Contains("TepTinNguon") && row["TepTinNguon"] != DBNull.Value ? row["TepTinNguon"]?.ToString() : null,
+                        MaDinhDanhSeed = row.Table.Columns.Contains("MaDinhDanhSeed") && row["MaDinhDanhSeed"] != DBNull.Value ? row["MaDinhDanhSeed"]?.ToString() : null
                     });
                 }
 
@@ -159,14 +165,15 @@ namespace DAL
         /// <summary>
         /// Lấy toàn bộ câu hỏi trong hệ thống (Hỗ trợ tab "Tất cả câu hỏi")
         /// </summary>
-        public List<CauHoiKhaoSatDTO> LayTatCaCauHoi(string? tuKhoa = null, string? kyNang = null, string? doKho = null, int top = 100, bool? daKiemDuyet = null)
+        public List<CauHoiKhaoSatDTO> LayTatCaCauHoi(string? tuKhoa = null, string? kyNang = null, string? doKho = null, int top = 1000, bool? daKiemDuyet = null)
         {
             var list = new List<CauHoiKhaoSatDTO>();
             string query = $@"
                 SELECT TOP ({top}) ch.MaCauHoi, ROW_NUMBER() OVER(ORDER BY ch.MaCauHoi DESC) AS ThuTuCauHoi, 
                        ch.KyNang, td.MaCapDo AS MaTrinhDo, td.TenTrinhDo, ch.NoiDungCauHoi, ch.DoanVanDoc, 
                        ch.GiaiThichDapAn, ch.MaChuDe, ch.MaTrinhDo AS MaTrinhDoId, ch.LoaiCauHoi, ch.DoKho,
-                       ch.DuongDanAudio AS AudioPath, ch.DaKiemDuyet, ch.NguoiTao AS NguoiTaoId, ch.NgayTao
+                       ch.DuongDanAudio AS AudioPath, ch.DaKiemDuyet, ch.NguoiTao AS NguoiTaoId, ch.NgayTao,
+                       ch.DoanVanDanChung, ch.LoaiNguon, ch.TepTinNguon, ch.MaDinhDanhSeed
                 FROM CauHoi ch
                 LEFT JOIN TrinhDo td ON ch.MaTrinhDo = td.MaTrinhDo
                 WHERE (@TuKhoa IS NULL OR @TuKhoa = '' OR ch.NoiDungCauHoi LIKE N'%' + @TuKhoa + N'%')
@@ -175,7 +182,8 @@ namespace DAL
                        OR (@KyNang IN ('Doc', 'Reading') AND ch.KyNang IN ('Doc', 'Reading'))
                        OR (@KyNang IN ('NguPhap', 'Grammar') AND ch.KyNang IN ('NguPhap', 'Grammar'))
                        OR (@KyNang IN ('TuVung', 'Vocab', 'Vocabulary') AND ch.KyNang IN ('TuVung', 'Vocab', 'Vocabulary'))
-                       OR (@KyNang IN ('Viet', 'Writing') AND ch.KyNang IN ('Viet', 'Writing')))
+                       OR (@KyNang IN ('Viet', 'Writing') AND ch.KyNang IN ('Viet', 'Writing'))
+                       OR (@KyNang IN ('Noi', 'Speaking') AND ch.KyNang IN ('Noi', 'Speaking')))
                   AND (@DoKho IS NULL OR @DoKho = 'All' OR @DoKho LIKE N'%All%' OR @DoKho LIKE N'%Tất cả%' OR ch.DoKho = @DoKho
                        OR (@DoKho IN ('De', 'Easy') AND ch.DoKho IN ('De', 'Easy'))
                        OR (@DoKho IN ('TrungBinh', 'Medium') AND ch.DoKho IN ('TrungBinh', 'Medium'))
@@ -213,7 +221,11 @@ namespace DAL
                         AudioPath = row["AudioPath"] == DBNull.Value ? null : row["AudioPath"]?.ToString(),
                         DaKiemDuyet = row["DaKiemDuyet"] != DBNull.Value && Convert.ToBoolean(row["DaKiemDuyet"]),
                         NguoiTaoId = row["NguoiTaoId"] == DBNull.Value ? null : Convert.ToInt32(row["NguoiTaoId"]),
-                        NgayTao = row["NgayTao"] == DBNull.Value ? null : Convert.ToDateTime(row["NgayTao"])
+                        NgayTao = row["NgayTao"] == DBNull.Value ? null : Convert.ToDateTime(row["NgayTao"]),
+                        DoanVanDanChung = row.Table.Columns.Contains("DoanVanDanChung") && row["DoanVanDanChung"] != DBNull.Value ? row["DoanVanDanChung"]?.ToString() : null,
+                        LoaiNguon = row.Table.Columns.Contains("LoaiNguon") && row["LoaiNguon"] != DBNull.Value ? row["LoaiNguon"]?.ToString() : "Extracted",
+                        TepTinNguon = row.Table.Columns.Contains("TepTinNguon") && row["TepTinNguon"] != DBNull.Value ? row["TepTinNguon"]?.ToString() : null,
+                        MaDinhDanhSeed = row.Table.Columns.Contains("MaDinhDanhSeed") && row["MaDinhDanhSeed"] != DBNull.Value ? row["MaDinhDanhSeed"]?.ToString() : null
                     });
                 }
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -473,5 +473,21 @@ namespace GUI.Views.GiangVien
                 }
             }
         }
-    }
+    
+        private void BtnMoQuanLyAudioTranscript_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is NoiDungHocTapViewModel vm && vm.SelectedBaiHoc != null)
+            {
+                var dlg = new QuanLyAudioTranscriptDialog(vm.SelectedBaiHoc)
+                {
+                    Owner = Window.GetWindow(this)
+                };
+                dlg.ShowDialog();
+                if (!string.IsNullOrEmpty(vm.SelectedBaiHoc.AudioPath))
+                {
+                    vm.SelectedBaiHoc.DuongDanAudio = vm.SelectedBaiHoc.AudioPath;
+                }
+            }
+        }
+}
 }

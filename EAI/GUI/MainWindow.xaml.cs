@@ -47,6 +47,7 @@ namespace GUI
             CapNhatThongTinHocVien();
 
             MainFrame.Navigated += MainFrame_Navigated;
+            MainFrame.Navigating += MainFrame_Navigating;
 
             if (isFirstLogin)
             {
@@ -105,6 +106,39 @@ namespace GUI
             }
         }
 
+        public bool CanNavigateAway()
+        {
+            if (MainFrame.Content is ThiThuView thiThu && thiThu.IsExamInProgress)
+            {
+                return thiThu.RequestExitExam();
+            }
+            if (MainFrame.Content is LuyenTapView luyenTap && luyenTap.IsPracticeInProgress)
+            {
+                return luyenTap.RequestExitPractice();
+            }
+            return true;
+        }
+
+        private void MainFrame_Navigating(object sender, NavigatingCancelEventArgs e)
+        {
+            if (MainFrame.Content is ThiThuView thiThu && thiThu.IsExamInProgress)
+            {
+                if (!thiThu.RequestExitExam())
+                {
+                    e.Cancel = true;
+                    return;
+                }
+            }
+            else if (MainFrame.Content is LuyenTapView luyenTap && luyenTap.IsPracticeInProgress)
+            {
+                if (!luyenTap.RequestExitPractice())
+                {
+                    e.Cancel = true;
+                    return;
+                }
+            }
+        }
+
         private void MainFrame_Navigated(object sender, NavigationEventArgs e)
         {
             if (e.Content is DanhGiaNangLucView { IsFirstTime: true })
@@ -112,9 +146,16 @@ namespace GUI
                 // Tài khoản mới đang làm test đầu vào: ẩn Sidebar
                 HideSidebar();
             }
+            else if (e.Content is ThiThuView thiThu && thiThu.IsExamInProgress)
+            {
+                HideSidebar();
+            }
+            else if (e.Content is LuyenTapView luyenTap && luyenTap.IsPracticeInProgress)
+            {
+                HideSidebar();
+            }
             else
             {
-                // Các màn hình khác hoặc khảo sát tự nguyện: hiển thị Sidebar
                 ShowSidebar();
             }
 
@@ -174,6 +215,7 @@ namespace GUI
 
         private void NavTrangChu_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanNavigateAway()) return;
             if (MainFrame.Content is not TrangChuView)
             {
                 MainFrame.Navigate(GetOrCreatePage<TrangChuView>());
@@ -182,6 +224,7 @@ namespace GUI
 
         private void NavDanhGia_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanNavigateAway()) return;
             if (MainFrame.Content is not DanhGiaNangLucView)
             {
                 MainFrame.Navigate(GetOrCreatePage<DanhGiaNangLucView>());
@@ -190,6 +233,7 @@ namespace GUI
 
         private void BtnSwitchToAdmin_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanNavigateAway()) return;
             var gvWindow = new GUI.Views.GiangVien.GiangVienWindow();
             gvWindow.Show();
             this.Close();
@@ -197,6 +241,7 @@ namespace GUI
 
         private void NavHocTap_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanNavigateAway()) return;
             if (MainFrame.Content is not HocTapView)
             {
                 MainFrame.Navigate(GetOrCreatePage<HocTapView>());
@@ -205,6 +250,7 @@ namespace GUI
 
         private void NavLuyenTap_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanNavigateAway()) return;
             if (MainFrame.Content is not LuyenTapView)
             {
                 MainFrame.Navigate(GetOrCreatePage<LuyenTapView>());
@@ -213,6 +259,7 @@ namespace GUI
 
         private void NavThiThu_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanNavigateAway()) return;
             if (MainFrame.Content is not ThiThuView)
             {
                 MainFrame.Navigate(GetOrCreatePage<ThiThuView>());
@@ -221,6 +268,7 @@ namespace GUI
 
         private void NavBaiViet_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanNavigateAway()) return;
             if (MainFrame.Content is not BaiVietAIView)
             {
                 MainFrame.Navigate(GetOrCreatePage<BaiVietAIView>());
@@ -229,6 +277,7 @@ namespace GUI
 
         private void NavTienDo_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanNavigateAway()) return;
             if (MainFrame.Content is not TienDoHocView)
             {
                 MainFrame.Navigate(GetOrCreatePage<TienDoHocView>());
@@ -237,6 +286,7 @@ namespace GUI
 
         private void NavAIChat_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanNavigateAway()) return;
             if (MainFrame.Content is not TroLyAIView)
             {
                 MainFrame.Navigate(GetOrCreatePage<TroLyAIView>());
@@ -245,6 +295,7 @@ namespace GUI
 
         private void NavHoSo_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanNavigateAway()) return;
             if (MainFrame.Content is not HoSoCaNhanView)
             {
                 MainFrame.Navigate(GetOrCreatePage<HoSoCaNhanView>());
@@ -253,6 +304,7 @@ namespace GUI
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!CanNavigateAway()) return;
             SessionHelper.Logout();
             var dangNhapWindow = new DangNhapWindow();
             dangNhapWindow.Show();
@@ -328,7 +380,17 @@ namespace GUI
 
         private void BtnClose_Click(object sender, RoutedEventArgs e)
         {
-            Application.Current.Shutdown();
+            this.Close();
+        }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            if (!CanNavigateAway())
+            {
+                e.Cancel = true;
+                return;
+            }
+            base.OnClosing(e);
         }
     }
 }

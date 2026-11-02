@@ -26,6 +26,38 @@ namespace DTO
         private string? _duongDanAudio;
         private int _soLanPhatAudio = 2; // Default: 2 cho ThiThu, 0 (vô hạn) cho LuyenTap
 
+        private int? _maCauTrucDeThi;
+        private string? _tenCauTrucDeThi;
+
+        public int? MaCauTrucDeThi
+        {
+            get => _maCauTrucDeThi;
+            set
+            {
+                if (_maCauTrucDeThi != value)
+                {
+                    _maCauTrucDeThi = value;
+                    NotifyPropertyChanged();
+                    NotifyPropertyChanged(nameof(HasBlueprint));
+                }
+            }
+        }
+
+        public string? TenCauTrucDeThi
+        {
+            get => _tenCauTrucDeThi;
+            set
+            {
+                if (_tenCauTrucDeThi != value)
+                {
+                    _tenCauTrucDeThi = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        public bool HasBlueprint => _maCauTrucDeThi.HasValue && _maCauTrucDeThi.Value > 0;
+
         public int MaBaiTapDeThi { get; set; }
         public int? MaBaiHoc { get; set; }
         public int? MaChuDe { get; set; }

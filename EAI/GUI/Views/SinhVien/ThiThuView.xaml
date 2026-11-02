@@ -1,6 +1,7 @@
 <Page x:Class="GUI.Views.ThiThuView"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="clr-namespace:GUI"
       Title="Thi thử mô phỏng - EnglishAI"
       FontFamily="Segoe UI"
       UseLayoutRounding="True"
@@ -69,42 +70,94 @@
             </Setter>
         </Style>
 
-        <Style x:Key="TestCardStyle" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource CardBg}"/>
-            <Setter Property="CornerRadius" Value="14"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderLight}"/>
+        <Style x:Key="ModernExamFilterChipButton" TargetType="Button">
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="Foreground" Value="#475569"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="22"/>
-            <Setter Property="Margin" Value="0,0,0,16"/>
-            <Setter Property="Effect">
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="14,7"/>
+            <Setter Property="Margin" Value="0,0,8,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.05" Color="Black"/>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bdr" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="20" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="BorderBrush" Value="#0F766E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
 
+        <Style x:Key="TestCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="20,18"/>
+            <Setter Property="Margin" Value="0,0,0,14"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.04" Color="#0F172A"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="#0D9488"/>
+                    <Setter Property="Effect">
+                        <Setter.Value>
+                            <DropShadowEffect BlurRadius="18" ShadowDepth="3" Opacity="0.08" Color="#0F766E"/>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="StartTestButton" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource BrandTeal}"/>
+            <Setter Property="Background" Value="#0F766E"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="13.5"/>
-            <Setter Property="Padding" Value="18,9"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="18,10"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <Border x:Name="btnBdr" Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.18" Color="#0F766E"/>
+                            </Border.Effect>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="btnBdr" Property="Background" Value="#115E59"/>
+                                <Setter TargetName="btnBdr" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.25" Color="#0F766E"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="btnBdr" Property="Background" Value="#042F2E"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="btnBdr" Property="Background" Value="#94A3B8"/>
+                                <Setter Property="Opacity" Value="0.65"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Opacity" Value="0.92"/>
-                </Trigger>
-            </Style.Triggers>
         </Style>
 
         <Style x:Key="SecondaryButton" TargetType="Button">
@@ -197,12 +250,12 @@
 
     <Grid Background="#F4F7F6">
         <Grid.RowDefinitions>
-            <RowDefinition Height="64"/>
+            <RowDefinition Height="64" x:Name="rowHeader"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- ================= TOP HEADER ================= -->
-        <Border Grid.Row="0" Background="{StaticResource CardBg}" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="25,0">
+        <Border x:Name="pnlTopHeader" Grid.Row="0" Background="{StaticResource CardBg}" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="25,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -217,10 +270,10 @@
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
                     <Border Background="#F1F5F9" CornerRadius="8" Padding="12,6" Margin="0,0,10,0">
-                        <TextBlock x:Name="txtTotalExamsTaken" Text="🏆 Đã thi: 4 bài" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}"/>
+                        <TextBlock x:Name="txtTotalExamsTaken" Text="Đã thi: 0 bài" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}"/>
                     </Border>
                     <Border Background="{StaticResource BrandTealLight}" CornerRadius="8" Padding="12,6">
-                        <TextBlock x:Name="txtHighestScore" Text="🎯 Điểm cao nhất: 8.5 / 10" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource BrandTeal}"/>
+                        <TextBlock x:Name="txtHighestScore" Text="Điểm cao nhất: --" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource BrandTeal}"/>
                     </Border>
                 </StackPanel>
             </Grid>
@@ -231,84 +284,275 @@
             <StackPanel MaxWidth="1100" HorizontalAlignment="Stretch">
 
                 <!-- Hero Banner -->
-                <Border Background="{StaticResource BrandTealDark}" CornerRadius="16" Padding="26,22" Margin="0,0,0,22">
+                <Border CornerRadius="18" Padding="28,24" Margin="0,0,0,22">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#091E1C" Offset="0.0"/>
+                            <GradientStop Color="#0F766E" Offset="0.65"/>
+                            <GradientStop Color="#115E59" Offset="1.0"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <Border Background="{StaticResource BrandTeal}" CornerRadius="6" Padding="10,3" HorizontalAlignment="Left" Margin="0,0,0,8">
-                                <TextBlock Text="MÔ PHỎNG PHÒNG THI THỰC TẾ • SPRINT 2" Foreground="White" FontSize="11" FontWeight="Bold"/>
+                            <Border Background="#134E4A" BorderBrush="#2DD4BF" BorderThickness="1" CornerRadius="20" Padding="12,4" HorizontalAlignment="Left" Margin="0,0,0,10">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <local:LucideIcon Kind="Award" Size="12" Foreground="#5EEAD4" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="MÔ PHỎNG PHÒNG THI THỰC TẾ • KHẢO THÍ CHUẨN QUỐC TẾ" Foreground="#CCFBF1" FontSize="11" FontWeight="Bold"/>
+                                </StackPanel>
                             </Border>
-                            <TextBlock Text="Động Cơ Thi Thử Chuẩn Hóa (IELTS • TOEIC • VSTEP)" Foreground="White" FontSize="20" FontWeight="Bold" Margin="0,0,0,6"/>
-                            <TextBlock Text="Làm quen áp lực thời gian với đồng hồ đếm ngược, tự động chấm điểm và màn hình xem lại lời giải chi tiết (Review Mode)." 
-                                       Foreground="#CCFBF1" FontSize="13.5"/>
+                            <TextBlock Text="Phòng Thi Thử Chuẩn Hóa Quốc Tế (IELTS • TOEIC • VSTEP • THPT)" Foreground="White" FontSize="22" FontWeight="Bold" Margin="0,0,0,6"/>
+                            <TextBlock Text="Làm quen áp lực thời gian với đồng hồ đếm ngược, tự động chấm điểm và xem lời giải phân tích chi tiết ngay sau khi nộp bài."
+                                       Foreground="#CCFBF1" FontSize="13.5" Margin="0,0,0,14"/>
+
+                            <!-- Highlights Micro-Row -->
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="#134E4A" CornerRadius="8" Padding="10,5" Margin="0,0,8,0">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <local:LucideIcon Kind="FileCheck" Size="13" Foreground="#99F6E4" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="20+ Đề chuẩn hóa" FontSize="11.5" FontWeight="SemiBold" Foreground="#E6F7F3"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Background="#134E4A" CornerRadius="8" Padding="10,5" Margin="0,0,8,0">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <local:LucideIcon Kind="CheckCircle2" Size="13" Foreground="#86EFAC" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="100% Chấm tự động &amp; AI giải thích" FontSize="11.5" FontWeight="SemiBold" Foreground="#E6F7F3"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Background="#134E4A" CornerRadius="8" Padding="10,5">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <local:LucideIcon Kind="History" Size="13" Foreground="#FDE047" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Lưu snapshot &amp; Xem lại lịch sử" FontSize="11.5" FontWeight="SemiBold" Foreground="#E6F7F3"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
                         </StackPanel>
 
-                        <Button Grid.Column="1" Content="⚡ Làm bài đánh giá nhanh (10p)" 
-                                Style="{StaticResource StartTestButton}" Background="{StaticResource BrandMint}" Padding="20,12" Click="BtnQuickTest_Click"/>
+                        <Button Grid.Column="1" Style="{StaticResource StartTestButton}" 
+                                Background="{StaticResource BrandMint}" Padding="20,12" Click="BtnQuickTest_Click" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <local:LucideIcon Kind="Zap" Size="15" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Đánh giá nhanh (10p)" FontWeight="Bold" FontSize="13.5" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </Grid>
                 </Border>
 
-                <!-- Filter Chips & Title -->
-                <Grid Margin="0,0,0,16">
-                    <TextBlock Text="Danh sách đề thi chuẩn hóa từ Database:" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button x:Name="btnFilterAll" Content="Tất cả" Margin="0,0,8,0" Padding="12,5" Background="{StaticResource BrandTealLight}" Foreground="{StaticResource BrandTeal}" FontWeight="SemiBold" BorderThickness="0" Cursor="Hand" Click="BtnFilter_Click"/>
-                        <Button x:Name="btnFilterIelts" Content="IELTS" Margin="0,0,8,0" Padding="12,5" Background="White" Foreground="{StaticResource TextGray}" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Cursor="Hand" Click="BtnFilter_Click"/>
-                        <Button x:Name="btnFilterToeic" Content="TOEIC" Margin="0,0,8,0" Padding="12,5" Background="White" Foreground="{StaticResource TextGray}" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Cursor="Hand" Click="BtnFilter_Click"/>
-                        <Button x:Name="btnFilterGrammar" Content="Ngữ pháp" Padding="12,5" Background="White" Foreground="{StaticResource TextGray}" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Cursor="Hand" Click="BtnFilter_Click"/>
-                    </StackPanel>
-                </Grid>
+                <!-- Section Title & Filter Bar -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="Kho đề thi thử chuẩn hóa quốc tế:" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Làm quen định dạng đề thi thực tế với áp lực thời gian, tự động chấm điểm và xem lời giải chi tiết." FontSize="12.5" Foreground="{StaticResource TextGray}" Margin="0,0,0,12"/>
+
+                    <!-- Modern Two-Row Filter Card -->
+                    <Border Background="White" CornerRadius="16" BorderBrush="#E2E8F0" BorderThickness="1" Padding="18,16" Margin="0,0,0,16">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.03" Color="#0F172A"/>
+                        </Border.Effect>
+                        <StackPanel>
+                            <!-- Row 1: Exam Format Category Filter Pills -->
+                            <WrapPanel x:Name="pnlExamFormatChips" Margin="0,0,0,14">
+                                <Button x:Name="btnFilterAll" Content="Tất cả" Style="{StaticResource ModernExamFilterChipButton}" Background="{StaticResource BrandTeal}" Foreground="White" BorderThickness="0" Click="BtnFilter_Click" Tag="All"/>
+                                <Button x:Name="btnFilterIelts" Content="IELTS" Style="{StaticResource ModernExamFilterChipButton}" Click="BtnFilter_Click" Tag="IELTS"/>
+                                <Button x:Name="btnFilterToeic" Content="TOEIC" Style="{StaticResource ModernExamFilterChipButton}" Click="BtnFilter_Click" Tag="TOEIC"/>
+                                <Button x:Name="btnFilterVstep" Content="VSTEP" Style="{StaticResource ModernExamFilterChipButton}" Click="BtnFilter_Click" Tag="VSTEP"/>
+                                <Button x:Name="btnFilterCambridge" Content="Cambridge" Style="{StaticResource ModernExamFilterChipButton}" Click="BtnFilter_Click" Tag="Cambridge"/>
+                                <Button x:Name="btnFilterTHPT" Content="THPT Quốc Gia" Style="{StaticResource ModernExamFilterChipButton}" Click="BtnFilter_Click" Tag="THPT"/>
+                                <Button x:Name="btnFilterGrammar" Content="Chuyên đề khác" Style="{StaticResource ModernExamFilterChipButton}" Click="BtnFilter_Click" Tag="Ngữ pháp"/>
+                            </WrapPanel>
+
+                            <!-- Row 2: Search, Level, Status & Reset (Straight Horizontal Baseline) -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Modern Search Box with Watermark Placeholder -->
+                                <Border Grid.Column="0" Background="#F8FAFC" CornerRadius="8" BorderBrush="#CBD5E1" BorderThickness="1.2" Height="38" Padding="10,0" Margin="0,0,16,0" MaxWidth="400" HorizontalAlignment="Left">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <local:LucideIcon Grid.Column="0" Kind="Search" Size="14" Foreground="#94A3B8" VerticalAlignment="Center"/>
+                                        <Grid Grid.Column="1" Margin="8,0,0,0">
+                                            <TextBlock Text="Tìm kiếm đề thi, mã chuẩn hóa, từ khóa..." 
+                                                       Foreground="#94A3B8" FontSize="12.5" 
+                                                       VerticalAlignment="Center" IsHitTestVisible="False">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Text, ElementName=txtSearchExam}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBox x:Name="txtSearchExam" Background="Transparent" BorderThickness="0" 
+                                                     VerticalAlignment="Center" Foreground="{StaticResource TextDark}" FontSize="12.5"
+                                                     TextChanged="TxtSearchExam_TextChanged"/>
+                                        </Grid>
+                                        <Button Grid.Column="2" x:Name="btnClearSearchExam" Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="4"
+                                                Click="BtnClearSearchExam_Click" Visibility="Collapsed" ToolTip="Xóa tìm kiếm">
+                                            <local:LucideIcon Kind="X" Size="13" Foreground="#94A3B8"/>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Level, Status & Reset (Straight Alignment) -->
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <!-- Level -->
+                                    <TextBlock Text="Trình độ:" VerticalAlignment="Center" Foreground="#475569" FontWeight="SemiBold" FontSize="12.5" Margin="0,0,6,0"/>
+                                    <ComboBox x:Name="cboExamTrinhDo" Width="100" Height="38" Margin="0,0,12,0" SelectionChanged="CboExamFilter_SelectionChanged">
+                                        <ComboBoxItem Content="Tất cả" IsSelected="True"/>
+                                        <ComboBoxItem Content="A1"/>
+                                        <ComboBoxItem Content="A2"/>
+                                        <ComboBoxItem Content="B1"/>
+                                        <ComboBoxItem Content="B2"/>
+                                        <ComboBoxItem Content="C1"/>
+                                    </ComboBox>
+
+                                    <!-- Status -->
+                                    <TextBlock Text="Trạng thái:" VerticalAlignment="Center" Foreground="#475569" FontWeight="SemiBold" FontSize="12.5" Margin="0,0,6,0"/>
+                                    <ComboBox x:Name="cboExamTrangThai" Width="120" Height="38" Margin="0,0,12,0" SelectionChanged="CboExamFilter_SelectionChanged">
+                                        <ComboBoxItem Content="Tất cả" IsSelected="True"/>
+                                        <ComboBoxItem Content="Chưa thi"/>
+                                        <ComboBoxItem Content="Đã thi"/>
+                                        <ComboBoxItem Content="Còn lượt thi"/>
+                                    </ComboBox>
+
+                                    <!-- Reset Button -->
+                                    <Button x:Name="btnResetExamFilter" Click="BtnResetExamFilter_Click" Cursor="Hand" Height="38" Padding="14,0" ToolTip="Xóa tất cả bộ lọc về mặc định">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="bdrReset" Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <local:LucideIcon Kind="RotateCcw" Size="13" Foreground="#64748B" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Đặt lại" FontSize="12.5" FontWeight="SemiBold" Foreground="#475569" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bdrReset" Property="Background" Value="#E2E8F0"/>
+                                                        <Setter TargetName="bdrReset" Property="BorderBrush" Value="#94A3B8"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
 
                 <!-- Dynamic ItemsControl for Exams from Database -->
-                <ItemsControl x:Name="icDanhSachDeThi">
+                <ItemsControl x:Name="icDanhSachDeThi" Margin="0,0,0,24">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border Style="{StaticResource TestCardStyle}">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
+                                    <!-- Left Accent Color Indicator -->
+                                    <Border Grid.Column="0" Width="4.5" CornerRadius="4" Background="{Binding AccentBrush}" Margin="0,2,16,2" VerticalAlignment="Stretch"/>
+
                                     <!-- Format Icon Badge -->
-                                    <Border Grid.Column="0" Background="{Binding FormatBadgeBg}" Width="54" Height="54" CornerRadius="12" Margin="0,0,18,0">
-                                        <TextBlock Text="{Binding FormatIcon}" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="1" Background="{Binding FormatBadgeBg}" Width="50" Height="50" CornerRadius="12" Margin="0,0,16,0" VerticalAlignment="Center">
+                                        <local:LucideIcon Kind="{Binding FormatIconKind}" Size="22" Foreground="{Binding AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
 
                                     <!-- Exam Info -->
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                            <Border Background="{Binding FormatTagBg}" CornerRadius="6" Padding="8,2" Margin="0,0,8,0">
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,16,0">
+                                        <!-- Badges Row -->
+                                        <WrapPanel Margin="0,0,0,6" VerticalAlignment="Center">
+                                            <Border Background="{Binding FormatTagBg}" CornerRadius="6" Padding="9,3" Margin="0,0,8,4">
                                                 <TextBlock Text="{Binding FormatTag}" FontSize="11" FontWeight="Bold" Foreground="{Binding FormatTagFg}"/>
                                             </Border>
-                                            <Border Background="#F1F5F9" CornerRadius="6" Padding="8,2" Margin="0,0,8,0">
+                                            <Border Background="#F1F5F9" CornerRadius="6" Padding="8,3" Margin="0,0,8,4">
                                                 <TextBlock Text="{Binding LevelTag}" FontSize="11" FontWeight="SemiBold" Foreground="#334155"/>
                                             </Border>
-                                            <Border Background="#FEF3C7" CornerRadius="6" Padding="8,2" Margin="0,0,8,0" Visibility="{Binding MaxAttemptsVisibility}">
+                                            <Border Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="0,0,8,4" Visibility="{Binding HasBlueprintVisibility}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <local:LucideIcon Kind="Compass" Size="11" Foreground="#15803D" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding BlueprintBadgeText}" FontSize="11" FontWeight="SemiBold" Foreground="#15803D"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Background="#FEF3C7" CornerRadius="6" Padding="8,3" Margin="0,0,8,4" Visibility="{Binding MaxAttemptsVisibility}">
                                                 <TextBlock Text="{Binding LuotLamBadgeText}" FontSize="11" FontWeight="Bold" Foreground="#B45309"/>
                                             </Border>
-                                            <Border Background="#ECFDF5" CornerRadius="6" Padding="8,2" Visibility="{Binding PassMarkVisibility}">
+                                            <Border Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="0,0,8,4" Visibility="{Binding PassMarkVisibility}">
                                                 <TextBlock Text="{Binding PassMarkBadgeText}" FontSize="11" FontWeight="Bold" Foreground="#047857"/>
                                             </Border>
+                                        </WrapPanel>
+
+                                        <!-- Title -->
+                                        <TextBlock Text="{Binding TenBaiTapDeThi}" FontSize="16.5" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,5" TextWrapping="Wrap"/>
+
+                                        <!-- Description -->
+                                        <TextBlock Text="{Binding CleanMoTa}" FontSize="12.5" Foreground="#64748B" Margin="0,0,0,9" TextWrapping="Wrap" MaxHeight="38" TextTrimming="CharacterEllipsis"/>
+
+                                        <!-- Metadata Micro-Pills -->
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="0,0,8,0">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <local:LucideIcon Kind="Clock" Size="12" Foreground="#0F766E" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding DurationPill}" FontSize="11.5" FontWeight="SemiBold" Foreground="#0F766E"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="0,0,8,0">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <local:LucideIcon Kind="FileText" Size="12" Foreground="#475569" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding QuestionCountPill}" FontSize="11.5" FontWeight="SemiBold" Foreground="#475569"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="8,3">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <local:LucideIcon Kind="ShieldCheck" Size="12" Foreground="#15803D" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Mô phỏng thi tính giờ" FontSize="11.5" FontWeight="SemiBold" Foreground="#15803D"/>
+                                                </StackPanel>
+                                            </Border>
                                         </StackPanel>
-                                        <TextBlock Text="{Binding TenBaiTapDeThi}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
-                                        <TextBlock Text="{Binding ExamSubtitle}" FontSize="13" Foreground="#475569"/>
                                     </StackPanel>
 
                                     <!-- Action Button -->
-                                    <Button Grid.Column="2" Content="{Binding ActionButtonText}" 
+                                    <Button Grid.Column="3" 
                                             IsEnabled="{Binding CanTakeExam}"
                                             Style="{StaticResource StartTestButton}" VerticalAlignment="Center" 
-                                            Tag="{Binding MaBaiTapDeThi}" Click="BtnStartExam_Click"/>
+                                            Tag="{Binding MaBaiTapDeThi}" Click="BtnStartExam_Click">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding ActionButtonText}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <local:LucideIcon Kind="ArrowRight" Size="14" Foreground="White" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
                                 </Grid>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
+                <!-- Empty State for Exams -->
+                <Border x:Name="pnlEmptyExams" Background="White" CornerRadius="14" BorderBrush="{StaticResource BorderLight}" 
+                        BorderThickness="1" Padding="40,36" Margin="0,10,0,24" Visibility="Collapsed">
+                    <StackPanel HorizontalAlignment="Center">
+                        <Border Background="{StaticResource BrandTealLight}" Width="52" Height="52" CornerRadius="26" Margin="0,0,0,12" HorizontalAlignment="Center">
+                            <TextBlock Text="🔍" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Không tìm thấy đề thi nào phù hợp" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                        <TextBlock Text="Không có đề thi nào khớp với bộ lọc và từ khóa hiện tại. Thử chọn loại đề khác hoặc bấm Đặt lại." FontSize="12.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center" Margin="0,0,0,14"/>
+                        <Button Content="🔄 Đặt lại bộ lọc" Padding="16,7" Background="{StaticResource BrandTealLight}" Foreground="{StaticResource BrandTeal}" FontWeight="SemiBold" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Center" Click="BtnResetExamFilter_Click"/>
+                    </StackPanel>
+                </Border>
 
             </StackPanel>
         </ScrollViewer>
@@ -337,19 +581,36 @@
                     </StackPanel>
 
                     <!-- Countdown Timer, Test Mode & Submit (TASK-206 & TASK-209) -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
-                        <Button x:Name="btnTestTimeout" Content="⚡ Test hết giờ (5s)" 
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,110,0">
+                        <Button x:Name="btnTestTimeout" Content="Test hết giờ (5s)" Visibility="Collapsed"
                                 Background="#FEF3C7" Foreground="#B45309" BorderBrush="#FCD34D" BorderThickness="1" 
                                 Padding="10,6" FontWeight="SemiBold" FontSize="12" Margin="0,0,12,0" Cursor="Hand" 
                                 Click="BtnTestTimeout_Click" ToolTip="TASK-209: Kiểm thử tự động nộp bài khi hết giờ"/>
                         
-                        <Border Background="#FEF2F2" CornerRadius="8" Padding="14,6" Margin="0,0,14,0" BorderBrush="#FCA5A5" BorderThickness="1">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="⏱️ Còn lại: " FontWeight="SemiBold" FontSize="13" Foreground="#B91C1C"/>
-                                <TextBlock x:Name="txtCountdownTimer" Text="25:00" FontWeight="Bold" FontSize="15" Foreground="#DC2626"/>
+                        <Border Background="#FEF2F2" CornerRadius="8" Padding="14,6" Margin="0,0,12,0" BorderBrush="#FCA5A5" BorderThickness="1">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <local:LucideIcon Kind="Clock" Size="14" Foreground="#DC2626" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Còn lại: " FontWeight="SemiBold" FontSize="12.5" Foreground="#B91C1C" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="txtCountdownTimer" Text="25:00" FontWeight="Bold" FontSize="15" Foreground="#DC2626" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Border>
-                        <Button Content="📝 Nộp bài thi" Style="{StaticResource DangerSubmitButton}" Click="BtnSubmitExam_Click"/>
+                        <Button Content="Nộp bài thi" Style="{StaticResource DangerSubmitButton}" Click="BtnSubmitExam_Click" Margin="0,0,10,0"/>
+                        <Button x:Name="btnExitExam" Content="✕ Thoát bài" Background="#F1F5F9" Foreground="#64748B" BorderBrush="#CBD5E1" BorderThickness="1" Padding="14,8" FontWeight="SemiBold" FontSize="12.5" Cursor="Hand" Click="BtnExitExam_Click">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="bdr" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="bdr" Property="Background" Value="#FEE2E2"/>
+                                            <Setter TargetName="bdr" Property="BorderBrush" Value="#FCA5A5"/>
+                                            <Setter Property="Foreground" Value="#DC2626"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -368,7 +629,10 @@
                         <Border x:Name="pnlExamPassage" Background="White" CornerRadius="12" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
                                 Padding="20" Margin="0,0,0,18" Visibility="Collapsed">
                             <StackPanel>
-                                <TextBlock Text="📖 Đoạn văn tham chiếu (Reading Passage):" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextGray}" Margin="0,0,0,10"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <local:LucideIcon Kind="BookOpen" Size="13" Foreground="{StaticResource TextGray}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Đoạn văn tham chiếu (Reading Passage):" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
+                                </StackPanel>
                                 <TextBlock x:Name="txtExamPassage" Text="" TextWrapping="Wrap" FontSize="14" LineHeight="22" Foreground="{StaticResource TextDark}"/>
                             </StackPanel>
                         </Border>
@@ -622,7 +886,7 @@
                 </Border>
 
                 <!-- Section Title -->
-                <TextBlock Text="ĐỐI CHIẾU CHI TIẾT ĐÁP ÁN &amp; GIẢI THÍCH (REVIEW MODE)" 
+                <TextBlock Text="ĐỐI CHIẾU CHI TIẾT ĐÁP ÁN &amp; LỜI GIẢI CHI TIẾT"
                            FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}" Margin="0,0,0,16"/>
 
                 <!-- Detailed Review ItemsControl -->

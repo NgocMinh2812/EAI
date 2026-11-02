@@ -311,6 +311,10 @@
                                                 <Border Background="#EFF6FF" CornerRadius="4" Padding="6,2" Margin="10,0,0,0">
                                                     <TextBlock Text="{Binding LevelTag, FallbackValue='Chuẩn B2'}" FontSize="10.5" FontWeight="Bold" Foreground="#1D4ED8"/>
                                                 </Border>
+                                                <Border Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="8,0,0,0"
+                                                        Visibility="{Binding HasBlueprint, Converter={StaticResource BoolToVisConverter}}">
+                                                    <TextBlock Text="{Binding TenCauTrucDeThi, StringFormat='📐 {0}'}" FontSize="10.5" FontWeight="SemiBold" Foreground="#15803D"/>
+                                                </Border>
                                             </StackPanel>
 
                                             <!-- Metadata tóm tắt -->
@@ -477,6 +481,108 @@
                     <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="14" Padding="18">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
                             <StackPanel>
+                                <!-- KHUNG CHỌN CẤU TRÚC ĐỀ THI CHUẨN HÓA (EXAM BLUEPRINTS) -->
+                                <Border Background="#F0FDFA" BorderBrush="#99F6E4" BorderThickness="1.5" CornerRadius="10" Padding="14" Margin="0,0,0,16">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="📐 Cấu trúc đề thi chuẩn hóa:" FontWeight="Bold" FontSize="12.5" Foreground="#0F766E"/>
+                                            </StackPanel>
+                                            
+                                            <!-- Nút Tạo đề nhanh tự động -->
+                                            <Button Grid.Column="1" Command="{Binding TuDongChonCauHoiTheoCauTrucCommand}"
+                                                    Background="#0D9488" Foreground="White" BorderThickness="0"
+                                                    Padding="10,4" Cursor="Hand" Margin="0,0,6,0"
+                                                    ToolTip="Tự động lọc và chọn đúng số lượng câu hỏi khớp 100% với từng phần của cấu trúc chuẩn">
+                                                <Button.Resources>
+                                                    <Style TargetType="{x:Type Border}">
+                                                        <Setter Property="CornerRadius" Value="6"/>
+                                                    </Style>
+                                                </Button.Resources>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <local:LucideIcon Kind="Zap" Size="13" Foreground="White" Margin="0,0,5,0"/>
+                                                    <TextBlock Text="Tự động chọn câu" FontSize="11" FontWeight="Bold"/>
+                                                </StackPanel>
+                                            </Button>
+
+                                            <Button Grid.Column="2" Command="{Binding ApDungThongSoCauTrucCommand}"
+                                                    Background="White" BorderBrush="#0F766E" BorderThickness="1" Foreground="#0F766E"
+                                                    Padding="10,4" Cursor="Hand" ToolTip="Áp dụng thời gian, số câu và thang điểm chuẩn của cấu trúc này">
+                                                <Button.Resources>
+                                                    <Style TargetType="{x:Type Border}">
+                                                        <Setter Property="CornerRadius" Value="6"/>
+                                                    </Style>
+                                                </Button.Resources>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <local:LucideIcon Kind="Check" Size="13" Foreground="#0F766E" Margin="0,0,4,0"/>
+                                                    <TextBlock Text="Áp dụng chuẩn" FontSize="11" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+
+                                        <!-- ComboBox chọn cấu trúc chuẩn -->
+                                        <ComboBox ItemsSource="{Binding DanhSachCauTrucDeThi}"
+                                                  SelectedItem="{Binding SelectedCauTrucDeThi}"
+                                                  DisplayMemberPath="TenHienThi"
+                                                  Height="36" Padding="8,6" FontSize="12.5" Margin="0,0,0,8">
+                                            <ComboBox.Resources>
+                                                <Style TargetType="{x:Type Border}">
+                                                    <Setter Property="CornerRadius" Value="6"/>
+                                                </Style>
+                                            </ComboBox.Resources>
+                                        </ComboBox>
+
+                                        <!-- Thẻ trạng thái & tiến độ ràng buộc cấu trúc (Live Blueprint Validation) -->
+                                        <Border Background="{Binding MauNenTrangThaiCauTruc}" 
+                                                BorderBrush="{Binding MauVienTrangThaiCauTruc}" 
+                                                BorderThickness="1" CornerRadius="7" Padding="10,7" Margin="0,0,0,8"
+                                                Visibility="{Binding HasSelectedBlueprint, Converter={StaticResource BoolToVisConverter}}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <local:LucideIcon Kind="{Binding IconTrangThaiCauTruc}" Size="14" Foreground="{Binding MauChuTrangThaiCauTruc}" Margin="0,1,6,0" VerticalAlignment="Top"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding ThongBaoTrangThaiCauTruc}" FontSize="11" FontWeight="SemiBold" 
+                                                           Foreground="{Binding MauChuTrangThaiCauTruc}" TextWrapping="Wrap"/>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Chi tiết các phần thi theo cấu trúc -->
+                                        <Border Background="White" BorderBrush="#CCFBF1" BorderThickness="1" CornerRadius="6" Padding="10,8"
+                                                Visibility="{Binding CoCacPhanThi, Converter={StaticResource BoolToVisConverter}}">
+                                            <StackPanel>
+                                                <TextBlock Text="📋 Phân bổ các phần thi theo cấu trúc này:" FontWeight="SemiBold" FontSize="11.5" Foreground="#1E293B" Margin="0,0,0,6"/>
+                                                <ItemsControl ItemsSource="{Binding DanhSachPhanThiHienTai}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid Margin="0,0,0,5">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Text="{Binding TenPhan}" FontSize="11.5" Foreground="#334155" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                                <Border Grid.Column="1" Background="#EEF2FF" CornerRadius="4" Padding="5,2" Margin="6,0,6,0">
+                                                                    <TextBlock Text="{Binding KyNang}" FontSize="10.5" FontWeight="SemiBold" Foreground="#4F46E5"/>
+                                                                </Border>
+                                                                <TextBlock Grid.Column="2" FontSize="11" Foreground="#64748B" VerticalAlignment="Center">
+                                                                    <Run Text="{Binding SoLuongCau}"/> <Run Text="câu"/> (<Run Text="{Binding ThoiGianPhut}"/> <Run Text="p"/>)
+                                                                </TextBlock>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+
                                 <TextBlock Text="THÔNG SỐ ĐỀ THI" FontWeight="Bold" FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,0,0,12"/>
 
                                 <TextBlock Text="Tên đề thi (*)" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
@@ -734,8 +840,8 @@
                                         <CheckBox.Content>
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBlock Text="Chỉ hiện câu đã chọn" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
-                                                <Border Background="#10B981" CornerRadius="9" Padding="6,1" Margin="6,0,0,0" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding TongSoCauDaChon}" FontSize="10.5" FontWeight="Bold" Foreground="White"/>
+                                                <Border Background="{Binding MauNenTrangThaiCauTruc}" BorderBrush="{Binding MauVienTrangThaiCauTruc}" BorderThickness="1" CornerRadius="9" Padding="7,2" Margin="6,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding ChuoiTienDoCauChon}" FontSize="10.5" FontWeight="Bold" Foreground="{Binding MauChuTrangThaiCauTruc}"/>
                                                 </Border>
                                             </StackPanel>
                                         </CheckBox.Content>
@@ -805,6 +911,7 @@
                                         <ComboBoxItem Content="Ngữ pháp (Grammar)" Tag="NguPhap"/>
                                         <ComboBoxItem Content="Từ vựng (Vocab)" Tag="TuVung"/>
                                         <ComboBoxItem Content="Viết (Writing)" Tag="Viet"/>
+                                        <ComboBoxItem Content="Nói (Speaking)" Tag="Noi"/>
                                     </ComboBox>
 
                                     <!-- Cấp độ -->

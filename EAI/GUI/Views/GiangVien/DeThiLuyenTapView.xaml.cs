@@ -18,10 +18,9 @@ namespace GUI.Views.GiangVien
         private void DeThiLuyenTapView_Loaded(object sender, RoutedEventArgs e)
         {
             AttachViewModelEvents();
-            if (DataContext is DeThiLuyenTapViewModel vm)
+            if (DataContext is DeThiLuyenTapViewModel vm && vm.DanhSachDeThiHienCo.Count == 0)
             {
                 vm.TaiDuLieuDeThi();
-                vm.NapCauHoiTheoBoLoc();
             }
         }
 

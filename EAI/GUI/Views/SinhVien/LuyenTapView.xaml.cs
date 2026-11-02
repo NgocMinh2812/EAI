@@ -26,19 +26,45 @@ namespace GUI.Views
             public string MaTrinhDo { get; set; } = "B2";
             public decimal DiemDatYeuCau { get; set; } = 5;
             public decimal TongDiem { get; set; } = 10;
+            public int? MaCauTrucDeThi { get; set; }
+            public string? TenCauTrucDeThi { get; set; }
+            public bool HasBlueprint => MaCauTrucDeThi.HasValue && MaCauTrucDeThi.Value > 0;
+            public Visibility HasBlueprintVisibility => HasBlueprint ? Visibility.Visible : Visibility.Collapsed;
+            public string BlueprintBadgeText => !string.IsNullOrEmpty(TenCauTrucDeThi) ? TenCauTrucDeThi : "Đề chuẩn hóa";
 
-            public string FormatIcon
+            public string DurationPill => $"{ThoiGianLamBaiPhut} phút";
+            public string QuestionCountPill => $"{SoLuongCauHoi} câu hỏi";
+            public string CleanMoTa => !string.IsNullOrWhiteSpace(MoTa) ? MoTa : "Rèn luyện kiến thức ngôn ngữ học thuật chuyên sâu và phản xạ nhanh.";
+
+            public Brush AccentBrush
             {
                 get
                 {
-                    if (TenBaiTapDeThi.Contains("Điều Kiện") || TenBaiTapDeThi.Contains("Ngữ Pháp") || TenBaiTapDeThi.Contains("Đảo Ngữ")) return "🧩";
-                    if (TenBaiTapDeThi.Contains("Từ Vựng") || TenBaiTapDeThi.Contains("Oxford") || TenBaiTapDeThi.Contains("Idioms") || TenBaiTapDeThi.Contains("Thành Ngữ")) return "📚";
-                    if (TenBaiTapDeThi.Contains("Đọc Hiểu") || TenBaiTapDeThi.Contains("Reading")) return "📖";
-                    if (TenBaiTapDeThi.Contains("Viết") || TenBaiTapDeThi.Contains("Lỗi Sai") || TenBaiTapDeThi.Contains("Writing")) return "✍️";
-                    if (TenBaiTapDeThi.Contains("Phản Xạ")) return "⚡";
-                    return "🎯";
+                    if (TenBaiTapDeThi.Contains("Điều Kiện") || TenBaiTapDeThi.Contains("Ngữ Pháp") || TenBaiTapDeThi.Contains("Đảo Ngữ")) return new SolidColorBrush(Color.FromRgb(22, 163, 74));
+                    if (TenBaiTapDeThi.Contains("Từ Vựng") || TenBaiTapDeThi.Contains("Oxford") || TenBaiTapDeThi.Contains("Idioms") || TenBaiTapDeThi.Contains("Thành Ngữ")) return new SolidColorBrush(Color.FromRgb(217, 119, 6));
+                    if (TenBaiTapDeThi.Contains("Đọc Hiểu") || TenBaiTapDeThi.Contains("Reading")) return new SolidColorBrush(Color.FromRgb(37, 99, 235));
+                    if (TenBaiTapDeThi.Contains("Viết") || TenBaiTapDeThi.Contains("Lỗi Sai") || TenBaiTapDeThi.Contains("Writing")) return new SolidColorBrush(Color.FromRgb(147, 51, 234));
+                    if (TenBaiTapDeThi.Contains("Phản Xạ")) return new SolidColorBrush(Color.FromRgb(220, 38, 38));
+                    return new SolidColorBrush(Color.FromRgb(15, 118, 110));
                 }
             }
+
+            public LucideIconKind FormatIconKind
+            {
+                get
+                {
+                    string target = TenBaiTapDeThi.ToUpper();
+                    if (target.Contains("ĐIỀU KIỆN") || target.Contains("NGỮ PHÁP") || target.Contains("ĐẢO NGỮ")) return LucideIconKind.Sparkles;
+                    if (target.Contains("TỪ VỰNG") || target.Contains("OXFORD") || target.Contains("IDIOMS") || target.Contains("THÀNH NGỮ")) return LucideIconKind.BookOpen;
+                    if (target.Contains("ĐỌC HIỂU") || target.Contains("READING")) return LucideIconKind.FileText;
+                    if (target.Contains("VIẾT") || target.Contains("LỖI SAI") || target.Contains("WRITING")) return LucideIconKind.Edit3;
+                    if (target.Contains("NÓI") || target.Contains("SPEAKING")) return LucideIconKind.Mic;
+                    if (target.Contains("PHẢN XẠ")) return LucideIconKind.Zap;
+                    return LucideIconKind.Target;
+                }
+            }
+
+            public string FormatIcon => "";
 
             public Brush FormatBadgeBg
             {
@@ -246,10 +272,52 @@ namespace GUI.Views
         }
 
         // =========================================================================
-        // TAB NAVIGATION
+        // TAB NAVIGATION & PRACTICE STATE GUARDS
         // =========================================================================
+        public bool IsPracticeInProgress => pnlHubSession != null && pnlHubSession.Visibility == Visibility.Visible;
+
+        public bool RequestExitPractice()
+        {
+            if (!IsPracticeInProgress) return true;
+
+            bool xacNhan = Common.ThongBaoDialog.XacNhan(
+                Window.GetWindow(this),
+                "Bạn đang trong phiên luyện tập.\nNếu rời khỏi bây giờ, tiến trình làm bài hiện tại sẽ không được lưu.\n\nBạn có chắc chắn muốn thoát khỏi phiên luyện tập không?",
+                "Xác nhận dừng luyện tập",
+                "Dừng luyện tập",
+                "Tiếp tục làm");
+
+            if (xacNhan)
+            {
+                ExitPracticeMode();
+                return true;
+            }
+            return false;
+        }
+
+        private void ExitPracticeMode()
+        {
+            _practiceMediaPlayer.Stop();
+            _sessionDurationTimer?.Stop();
+
+            pnlHubSession.Visibility = Visibility.Collapsed;
+            pnlHubResult.Visibility = Visibility.Collapsed;
+            pnlHubSetup.Visibility = Visibility.Visible;
+
+            rowTopHeader.Height = new GridLength(64);
+            pnlTopHeader.Visibility = Visibility.Visible;
+            rowModeTabs.Height = GridLength.Auto;
+            pnlModeTabs.Visibility = Visibility.Visible;
+            MainWindow.Instance?.ShowSidebar();
+
+            txtHeaderTitle.Text = "Trung tâm luyện tập linh hoạt & Kỹ năng";
+            LoadPracticePackages("All");
+            UpdateLiveQuestionCount();
+        }
+
         private void TabHub_Click(object sender, RoutedEventArgs e)
         {
+            if (IsPracticeInProgress && !RequestExitPractice()) return;
             _practiceMediaPlayer.Stop();
             SetActiveTab(tabHub, pnlHub);
             UpdateLiveQuestionCount();
@@ -257,6 +325,7 @@ namespace GUI.Views
 
         private void TabWrongQuestions_Click(object sender, RoutedEventArgs e)
         {
+            if (IsPracticeInProgress && !RequestExitPractice()) return;
             _practiceMediaPlayer.Stop();
             SetActiveTab(tabWrongQuestions, pnlWrongQuestions);
             LoadWrongQuestions();
@@ -264,6 +333,7 @@ namespace GUI.Views
 
         private void TabHistory_Click(object sender, RoutedEventArgs e)
         {
+            if (IsPracticeInProgress && !RequestExitPractice()) return;
             _practiceMediaPlayer.Stop();
             SetActiveTab(tabHistory, pnlHistory);
             LoadPracticeHistory();
@@ -271,12 +341,14 @@ namespace GUI.Views
 
         private void TabFlashcard_Click(object sender, RoutedEventArgs e)
         {
+            if (IsPracticeInProgress && !RequestExitPractice()) return;
             _practiceMediaPlayer.Stop();
             SetActiveTab(tabFlashcard, pnlFlashcard);
         }
 
         private void TabDictation_Click(object sender, RoutedEventArgs e)
         {
+            if (IsPracticeInProgress && !RequestExitPractice()) return;
             _practiceMediaPlayer.Stop();
             SetActiveTab(tabDictation, pnlDictation);
         }
@@ -307,8 +379,10 @@ namespace GUI.Views
         }
 
         // =========================================================================
-        // SECTION: DANH SÁCH GÓI BÀI TẬP & ĐỀ LUYỆN TẬP TỪ DATABASE (LoaiHinh == "LuyenTap")
+        // SECTION: DANH SÁCH BÀI TẬP & CHUYÊN ĐỀ RÈN LUYỆN (LoaiHinh == "LuyenTap")
         // =========================================================================
+        private string _selectedPkgSkill = "All";
+
         public void LoadPracticePackages(string? filterKeyword = null)
         {
             try
@@ -324,15 +398,60 @@ namespace GUI.Views
                 _rawPracticePackages = new List<BaiTapDeThiDTO>();
             }
 
-            var displayList = _rawPracticePackages;
             if (!string.IsNullOrWhiteSpace(filterKeyword) && filterKeyword != "All")
             {
-                displayList = _rawPracticePackages.Where(x =>
-                    x.TenBaiTapDeThi.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    (!string.IsNullOrEmpty(x.MoTa) && x.MoTa.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrEmpty(x.MaCapDo) && x.MaCapDo.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase))
-                ).ToList();
+                _selectedPkgSkill = filterKeyword;
+                SyncPkgSkillButtonsVisual(filterKeyword);
             }
+
+            ApplyPracticePackagesFilter();
+        }
+
+        private void ApplyPracticePackagesFilter()
+        {
+            if (_rawPracticePackages == null) return;
+
+            var query = _rawPracticePackages.AsEnumerable();
+
+            // 1. Lọc theo kỹ năng / chuyên đề
+            if (!string.IsNullOrEmpty(_selectedPkgSkill) && _selectedPkgSkill != "All")
+            {
+                query = query.Where(x =>
+                    (x.TenBaiTapDeThi != null && x.TenBaiTapDeThi.Contains(_selectedPkgSkill, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(x.MoTa) && x.MoTa.Contains(_selectedPkgSkill, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(x.TenChuDe) && x.TenChuDe.Contains(_selectedPkgSkill, StringComparison.OrdinalIgnoreCase))
+                );
+            }
+
+            // 2. Lọc theo Trình độ
+            if (cboPkgTrinhDo != null && cboPkgTrinhDo.SelectedItem is ComboBoxItem itemTrinhDo)
+            {
+                string trinhDo = itemTrinhDo.Content?.ToString() ?? "Tất cả";
+                if (trinhDo != "Tất cả")
+                {
+                    query = query.Where(x =>
+                        (!string.IsNullOrEmpty(x.MaCapDo) && x.MaCapDo.Equals(trinhDo, StringComparison.OrdinalIgnoreCase)) ||
+                        (x.TenBaiTapDeThi != null && x.TenBaiTapDeThi.Contains(trinhDo, StringComparison.OrdinalIgnoreCase))
+                    );
+                }
+            }
+
+            // 3. Lọc theo từ khóa tìm kiếm
+            if (txtSearchPkg != null)
+            {
+                string keyword = txtSearchPkg.Text.Trim();
+                if (!string.IsNullOrEmpty(keyword))
+                {
+                    query = query.Where(x =>
+                        (x.TenBaiTapDeThi != null && x.TenBaiTapDeThi.Contains(keyword, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(x.MoTa) && x.MoTa.Contains(keyword, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(x.TenChuDe) && x.TenChuDe.Contains(keyword, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(x.MaCapDo) && x.MaCapDo.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                    );
+                }
+            }
+
+            var displayList = query.ToList();
 
             var viewModels = displayList.Select(p => new PracticePackageViewModel
             {
@@ -344,41 +463,92 @@ namespace GUI.Views
                 SoLuongCauHoi = p.SoLuongCauHoi > 0 ? p.SoLuongCauHoi : (p.TongSoCau > 0 ? p.TongSoCau : 10),
                 MaTrinhDo = !string.IsNullOrEmpty(p.MaCapDo) ? p.MaCapDo : "B2",
                 DiemDatYeuCau = p.DiemDatYeuCau,
-                TongDiem = p.TongDiem > 0 ? (decimal)p.TongDiem : 10m
+                TongDiem = p.TongDiem > 0 ? (decimal)p.TongDiem : 10m,
+                MaCauTrucDeThi = p.MaCauTrucDeThi,
+                TenCauTrucDeThi = p.TenCauTrucDeThi
             }).ToList();
 
             if (icDanhSachGoiLuyenTap != null)
             {
                 icDanhSachGoiLuyenTap.ItemsSource = viewModels;
+                icDanhSachGoiLuyenTap.Visibility = viewModels.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            if (pnlEmptyPracticePackages != null)
+            {
+                pnlEmptyPracticePackages.Visibility = viewModels.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        private void SyncPkgSkillButtonsVisual(string activeTag)
+        {
+            var brandTeal = (SolidColorBrush)FindResource("BrandTeal");
+            var borderLight = (SolidColorBrush)FindResource("BorderLight");
+
+            var buttons = new[] { btnPkgFilterAll, btnPkgFilterGrammar, btnPkgFilterVocab, btnPkgFilterReading, btnPkgFilterWriting, btnPkgFilterSpeaking, btnPkgFilterReflex };
+            foreach (var btn in buttons)
+            {
+                if (btn == null) continue;
+                string tag = btn.Tag?.ToString() ?? string.Empty;
+                bool isMatch = string.Equals(tag, activeTag, StringComparison.OrdinalIgnoreCase);
+                if (isMatch)
+                {
+                    btn.Background = brandTeal;
+                    btn.Foreground = Brushes.White;
+                    btn.BorderThickness = new Thickness(0);
+                }
+                else
+                {
+                    btn.Background = new SolidColorBrush(Color.FromRgb(248, 250, 252));
+                    btn.Foreground = new SolidColorBrush(Color.FromRgb(71, 85, 105));
+                    btn.BorderThickness = new Thickness(1);
+                    btn.BorderBrush = borderLight;
+                }
             }
         }
 
         private void BtnPkgFilter_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button btn) return;
-
-            var brandTeal = (SolidColorBrush)FindResource("BrandTeal");
-            var brandTealLight = (SolidColorBrush)FindResource("BrandTealLight");
-            var textGray = (SolidColorBrush)FindResource("TextGray");
-            var borderLight = (SolidColorBrush)FindResource("BorderLight");
-
-            btnPkgFilterAll.Background = Brushes.White; btnPkgFilterAll.Foreground = textGray; btnPkgFilterAll.BorderThickness = new Thickness(1);
-            btnPkgFilterGrammar.Background = Brushes.White; btnPkgFilterGrammar.Foreground = textGray; btnPkgFilterGrammar.BorderThickness = new Thickness(1);
-            btnPkgFilterVocab.Background = Brushes.White; btnPkgFilterVocab.Foreground = textGray; btnPkgFilterVocab.BorderThickness = new Thickness(1);
-            btnPkgFilterReading.Background = Brushes.White; btnPkgFilterReading.Foreground = textGray; btnPkgFilterReading.BorderThickness = new Thickness(1);
-            btnPkgFilterWriting.Background = Brushes.White; btnPkgFilterWriting.Foreground = textGray; btnPkgFilterWriting.BorderThickness = new Thickness(1);
-
-            btn.Background = brandTealLight;
-            btn.Foreground = brandTeal;
-            btn.BorderThickness = new Thickness(0);
-
-            if (btn == btnPkgFilterAll) LoadPracticePackages("All");
-            else if (btn == btnPkgFilterGrammar) LoadPracticePackages("Ngữ Pháp");
-            else if (btn == btnPkgFilterVocab) LoadPracticePackages("Từ Vựng");
-            else if (btn == btnPkgFilterReading) LoadPracticePackages("Đọc Hiểu");
-            else if (btn == btnPkgFilterWriting) LoadPracticePackages("Viết");
+            string tag = btn.Tag?.ToString() ?? "All";
+            _selectedPkgSkill = tag;
+            SyncPkgSkillButtonsVisual(tag);
+            ApplyPracticePackagesFilter();
         }
 
+        private void CboPkgFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+            ApplyPracticePackagesFilter();
+        }
+
+        private void TxtSearchPkg_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (btnClearSearchPkg != null)
+            {
+                btnClearSearchPkg.Visibility = string.IsNullOrEmpty(txtSearchPkg?.Text) ? Visibility.Collapsed : Visibility.Visible;
+            }
+            if (!_isInitialized) return;
+            ApplyPracticePackagesFilter();
+        }
+
+        private void BtnClearSearchPkg_Click(object sender, RoutedEventArgs e)
+        {
+            if (txtSearchPkg != null)
+            {
+                txtSearchPkg.Text = string.Empty;
+                txtSearchPkg.Focus();
+            }
+        }
+
+        private void BtnResetPkgFilter_Click(object sender, RoutedEventArgs e)
+        {
+            _selectedPkgSkill = "All";
+            SyncPkgSkillButtonsVisual("All");
+            if (cboPkgTrinhDo != null) cboPkgTrinhDo.SelectedIndex = 0;
+            if (txtSearchPkg != null) txtSearchPkg.Text = string.Empty;
+            ApplyPracticePackagesFilter();
+        }
         private void BtnStartPracticePackage_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button btn || btn.Tag == null) return;
@@ -418,6 +588,7 @@ namespace GUI.Views
                 else if (text.Contains("Grammar") || text.Contains("Ngữ pháp")) kyNang = "NguPhap";
                 else if (text.Contains("Vocab") || text.Contains("Từ vựng")) kyNang = "TuVung";
                 else if (text.Contains("Writing") || text.Contains("Viết")) kyNang = "Viet";
+                else if (text.Contains("Speaking") || text.Contains("Nói")) kyNang = "Noi";
             }
 
             string? capDo = null;
@@ -573,6 +744,13 @@ namespace GUI.Views
 
             // Khởi động đồng hồ thời gian làm bài (đếm xuôi)
             StartSessionTimer();
+
+            // Chế độ tập trung (Focus Mode): Ẩn Menu Trái, Header và Tabs
+            rowTopHeader.Height = new GridLength(0);
+            pnlTopHeader.Visibility = Visibility.Collapsed;
+            rowModeTabs.Height = new GridLength(0);
+            pnlModeTabs.Visibility = Visibility.Collapsed;
+            MainWindow.Instance?.HideSidebar();
 
             // Chuyển view
             pnlHubSetup.Visibility = Visibility.Collapsed;
@@ -1118,7 +1296,8 @@ namespace GUI.Views
         {
             _practiceMediaPlayer.Stop();
             bool xacNhan = Common.ThongBaoDialog.XacNhan(
-                "Bạn có chắc chắn muốn dừng phiên luyện tập hiện tại?\nKết quả các câu đã làm sẽ được lưu lại.",
+                Window.GetWindow(this),
+                "Bạn có chắc chắn muốn dừng phiên luyện tập hiện tại?\nKết quả các câu đã làm sẽ được tổng kết.",
                 "Dừng phiên luyện tập",
                 "Dừng ngay", "Tiếp tục làm");
             if (xacNhan)
@@ -1218,9 +1397,9 @@ namespace GUI.Views
             // Hiển thị Card tổng kết
             txtResultSummaryTitle.Text = $"TỔNG KẾT: {title.ToUpper()}";
             txtResultAccuracyPct.Text = $"{accuracyPct}%";
-            txtResultCorrectText.Text = $"✅ Đúng: {correct} câu";
-            txtResultWrongText.Text = $"❌ Sai: {wrong} câu";
-            txtResultTimeSpent.Text = $"⏱️ Thời gian: {timeSpent / 60:D2}:{timeSpent % 60:D2}";
+            txtResultCorrectText.Text = $"Đúng: {correct} câu";
+            txtResultWrongText.Text = $"Sai: {wrong} câu";
+            txtResultTimeSpent.Text = $"Thời gian: {timeSpent / 60:D2}:{timeSpent % 60:D2}";
 
             if (accuracyPct >= 80)
             {
@@ -1241,6 +1420,13 @@ namespace GUI.Views
 
             icSessionQuestionResults.ItemsSource = resultItems;
 
+            // Khôi phục Sidebar, Header và Tabs khi kết thúc phiên
+            rowTopHeader.Height = new GridLength(64);
+            pnlTopHeader.Visibility = Visibility.Visible;
+            rowModeTabs.Height = GridLength.Auto;
+            pnlModeTabs.Visibility = Visibility.Visible;
+            MainWindow.Instance?.ShowSidebar();
+
             pnlHubSession.Visibility = Visibility.Collapsed;
             pnlHubSetup.Visibility = Visibility.Collapsed;
             pnlHubResult.Visibility = Visibility.Visible;
@@ -1258,6 +1444,13 @@ namespace GUI.Views
         {
             _practiceMediaPlayer.Stop();
             _sessionDurationTimer?.Stop();
+
+            rowTopHeader.Height = new GridLength(64);
+            pnlTopHeader.Visibility = Visibility.Visible;
+            rowModeTabs.Height = GridLength.Auto;
+            pnlModeTabs.Visibility = Visibility.Visible;
+            MainWindow.Instance?.ShowSidebar();
+
             pnlHubSession.Visibility = Visibility.Collapsed;
             pnlHubResult.Visibility = Visibility.Collapsed;
             pnlHubSetup.Visibility = Visibility.Visible;

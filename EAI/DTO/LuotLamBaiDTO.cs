@@ -8,6 +8,8 @@ namespace DTO
         public int MaLuotLamBai { get; set; }
         public int MaNguoiDung { get; set; }
         public int MaBaiTapDeThi { get; set; }
+        public int? MaCauTrucDeThi { get; set; }
+        public string? TenCauTrucDeThi { get; set; }
         public string TenBaiTapDeThi { get; set; } = string.Empty;
         public string HinhThucLam { get; set; } = "ThiThu";
         public DateTime ThoiDiemBatDau { get; set; } = DateTime.Now;

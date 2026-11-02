@@ -93,6 +93,7 @@ namespace DTO
             if (lower.Contains("nguphap") || lower.Contains("grammar")) return "NguPhap";
             if (lower.Contains("tuvung") || lower.Contains("vocab")) return "TuVung";
             if (lower.Contains("viet") || lower.Contains("writ") || lower.Contains("essay")) return "Viet";
+            if (lower.Contains("noi") || lower.Contains("speak")) return "Noi";
             if (lower.Contains("doc") || lower.Contains("read")) return "Doc";
             return raw.Trim();
         }
@@ -373,6 +374,52 @@ namespace DTO
         {
             get => _ngayTao;
             set { if (_ngayTao != value) { _ngayTao = value; OnPropertyChanged(); } }
+        }
+
+        private string? _loaiNguon = "Extracted";
+        private string? _tepTinNguon;
+        private string? _doanVanDanChung;
+        private string? _maDinhDanhSeed;
+
+        public string? LoaiNguon
+        {
+            get => _loaiNguon;
+            set
+            {
+                if (_loaiNguon != value)
+                {
+                    _loaiNguon = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(LoaiNguonHienThi));
+                    OnPropertyChanged(nameof(IsExtracted));
+                }
+            }
+        }
+
+        public string LoaiNguonHienThi => LoaiNguon switch
+        {
+            "Applied" => "Vận dụng kiến thức",
+            _ => "Trích xuất bài học"
+        };
+
+        public bool IsExtracted => LoaiNguon != "Applied";
+
+        public string? TepTinNguon
+        {
+            get => _tepTinNguon;
+            set { if (_tepTinNguon != value) { _tepTinNguon = value; OnPropertyChanged(); } }
+        }
+
+        public string? DoanVanDanChung
+        {
+            get => _doanVanDanChung;
+            set { if (_doanVanDanChung != value) { _doanVanDanChung = value; OnPropertyChanged(); } }
+        }
+
+        public string? MaDinhDanhSeed
+        {
+            get => _maDinhDanhSeed;
+            set { if (_maDinhDanhSeed != value) { _maDinhDanhSeed = value; OnPropertyChanged(); } }
         }
 
         public bool IsSelected

@@ -122,6 +122,8 @@ namespace GUI.ViewModels.GiangVien
         public ObservableCollection<BoCauHoiDTO> DanhSachBoCauHoi { get; set; } = new();
         public ObservableCollection<QuestionSourceOption> DanhSachNguonCauHoi { get; set; } = new();
         public ObservableCollection<QuestionSelectionItem> NgânHangCauHoiChon { get; set; } = new();
+        public ObservableCollection<CauTrucDeThiDTO> DanhSachCauTrucDeThi { get; set; } = new();
+        public ObservableCollection<ChiTietCauTrucDeThiDTO> DanhSachPhanThiHienTai { get; set; } = new();
 
         // Modals
         public ObservableCollection<CauHoiKhaoSatDTO> PreviewQuestions { get; set; } = new();
@@ -165,6 +167,21 @@ namespace GUI.ViewModels.GiangVien
             get => _currentDeThi;
             set => SetProperty(ref _currentDeThi, value);
         }
+
+        private CauTrucDeThiDTO? _selectedCauTrucDeThi;
+        public CauTrucDeThiDTO? SelectedCauTrucDeThi
+        {
+            get => _selectedCauTrucDeThi;
+            set
+            {
+                if (SetProperty(ref _selectedCauTrucDeThi, value))
+                {
+                    OnCauTrucDeThiChanged();
+                }
+            }
+        }
+
+        public bool CoCacPhanThi => DanhSachPhanThiHienTai.Count > 0;
 
         public BaiTapDeThiDTO? SelectedExam
         {
@@ -317,6 +334,34 @@ namespace GUI.ViewModels.GiangVien
         public int TongSoCauDaChon => _selectedQuestionsMaster.Count;
         public double TongDiemDeThi => Math.Round(_selectedQuestionsMaster.Values.Sum(x => x.Diem), 2);
 
+        // THUỘC TÍNH RÀNG BUỘC VÀ TIẾN ĐỘ THEO CẤU TRÚC ĐỀ THI (BLUEPRINT MATRIX)
+        public bool HasSelectedBlueprint => _selectedCauTrucDeThi != null && _selectedCauTrucDeThi.MaCauTruc > 0;
+        public int SoCauYeuCauCauTruc => _selectedCauTrucDeThi?.TongSoCau ?? 0;
+        public bool IsKhopCauTruc => HasSelectedBlueprint && TongSoCauDaChon == SoCauYeuCauCauTruc;
+        public int SoCauConThieu => HasSelectedBlueprint && TongSoCauDaChon < SoCauYeuCauCauTruc ? (SoCauYeuCauCauTruc - TongSoCauDaChon) : 0;
+        public int SoCauDu => HasSelectedBlueprint && TongSoCauDaChon > SoCauYeuCauCauTruc ? (TongSoCauDaChon - SoCauYeuCauCauTruc) : 0;
+
+        public string ThongBaoTrangThaiCauTruc
+        {
+            get
+            {
+                if (!HasSelectedBlueprint)
+                    return "Đề thi tự do (không áp dụng ma trận chuẩn hóa)";
+                if (IsKhopCauTruc)
+                    return $"Khớp 100% cấu trúc: Đã chọn đúng {TongSoCauDaChon}/{SoCauYeuCauCauTruc} câu hỏi chuẩn!";
+                if (SoCauConThieu > 0)
+                    return $"Chưa đủ câu: Đang chọn {TongSoCauDaChon}/{SoCauYeuCauCauTruc} câu (Thiếu {SoCauConThieu} câu). Bấm 'Tự động chọn câu' để hoàn tất!";
+                return $"Vượt quá số câu: Đang chọn {TongSoCauDaChon}/{SoCauYeuCauCauTruc} câu (Dư {SoCauDu} câu). Cần bỏ bớt {SoCauDu} câu!";
+            }
+        }
+
+        public LucideIconKind IconTrangThaiCauTruc => IsKhopCauTruc ? LucideIconKind.CheckCircle : (HasSelectedBlueprint ? LucideIconKind.AlertCircle : LucideIconKind.Info);
+
+        public string MauNenTrangThaiCauTruc => IsKhopCauTruc ? "#DCFCE7" : (HasSelectedBlueprint ? "#FEF3C7" : "#F1F5F9");
+        public string MauVienTrangThaiCauTruc => IsKhopCauTruc ? "#86EFAC" : (HasSelectedBlueprint ? "#FCD34D" : "#CBD5E1");
+        public string MauChuTrangThaiCauTruc => IsKhopCauTruc ? "#15803D" : (HasSelectedBlueprint ? "#B45309" : "#475569");
+        public string ChuoiTienDoCauChon => HasSelectedBlueprint ? $"{TongSoCauDaChon}/{SoCauYeuCauCauTruc} câu" : $"{TongSoCauDaChon} câu";
+
         // =========================================================================
         // COMMANDS
         // =========================================================================
@@ -347,6 +392,8 @@ namespace GUI.ViewModels.GiangVien
         public ICommand ChonAudioDeThiCommand { get; }
         public ICommand XoaAudioDeThiCommand { get; }
         public ICommand TogglePlayAudioDeThiCommand { get; }
+        public ICommand ApDungThongSoCauTrucCommand { get; }
+        public ICommand TuDongChonCauHoiTheoCauTrucCommand { get; }
 
         // =========================================================================
         // CONSTRUCTOR
@@ -380,13 +427,14 @@ namespace GUI.ViewModels.GiangVien
             ChonAudioDeThiCommand = new RelayCommand(ThucHienChonAudioDeThi);
             XoaAudioDeThiCommand = new RelayCommand(ThucHienXoaAudioDeThi);
             TogglePlayAudioDeThiCommand = new RelayCommand(ThucHienTogglePlayAudioDeThi);
+            ApDungThongSoCauTrucCommand = new RelayCommand(ThucHienApDungThongSoCauTruc);
+            TuDongChonCauHoiTheoCauTrucCommand = new RelayCommand(ThucHienTuDongChonCauHoiTheoCauTruc);
 
             // Cho phép cập nhật ObservableCollection từ luồng nền an toàn
             System.Windows.Data.BindingOperations.EnableCollectionSynchronization(NgânHangCauHoiChon, _collectionLock);
 
             TaiDuLieuDeThi();
             KhoiTaoDeThiMoi();
-            NapCauHoiTheoBoLoc();
         }
 
         // =========================================================================
@@ -394,6 +442,7 @@ namespace GUI.ViewModels.GiangVien
         // =========================================================================
         public void TaiDuLieuDeThi()
         {
+            NapDanhSachCauTrucDeThi();
             var ds = BaiTapDeThiBUS.Instance.LayDanhSachDeThi();
             DanhSachDeThiHienCo.Clear();
             foreach (var d in ds) DanhSachDeThiHienCo.Add(d);
@@ -481,15 +530,74 @@ namespace GUI.ViewModels.GiangVien
 
         public async void NapCauHoiTheoBoLoc()
         {
+            if (IsDanhSachMode) return;
+
             if (IsShowOnlySelected)
             {
                 var listSelected = _selectedQuestionsMaster.Values.OrderBy(x => x.ThuTu).ToList();
+
+                // 1. Lọc theo từ khóa tìm kiếm
                 if (!string.IsNullOrWhiteSpace(SearchQuestionKeyword))
                 {
                     string kw = SearchQuestionKeyword.Trim().ToLowerInvariant();
                     listSelected = listSelected.Where(x => 
                         (x.CauHoi.NoiDungCauHoi != null && x.CauHoi.NoiDungCauHoi.ToLowerInvariant().Contains(kw)) ||
                         (x.CauHoi.DoanVanDoc != null && x.CauHoi.DoanVanDoc.ToLowerInvariant().Contains(kw))
+                    ).ToList();
+                }
+
+                // 2. Lọc theo Nguồn câu hỏi
+                if (SelectedSourceId >= 0)
+                {
+                    try
+                    {
+                        var boQIds = DAL.BoCauHoiDAL.Instance.LayDanhSachCauHoiTheoBo(SelectedSourceId).Select(q => q.MaCauHoi).ToHashSet();
+                        listSelected = listSelected.Where(x => boQIds.Contains(x.CauHoi.MaCauHoi)).ToList();
+                    }
+                    catch { }
+                }
+
+                // 3. Lọc theo Kỹ năng
+                if (!string.IsNullOrWhiteSpace(FilterSkill) && 
+                    !string.Equals(FilterSkill, "All", StringComparison.OrdinalIgnoreCase) &&
+                    !FilterSkill.Contains("All", StringComparison.OrdinalIgnoreCase) &&
+                    !FilterSkill.Contains("Tất cả", StringComparison.OrdinalIgnoreCase))
+                {
+                    listSelected = listSelected.Where(x => 
+                        string.Equals(x.CauHoi.KyNang, FilterSkill, StringComparison.OrdinalIgnoreCase) ||
+                        (FilterSkill == "Doc" && (x.CauHoi.KyNang == "Doc" || x.CauHoi.KyNang == "Reading")) ||
+                        (FilterSkill == "Nghe" && (x.CauHoi.KyNang == "Nghe" || x.CauHoi.KyNang == "Listening")) ||
+                        (FilterSkill == "NguPhap" && (x.CauHoi.KyNang == "NguPhap" || x.CauHoi.KyNang == "Grammar")) ||
+                        (FilterSkill == "TuVung" && (x.CauHoi.KyNang == "TuVung" || x.CauHoi.KyNang == "Vocabulary")) ||
+                        (FilterSkill == "Viet" && (x.CauHoi.KyNang == "Viet" || x.CauHoi.KyNang == "Writing")) ||
+                        (FilterSkill == "Noi" && (x.CauHoi.KyNang == "Noi" || x.CauHoi.KyNang == "Speaking"))
+                    ).ToList();
+                }
+
+                // 4. Lọc theo Cấp độ (A1, A2, B1, B2, C1)
+                if (!string.IsNullOrWhiteSpace(FilterQuestionLevel) && 
+                    !string.Equals(FilterQuestionLevel, "All", StringComparison.OrdinalIgnoreCase) &&
+                    !FilterQuestionLevel.Contains("All", StringComparison.OrdinalIgnoreCase) &&
+                    !FilterQuestionLevel.Contains("Tất cả", StringComparison.OrdinalIgnoreCase))
+                {
+                    listSelected = listSelected.Where(x => 
+                        string.Equals(x.CauHoi.MaTrinhDo, FilterQuestionLevel, StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(x.CauHoi.TenTrinhDo, FilterQuestionLevel, StringComparison.OrdinalIgnoreCase) ||
+                        (x.CauHoi.TenTrinhDo != null && x.CauHoi.TenTrinhDo.IndexOf(FilterQuestionLevel, StringComparison.OrdinalIgnoreCase) >= 0)
+                    ).ToList();
+                }
+
+                // 5. Lọc theo Độ khó (De, TrungBinh, Kho)
+                if (!string.IsNullOrWhiteSpace(FilterDifficulty) && 
+                    !string.Equals(FilterDifficulty, "All", StringComparison.OrdinalIgnoreCase) &&
+                    !FilterDifficulty.Contains("All", StringComparison.OrdinalIgnoreCase) &&
+                    !FilterDifficulty.Contains("Tất cả", StringComparison.OrdinalIgnoreCase))
+                {
+                    listSelected = listSelected.Where(x => 
+                        string.Equals(x.CauHoi.DoKho, FilterDifficulty, StringComparison.OrdinalIgnoreCase) ||
+                        (FilterDifficulty == "De" && (x.CauHoi.DoKho == "De" || x.CauHoi.DoKho == "Easy")) ||
+                        (FilterDifficulty == "TrungBinh" && (x.CauHoi.DoKho == "TrungBinh" || x.CauHoi.DoKho == "Medium")) ||
+                        (FilterDifficulty == "Kho" && (x.CauHoi.DoKho == "Kho" || x.CauHoi.DoKho == "Hard"))
                     ).ToList();
                 }
 
@@ -696,6 +804,22 @@ namespace GUI.ViewModels.GiangVien
                 CurrentDeThi.NotifyPropertyChanged(nameof(CurrentDeThi.TongDiem));
                 OnPropertyChanged(nameof(CurrentDeThi));
             }
+            CapNhatTrangThaiCauTruc();
+        }
+
+        public void CapNhatTrangThaiCauTruc()
+        {
+            OnPropertyChanged(nameof(HasSelectedBlueprint));
+            OnPropertyChanged(nameof(SoCauYeuCauCauTruc));
+            OnPropertyChanged(nameof(IsKhopCauTruc));
+            OnPropertyChanged(nameof(SoCauConThieu));
+            OnPropertyChanged(nameof(SoCauDu));
+            OnPropertyChanged(nameof(ThongBaoTrangThaiCauTruc));
+            OnPropertyChanged(nameof(IconTrangThaiCauTruc));
+            OnPropertyChanged(nameof(MauNenTrangThaiCauTruc));
+            OnPropertyChanged(nameof(MauVienTrangThaiCauTruc));
+            OnPropertyChanged(nameof(MauChuTrangThaiCauTruc));
+            OnPropertyChanged(nameof(ChuoiTienDoCauChon));
         }
 
         // =========================================================================
@@ -734,7 +858,271 @@ namespace GUI.ViewModels.GiangVien
                 CurrentDeThi.TenTrinhDo = tdDefault.TenTrinhDo;
             }
 
+            SelectedCauTrucDeThi = DanhSachCauTrucDeThi.FirstOrDefault(x => x.MaCauTruc == 0);
             ThongBaoLoi = string.Empty;
+        }
+
+        private void NapDanhSachCauTrucDeThi()
+        {
+            DanhSachCauTrucDeThi.Clear();
+            DanhSachCauTrucDeThi.Add(new CauTrucDeThiDTO
+            {
+                MaCauTruc = 0,
+                TenCauTruc = "-- Đề thi tự do (Không theo cấu trúc chuẩn) --",
+                MaKyThi = "FREE",
+                MaCapDo = "MULTI",
+                ThoiGianPhut = 30,
+                TongSoCau = 10,
+                TongDiem = 10.0
+            });
+
+            try
+            {
+                var list = CauTrucDeThiBUS.Instance.LayDanhSachCauTruc();
+                foreach (var bp in list)
+                {
+                    DanhSachCauTrucDeThi.Add(bp);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[NapDanhSachCauTrucDeThi] {ex.Message}");
+            }
+        }
+
+        private void OnCauTrucDeThiChanged()
+        {
+            if (_selectedCauTrucDeThi == null || _selectedCauTrucDeThi.MaCauTruc <= 0)
+            {
+                CurrentDeThi.MaCauTrucDeThi = null;
+                CurrentDeThi.TenCauTrucDeThi = null;
+                DanhSachPhanThiHienTai.Clear();
+                OnPropertyChanged(nameof(CoCacPhanThi));
+                CapNhatTrangThaiCauTruc();
+                return;
+            }
+
+            CurrentDeThi.MaCauTrucDeThi = _selectedCauTrucDeThi.MaCauTruc;
+            CurrentDeThi.TenCauTrucDeThi = _selectedCauTrucDeThi.TenCauTruc;
+
+            DanhSachPhanThiHienTai.Clear();
+            if (_selectedCauTrucDeThi.DanhSachPhanThi != null)
+            {
+                foreach (var p in _selectedCauTrucDeThi.DanhSachPhanThi)
+                {
+                    DanhSachPhanThiHienTai.Add(p);
+                }
+            }
+            OnPropertyChanged(nameof(CoCacPhanThi));
+            CapNhatTrangThaiCauTruc();
+
+            // Tự động điền các thông số nếu tạo mới hoặc tên trống
+            if (string.IsNullOrWhiteSpace(CurrentDeThi.TenBaiTapDeThi) || CurrentDeThi.MaBaiTapDeThi <= 0 || CurrentDeThi.TenBaiTapDeThi == "Đề thi thử mới")
+            {
+                ThucHienApDungThongSoCauTruc();
+            }
+        }
+
+        public void ThucHienApDungThongSoCauTruc()
+        {
+            if (_selectedCauTrucDeThi == null || _selectedCauTrucDeThi.MaCauTruc <= 0) return;
+
+            CurrentDeThi.TenBaiTapDeThi = _selectedCauTrucDeThi.TenCauTruc;
+            CurrentDeThi.ThoiGianLamBaiPhut = _selectedCauTrucDeThi.ThoiGianPhut;
+            CurrentDeThi.SoLuongCauHoi = _selectedCauTrucDeThi.TongSoCau;
+            CurrentDeThi.TongDiem = _selectedCauTrucDeThi.TongDiem;
+            CurrentDeThi.DiemDat = Math.Round(_selectedCauTrucDeThi.TongDiem * 0.5, 1);
+            CurrentDeThi.LoaiHinh = _selectedCauTrucDeThi.LoaiDeThi ?? "ThiThu";
+            CurrentDeThi.MoTa = _selectedCauTrucDeThi.MoTa ?? "";
+
+            if (!string.IsNullOrWhiteSpace(_selectedCauTrucDeThi.MaCapDo) && _selectedCauTrucDeThi.MaCapDo != "MULTI")
+            {
+                CurrentDeThi.MaCapDo = _selectedCauTrucDeThi.MaCapDo;
+                var td = DanhSachTrinhDo.FirstOrDefault(x => string.Equals(x.MaCapDo, _selectedCauTrucDeThi.MaCapDo, StringComparison.OrdinalIgnoreCase));
+                if (td != null)
+                {
+                    CurrentDeThi.MaTrinhDo = td.MaTrinhDo;
+                    CurrentDeThi.TenTrinhDo = td.TenTrinhDo;
+                }
+            }
+
+            OnPropertyChanged(nameof(CurrentDeThi));
+            CapNhatTrangThaiCauTruc();
+        }
+
+        public async void ThucHienTuDongChonCauHoiTheoCauTruc()
+        {
+            if (_selectedCauTrucDeThi == null || _selectedCauTrucDeThi.MaCauTruc <= 0)
+            {
+                GUI.Views.Common.ThongBaoDialog.CanhBao("Vui lòng chọn một Cấu trúc đề thi chuẩn hóa (Exam Blueprint) trước khi sử dụng tính năng tạo đề nhanh!", "Chưa chọn cấu trúc");
+                return;
+            }
+
+            IsLoadingQuestions = true;
+            try
+            {
+                // Nạp đầy đủ ngân hàng câu hỏi vào cache nếu chưa có
+                if (_allQuestionItemsCache.Count == 0)
+                {
+                    var allDb = await System.Threading.Tasks.Task.Run(() => DAL.BoCauHoiDAL.Instance.LayTatCaCauHoi(null, null, null, 1000, daKiemDuyet: true));
+                    foreach (var ch in allDb)
+                    {
+                        if (!_allQuestionItemsCache.ContainsKey(ch.MaCauHoi))
+                        {
+                            var item = new QuestionSelectionItem
+                            {
+                                CauHoi = ch,
+                                IsSelected = false,
+                                Diem = 0.25,
+                                ThuTu = 1,
+                                OnChanged = ThucHienCapNhatThongKeCauHoi
+                            };
+                            _allQuestionItemsCache[ch.MaCauHoi] = item;
+                        }
+                    }
+                }
+
+                // Xóa chọn cũ
+                _selectedQuestionsMaster.Clear();
+                foreach (var item in _allQuestionItemsCache.Values)
+                {
+                    item.IsSelected = false;
+                }
+
+                int currentThuTu = 1;
+                var pickedIds = new HashSet<int>();
+                int targetTotal = _selectedCauTrucDeThi.TongSoCau;
+                double targetTongDiem = _selectedCauTrucDeThi.TongDiem > 0 ? _selectedCauTrucDeThi.TongDiem : 10.0;
+
+                // 1. Nếu cấu trúc có chia theo các phần thi (Sections/Passages)
+                if (_selectedCauTrucDeThi.DanhSachPhanThi != null && _selectedCauTrucDeThi.DanhSachPhanThi.Count > 0)
+                {
+                    foreach (var phan in _selectedCauTrucDeThi.DanhSachPhanThi.OrderBy(p => p.ThuTuPhan))
+                    {
+                        int remainingSlots = targetTotal - _selectedQuestionsMaster.Count;
+                        if (remainingSlots <= 0) break;
+
+                        int canChon = Math.Min(phan.SoLuongCau, remainingSlots);
+                        if (canChon <= 0) continue;
+
+                        string kyNang = phan.KyNang ?? "Doc";
+                        string loaiChoPhep = phan.LoaiCauHoiChoPhep ?? "";
+                        var loaiList = loaiChoPhep.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                        var allowedSkills = kyNang.Split(new[] { ',', ';', '/' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                        // CHỌN CHUẨN XÁC THEO KỸ NĂNG CỦA PHẦN THI (KHÔNG TRỘN LẪN TỪ VỰNG VÀO NGỮ PHÁP / ĐỌC HIỂU)
+                        var candidates = _allQuestionItemsCache.Values
+                            .Where(x => !pickedIds.Contains(x.CauHoi.MaCauHoi))
+                            .Where(x => allowedSkills.Any(s => string.Equals(x.CauHoi.KyNang, s, StringComparison.OrdinalIgnoreCase)))
+                            .OrderBy(x =>
+                            {
+                                bool matchLevel = string.Equals(x.CauHoi.MaTrinhDo, _selectedCauTrucDeThi.MaCapDo, StringComparison.OrdinalIgnoreCase);
+                                bool matchPassage = phan.YeuCauDoanVan ? !string.IsNullOrWhiteSpace(x.CauHoi.DoanVanDoc) : true;
+                                bool matchLoai = loaiList.Length == 0 || loaiList.Any(l => string.Equals(l, x.CauHoi.LoaiCauHoi, StringComparison.OrdinalIgnoreCase));
+
+                                int score = 0;
+                                if (matchLevel) score += 4;
+                                if (matchLoai) score += 2;
+                                if (matchPassage) score += 1;
+                                return -score;
+                            })
+                            .Take(canChon)
+                            .ToList();
+
+                        // Nếu ngân hàng chưa đủ câu đúng level, tiếp tục lấy câu cùng KỸ NĂNG ở level gần nhất (tuyệt đối không lấy kỹ năng khác)
+                        if (candidates.Count < canChon)
+                        {
+                            int stillNeed = canChon - candidates.Count;
+                            var moreSameSkill = _allQuestionItemsCache.Values
+                                .Where(x => !pickedIds.Contains(x.CauHoi.MaCauHoi) && !candidates.Contains(x))
+                                .Where(x => allowedSkills.Any(s => string.Equals(x.CauHoi.KyNang, s, StringComparison.OrdinalIgnoreCase)))
+                                .Take(stillNeed)
+                                .ToList();
+                            candidates.AddRange(moreSameSkill);
+                        }
+
+                        foreach (var item in candidates)
+                        {
+                            item.IsSelected = true;
+                            item.ThuTu = currentThuTu++;
+                            item.Diem = phan.DiemMoiCau > 0 ? phan.DiemMoiCau : Math.Round(targetTongDiem / targetTotal, 2);
+                            pickedIds.Add(item.CauHoi.MaCauHoi);
+                            _selectedQuestionsMaster[item.CauHoi.MaCauHoi] = item;
+                        }
+                    }
+                }
+
+                // 2. Nếu còn thiếu để đạt đủ TongSoCau của cấu trúc đề thi, bổ sung từ ngân hàng
+                if (_selectedQuestionsMaster.Count < targetTotal)
+                {
+                    int thieu = targetTotal - _selectedQuestionsMaster.Count;
+                    var boSung = _allQuestionItemsCache.Values
+                        .Where(x => !pickedIds.Contains(x.CauHoi.MaCauHoi))
+                        .OrderBy(x => string.Equals(x.CauHoi.MaTrinhDo, _selectedCauTrucDeThi.MaCapDo, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                        .Take(thieu)
+                        .ToList();
+
+                    foreach (var item in boSung)
+                    {
+                        item.IsSelected = true;
+                        item.ThuTu = currentThuTu++;
+                        item.Diem = Math.Round(targetTongDiem / targetTotal, 2);
+                        pickedIds.Add(item.CauHoi.MaCauHoi);
+                        _selectedQuestionsMaster[item.CauHoi.MaCauHoi] = item;
+                    }
+                }
+
+                // 3. Nếu vượt quá số lượng câu yêu cầu (dư câu), cắt bớt chuẩn xác về targetTotal
+                if (_selectedQuestionsMaster.Count > targetTotal)
+                {
+                    var excessKeys = _selectedQuestionsMaster.Keys.Skip(targetTotal).ToList();
+                    foreach (var key in excessKeys)
+                    {
+                        if (_selectedQuestionsMaster.TryGetValue(key, out var item))
+                        {
+                            item.IsSelected = false;
+                            _selectedQuestionsMaster.Remove(key);
+                        }
+                    }
+                }
+
+                // 4. Đánh lại số thứ tự liên tục 1..targetTotal
+                int sttReset = 1;
+                foreach (var item in _selectedQuestionsMaster.Values)
+                {
+                    item.ThuTu = sttReset++;
+                }
+
+                // 5. Cân bằng lại điểm từng câu để tổng điểm bằng đúng TongDiem của cấu trúc
+                if (_selectedQuestionsMaster.Count > 0)
+                {
+                    double diemMoiCau = Math.Round(targetTongDiem / _selectedQuestionsMaster.Count, 3);
+                    foreach (var item in _selectedQuestionsMaster.Values)
+                    {
+                        item.Diem = diemMoiCau;
+                    }
+                }
+
+                ThucHienApDungThongSoCauTruc();
+                ThucHienCapNhatThongKeCauHoi();
+                CapNhatTrangThaiCauTruc();
+
+                // Chuyển sang hiển thị các câu đã chọn để xem lại ngay
+                IsShowOnlySelected = true;
+                NapCauHoiTheoBoLoc();
+
+                GUI.Views.Common.ThongBaoDialog.ThanhCong(
+                    $"⚡ Đã tự động chọn đủ {_selectedQuestionsMaster.Count}/{targetTotal} câu hỏi khớp 100% với cấu trúc '{_selectedCauTrucDeThi.TenCauTruc}'!\n\nBạn có thể kiểm tra danh sách câu hỏi đã chọn bên phải và bấm 'Lưu & Xuất bản ngay'.",
+                    "Tạo đề nhanh thành công");
+            }
+            catch (Exception ex)
+            {
+                GUI.Views.Common.ThongBaoDialog.Loi($"Có lỗi khi tự động chọn câu hỏi: {ex.Message}", "Lỗi");
+            }
+            finally
+            {
+                IsLoadingQuestions = false;
+            }
         }
 
         private void ThucHienThemDeThiMoi()
@@ -748,6 +1136,8 @@ namespace GUI.ViewModels.GiangVien
         {
             if (deThi == null) return;
             CurrentDeThi = deThi;
+            SelectedCauTrucDeThi = DanhSachCauTrucDeThi.FirstOrDefault(x => x.MaCauTruc == deThi.MaCauTrucDeThi)
+                ?? DanhSachCauTrucDeThi.FirstOrDefault(x => x.MaCauTruc == 0);
             ThongBaoLoi = string.Empty;
             IsDanhSachMode = false;
             _isShowOnlySelected = false;
@@ -1004,6 +1394,34 @@ namespace GUI.ViewModels.GiangVien
             {
                 ThongBaoLoi = "Điểm đạt yêu cầu không được vượt quá tổng điểm bài thi.";
                 return;
+            }
+
+            // RÀNG BUỘC CHẶT CHẼ THEO CẤU TRÚC ĐỀ THI (BLUEPRINT MATRIX)
+            if (SelectedCauTrucDeThi != null && SelectedCauTrucDeThi.MaCauTruc > 0)
+            {
+                int soCauYeuCau = SelectedCauTrucDeThi.TongSoCau;
+                if (TongSoCauDaChon != soCauYeuCau)
+                {
+                    if (xuatBan)
+                    {
+                        string chenhLechMsg = TongSoCauDaChon < soCauYeuCau 
+                            ? $"còn thiếu {soCauYeuCau - TongSoCauDaChon} câu" 
+                            : $"đang dư {TongSoCauDaChon - soCauYeuCau} câu";
+
+                        GUI.Views.Common.ThongBaoDialog.CanhBao(
+                            $"Không thể xuất bản đề thi!\n\nCấu trúc chuẩn '{SelectedCauTrucDeThi.TenCauTruc}' yêu cầu chính xác {soCauYeuCau} câu hỏi, nhưng bạn đang chọn {TongSoCauDaChon} câu ({chenhLechMsg}).\n\n👉 Vui lòng nhấn nút '⚡ Tự động chọn câu' để hệ thống chọn chuẩn theo ma trận đề, hoặc lưu dưới dạng 'Bản nháp' để bổ sung sau.",
+                            "Ràng buộc cấu trúc đề thi");
+                        return;
+                    }
+                    else
+                    {
+                        // Lưu bản nháp: Cho phép nhưng nhắc nhở người dùng
+                        bool tiepTuc = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                            $"Đề thi này gắn với cấu trúc chuẩn '{SelectedCauTrucDeThi.TenCauTruc}' (yêu cầu {soCauYeuCau} câu) nhưng hiện mới chọn {TongSoCauDaChon} câu.\n\nBạn có chắc chắn muốn lưu tạm dưới dạng BẢN NHÁP để tiếp tục hoàn thiện sau không?",
+                            "Lưu bản nháp chưa đủ cấu trúc");
+                        if (!tiepTuc) return;
+                    }
+                }
             }
 
             ThongBaoLoi = string.Empty;

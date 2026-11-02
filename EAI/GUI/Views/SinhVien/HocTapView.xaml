@@ -356,6 +356,8 @@
                                         <Button x:Name="btnFilterNguPhap" Content="📝 Ngữ pháp" Style="{StaticResource FilterChipButton}" Click="FilterSkill_Click" Tag="NguPhap"/>
                                         <Button x:Name="btnFilterDoc" Content="📚 Đọc hiểu" Style="{StaticResource FilterChipButton}" Click="FilterSkill_Click" Tag="Doc"/>
                                         <Button x:Name="btnFilterNghe" Content="🎧 Nghe hiểu" Style="{StaticResource FilterChipButton}" Click="FilterSkill_Click" Tag="Nghe"/>
+                                        <Button x:Name="btnFilterViet" Content="✍️ Viết luận" Style="{StaticResource FilterChipButton}" Click="FilterSkill_Click" Tag="Viet"/>
+                                        <Button x:Name="btnFilterNoi" Content="🎙️ Luyện nói" Style="{StaticResource FilterChipButton}" Click="FilterSkill_Click" Tag="Noi"/>
                                     </WrapPanel>
 
                                     <!-- Level and Status Dropdowns -->
@@ -599,6 +601,8 @@
                                                             Style="{StaticResource FilterChipButton}" Margin="6,0,0,0" Padding="8,6" Click="BtnAudioRewind_Click" ToolTip="Tua lại 5 giây"/>
                                                     <Button x:Name="btnAudioForward" Content="⏩ +5s" 
                                                             Style="{StaticResource FilterChipButton}" Margin="6,0,0,0" Padding="8,6" Click="BtnAudioForward_Click" ToolTip="Tua tới 5 giây"/>
+                                                    <Button x:Name="btnToggleTranscript" Content="📜 Xem transcript"
+                                                            Style="{StaticResource FilterChipButton}" Margin="6,0,0,0" Padding="8,6" Click="BtnToggleTranscript_Click" ToolTip="Hiển thị hoặc ẩn bản chép lời phân đoạn"/>
                                                 </StackPanel>
 
                                                 <!-- Status and Audio info -->
@@ -635,6 +639,34 @@
                                                 <TextBlock x:Name="txtAudioTotalTime" Grid.Column="2" Text="01:30" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="10,0,0,0"/>
                                             </Grid>
                                         </Grid>
+                                    </Border>
+
+                                    <!-- Modern Interactive Transcript Container (GROQ STT / PHÂN ĐOẠN ĐÃ DUYỆT) -->
+                                    <Border x:Name="pnlTranscriptCard" Background="White" CornerRadius="12" BorderBrush="{StaticResource BrandMintSoft}" BorderThickness="1.5" Margin="0,0,0,20" Padding="18,16" Visibility="Collapsed">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,12">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="📜 Bản chép lời phân đoạn (Interactive Transcript)" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrandTealDark}"/>
+                                                        <Border x:Name="bdrTranscriptBadge" Background="#CCFBF1" CornerRadius="4" Padding="8,2" Margin="10,0,0,0">
+                                                            <TextBlock x:Name="txtTranscriptBadge" Text="✓ Đã duyệt bởi Giảng viên" FontSize="11" FontWeight="SemiBold" Foreground="#0F766E"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <TextBlock Text="💡 Bấm vào mốc thời gian hoặc câu để nghe chính xác đoạn đó • Bấm 🎤 Luyện nói để thực hành phát âm" FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,4,0,0"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Button x:Name="btnCollapseTranscript" Content="Ẩn transcript 🔼" Style="{StaticResource FilterChipButton}" FontSize="12" Padding="10,5" Click="BtnToggleTranscript_Click"/>
+                                                </StackPanel>
+                                            </Grid>
+                                            <!-- Transcript Content: List of Segments with clickable timestamps and speaking practice -->
+                                            <ScrollViewer x:Name="svTranscriptSegments" MaxHeight="260" VerticalScrollBarVisibility="Auto" Margin="0,2,0,0">
+                                                <StackPanel x:Name="pnlTranscriptSegmentsList"/>
+                                            </ScrollViewer>
+                                        </StackPanel>
                                     </Border>
 
                                     <!-- Trạng thái đang chuẩn bị nội dung bằng AI -->

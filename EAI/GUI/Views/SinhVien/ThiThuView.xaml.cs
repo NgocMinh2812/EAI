@@ -41,18 +41,100 @@ namespace GUI.Views
             public Visibility PassMarkVisibility => DiemDatYeuCau > 0 ? Visibility.Visible : Visibility.Collapsed;
             public string PassMarkBadgeText => $"Điểm đạt: {DiemDatYeuCau:F1} / {TongDiem:F1}đ";
 
-            public string FormatIcon => LoaiHinh == "ThiThu" ? (TenBaiTapDeThi.Contains("IELTS") ? "🇬🇧" : (TenBaiTapDeThi.Contains("TOEIC") ? "🏢" : (TenBaiTapDeThi.Contains("VSTEP") ? "🇻🇳" : "📑"))) : "📝";
-            public Brush FormatBadgeBg => LoaiHinh == "ThiThu" 
-                ? (TenBaiTapDeThi.Contains("IELTS") ? new SolidColorBrush(Color.FromRgb(254, 242, 242)) : (TenBaiTapDeThi.Contains("TOEIC") ? new SolidColorBrush(Color.FromRgb(239, 246, 255)) : (TenBaiTapDeThi.Contains("VSTEP") ? new SolidColorBrush(Color.FromRgb(254, 252, 232)) : new SolidColorBrush(Color.FromRgb(240, 253, 244)))))
-                : new SolidColorBrush(Color.FromRgb(204, 251, 241));
+            public int? MaCauTrucDeThi { get; set; }
+            public string? TenCauTrucDeThi { get; set; }
+            public bool HasBlueprint => MaCauTrucDeThi.HasValue && MaCauTrucDeThi.Value > 0;
+            public Visibility HasBlueprintVisibility => HasBlueprint ? Visibility.Visible : Visibility.Collapsed;
+            public string BlueprintBadgeText => !string.IsNullOrEmpty(TenCauTrucDeThi) ? TenCauTrucDeThi : "Đề chuẩn hóa";
 
-            public string FormatTag => TenBaiTapDeThi.Contains("IELTS") ? "IELTS ACADEMIC" : (TenBaiTapDeThi.Contains("TOEIC") ? "TOEIC FORMAT" : (TenBaiTapDeThi.Contains("VSTEP") ? "VSTEP CHUẨN HÓA" : "NGỮ PHÁP CHUYÊN SÂU"));
-            public Brush FormatTagBg => TenBaiTapDeThi.Contains("IELTS") 
-                ? new SolidColorBrush(Color.FromRgb(254, 226, 226)) 
-                : (TenBaiTapDeThi.Contains("TOEIC") ? new SolidColorBrush(Color.FromRgb(219, 234, 254)) : (TenBaiTapDeThi.Contains("VSTEP") ? new SolidColorBrush(Color.FromRgb(254, 243, 199)) : new SolidColorBrush(Color.FromRgb(204, 251, 241))));
-            public Brush FormatTagFg => TenBaiTapDeThi.Contains("IELTS") 
-                ? new SolidColorBrush(Color.FromRgb(185, 28, 28)) 
-                : (TenBaiTapDeThi.Contains("TOEIC") ? new SolidColorBrush(Color.FromRgb(29, 78, 216)) : (TenBaiTapDeThi.Contains("VSTEP") ? new SolidColorBrush(Color.FromRgb(180, 83, 9)) : new SolidColorBrush(Color.FromRgb(15, 118, 110))));
+            public string DurationPill => $"{ThoiGianLamBaiPhut} phút";
+            public string QuestionCountPill => $"{SoLuongCauHoi} câu hỏi";
+            public string CleanMoTa => !string.IsNullOrWhiteSpace(MoTa) ? MoTa : "Bộ đề kiểm tra mô phỏng định dạng khảo thí chuẩn quốc tế.";
+
+            public Brush AccentBrush
+            {
+                get
+                {
+                    string target = (TenCauTrucDeThi + " " + TenBaiTapDeThi).ToUpper();
+                    if (target.Contains("IELTS")) return new SolidColorBrush(Color.FromRgb(220, 38, 38));
+                    if (target.Contains("TOEIC")) return new SolidColorBrush(Color.FromRgb(37, 99, 235));
+                    if (target.Contains("VSTEP")) return new SolidColorBrush(Color.FromRgb(217, 119, 6));
+                    if (target.Contains("CAMBRIDGE") || target.Contains("FCE") || target.Contains("KET") || target.Contains("PET") || target.Contains("CAE")) return new SolidColorBrush(Color.FromRgb(124, 58, 237));
+                    if (target.Contains("THPT")) return new SolidColorBrush(Color.FromRgb(5, 150, 105));
+                    return new SolidColorBrush(Color.FromRgb(15, 118, 110));
+                }
+            }
+
+            public LucideIconKind FormatIconKind
+            {
+                get
+                {
+                    string target = (TenCauTrucDeThi + " " + TenBaiTapDeThi).ToUpper();
+                    if (target.Contains("IELTS")) return LucideIconKind.Award;
+                    if (target.Contains("TOEIC")) return LucideIconKind.FileText;
+                    if (target.Contains("VSTEP")) return LucideIconKind.GraduationCap;
+                    if (target.Contains("CAMBRIDGE") || target.Contains("FCE") || target.Contains("KET") || target.Contains("PET") || target.Contains("CAE")) return LucideIconKind.Compass;
+                    if (target.Contains("THPT")) return LucideIconKind.BookOpen;
+                    return LucideIconKind.FileCheck;
+                }
+            }
+
+            public string FormatIcon => "";
+
+            public Brush FormatBadgeBg
+            {
+                get
+                {
+                    string target = (TenCauTrucDeThi + " " + TenBaiTapDeThi).ToUpper();
+                    if (target.Contains("IELTS")) return new SolidColorBrush(Color.FromRgb(254, 242, 242));
+                    if (target.Contains("TOEIC")) return new SolidColorBrush(Color.FromRgb(239, 246, 255));
+                    if (target.Contains("VSTEP")) return new SolidColorBrush(Color.FromRgb(254, 252, 232));
+                    if (target.Contains("CAMBRIDGE") || target.Contains("FCE") || target.Contains("KET") || target.Contains("PET") || target.Contains("CAE")) return new SolidColorBrush(Color.FromRgb(245, 243, 255));
+                    return new SolidColorBrush(Color.FromRgb(240, 253, 244));
+                }
+            }
+
+            public string FormatTag
+            {
+                get
+                {
+                    string target = (TenCauTrucDeThi + " " + TenBaiTapDeThi).ToUpper();
+                    if (target.Contains("IELTS")) return "IELTS ACADEMIC";
+                    if (target.Contains("TOEIC")) return "TOEIC FORMAT";
+                    if (target.Contains("VSTEP")) return "VSTEP CHUẨN HÓA";
+                    if (target.Contains("FCE")) return "CAMBRIDGE B2 FIRST";
+                    if (target.Contains("KET")) return "CAMBRIDGE A2 KEY";
+                    if (target.Contains("PET")) return "CAMBRIDGE B1 PRELIMINARY";
+                    if (target.Contains("CAE")) return "CAMBRIDGE C1 ADVANCED";
+                    return "KHẢO THÍ CHUẨN";
+                }
+            }
+
+            public Brush FormatTagBg
+            {
+                get
+                {
+                    string target = (TenCauTrucDeThi + " " + TenBaiTapDeThi).ToUpper();
+                    if (target.Contains("IELTS")) return new SolidColorBrush(Color.FromRgb(254, 226, 226));
+                    if (target.Contains("TOEIC")) return new SolidColorBrush(Color.FromRgb(219, 234, 254));
+                    if (target.Contains("VSTEP")) return new SolidColorBrush(Color.FromRgb(254, 243, 199));
+                    if (target.Contains("CAMBRIDGE") || target.Contains("FCE") || target.Contains("KET") || target.Contains("PET") || target.Contains("CAE")) return new SolidColorBrush(Color.FromRgb(237, 233, 254));
+                    return new SolidColorBrush(Color.FromRgb(204, 251, 241));
+                }
+            }
+
+            public Brush FormatTagFg
+            {
+                get
+                {
+                    string target = (TenCauTrucDeThi + " " + TenBaiTapDeThi).ToUpper();
+                    if (target.Contains("IELTS")) return new SolidColorBrush(Color.FromRgb(185, 28, 28));
+                    if (target.Contains("TOEIC")) return new SolidColorBrush(Color.FromRgb(29, 78, 216));
+                    if (target.Contains("VSTEP")) return new SolidColorBrush(Color.FromRgb(180, 83, 9));
+                    if (target.Contains("CAMBRIDGE") || target.Contains("FCE") || target.Contains("KET") || target.Contains("PET") || target.Contains("CAE")) return new SolidColorBrush(Color.FromRgb(109, 40, 217));
+                    return new SolidColorBrush(Color.FromRgb(15, 118, 110));
+                }
+            }
 
             public string LevelTag => $"Chuẩn {MaTrinhDo}";
             public string ExamSubtitle => $"⏱️ {ThoiGianLamBaiPhut} phút • {SoLuongCauHoi} câu hỏi • {MoTa ?? "Bộ đề kiểm tra chuẩn hóa năng lực"}";
@@ -123,6 +205,7 @@ namespace GUI.Views
             Unloaded += (s, e) => StopExamAudio();
             LoadExamList();
             UpdateUserExamStats();
+            _isInitialized = true;
         }
 
         private void InitMediaPlayer()
@@ -204,8 +287,11 @@ namespace GUI.Views
         }
 
         // =========================================================================
-        // VIEW 1: LOAD & FILTER EXAM LIST FROM DATABASE
+        // VIEW 1: LOAD & FILTER EXAM LIST
         // =========================================================================
+        private bool _isInitialized = false;
+        private string _selectedExamFormat = "All";
+
         private void LoadExamList(string? filterKeyword = null)
         {
             try
@@ -221,19 +307,108 @@ namespace GUI.Views
                 _rawExams = new List<BaiTapDeThiDTO>();
             }
 
-            var displayList = _rawExams;
             if (!string.IsNullOrWhiteSpace(filterKeyword) && filterKeyword != "All")
             {
-                displayList = _rawExams.Where(x => 
-                    x.TenBaiTapDeThi.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase) ||
-                    (!string.IsNullOrEmpty(x.MoTa) && x.MoTa.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrEmpty(x.MaCapDo) && x.MaCapDo.Contains(filterKeyword, StringComparison.OrdinalIgnoreCase))
-                ).ToList();
+                _selectedExamFormat = filterKeyword;
+                SyncExamFormatButtonsVisual(filterKeyword);
+            }
+
+            ApplyExamFilter();
+        }
+
+        private void UpdateUserExamStats()
+        {
+            try
+            {
+                var history = BaiTapDeThiBUS.Instance.LayLichSuThi(top: 10);
+                if (history != null && history.Count > 0)
+                {
+                    txtTotalExamsTaken.Text = $"Đã thi: {history.Count} bài";
+                    decimal maxScore = history.Max(h => h.DiemSo);
+                    txtHighestScore.Text = $"Điểm cao nhất: {maxScore:F1} / 10";
+                }
+                else
+                {
+                    txtTotalExamsTaken.Text = "Đã thi: 0 bài";
+                    txtHighestScore.Text = "Điểm cao nhất: --";
+                }
+            }
+            catch { }
+        }
+
+        private void ApplyExamFilter()
+        {
+            if (_rawExams == null || icDanhSachDeThi == null) return;
+
+            var query = _rawExams.AsEnumerable();
+
+            // 1. Lọc theo định dạng đề thi (IELTS, TOEIC, VSTEP, Ngữ pháp)
+            if (!string.IsNullOrEmpty(_selectedExamFormat) && _selectedExamFormat != "All")
+            {
+                if (string.Equals(_selectedExamFormat, "IELTS", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(x => (x.TenBaiTapDeThi != null && x.TenBaiTapDeThi.Contains("IELTS", StringComparison.OrdinalIgnoreCase))
+                        || (x.TenCauTrucDeThi != null && x.TenCauTrucDeThi.Contains("IELTS", StringComparison.OrdinalIgnoreCase)));
+                }
+                else if (string.Equals(_selectedExamFormat, "TOEIC", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(x => (x.TenBaiTapDeThi != null && x.TenBaiTapDeThi.Contains("TOEIC", StringComparison.OrdinalIgnoreCase))
+                        || (x.TenCauTrucDeThi != null && x.TenCauTrucDeThi.Contains("TOEIC", StringComparison.OrdinalIgnoreCase)));
+                }
+                else if (string.Equals(_selectedExamFormat, "VSTEP", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(x => (x.TenBaiTapDeThi != null && x.TenBaiTapDeThi.Contains("VSTEP", StringComparison.OrdinalIgnoreCase))
+                        || (x.TenCauTrucDeThi != null && x.TenCauTrucDeThi.Contains("VSTEP", StringComparison.OrdinalIgnoreCase)));
+                }
+                else if (string.Equals(_selectedExamFormat, "Ngữ pháp", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(x => (x.TenBaiTapDeThi != null &&
+                        (!x.TenBaiTapDeThi.Contains("IELTS", StringComparison.OrdinalIgnoreCase) &&
+                         !x.TenBaiTapDeThi.Contains("TOEIC", StringComparison.OrdinalIgnoreCase) &&
+                         !x.TenBaiTapDeThi.Contains("VSTEP", StringComparison.OrdinalIgnoreCase)))
+                        && (x.TenCauTrucDeThi == null ||
+                         (!x.TenCauTrucDeThi.Contains("IELTS", StringComparison.OrdinalIgnoreCase) &&
+                          !x.TenCauTrucDeThi.Contains("TOEIC", StringComparison.OrdinalIgnoreCase) &&
+                          !x.TenCauTrucDeThi.Contains("VSTEP", StringComparison.OrdinalIgnoreCase))));
+                }
+                else
+                {
+                    query = query.Where(x => (x.TenBaiTapDeThi != null && x.TenBaiTapDeThi.Contains(_selectedExamFormat, StringComparison.OrdinalIgnoreCase))
+                        || (x.TenCauTrucDeThi != null && x.TenCauTrucDeThi.Contains(_selectedExamFormat, StringComparison.OrdinalIgnoreCase)));
+                }
+            }
+
+            // 2. Lọc theo Trình độ CEFR
+            if (cboExamTrinhDo != null && cboExamTrinhDo.SelectedItem is ComboBoxItem itemTrinhDo)
+            {
+                string trinhDo = itemTrinhDo.Content?.ToString() ?? "Tất cả";
+                if (trinhDo != "Tất cả")
+                {
+                    query = query.Where(x =>
+                        (!string.IsNullOrEmpty(x.MaCapDo) && x.MaCapDo.Equals(trinhDo, StringComparison.OrdinalIgnoreCase)) ||
+                        (x.TenBaiTapDeThi != null && x.TenBaiTapDeThi.Contains(trinhDo, StringComparison.OrdinalIgnoreCase))
+                    );
+                }
+            }
+
+            // 3. Lọc theo từ khóa tìm kiếm
+            if (txtSearchExam != null)
+            {
+                string keyword = txtSearchExam.Text.Trim();
+                if (!string.IsNullOrEmpty(keyword))
+                {
+                    query = query.Where(x =>
+                        (x.TenBaiTapDeThi != null && x.TenBaiTapDeThi.Contains(keyword, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(x.MoTa) && x.MoTa.Contains(keyword, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(x.TenChuDe) && x.TenChuDe.Contains(keyword, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(x.MaCapDo) && x.MaCapDo.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                    );
+                }
             }
 
             int currentUserId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
 
-            var viewModels = displayList.Select(e =>
+            var viewModels = query.Select(e =>
             {
                 int daLam = currentUserId > 0 
                     ? BaiTapDeThiBUS.Instance.DemSoLuotHocVienDaLam(e.MaBaiTapDeThi, currentUserId) 
@@ -253,58 +428,109 @@ namespace GUI.Views
                     TongDiem = e.TongDiem > 0 ? (decimal)e.TongDiem : 10m,
                     ChoXemDapAn = e.ChoXemDapAn,
                     ChoXemLoiGiai = e.ChoXemLoiGiai,
-                    LuotDaLam = daLam
+                    LuotDaLam = daLam,
+                    MaCauTrucDeThi = e.MaCauTrucDeThi,
+                    TenCauTrucDeThi = e.TenCauTrucDeThi
                 };
             }).ToList();
 
+            // 4. Lọc theo Trạng thái làm bài (Tất cả / Chưa thi / Đã thi / Còn lượt thi)
+            if (cboExamTrangThai != null && cboExamTrangThai.SelectedItem is ComboBoxItem itemTrangThai)
+            {
+                string trangThai = itemTrangThai.Content?.ToString() ?? "Tất cả";
+                if (trangThai == "Chưa thi")
+                {
+                    viewModels = viewModels.Where(v => v.LuotDaLam == 0).ToList();
+                }
+                else if (trangThai == "Đã thi")
+                {
+                    viewModels = viewModels.Where(v => v.LuotDaLam > 0).ToList();
+                }
+                else if (trangThai == "Còn lượt thi")
+                {
+                    viewModels = viewModels.Where(v => v.CanTakeExam).ToList();
+                }
+            }
+
             icDanhSachDeThi.ItemsSource = viewModels;
+            icDanhSachDeThi.Visibility = viewModels.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+            if (pnlEmptyExams != null)
+            {
+                pnlEmptyExams.Visibility = viewModels.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
         }
 
-        private void UpdateUserExamStats()
+        private void SyncExamFormatButtonsVisual(string activeTag)
         {
-            try
+            var brandTeal = (SolidColorBrush)FindResource("BrandTeal");
+            var borderLight = (SolidColorBrush)FindResource("BorderLight");
+
+            var buttons = new[] { btnFilterAll, btnFilterIelts, btnFilterToeic, btnFilterVstep, btnFilterCambridge, btnFilterTHPT, btnFilterGrammar };
+            foreach (var btn in buttons)
             {
-                var history = BaiTapDeThiBUS.Instance.LayLichSuThi(top: 10);
-                if (history != null && history.Count > 0)
+                if (btn == null) continue;
+                string tag = btn.Tag?.ToString() ?? string.Empty;
+                bool isMatch = string.Equals(tag, activeTag, StringComparison.OrdinalIgnoreCase);
+                if (isMatch)
                 {
-                    txtTotalExamsTaken.Text = $"🏆 Đã thi: {history.Count} bài";
-                    decimal maxScore = history.Max(h => h.DiemSo);
-                    txtHighestScore.Text = $"🎯 Điểm cao nhất: {maxScore:F1} / 10";
+                    btn.Background = brandTeal;
+                    btn.Foreground = Brushes.White;
+                    btn.BorderThickness = new Thickness(0);
                 }
                 else
                 {
-                    txtTotalExamsTaken.Text = "🏆 Đã thi: 0 bài";
-                    txtHighestScore.Text = "🎯 Điểm cao nhất: --";
+                    btn.Background = new SolidColorBrush(Color.FromRgb(248, 250, 252));
+                    btn.Foreground = new SolidColorBrush(Color.FromRgb(71, 85, 105));
+                    btn.BorderThickness = new Thickness(1);
+                    btn.BorderBrush = borderLight;
                 }
             }
-            catch { }
         }
 
         private void BtnFilter_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button btn) return;
-
-            // Reset tab styles
-            var brandTeal = (SolidColorBrush)FindResource("BrandTeal");
-            var brandTealLight = (SolidColorBrush)FindResource("BrandTealLight");
-            var textGray = (SolidColorBrush)FindResource("TextGray");
-            var borderLight = (SolidColorBrush)FindResource("BorderLight");
-
-            btnFilterAll.Background = Brushes.White; btnFilterAll.Foreground = textGray; btnFilterAll.BorderThickness = new Thickness(1);
-            btnFilterIelts.Background = Brushes.White; btnFilterIelts.Foreground = textGray; btnFilterIelts.BorderThickness = new Thickness(1);
-            btnFilterToeic.Background = Brushes.White; btnFilterToeic.Foreground = textGray; btnFilterToeic.BorderThickness = new Thickness(1);
-            btnFilterGrammar.Background = Brushes.White; btnFilterGrammar.Foreground = textGray; btnFilterGrammar.BorderThickness = new Thickness(1);
-
-            btn.Background = brandTealLight;
-            btn.Foreground = brandTeal;
-            btn.BorderThickness = new Thickness(0);
-
-            if (btn == btnFilterAll) LoadExamList("All");
-            else if (btn == btnFilterIelts) LoadExamList("IELTS");
-            else if (btn == btnFilterToeic) LoadExamList("TOEIC");
-            else if (btn == btnFilterGrammar) LoadExamList("Ngữ pháp");
+            string tag = btn.Tag?.ToString() ?? "All";
+            _selectedExamFormat = tag;
+            SyncExamFormatButtonsVisual(tag);
+            ApplyExamFilter();
         }
 
+        private void CboExamFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+            ApplyExamFilter();
+        }
+
+        private void TxtSearchExam_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (btnClearSearchExam != null)
+            {
+                btnClearSearchExam.Visibility = string.IsNullOrEmpty(txtSearchExam?.Text) ? Visibility.Collapsed : Visibility.Visible;
+            }
+            if (!_isInitialized) return;
+            ApplyExamFilter();
+        }
+
+        private void BtnClearSearchExam_Click(object sender, RoutedEventArgs e)
+        {
+            if (txtSearchExam != null)
+            {
+                txtSearchExam.Text = string.Empty;
+                txtSearchExam.Focus();
+            }
+        }
+
+        private void BtnResetExamFilter_Click(object sender, RoutedEventArgs e)
+        {
+            _selectedExamFormat = "All";
+            SyncExamFormatButtonsVisual("All");
+            if (cboExamTrinhDo != null) cboExamTrinhDo.SelectedIndex = 0;
+            if (cboExamTrangThai != null) cboExamTrangThai.SelectedIndex = 0;
+            if (txtSearchExam != null) txtSearchExam.Text = string.Empty;
+            ApplyExamFilter();
+        }
         private void BtnQuickTest_Click(object sender, RoutedEventArgs e)
         {
             // Bắt đầu làm ngay đề thi đầu tiên trong danh sách
@@ -393,6 +619,11 @@ namespace GUI.Views
 
             // Sinh ma trận câu hỏi (Question Navigation Grid)
             BuildQuestionNavMatrix();
+
+            // Chế độ tập trung (Focus Mode): Ẩn Header chung và Sidebar
+            rowHeader.Height = new GridLength(0);
+            pnlTopHeader.Visibility = Visibility.Collapsed;
+            MainWindow.Instance?.HideSidebar();
 
             // Chuyển màn hình sang phòng thi
             pnlDanhSachDeThi.Visibility = Visibility.Collapsed;
@@ -1181,6 +1412,14 @@ namespace GUI.Views
         // =========================================================================
         private void HienThiReviewMode(int maLuotLamBai, decimal score, int correct, int total, int timeSpent)
         {
+            _examTimer?.Stop();
+            StopExamAudio();
+
+            // Khôi phục Sidebar và Header chung
+            rowHeader.Height = new GridLength(64);
+            pnlTopHeader.Visibility = Visibility.Visible;
+            MainWindow.Instance?.ShowSidebar();
+
             pnlLamBaiThi.Visibility = Visibility.Collapsed;
             pnlDanhSachDeThi.Visibility = Visibility.Collapsed;
             pnlXemLaiBaiThi.Visibility = Visibility.Visible;
@@ -1189,9 +1428,9 @@ namespace GUI.Views
             // 1. Điền thông tin bảng điểm
             txtReviewScore.Text = $"{score:F1}";
             txtReviewTestTitle.Text = _currentExam?.TenBaiTapDeThi ?? "Bài thi thử";
-            txtReviewCorrectCount.Text = $"✅ Đúng: {correct}/{total} câu";
-            txtReviewWrongCount.Text = $"❌ Sai: {total - correct}/{total} câu";
-            txtReviewTimeSpent.Text = $"⏱️ Thời gian làm: {timeSpent / 60:D2}:{timeSpent % 60:D2}";
+            txtReviewCorrectCount.Text = $"Đúng: {correct}/{total} câu";
+            txtReviewWrongCount.Text = $"Sai: {total - correct}/{total} câu";
+            txtReviewTimeSpent.Text = $"Thời gian làm: {timeSpent / 60:D2}:{timeSpent % 60:D2}";
 
             int percentage = total > 0 ? (correct * 100) / total : 0;
             if (_currentExam != null && _currentExam.DiemDatYeuCau > 0)
@@ -1368,10 +1607,59 @@ namespace GUI.Views
             }
         }
 
+        public bool IsExamInProgress => pnlLamBaiThi != null && pnlLamBaiThi.Visibility == Visibility.Visible;
+
+        public bool RequestExitExam()
+        {
+            if (!IsExamInProgress) return true;
+
+            bool xacNhan = Common.ThongBaoDialog.XacNhan(
+                Window.GetWindow(this),
+                "Bạn đang trong bài thi thử. Nếu rời khỏi bây giờ, toàn bộ bài làm chưa nộp sẽ không được lưu.\n\nBạn có chắc chắn muốn thoát khỏi bài thi không?",
+                "Xác nhận thoát bài thi",
+                "Thoát bài thi",
+                "Tiếp tục làm");
+
+            if (xacNhan)
+            {
+                ExitExamMode();
+                return true;
+            }
+            return false;
+        }
+
+        private void BtnExitExam_Click(object sender, RoutedEventArgs e)
+        {
+            RequestExitExam();
+        }
+
+        private void ExitExamMode()
+        {
+            _examTimer?.Stop();
+            StopExamAudio();
+
+            pnlLamBaiThi.Visibility = Visibility.Collapsed;
+            pnlXemLaiBaiThi.Visibility = Visibility.Collapsed;
+            pnlDanhSachDeThi.Visibility = Visibility.Visible;
+
+            rowHeader.Height = new GridLength(64);
+            pnlTopHeader.Visibility = Visibility.Visible;
+            MainWindow.Instance?.ShowSidebar();
+
+            txtHeaderBreadcrumb.Text = "Phòng thi thử & Khảo thí chuẩn hóa";
+            LoadExamList();
+            UpdateUserExamStats();
+        }
+
         private void BtnBackToExamList_Click(object sender, RoutedEventArgs e)
         {
             _examTimer?.Stop();
             StopExamAudio();
+
+            rowHeader.Height = new GridLength(64);
+            pnlTopHeader.Visibility = Visibility.Visible;
+            MainWindow.Instance?.ShowSidebar();
+
             pnlLamBaiThi.Visibility = Visibility.Collapsed;
             pnlXemLaiBaiThi.Visibility = Visibility.Collapsed;
             pnlDanhSachDeThi.Visibility = Visibility.Visible;

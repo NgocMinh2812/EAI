@@ -566,6 +566,7 @@
                     <ComboBoxItem Content="Đọc hiểu" Tag="Doc"/>
                     <ComboBoxItem Content="Nghe hiểu" Tag="Nghe"/>
                     <ComboBoxItem Content="Viết luận" Tag="Viet"/>
+                    <ComboBoxItem Content="Luyện nói" Tag="Noi"/>
                 </ComboBox>
             </Grid>
         </Border>
@@ -731,6 +732,7 @@
                                     <ComboBoxItem Content="Đọc hiểu" Tag="Doc"/>
                                     <ComboBoxItem Content="Nghe hiểu" Tag="Nghe"/>
                                     <ComboBoxItem Content="Viết luận" Tag="Viet"/>
+                                    <ComboBoxItem Content="Luyện nói" Tag="Noi"/>
                                 </ComboBox>
                             </StackPanel>
                         </Grid>
@@ -781,18 +783,31 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <Button Grid.Column="0" Command="{Binding ChonAudioCommand}" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="12,6" Cursor="Hand">
-                                        <Button.Template>
-                                            <ControlTemplate TargetType="Button">
-                                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <local:LucideIcon Kind="Headphones" Size="14" Foreground="#10B981" Margin="0,0,6,0"/>
-                                                        <TextBlock Text="Đính kèm Audio" FontSize="12" FontWeight="SemiBold" Foreground="#0F172A"/>
-                                                    </StackPanel>
-                                                </Border>
-                                            </ControlTemplate>
-                                        </Button.Template>
-                                    </Button>
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                        <Button Command="{Binding ChonAudioCommand}" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="10,6" Cursor="Hand" Margin="0,0,6,0">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <local:LucideIcon Kind="Headphones" Size="14" Foreground="#10B981" Margin="0,0,5,0"/>
+                                                            <TextBlock Text="Đính kèm Audio" FontSize="11.5" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                        <Button Click="BtnMoQuanLyAudioTranscript_Click" Background="#F0FDFA" BorderBrush="#99F6E4" BorderThickness="1" Padding="12,6" Cursor="Hand" ToolTip="Tạo bài nghe bằng giọng đọc AI hoặc trích xuất bản chép lời từ file âm thanh có sẵn">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <TextBlock Text="🎙️ Âm thanh &amp; Lời thoại bài học" FontSize="11.5" FontWeight="Bold" Foreground="#0F766E"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </StackPanel>
 
                                     <TextBlock Grid.Column="1" FontSize="11.5" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="12,0,8,0">
                                         <TextBlock.Style>
