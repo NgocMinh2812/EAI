@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using BUS;
 using BUS.AI;
+using BUS.AI.Configuration;
 using BUS.AI.Models;
 using BUS.AI.Providers;
 using GUI.ViewModels.Common;
@@ -29,14 +30,24 @@ namespace GUI.ViewModels.GiangVien
         private string _databaseLatencyText = "Chờ kết nối";
         private string _errorRateText = "0.0%";
 
+        // Thống kê phân hệ AI
+        private string _aiTutorUsageText = "0 lượt";
+        private string _aiWritingUsageText = "0 bài";
+        private string _lastAiUsageTimeText = "Chưa ghi nhận";
+
         // Trạng thái từng Provider
         private AIHealthStatus _geminiStatus = new() { ProviderName = "Google Gemini", ProviderType = AIProviderType.Gemini, Health = "Unavailable" };
         private AIHealthStatus _groqStatus = new() { ProviderName = "Groq Cloud", ProviderType = AIProviderType.Groq, Health = "Unavailable" };
         private AIHealthStatus _xkioStatus = new() { ProviderName = "xKiro AI Gateway", ProviderType = AIProviderType.Xkio, Health = "Unavailable" };
 
+        // Masked keys
+        private string _geminiMaskedKey = "Chưa cấu hình";
+        private string _groqMaskedKey = "Chưa cấu hình";
+        private string _xkioMaskedKey = "Chưa cấu hình";
+
         // Cấu hình chuyển đổi mô hình (Model Switching)
         private string _selectedProvider = "Google Gemini";
-        private string _selectedModel = "gemini-3.5-flash";
+        private string _selectedModel = "gemini-2.0-flash";
         private bool _isFallbackEnabled = true;
 
         public ObservableCollection<string> AvailableProviders { get; } = new()
@@ -48,7 +59,6 @@ namespace GUI.ViewModels.GiangVien
 
         public ObservableCollection<string> AvailableModels { get; } = new();
         public ObservableCollection<AIModelInfo> AvailableModelInfos { get; } = new();
-
         public ObservableCollection<AIRequestLog> RequestLogs { get; } = new();
 
         private bool _isLoadingModels;
@@ -66,6 +76,44 @@ namespace GUI.ViewModels.GiangVien
         }
 
         #region Properties
+        public string ConfigSourceName => "apiminh.json (Hệ thống tập trung)";
+        public string ConfigSourcePath => AIConfigurationService.Instance.ResolvedConfigFilePath ?? "D:\\CDPTUD1\\EAI\\EAI\\apiminh.json";
+
+        public string GeminiMaskedKey
+        {
+            get => _geminiMaskedKey;
+            set => SetProperty(ref _geminiMaskedKey, value);
+        }
+
+        public string GroqMaskedKey
+        {
+            get => _groqMaskedKey;
+            set => SetProperty(ref _groqMaskedKey, value);
+        }
+
+        public string XkioMaskedKey
+        {
+            get => _xkioMaskedKey;
+            set => SetProperty(ref _xkioMaskedKey, value);
+        }
+
+        public string AiTutorUsageText
+        {
+            get => _aiTutorUsageText;
+            set => SetProperty(ref _aiTutorUsageText, value);
+        }
+
+        public string AiWritingUsageText
+        {
+            get => _aiWritingUsageText;
+            set => SetProperty(ref _aiWritingUsageText, value);
+        }
+
+        public string LastAiUsageTimeText
+        {
+            get => _lastAiUsageTimeText;
+            set => SetProperty(ref _lastAiUsageTimeText, value);
+        }
 
         public bool IsRefreshing
         {
@@ -177,8 +225,6 @@ namespace GUI.ViewModels.GiangVien
                         var model = AvailableModelInfos[value];
                         _selectedModel = model.Id;
                         OnPropertyChanged(nameof(SelectedModel));
-                        AIServiceManager.Instance.ActiveModel = model.Id;
-                        LuuCauHinhMoHinhTuDong();
                     }
                 }
             }
@@ -191,8 +237,6 @@ namespace GUI.ViewModels.GiangVien
             {
                 if (SetProperty(ref _selectedModel, value))
                 {
-                    AIServiceManager.Instance.ActiveModel = value;
-                    LuuCauHinhMoHinhTuDong();
                     if (!string.IsNullOrWhiteSpace(value))
                     {
                         for (int i = 0; i < AvailableModelInfos.Count; i++)
@@ -212,36 +256,10 @@ namespace GUI.ViewModels.GiangVien
             }
         }
 
-        private void LuuCauHinhMoHinhTuDong()
-        {
-            try
-            {
-                AIProviderType targetType = AIProviderType.Gemini;
-                if (!string.IsNullOrEmpty(SelectedProvider))
-                {
-                    if (SelectedProvider.Contains("Groq")) targetType = AIProviderType.Groq;
-                    else if (SelectedProvider.IndexOf("Xkio", StringComparison.OrdinalIgnoreCase) >= 0 || SelectedProvider.IndexOf("xKiro", StringComparison.OrdinalIgnoreCase) >= 0) targetType = AIProviderType.Xkio;
-                }
-
-                AIServiceManager.Instance.ActiveProviderType = targetType;
-                AIServiceManager.Instance.ActiveModel = SelectedModel;
-                AIServiceManager.Instance.EnableFallback = IsFallbackEnabled;
-
-                BUS.AI.Configuration.AIConfigHelper.SaveActiveModelConfig(targetType.ToString(), SelectedModel ?? "", IsFallbackEnabled);
-            }
-            catch { }
-        }
-
         public bool IsFallbackEnabled
         {
             get => _isFallbackEnabled;
-            set
-            {
-                if (SetProperty(ref _isFallbackEnabled, value))
-                {
-                    AIServiceManager.Instance.EnableFallback = value;
-                }
-            }
+            set => SetProperty(ref _isFallbackEnabled, value);
         }
 
         private bool _isSaveNotificationVisible;
@@ -257,19 +275,18 @@ namespace GUI.ViewModels.GiangVien
             get => _saveNotificationMessage;
             set => SetProperty(ref _saveNotificationMessage, value);
         }
-
         #endregion
 
         #region Commands
-
         public ICommand RefreshCommand { get; }
         public ICommand TestGeminiCommand { get; }
         public ICommand TestGroqCommand { get; }
         public ICommand TestXkioCommand { get; }
+        public ICommand TestCurrentModelCommand { get; }
+        public ICommand RestoreDefaultModelCommand { get; }
         public ICommand SaveModelConfigCommand { get; }
         public ICommand DismissSaveNotificationCommand { get; }
         public ICommand ReloadCatalogCommand { get; }
-
         #endregion
 
         public GiamSatHeThongViewModel()
@@ -278,12 +295,15 @@ namespace GUI.ViewModels.GiangVien
             TestGeminiCommand = new RelayCommand(async () => await KiemTraProviderAsync(AIProviderType.Gemini));
             TestGroqCommand = new RelayCommand(async () => await KiemTraProviderAsync(AIProviderType.Groq));
             TestXkioCommand = new RelayCommand(async () => await KiemTraProviderAsync(AIProviderType.Xkio));
+            TestCurrentModelCommand = new RelayCommand(async () => await KiemTraMoHinhHienTaiAsync());
+            RestoreDefaultModelCommand = new RelayCommand(KhoiPhucMoHinhMacDinh);
             SaveModelConfigCommand = new RelayCommand(LuuCauHinhMoHinh);
             DismissSaveNotificationCommand = new RelayCommand(() => IsSaveNotificationVisible = false);
             ReloadCatalogCommand = new RelayCommand(async () => await TaiDanhSachMoHinhAsync(forceRefresh: true));
 
-            // Đồng bộ trạng thái nhà cung cấp hiện tại từ AIServiceManager
-            switch (AIServiceManager.Instance.ActiveProviderType)
+            // Đồng bộ trạng thái nhà cung cấp hiện tại từ AIConfigurationService
+            AIConfigurationService.Instance.LoadActiveModelConfig();
+            switch (AIConfigurationService.Instance.ActiveProvider)
             {
                 case AIProviderType.Groq:
                     _selectedProvider = "Groq Cloud";
@@ -295,13 +315,23 @@ namespace GUI.ViewModels.GiangVien
                     _selectedProvider = "Google Gemini";
                     break;
             }
-            _isFallbackEnabled = AIServiceManager.Instance.EnableFallback;
+            _selectedModel = AIConfigurationService.Instance.ActiveModel;
+            _isFallbackEnabled = AIConfigurationService.Instance.EnableFallback;
+
+            UpdateMaskedKeys();
 
             // Khởi tạo danh sách mô hình
             OnProviderChanged(keepCurrentModelIfAvailable: true);
 
             // Nạp dữ liệu giám sát ban đầu
             _ = ThucHienKiemTraToanBoAsync();
+        }
+
+        private void UpdateMaskedKeys()
+        {
+            GeminiMaskedKey = AIConfigurationService.Instance.GetMaskedApiKey(AIProviderType.Gemini);
+            GroqMaskedKey = AIConfigurationService.Instance.GetMaskedApiKey(AIProviderType.Groq);
+            XkioMaskedKey = AIConfigurationService.Instance.GetMaskedApiKey(AIProviderType.Xkio);
         }
 
         private IAIProvider GetCurrentSelectedProvider()
@@ -313,35 +343,51 @@ namespace GUI.ViewModels.GiangVien
             return AIServiceManager.Instance.GetProvider(AIProviderType.Gemini);
         }
 
+        private AIProviderType GetSelectedProviderType()
+        {
+            if (SelectedProvider.Contains("Groq")) return AIProviderType.Groq;
+            if (SelectedProvider.IndexOf("Xkio", StringComparison.OrdinalIgnoreCase) >= 0 || SelectedProvider.IndexOf("xKiro", StringComparison.OrdinalIgnoreCase) >= 0)
+                return AIProviderType.Xkio;
+            return AIProviderType.Gemini;
+        }
+
         private void OnProviderChanged(bool keepCurrentModelIfAvailable = false)
         {
             var provider = GetCurrentSelectedProvider();
-            
-            // 1. Nạp ngay danh mục tĩnh của provider đó và chọn ngay vị trí 0 (Mô hình khuyên dùng)
+            var targetType = GetSelectedProviderType();
+
             AvailableModelInfos.Clear();
             AvailableModels.Clear();
-            foreach (var m in provider.SupportedModels)
+
+            var models = AIConfigurationService.Instance.GetSupportedModels(targetType);
+            string defModel = AIConfigurationService.Instance.GetDefaultModel(targetType);
+
+            foreach (var m in models)
             {
-                bool isDef = (m == provider.DefaultModel);
-                AvailableModelInfos.Add(new AIModelInfo
-                {
-                    Id = m,
-                    DisplayName = isDef ? $"{m} (Khuyên dùng)" : m,
-                    ProviderName = provider.ProviderName,
-                    ProviderType = provider.ProviderType,
-                    DefaultModel = isDef
-                });
-                AvailableModels.Add(m);
+                AvailableModelInfos.Add(m);
+                AvailableModels.Add(m.Id);
             }
 
-            // Đặt ngay vị trí 0 (Khuyên dùng) tức thì
-            SelectedModelIndex = 0;
+            // Chọn model
+            int targetIndex = 0;
+            if (keepCurrentModelIfAvailable && !string.IsNullOrWhiteSpace(_selectedModel))
+            {
+                for (int i = 0; i < AvailableModelInfos.Count; i++)
+                {
+                    if (AvailableModelInfos[i].Id == _selectedModel)
+                    {
+                        targetIndex = i;
+                        break;
+                    }
+                }
+            }
+
             if (AvailableModelInfos.Count > 0)
             {
-                SelectedModel = AvailableModelInfos[0].Id;
+                SelectedModelIndex = targetIndex;
+                SelectedModel = AvailableModelInfos[targetIndex].Id;
             }
 
-            // 2. Tải danh mục động ngầm
             _ = TaiDanhSachMoHinhAsync(forceRefresh: false, keepCurrentModelIfAvailable);
         }
 
@@ -352,46 +398,38 @@ namespace GUI.ViewModels.GiangVien
             try
             {
                 var models = await provider.GetModelsAsync(forceRefresh);
-                AvailableModelInfos.Clear();
-                AvailableModels.Clear();
-
-                foreach (var m in models)
+                if (models != null && models.Count > 0)
                 {
-                    AvailableModelInfos.Add(m);
-                    AvailableModels.Add(m.Id);
-                }
+                    AvailableModelInfos.Clear();
+                    AvailableModels.Clear();
 
-                CatalogStatusMessage = provider.CatalogStatusMessage;
-
-                int targetIndex = 0;
-                string? currentModel = AIServiceManager.Instance.ActiveModel;
-                if (keepCurrentModelIfAvailable && !string.IsNullOrWhiteSpace(currentModel))
-                {
-                    for (int i = 0; i < AvailableModelInfos.Count; i++)
+                    foreach (var m in models)
                     {
-                        if (AvailableModelInfos[i].Id == currentModel)
+                        AvailableModelInfos.Add(m);
+                        AvailableModels.Add(m.Id);
+                    }
+
+                    CatalogStatusMessage = provider.CatalogStatusMessage;
+
+                    int targetIndex = 0;
+                    string currentModel = SelectedModel;
+                    if (keepCurrentModelIfAvailable && !string.IsNullOrWhiteSpace(currentModel))
+                    {
+                        for (int i = 0; i < AvailableModelInfos.Count; i++)
                         {
-                            targetIndex = i;
-                            break;
+                            if (AvailableModelInfos[i].Id == currentModel)
+                            {
+                                targetIndex = i;
+                                break;
+                            }
                         }
                     }
-                }
-                else
-                {
-                    for (int i = 0; i < AvailableModelInfos.Count; i++)
-                    {
-                        if (AvailableModelInfos[i].DefaultModel || AvailableModelInfos[i].DisplayName.Contains("Khuyên dùng", StringComparison.OrdinalIgnoreCase))
-                        {
-                            targetIndex = i;
-                            break;
-                        }
-                    }
-                }
 
-                if (AvailableModelInfos.Count > 0)
-                {
-                    SelectedModelIndex = targetIndex;
-                    SelectedModel = AvailableModelInfos[targetIndex].Id;
+                    if (AvailableModelInfos.Count > 0)
+                    {
+                        SelectedModelIndex = targetIndex;
+                        SelectedModel = AvailableModelInfos[targetIndex].Id;
+                    }
                 }
             }
             catch (Exception ex)
@@ -404,37 +442,112 @@ namespace GUI.ViewModels.GiangVien
             }
         }
 
-        private void LuuCauHinhMoHinh()
+        private void KhoiPhucMoHinhMacDinh()
         {
+            var targetType = GetSelectedProviderType();
+            string defModel = AIConfigurationService.Instance.GetDefaultModel(targetType);
+
+            SelectedModel = defModel;
+            for (int i = 0; i < AvailableModelInfos.Count; i++)
+            {
+                if (AvailableModelInfos[i].Id == defModel)
+                {
+                    SelectedModelIndex = i;
+                    break;
+                }
+            }
+
+            ThongBaoDialog.ThongTin(
+                $"Đã khôi phục mô hình mặc định: {defModel} cho nhà cung cấp {SelectedProvider}.\nNhấn [Lưu cấu hình mô hình] để áp dụng chính thức cho hệ thống.",
+                "Khôi phục mặc định");
+        }
+
+        private async Task KiemTraMoHinhHienTaiAsync()
+        {
+            var targetType = GetSelectedProviderType();
+            string modelToTest = SelectedModel;
+
+            StatusMessage = $"Đang gửi request kiểm tra thực tế tới {SelectedProvider} ({modelToTest})...";
+
             try
             {
-                AIProviderType targetType = AIProviderType.Gemini;
-                if (SelectedProvider.Contains("Groq")) targetType = AIProviderType.Groq;
-                else if (SelectedProvider.IndexOf("Xkio", StringComparison.OrdinalIgnoreCase) >= 0 || SelectedProvider.IndexOf("xKiro", StringComparison.OrdinalIgnoreCase) >= 0) targetType = AIProviderType.Xkio;
+                var resp = await AIConfigurationService.Instance.TestConnectionAsync(targetType, modelToTest);
 
-                AIServiceManager.Instance.ActiveProviderType = targetType;
-                AIServiceManager.Instance.ActiveModel = SelectedModel;
-                AIServiceManager.Instance.EnableFallback = IsFallbackEnabled;
+                if (resp.Success)
+                {
+                    ThongBaoDialog.ThanhCong(
+                        $"Kết nối thành công đến AI Service!\n\n" +
+                        $"• Nhà cung cấp: {SelectedProvider}\n" +
+                        $"• Mô hình phản hồi: {resp.ModelUsed}\n" +
+                        $"• Thời gian phản hồi: {resp.LatencyMs} ms\n" +
+                        $"• Nguồn API Key: apiminh.json\n\n" +
+                        $"Dịch vụ hoạt động ổn định và sẵn sàng phục vụ học viên.",
+                        "Kiểm tra kết nối thành công");
+                }
+                else
+                {
+                    ThongBaoDialog.Loi(
+                        $"Không thể kết nối đến AI Service ({SelectedProvider}):\n\n" +
+                        $"• Lỗi: {resp.ErrorMessage}\n" +
+                        $"• Mã trạng thái: {resp.StatusCode}\n" +
+                        $"• Nguồn cấu hình: apiminh.json",
+                        "Kiểm tra kết nối thất bại");
+                }
 
-                // Ghi bền vững vào cấu hình hệ thống
-                BUS.AI.Configuration.AIConfigHelper.SaveActiveModelConfig(targetType.ToString(), SelectedModel ?? "", IsFallbackEnabled);
+                _ = ThucHienKiemTraToanBoAsync();
+            }
+            catch (Exception ex)
+            {
+                ThongBaoDialog.Loi($"Lỗi khi kiểm tra kết nối: {ex.Message}", "Lỗi");
+            }
+        }
+
+        private void LuuCauHinhMoHinh()
+        {
+            // 1. Kiểm tra quyền Admin ở Backend
+            if (!AIConfigurationService.Instance.CheckAdminPermission())
+            {
+                ThongBaoDialog.CanhBao("Bạn không có quyền thực hiện thao tác này. Chỉ tài khoản Quản trị viên (Admin/Giảng viên) mới được phép thay đổi cấu hình LLM hệ thống.", "Từ chối truy cập");
+                return;
+            }
+
+            var targetType = GetSelectedProviderType();
+
+            // 2. Xác nhận trước khi áp dụng
+            if (!ThongBaoDialog.XacNhan(
+                $"Bạn có chắc chắn muốn lưu và áp dụng cấu hình mô hình AI mới cho toàn bộ hệ thống không?\n\n" +
+                $"• Nhà cung cấp: {SelectedProvider}\n" +
+                $"• Mô hình chọn: {SelectedModel}\n" +
+                $"• Nguồn cấu hình: apiminh.json\n" +
+                $"• Tự động dự phòng (Fallback): {(IsFallbackEnabled ? "Bật" : "Tắt")}\n\n" +
+                $"Cấu hình này sẽ tự động áp dụng ngay lập tức cho cả 2 phân hệ:\n" +
+                $"1. Gia sư Trợ lý AI (TroLyAIView)\n" +
+                $"2. Chấm & Sửa lỗi Bài viết AI (BaiVietAIView)",
+                "Xác nhận thay đổi cấu hình LLM"))
+            {
+                return;
+            }
+
+            try
+            {
+                AIConfigurationService.Instance.SaveActiveConfig(targetType, SelectedModel, IsFallbackEnabled);
 
                 SaveNotificationMessage = $"Đã lưu và kích hoạt thành công: {SelectedProvider} — Mô hình: {SelectedModel}";
                 IsSaveNotificationVisible = true;
 
                 ThongBaoDialog.ThanhCong(
-                    $"Đã lưu và kích hoạt cấu hình mô hình AI thành công!\n\n" +
-                    $"• Nhà cung cấp: {SelectedProvider}\n" +
-                    $"• Mô hình hoạt động: {SelectedModel}\n" +
-                    $"• Chế độ chuyển đổi dự phòng: {(IsFallbackEnabled ? "Đang bật" : "Đã tắt")}\n\n" +
-                    $"Toàn bộ chức năng AI trong hệ thống sẽ tự động đồng bộ theo cấu hình này.",
-                    "Lưu cấu hình AI thành công");
+                    $"Đã lưu và áp dụng cấu hình mô hình AI mới thành công!\n\n" +
+                    $"• Nhà cung cấp hoạt động: {SelectedProvider}\n" +
+                    $"• Mô hình LLM: {SelectedModel}\n" +
+                    $"• Nguồn API Key: apiminh.json\n\n" +
+                    $"Cả Gia sư Trợ lý AI và AI Writing đã được đồng bộ sang mô hình mới.",
+                    "Lưu cấu hình thành công");
+
+                _ = ThucHienKiemTraToanBoAsync();
             }
             catch (Exception ex)
             {
-                ThongBaoDialog.Loi(
-                    $"Không thể lưu cấu hình mô hình AI:\n{ex.Message}",
-                    "Lỗi lưu cấu hình");
+                ThongBaoDialog.Loi($"Không thể lưu cấu hình mô hình AI:\n{ex.Message}", "Lỗi lưu cấu hình");
             }
         }
 
@@ -451,8 +564,9 @@ namespace GUI.ViewModels.GiangVien
                 DatabaseStatusText = dbCheck.IsConnected ? "Kết nối tốt" : "Mất kết nối";
                 DatabaseLatencyText = dbCheck.Message;
 
-                // 2. Tải lại cấu hình User Secrets / Môi trường mới nhất trước khi kiểm tra AI Providers
-                BUS.AI.Configuration.AIConfigHelper.ReloadConfiguration();
+                // 2. Tải lại cấu hình từ apiminh.json
+                AIConfigurationService.Instance.ReloadConfiguration();
+                UpdateMaskedKeys();
 
                 // 3. Kiểm tra các AI Providers
                 var healthList = await AIServiceManager.Instance.CheckAllProvidersHealthAsync();
@@ -468,6 +582,12 @@ namespace GUI.ViewModels.GiangVien
                 TotalRequestsText = metrics.TotalRequests.ToString("N0");
                 AverageLatencyText = $"{metrics.AverageLatencyMs:0} ms";
                 ErrorRateText = $"{metrics.ErrorRatePercent:0.0}%";
+
+                // 5. Thống kê lượt sử dụng từ Database
+                int tutorCount = HoiThoaiAIBUS.Instance.DemTongLuotDung();
+                int writingCount = BaiVietAIBUS.Instance.DemTongLuotCham();
+                AiTutorUsageText = $"{tutorCount:N0} tin nhắn";
+                AiWritingUsageText = $"{writingCount:N0} bài luận";
 
                 // Đánh giá sức khỏe tổng thể
                 int healthyCount = healthList.Count(x => x.Health == "Healthy");
@@ -490,7 +610,7 @@ namespace GUI.ViewModels.GiangVien
                     SystemHealthBadgeBg = "#FEF3C7";
                 }
 
-                // 5. Nạp dòng sự kiện gần nhất (Stream logs)
+                // 6. Nạp dòng sự kiện gần nhất (Stream logs)
                 RequestLogs.Clear();
                 var logs = metrics.GetRecentLogs();
                 foreach (var log in logs)
@@ -513,7 +633,8 @@ namespace GUI.ViewModels.GiangVien
 
         private async Task KiemTraProviderAsync(AIProviderType type)
         {
-            BUS.AI.Configuration.AIConfigHelper.ReloadConfiguration();
+            AIConfigurationService.Instance.ReloadConfiguration();
+            UpdateMaskedKeys();
             var provider = AIServiceManager.Instance.GetProvider(type);
             var status = await provider.CheckHealthAsync();
             if (type == AIProviderType.Gemini) GeminiStatus = status;

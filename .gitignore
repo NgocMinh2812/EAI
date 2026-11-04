@@ -21,6 +21,9 @@ secrets.json
 appsettings.secrets.json
 api.json
 **/api.json
+apiminh.json
+**/apiminh.json
+*apiminh*.json
 
 # Whitelist safe configuration examples
 !*.example.json
