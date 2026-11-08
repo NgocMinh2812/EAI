@@ -146,6 +146,8 @@ namespace GUI.ViewModels.GiangVien
                 _selectedBaiHoc = item;
                 OnPropertyChanged();
 
+                _noiDungBackupTruocKhiTaoAI = null;
+                OnPropertyChanged(nameof(CoNoiDungBackupTruocKhiTaoAI));
                 OnPropertyChanged(nameof(IsKyNangNghe));
                 OnPropertyChanged(nameof(HasAudioFile));
                 OnPropertyChanged(nameof(HasTieuDeBaiHoc));
@@ -159,6 +161,8 @@ namespace GUI.ViewModels.GiangVien
         {
             if (e.PropertyName == nameof(BaiHocDTO.LoaiBaiHoc) || e.PropertyName == nameof(BaiHocDTO.IsKyNangNghe))
             {
+                _noiDungBackupTruocKhiTaoAI = null;
+                OnPropertyChanged(nameof(CoNoiDungBackupTruocKhiTaoAI));
                 OnPropertyChanged(nameof(IsKyNangNghe));
                 CommandManager.InvalidateRequerySuggested();
             }
@@ -307,8 +311,12 @@ namespace GUI.ViewModels.GiangVien
         public ICommand LuuBaiHocCommand { get; }
         public ICommand ToggleXuatBanCommand { get; }
         public ICommand ThemBaiHocMoiCommand { get; }
+        private string? _noiDungBackupTruocKhiTaoAI;
+        public bool CoNoiDungBackupTruocKhiTaoAI => !string.IsNullOrEmpty(_noiDungBackupTruocKhiTaoAI);
+
         public ICommand LamMoiCommand { get; }
         public ICommand SinhNoiDungMauAICommand { get; }
+        public ICommand HoanTacNoiDungCuCommand { get; }
         public ICommand SinhCauHoiAICommand { get; }
         public ICommand DongModalCauHoiCommand { get; }
         public ICommand ChenCauHoiVaoBaiHocCommand { get; }
@@ -367,6 +375,7 @@ namespace GUI.ViewModels.GiangVien
             LamMoiCommand = new RelayCommand(NapDuLieu);
 
             SinhNoiDungMauAICommand = new RelayCommand(ThucHienSinhNoiDungMauAI, () => CanTaoBangAI);
+            HoanTacNoiDungCuCommand = new RelayCommand(ThucHienHoanTacNoiDungCu, () => CoNoiDungBackupTruocKhiTaoAI);
             SinhCauHoiAICommand = new RelayCommand(ThucHienSinhCauHoiAI);
             DongModalCauHoiCommand = new RelayCommand(() => IsQuestionsModalOpen = false);
             ChenCauHoiVaoBaiHocCommand = new RelayCommand(ThucHienChenCauHoiVaoBaiHoc);
@@ -1066,6 +1075,34 @@ namespace GUI.ViewModels.GiangVien
                 return;
             }
 
+            // RÀNG BUỘC BẢO VỆ DỮ LIỆU: Nếu bài học đã có nội dung, yêu cầu xác nhận trước khi ghi đè
+            bool coNoiDung = false;
+            if (!string.IsNullOrWhiteSpace(SelectedBaiHoc.NoiDung))
+            {
+                string plain = System.Text.RegularExpressions.Regex.Replace(SelectedBaiHoc.NoiDung, "<.*?>", string.Empty)
+                                                                   .Replace("&nbsp;", " ")
+                                                                   .Trim();
+                coNoiDung = !string.IsNullOrWhiteSpace(plain);
+            }
+
+            if (coNoiDung)
+            {
+                bool xacNhan = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                    "Bài học này hiện đã có nội dung giáo trình lý thuyết.\n\n" +
+                    "⚠️ CẢNH BÁO: Nếu tiếp tục tạo bằng AI, toàn bộ nội dung giáo trình hiện tại sẽ bị xóa và thay thế bằng nội dung mới do AI soạn thảo.\n\n" +
+                    "Bạn có chắc chắn muốn ghi đè và tạo lại nội dung bằng AI không?",
+                    "Xác nhận ghi đè nội dung bài học",
+                    "Ghi đè bằng AI",
+                    "Giữ lại nội dung");
+
+                if (!xacNhan)
+                {
+                    return;
+                }
+            }
+
+            string? noiDungCu = SelectedBaiHoc.NoiDung;
+
             IsAiGeneratingSample = true;
             ThongBaoLoi = string.Empty;
             try
@@ -1075,6 +1112,15 @@ namespace GUI.ViewModels.GiangVien
                 string loai = string.IsNullOrWhiteSpace(SelectedBaiHoc.LoaiBaiHoc) ? "Doc" : SelectedBaiHoc.LoaiBaiHoc;
 
                 string content = await GeminiAIService.SinhNoiDungMauAIAsync(tieuDe, trinhDo, loai, "NoiDungHocTap");
+
+                // Lưu lại nội dung cũ để giảng viên có thể hoàn tác khôi phục nếu cần
+                if (coNoiDung && !string.IsNullOrWhiteSpace(noiDungCu))
+                {
+                    _noiDungBackupTruocKhiTaoAI = noiDungCu;
+                    OnPropertyChanged(nameof(CoNoiDungBackupTruocKhiTaoAI));
+                    CommandManager.InvalidateRequerySuggested();
+                }
+
                 SelectedBaiHoc.NoiDung = content;
                 OnPropertyChanged(nameof(SelectedBaiHoc));
             }
@@ -1086,6 +1132,19 @@ namespace GUI.ViewModels.GiangVien
             finally
             {
                 IsAiGeneratingSample = false;
+            }
+        }
+
+        private void ThucHienHoanTacNoiDungCu()
+        {
+            if (SelectedBaiHoc != null && !string.IsNullOrEmpty(_noiDungBackupTruocKhiTaoAI))
+            {
+                SelectedBaiHoc.NoiDung = _noiDungBackupTruocKhiTaoAI;
+                _noiDungBackupTruocKhiTaoAI = null;
+                OnPropertyChanged(nameof(SelectedBaiHoc));
+                OnPropertyChanged(nameof(CoNoiDungBackupTruocKhiTaoAI));
+                CommandManager.InvalidateRequerySuggested();
+                GUI.Views.Common.ThongBaoDialog.ThanhCong("Đã hoàn tác khôi phục lại nội dung giáo trình ban đầu của bạn!", "Hoàn tác thành công");
             }
         }
 

@@ -600,6 +600,81 @@ namespace BUS
             return null;
         }
 
+        public static string? TimTepAudioChoBaiHoc(BaiHocDTO bh)
+        {
+            if (bh == null) return null;
+
+            // 1. Kiểm tra trực tiếp đường dẫn đã lưu
+            if (!string.IsNullOrEmpty(bh.DuongDanAudio) && File.Exists(bh.DuongDanAudio))
+                return bh.DuongDanAudio;
+
+            if (!string.IsNullOrEmpty(bh.AudioPath) && File.Exists(bh.AudioPath))
+                return bh.AudioPath;
+
+            // Thử resolve nếu là đường dẫn tương đối
+            try
+            {
+                if (!string.IsNullOrEmpty(bh.DuongDanAudio))
+                {
+                    string full = Path.GetFullPath(bh.DuongDanAudio);
+                    if (File.Exists(full)) return full;
+                }
+                if (!string.IsNullOrEmpty(bh.AudioPath))
+                {
+                    string full = Path.GetFullPath(bh.AudioPath);
+                    if (File.Exists(full)) return full;
+                }
+            }
+            catch { }
+
+            // 2. Tìm kiếm trong các thư mục học liệu của dự án
+            var roots = GetAllHocLieuRoots();
+            string[] audioExts = { ".mp3", ".wav", ".m4a", ".aac", ".ogg" };
+            string safeTitle = SanitizeFolderName(bh.TieuDe);
+            string normTitle = new string((bh.TieuDe ?? "").Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
+
+            List<FileInfo> allFiles = new List<FileInfo>();
+            foreach (var r in roots)
+            {
+                if (Directory.Exists(r))
+                {
+                    try
+                    {
+                        var files = Directory.GetFiles(r, "*.*", SearchOption.AllDirectories)
+                            .Where(f => audioExts.Contains(Path.GetExtension(f).ToLowerInvariant()))
+                            .Select(f => new FileInfo(f));
+                        allFiles.AddRange(files);
+                    }
+                    catch { }
+                }
+            }
+
+            // 3. Khớp theo tên tệp nếu có
+            if (!string.IsNullOrEmpty(bh.AudioPath))
+            {
+                string fileNameOnly = Path.GetFileName(bh.AudioPath);
+                var byName = allFiles.FirstOrDefault(f => f.Name.Equals(fileNameOnly, StringComparison.OrdinalIgnoreCase));
+                if (byName != null) return byName.FullName;
+            }
+
+            if (!string.IsNullOrEmpty(bh.DuongDanAudio))
+            {
+                string fileNameOnly = Path.GetFileName(bh.DuongDanAudio);
+                var byName = allFiles.FirstOrDefault(f => f.Name.Equals(fileNameOnly, StringComparison.OrdinalIgnoreCase));
+                if (byName != null) return byName.FullName;
+            }
+
+            // 4. Khớp theo tiêu đề bài học
+            var match = allFiles.FirstOrDefault(f =>
+                f.Name.Contains(safeTitle, StringComparison.OrdinalIgnoreCase) ||
+                safeTitle.Contains(Path.GetFileNameWithoutExtension(f.Name), StringComparison.OrdinalIgnoreCase) ||
+                (normTitle.Length > 4 && Path.GetFileNameWithoutExtension(f.Name).ToLowerInvariant().Contains(normTitle)));
+
+            if (match != null) return match.FullName;
+
+            return null;
+        }
+
         public static void TaoTepDocxTuBaiHoc(string filePath, BaiHocDTO bh)
         {
             if (File.Exists(filePath))

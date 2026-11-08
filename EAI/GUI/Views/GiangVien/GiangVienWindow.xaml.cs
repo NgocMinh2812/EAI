@@ -201,8 +201,11 @@ namespace GUI.Views.GiangVien
             }
         }
 
+        private int _modalOverlayCount = 0;
+
         public void ShowModalOverlay()
         {
+            _modalOverlayCount++;
             OverlayDimLayer.Visibility = Visibility.Visible;
             MainContentContainer.Effect = new System.Windows.Media.Effects.BlurEffect 
             { 
@@ -213,8 +216,13 @@ namespace GUI.Views.GiangVien
 
         public void HideModalOverlay()
         {
-            OverlayDimLayer.Visibility = Visibility.Collapsed;
-            MainContentContainer.Effect = null;
+            _modalOverlayCount--;
+            if (_modalOverlayCount <= 0)
+            {
+                _modalOverlayCount = 0;
+                OverlayDimLayer.Visibility = Visibility.Collapsed;
+                MainContentContainer.Effect = null;
+            }
         }
 
         private void AdminMainFrame_Navigated(object sender, NavigationEventArgs e)

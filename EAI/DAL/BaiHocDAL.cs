@@ -738,7 +738,7 @@ namespace DAL
                     MaTrinhDo = row["TenTrinhDo"]?.ToString() ?? "B1",
                     TomTat = row["TomTat"] == DBNull.Value ? "" : (row["TomTat"]?.ToString() ?? ""),
                     NoiDung = row["NoiDung"] == DBNull.Value ? "" : (row["NoiDung"]?.ToString() ?? ""),
-                    ThoiGianUocTinhPhut = Convert.ToInt32(row["ThoiGianUocTinhPhut"]),
+                    ThoiGianUocTinhPhut = row["ThoiGianUocTinhPhut"] == DBNull.Value ? 15 : Convert.ToInt32(row["ThoiGianUocTinhPhut"]),
                     DaXuatBan = daXuatBan,
                     AudioPath = audio,
                     DuongDanAudio = audio,

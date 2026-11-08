@@ -79,8 +79,14 @@ namespace GUI.Views.GiangVien
                 VeBieuDoKyThi(report.DanhSachLuotLamBai);
 
                 // 6. Đổ danh sách lượt làm bài
+                bool coDuLieu = report.DanhSachLuotLamBai != null && report.DanhSachLuotLamBai.Count > 0;
                 dgDanhSachBaiNop.ItemsSource = report.DanhSachLuotLamBai;
-                txtSubmissionsCount.Text = $"{report.DanhSachLuotLamBai.Count} lượt làm bài";
+                dgDanhSachBaiNop.Visibility = coDuLieu ? Visibility.Visible : Visibility.Collapsed;
+                if (pnlEmptySubmissions != null)
+                {
+                    pnlEmptySubmissions.Visibility = coDuLieu ? Visibility.Collapsed : Visibility.Visible;
+                }
+                txtSubmissionsCount.Text = $"{report.DanhSachLuotLamBai?.Count ?? 0} lượt làm bài";
             }
             catch (Exception ex)
             {
@@ -349,6 +355,16 @@ namespace GUI.Views.GiangVien
             _currentFilter.TuKhoa = txtSearch.Text.Trim();
 
             TaiBaoCaoThongKe();
+        }
+
+        private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (txtSearchPlaceholder != null)
+            {
+                txtSearchPlaceholder.Visibility = string.IsNullOrEmpty(txtSearch.Text)
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+            }
         }
         #endregion
 

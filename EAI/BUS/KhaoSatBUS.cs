@@ -20,15 +20,43 @@ namespace BUS
             return CauHoiDAL.Instance.LayDanhSachCauHoiKhaoSat(maBaiKhaoSat);
         }
 
+        public List<BaiKhaoSatDTO> LayDanhSachTatCaBaiKhaoSat()
+        {
+            return KhaoSatDAL.Instance.LayDanhSachTatCaBaiKhaoSat();
+        }
+
+        public BaiKhaoSatDTO? LayBaiKhaoSatTheoMa(int maBaiKhaoSat)
+        {
+            return KhaoSatDAL.Instance.LayBaiKhaoSatTheoMa(maBaiKhaoSat);
+        }
+
+        public bool KichHoatBaiKhaoSat(int maBaiKhaoSat)
+        {
+            return KhaoSatDAL.Instance.KichHoatBaiKhaoSat(maBaiKhaoSat);
+        }
+
         public List<CauHoiKhaoSatDTO> LayDanhSachCauHoiTheoTrinhDo(string maCapDo)
         {
-            // 1. Thử lấy bài khảo sát đang kích hoạt từ CSDL
-            var activeSurvey = LayBaiKhaoSatDangHoatDong();
-            var list = KhaoSatDAL.Instance.LayDanhSachCauHoiTheoBaiKhaoSat(activeSurvey.MaBaiKhaoSat);
+            // 1. Thử tìm bài khảo sát theo đúng cấp độ yêu cầu (A1..C2)
+            var allSurveys = LayDanhSachTatCaBaiKhaoSat();
+            var targetSurvey = allSurveys.FirstOrDefault(s => string.Equals(s.MaCapDo, maCapDo, StringComparison.OrdinalIgnoreCase))
+                               ?? allSurveys.FirstOrDefault(s => s.DangHoatDong);
+
+            List<CauHoiKhaoSatDTO>? list = null;
+            if (targetSurvey != null)
+            {
+                list = KhaoSatDAL.Instance.LayDanhSachCauHoiTheoBaiKhaoSat(targetSurvey.MaBaiKhaoSat);
+            }
+
+            if (list == null || list.Count < 5)
+            {
+                var activeSurvey = LayBaiKhaoSatDangHoatDong();
+                list = KhaoSatDAL.Instance.LayDanhSachCauHoiTheoBaiKhaoSat(activeSurvey.MaBaiKhaoSat);
+            }
             
             if (list == null || list.Count < 5)
             {
-                list = CauHoiDAL.Instance.LayDanhSachCauHoiTheoTrinhDo(maCapDo, 15);
+                list = CauHoiDAL.Instance.LayDanhSachCauHoiTheoTrinhDo(maCapDo, 20);
             }
             if (list == null || list.Count < 5)
             {
@@ -151,8 +179,12 @@ namespace BUS
                     // 4. Lưu lượt khảo sát lịch sử
                     try
                     {
-                        var activeSurvey = LayBaiKhaoSatDangHoatDong();
-                        int maLuot = CauHoiDAL.Instance.LuuLuotKhaoSat(maNguoiDung, activeSurvey.MaBaiKhaoSat, tongSoCau, soCauDung, diem10, trinhDoPhuHop);
+                        var allSurveys = LayDanhSachTatCaBaiKhaoSat();
+                        var matchedSurvey = allSurveys.FirstOrDefault(s => string.Equals(s.MaCapDo, trinhDoDaChon, StringComparison.OrdinalIgnoreCase))
+                                            ?? allSurveys.FirstOrDefault(s => s.DangHoatDong);
+                        int maBaiId = matchedSurvey?.MaBaiKhaoSat ?? 1;
+
+                        int maLuot = CauHoiDAL.Instance.LuuLuotKhaoSat(maNguoiDung, maBaiId, tongSoCau, soCauDung, diem10, trinhDoPhuHop);
                         if (maLuot > 0)
                         {
                             foreach (var q in danhSachCauHoi)
@@ -236,13 +268,37 @@ namespace BUS
             var ketQua = CauHoiDAL.Instance.LayKetQuaKhaoSatGanNhat(maNguoiDung);
             if (ketQua != null)
             {
+                int tongCau = Math.Max(1, ketQua.TongSoCau);
+                int phanTram = (int)Math.Round(((double)ketQua.SoCauDung / tongCau) * 100);
+
+                var matrix = LayMaTranQuyDoi();
+                var matchedTier = matrix.FirstOrDefault(m => phanTram >= m.DiemPhanTramMin && phanTram <= m.DiemPhanTramMax)
+                                  ?? matrix.FirstOrDefault(m => string.Equals(m.MaCapDo, ketQua.TrinhDoPhuHop, StringComparison.OrdinalIgnoreCase));
+
                 var thongTin = LayThongTinTrinhDo(ketQua.TrinhDoPhuHop);
-                ketQua.TenTrinhDoPhuHop = thongTin.Ten;
-                ketQua.UocTinhIelts = thongTin.Ielts;
-                ketQua.UocTinhToeic = thongTin.Toeic;
-                ketQua.NhanXetLộTrinh = thongTin.NhanXet;
-                ketQua.LyDoDieuChinh = $"Bạn đã hoàn thành khảo sát đánh giá với kết quả {ketQua.SoCauDung}/{ketQua.TongSoCau} câu đúng ({ketQua.DiemSo}/10 điểm), xác lập trình độ chuẩn {ketQua.TrinhDoPhuHop}.";
+                ketQua.TenTrinhDoPhuHop = matchedTier?.TenHienThi ?? thongTin.Ten;
+                ketQua.UocTinhIelts = matchedTier?.QuyDoiIelts ?? thongTin.Ielts;
+                ketQua.UocTinhToeic = matchedTier?.QuyDoiToeic ?? thongTin.Toeic;
+                ketQua.NhanXetLộTrinh = matchedTier?.LoTrinhDeXuat ?? thongTin.NhanXet;
+
+                if (phanTram >= 85)
+                {
+                    ketQua.LyDoDieuChinh = $"Xuất sắc! Bạn trả lời đúng {ketQua.SoCauDung}/{ketQua.TongSoCau} câu ({ketQua.DiemSo:0.0}/10 điểm - {phanTram}%), đạt chuẩn cấp độ {ketQua.TrinhDoPhuHop} ({ketQua.TenTrinhDoPhuHop}). Hệ thống AI đề xuất bạn theo học lộ trình {ketQua.TrinhDoPhuHop} để phát huy tối đa tiềm năng!";
+                }
+                else if (phanTram >= 60)
+                {
+                    ketQua.LyDoDieuChinh = $"Chúc mừng bạn! Bạn trả lời đúng {ketQua.SoCauDung}/{ketQua.TongSoCau} câu ({ketQua.DiemSo:0.0}/10 điểm - {phanTram}%), đạt chuẩn năng lực {ketQua.TrinhDoPhuHop} ({ketQua.TenTrinhDoPhuHop}).";
+                }
+                else
+                {
+                    ketQua.LyDoDieuChinh = $"Bạn đạt {ketQua.SoCauDung}/{ketQua.TongSoCau} câu ({ketQua.DiemSo:0.0}/10 điểm - {phanTram}%), xếp loại {ketQua.TrinhDoPhuHop} ({ketQua.TenTrinhDoPhuHop}). Hệ thống AI đề xuất bạn học tập ở lộ trình {ketQua.TrinhDoPhuHop} để củng cố nền tảng trước khi nâng cao.";
+                }
+
                 ketQua.DanhSachBaiHocDeXuat = BaiHocDAL.Instance.LayDanhSachBaiHocTheoTrinhDo(ketQua.TrinhDoPhuHop, maNguoiDung, 4);
+                if (ketQua.DanhSachBaiHocDeXuat == null || ketQua.DanhSachBaiHocDeXuat.Count == 0)
+                {
+                    ketQua.DanhSachBaiHocDeXuat = BaiHocDAL.Instance.LayDanhSachBaiHocTheoTrinhDo(ketQua.TrinhDoPhuHop, 0, 4);
+                }
             }
             return ketQua;
         }
@@ -277,10 +333,12 @@ namespace BUS
         {
             return capDo.ToUpper() switch
             {
+                "C2" => ("Mastery / Native (Thành thạo Bản ngữ)", "IELTS 8.5+ • CEFR C2", "TOEIC 990", "Vốn ngôn ngữ ở cấp độ thành thạo tương đương người bản xứ. Lộ trình tối ưu hóa ngôn ngữ học thuật đỉnh cao, nghiên cứu và phản biện chuyên sâu.", 9.0m),
                 "C1" => ("Advanced (Nâng cao)", "IELTS 7.5+ • CEFR C1", "TOEIC 900+", "Bạn có vốn ngôn ngữ và tư duy học thuật vượt trội. Lộ trình tập trung vào diễn đạt chuyên sâu, viết luận học thuật và phản biện.", 8.0m),
                 "B2" => ("Upper-Intermediate (Trên trung cấp)", "IELTS 6.0 - 7.0 • CEFR B2", "TOEIC 700 - 850", "Nền tảng của bạn rất vững! Lộ trình hướng đến bứt phá các bài đọc hiểu chuyên sâu, câu điều kiện, cấu trúc đảo ngữ.", 6.5m),
                 "B1" => ("Intermediate (Trung cấp)", "IELTS 5.0 - 5.5 • CEFR B1", "TOEIC 550 - 650", "Bạn đã nắm chắc ngữ pháp cơ bản. Lộ trình sẽ giúp bạn củng cố các thì nâng cao, mở rộng vốn từ vựng học thuật và tự tin giao tiếp.", 5.5m),
                 "A2" => ("Elementary (Sơ cấp)", "IELTS 4.0 - 4.5 • CEFR A2", "TOEIC 350 - 450", "Bạn có thể giao tiếp những câu đơn giản. Lộ trình tập trung mở rộng vốn từ vựng đời sống, thì hiện tại hoàn thành và quá khứ đơn.", 4.5m),
+                "TONGHOP" or "ALL" => ("Toàn diện Đa Cấp độ (A1 - C2)", "IELTS 3.0 - 9.0", "TOEIC 200 - 990", "Khảo sát phân loại tổng hợp đa tầng năng lực từ cơ bản đến nâng cao.", 6.5m),
                 _ => ("Beginner (Cơ bản / Mất gốc)", "IELTS 3.0 • CEFR A1", "TOEIC 200 - 300", "Đừng lo lắng! Lộ trình được thiết kế từ phát âm chuẩn, từ vựng nền tảng và các cấu trúc cơ bản nhất để xây gốc tiếng Anh vững chắc.", 3.5m)
             };
         }

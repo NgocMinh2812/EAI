@@ -128,7 +128,8 @@ namespace DAL
                        ch.DoanVanDoc, ch.GiaiThichDapAn
                 FROM CauHoi ch
                 LEFT JOIN TrinhDo td ON ch.MaTrinhDo = td.MaTrinhDo
-                WHERE ch.DaKiemDuyet = 1 AND td.MaCapDo = @MaCapDo
+                WHERE ch.DaKiemDuyet = 1 
+                  AND (@MaCapDo = 'TongHop' OR @MaCapDo = 'ALL' OR @MaCapDo = 'TatCa' OR td.MaCapDo = @MaCapDo)
                 ORDER BY ch.MaCauHoi ASC";
 
             SqlParameter[] parameters = new[]

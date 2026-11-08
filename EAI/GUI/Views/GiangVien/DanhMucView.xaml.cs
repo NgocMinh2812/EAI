@@ -22,6 +22,14 @@ namespace GUI.Views.GiangVien
         private bool _isLoaded = false;
         private readonly System.Windows.Threading.DispatcherTimer _searchDebounceTimer;
 
+        // Trình phát Audio nghe thử bài học kỹ năng Nghe
+        private readonly System.Windows.Media.MediaPlayer _mediaPlayer = new();
+        private readonly System.Windows.Threading.DispatcherTimer _audioTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
+        private bool _isPlayingAudio = false;
+        private bool _isUserSeekingAudio = false;
+        private string? _currentAudioPath;
+        private double _audioTotalSeconds = 0;
+
         public DanhMucView()
         {
             InitializeComponent();
@@ -34,6 +42,55 @@ namespace GUI.Views.GiangVien
                 _searchDebounceTimer.Stop();
                 LoadLessonsForSelectedTopic();
             };
+
+            // Cấu hình sự kiện cho Trình phát Audio
+            _audioTimer.Tick += AudioTimer_Tick;
+
+            _mediaPlayer.MediaOpened += (s, e) =>
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (_mediaPlayer.NaturalDuration.HasTimeSpan)
+                    {
+                        var totalTs = _mediaPlayer.NaturalDuration.TimeSpan;
+                        _audioTotalSeconds = totalTs.TotalSeconds;
+                        if (sldAudioTimeline != null)
+                        {
+                            sldAudioTimeline.Maximum = _audioTotalSeconds > 0 ? _audioTotalSeconds : 100;
+                        }
+                        if (txtAudioTotalTime != null)
+                        {
+                            txtAudioTotalTime.Text = FormatAudioTime(totalTs);
+                        }
+                    }
+                }));
+            };
+
+            _mediaPlayer.MediaEnded += (s, e) =>
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    try { _mediaPlayer.Stop(); } catch { }
+                    try { _mediaPlayer.Position = TimeSpan.Zero; } catch { }
+                    _isPlayingAudio = false;
+                    _audioTimer.Stop();
+                    if (sldAudioTimeline != null) sldAudioTimeline.Value = 0;
+                    if (txtAudioCurrentTime != null) txtAudioCurrentTime.Text = "00:00";
+                    CapNhatNutPlay();
+                }));
+            };
+
+            _mediaPlayer.MediaFailed += (s, e) =>
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    _isPlayingAudio = false;
+                    _audioTimer.Stop();
+                    CapNhatNutPlay();
+                }));
+            };
+
+            Unloaded += (s, e) => DungAudio();
 
             _isLoaded = true;
             Loaded += DanhMucView_Loaded;
@@ -188,6 +245,7 @@ namespace GUI.Views.GiangVien
 
         private void ShowLessonPreview(BaiHocDTO lesson)
         {
+            DungAudio();
             _currentPreviewLesson = lesson;
             if (txtPreviewDocTitle == null) return;
 
@@ -198,6 +256,43 @@ namespace GUI.Views.GiangVien
             txtSimulationPassage.Text = "Xem trước nội dung tệp";
 
             txtPassageTitle.Text = lesson.TieuDe ?? "";
+
+            // KIỂM SOÁT AUDIO BÀI NGHE (LISTENING AUDIO PLAYER)
+            bool isListening = lesson.IsKyNangNghe 
+                || BaiHocDTO.KiemTraKyNangNghe(lesson.LoaiBaiHoc) 
+                || BaiHocDTO.KiemTraKyNangNghe(lesson.TieuDe)
+                || BaiHocDTO.KiemTraKyNangNghe(lesson.TenChuDe)
+                || lesson.HasAudio
+                || BaiHocDTO.XacDinhKyNangTuTenHoacChuDe(lesson.TieuDe, lesson.TenChuDe, lesson.DuongDanTepVatLy) == "Nghe";
+            string? audioFilePath = KhoHocLieuSyncHelper.TimTepAudioChoBaiHoc(lesson);
+
+            if (pnlAudioPlayerSection != null)
+            {
+                if (isListening || !string.IsNullOrEmpty(audioFilePath))
+                {
+                    pnlAudioPlayerSection.Visibility = Visibility.Visible;
+                    _currentAudioPath = audioFilePath;
+                    if (!string.IsNullOrEmpty(audioFilePath))
+                    {
+                        txtAudioFileName.Text = System.IO.Path.GetFileName(audioFilePath);
+                        try
+                        {
+                            _mediaPlayer.Open(new Uri(System.IO.Path.GetFullPath(audioFilePath)));
+                        }
+                        catch { }
+                    }
+                    else
+                    {
+                        txtAudioFileName.Text = !string.IsNullOrEmpty(lesson.AudioPath) 
+                            ? System.IO.Path.GetFileName(lesson.AudioPath) 
+                            : (!string.IsNullOrEmpty(lesson.DuongDanAudio) ? System.IO.Path.GetFileName(lesson.DuongDanAudio) : "Bài học kỹ năng Nghe (Chưa gắn tệp âm thanh)");
+                    }
+                }
+                else
+                {
+                    pnlAudioPlayerSection.Visibility = Visibility.Collapsed;
+                }
+            }
 
             // Hiển thị tóm tắt nội dung bài học vào khối riêng biệt, tự xuống dòng đầy đủ
             if (pnlPassageSummary != null && txtPassageSummaryFull != null)
@@ -332,7 +427,9 @@ namespace GUI.Views.GiangVien
 
         private void ClearPreview()
         {
+            DungAudio();
             _currentPreviewLesson = null;
+            if (pnlAudioPlayerSection != null) pnlAudioPlayerSection.Visibility = Visibility.Collapsed;
             if (txtPreviewDocTitle == null) return;
 
             txtPreviewDocTitle.Text = "Chưa chọn bài học";
@@ -346,6 +443,158 @@ namespace GUI.Views.GiangVien
 
             if (txtPreviewStatusPill != null) txtPreviewStatusPill.Text = "Chưa chọn";
         }
+
+        #region Xử lý Trình phát Âm thanh (Audio Player) cho bài học Listening
+
+        private void AudioTimer_Tick(object? sender, EventArgs e)
+        {
+            if (_isUserSeekingAudio) return;
+            try
+            {
+                if (_mediaPlayer.Source != null && _mediaPlayer.NaturalDuration.HasTimeSpan)
+                {
+                    var pos = _mediaPlayer.Position;
+                    if (sldAudioTimeline != null)
+                    {
+                        sldAudioTimeline.Value = pos.TotalSeconds;
+                    }
+                    if (txtAudioCurrentTime != null)
+                    {
+                        txtAudioCurrentTime.Text = FormatAudioTime(pos);
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private static string FormatAudioTime(TimeSpan ts)
+        {
+            if (ts.TotalHours >= 1)
+                return $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}";
+            return $"{ts.Minutes:D2}:{ts.Seconds:D2}";
+        }
+
+        private void DungAudio()
+        {
+            try
+            {
+                _audioTimer.Stop();
+                if (_isPlayingAudio)
+                {
+                    _mediaPlayer.Stop();
+                    _isPlayingAudio = false;
+                }
+                _mediaPlayer.Close();
+                _currentAudioPath = null;
+                _audioTotalSeconds = 0;
+                if (sldAudioTimeline != null) sldAudioTimeline.Value = 0;
+                if (txtAudioCurrentTime != null) txtAudioCurrentTime.Text = "00:00";
+                if (txtAudioTotalTime != null) txtAudioTotalTime.Text = "00:00";
+                CapNhatNutPlay();
+            }
+            catch { }
+        }
+
+        private void CapNhatNutPlay()
+        {
+            if (txtPlayAudio == null || icoPlayAudio == null) return;
+            if (_isPlayingAudio)
+            {
+                txtPlayAudio.Text = "Tạm dừng";
+                icoPlayAudio.Kind = LucideIconKind.Pause;
+            }
+            else
+            {
+                txtPlayAudio.Text = "Phát Audio";
+                icoPlayAudio.Kind = LucideIconKind.Play;
+            }
+        }
+
+        private void BtnTogglePlayAudio_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(_currentAudioPath) || !System.IO.File.Exists(_currentAudioPath))
+                {
+                    ThongBaoDialog.CanhBao(Window.GetWindow(this), "Không tìm thấy tệp âm thanh của bài học này trên hệ thống.", "Chưa có file âm thanh");
+                    return;
+                }
+
+                if (_isPlayingAudio)
+                {
+                    _mediaPlayer.Pause();
+                    _audioTimer.Stop();
+                    _isPlayingAudio = false;
+                    CapNhatNutPlay();
+                }
+                else
+                {
+                    string fullPath = System.IO.Path.GetFullPath(_currentAudioPath);
+                    if (_mediaPlayer.Source == null || !_mediaPlayer.Source.LocalPath.Equals(fullPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _mediaPlayer.Open(new Uri(fullPath));
+                    }
+                    _mediaPlayer.Play();
+                    _audioTimer.Start();
+                    _isPlayingAudio = true;
+                    CapNhatNutPlay();
+                }
+            }
+            catch (Exception ex)
+            {
+                ThongBaoDialog.Loi(Window.GetWindow(this), $"Lỗi khi phát tệp âm thanh:\n{ex.Message}", "Lỗi phát Audio");
+            }
+        }
+
+        private void BtnRewindAudio_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                _mediaPlayer.Position = TimeSpan.Zero;
+                if (sldAudioTimeline != null) sldAudioTimeline.Value = 0;
+                if (txtAudioCurrentTime != null) txtAudioCurrentTime.Text = "00:00";
+                if (!_isPlayingAudio && !string.IsNullOrEmpty(_currentAudioPath) && System.IO.File.Exists(_currentAudioPath))
+                {
+                    BtnTogglePlayAudio_Click(sender, e);
+                }
+            }
+            catch { }
+        }
+
+        private void SldAudioTimeline_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            _isUserSeekingAudio = true;
+        }
+
+        private void SldAudioTimeline_PreviewMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                double targetSec = sldAudioTimeline.Value;
+                if (targetSec < 0) targetSec = 0;
+                if (_audioTotalSeconds > 0 && targetSec > _audioTotalSeconds) targetSec = _audioTotalSeconds;
+                _mediaPlayer.Position = TimeSpan.FromSeconds(targetSec);
+                if (txtAudioCurrentTime != null)
+                {
+                    txtAudioCurrentTime.Text = FormatAudioTime(TimeSpan.FromSeconds(targetSec));
+                }
+            }
+            catch { }
+            finally
+            {
+                _isUserSeekingAudio = false;
+            }
+        }
+
+        private void SldAudioTimeline_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_isUserSeekingAudio && txtAudioCurrentTime != null)
+            {
+                txtAudioCurrentTime.Text = FormatAudioTime(TimeSpan.FromSeconds(e.NewValue));
+            }
+        }
+
+        #endregion
 
         private void TxtSearchFile_GotFocus(object sender, RoutedEventArgs e)
         {

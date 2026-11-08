@@ -179,8 +179,9 @@
                     <!-- Scrollable Form Inputs -->
                     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="0,0,4,0">
                         <StackPanel>
-                            <!-- VÙNG CHỌN TỆP HỌC LIỆU -->
-                            <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="10" Padding="14,10" Margin="0,0,0,12">
+                            <!-- VÙNG CHỌN TỆP HỌC LIỆU (CHỈ CHẤP NHẬN .DOCX, .PDF, .TXT) -->
+                            <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="10" Padding="14,10" Margin="0,0,0,12"
+                                    AllowDrop="True" Drop="PnlFile_Drop" DragOver="PnlFile_DragOver">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -193,8 +194,8 @@
                                     </Border>
 
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                        <TextBlock x:Name="txtFileNameDisplay" Text="Chưa chọn tệp (.pdf, .docx, .txt)" FontWeight="SemiBold" FontSize="13" Foreground="#0F172A" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock x:Name="txtFileSizeDisplay" Text="Nhấn nút bên phải để chọn tệp từ máy tính của bạn" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
+                                        <TextBlock x:Name="txtFileNameDisplay" Text="Chưa chọn tệp (.docx, .pdf, .txt)" FontWeight="SemiBold" FontSize="13" Foreground="#0F172A" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock x:Name="txtFileSizeDisplay" Text="Hỗ trợ tài liệu Word (.docx), PDF (.pdf) hoặc Văn bản thuần (.txt)" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
                                     </StackPanel>
 
                                     <Button Grid.Column="2" Background="#0F766E" Foreground="White" 
@@ -260,7 +261,8 @@
                             <!-- VÙNG ĐÍNH KÈM AUDIO DÀNH CHO KỸ NĂNG NGHE (ĐỒNG BỘ NỘI DUNG HỌC TẬP) -->
                             <Border x:Name="pnlAudioSection" Visibility="Collapsed"
                                     Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1.5" CornerRadius="10" 
-                                    Padding="14,10" Margin="0,0,0,10">
+                                    Padding="14,10" Margin="0,0,0,10"
+                                    AllowDrop="True" Drop="PnlAudio_Drop" DragOver="PnlFile_DragOver">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>

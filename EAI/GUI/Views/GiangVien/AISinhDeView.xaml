@@ -220,10 +220,39 @@
                             <TextBlock Text="Kiểm duyệt câu hỏi do AI tạo &amp; Nhập tệp" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                 <Button x:Name="btnRefreshQueue" Background="#F1F5F9" BorderThickness="0" Padding="8,4" Margin="0,0,8,0" Cursor="Hand" Click="BtnRefreshQueue_Click">
-                                    <StackPanel Orientation="Horizontal">
-                                        <local:LucideIcon Kind="RefreshCw" Size="12" Foreground="{StaticResource TextDark}" Margin="0,0,4,0"/>
-                                        <TextBlock Text="Làm mới" FontSize="11.5" Foreground="{StaticResource TextDark}"/>
-                                    </StackPanel>
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bdRfQ" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <local:LucideIcon x:Name="icoRfQueue" Kind="RefreshCw" Size="12" Foreground="{StaticResource TextDark}" Margin="0,0,4,0"
+                                                                      RenderTransformOrigin="0.5,0.5" VerticalAlignment="Center">
+                                                        <local:LucideIcon.RenderTransform>
+                                                            <RotateTransform Angle="0"/>
+                                                        </local:LucideIcon.RenderTransform>
+                                                    </local:LucideIcon>
+                                                    <TextBlock Text="Làm mới" FontSize="11.5" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <EventTrigger RoutedEvent="ButtonBase.Click">
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="icoRfQueue"
+                                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                                                             From="0" To="360" Duration="0:0:0.7">
+                                                                <DoubleAnimation.EasingFunction>
+                                                                    <CubicEase EasingMode="EaseOut"/>
+                                                                </DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </EventTrigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdRfQ" Property="Background" Value="#E2E8F0"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
                                 </Button>
                                 <Border Background="#FEF3C7" CornerRadius="6" Padding="8,4">
                                     <TextBlock x:Name="txtPendingCount" Text="0 chờ duyệt" FontSize="11.5" FontWeight="SemiBold" Foreground="#B45309"/>

@@ -6,11 +6,14 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using BUS;
 using DTO;
+using GUI.Views.Common;
 
 namespace GUI.Views.GiangVien
 {
     public partial class KhaoSatDauVaoView : Page
     {
+        private List<BaiKhaoSatDTO> _dsBaiKhaoSat = new();
+
         public KhaoSatDauVaoView()
         {
             InitializeComponent();
@@ -19,36 +22,22 @@ namespace GUI.Views.GiangVien
 
         private void KhaoSatDauVaoView_Loaded(object sender, RoutedEventArgs e)
         {
-            TaiThongTinBaiKhaoSat();
+            TaiDanhSachBoDeKhaoSat();
             TaiMaTranQuyDoi();
             TaiDanhSachSinhVienKhaoSat();
         }
 
-        public void TaiThongTinBaiKhaoSat()
+        public void TaiDanhSachBoDeKhaoSat()
         {
             try
             {
-                var info = KhaoSatBUS.Instance.LayBaiKhaoSatDangHoatDong();
-                txtTenBaiKhaoSatHienThi.Text = info.TenBai;
-                txtMoTaBaiKhaoSat.Text = !string.IsNullOrWhiteSpace(info.MoTa) ? info.MoTa : "Chưa có mô tả chi tiết cho bài khảo sát này.";
-                txtTongSoCauHienThi.Text = $"{info.TongSoCau} câu";
-
-                if (info.DangHoatDong)
-                {
-                    txtTrangThaiBai.Text = "Đang kích hoạt";
-                    txtTrangThaiBai.Foreground = new SolidColorBrush(Color.FromRgb(6, 95, 70));
-                    badgeTrangThaiBai.Background = new SolidColorBrush(Color.FromRgb(236, 253, 245));
-                }
-                else
-                {
-                    txtTrangThaiBai.Text = "Tạm dừng";
-                    txtTrangThaiBai.Foreground = new SolidColorBrush(Color.FromRgb(100, 116, 139));
-                    badgeTrangThaiBai.Background = new SolidColorBrush(Color.FromRgb(241, 245, 249));
-                }
+                _dsBaiKhaoSat = KhaoSatBUS.Instance.LayDanhSachTatCaBaiKhaoSat();
+                icSurveySets.ItemsSource = null;
+                icSurveySets.ItemsSource = _dsBaiKhaoSat;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[TaiThongTinBaiKhaoSat] {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[TaiDanhSachBoDeKhaoSat] {ex.Message}");
             }
         }
 
@@ -155,6 +144,23 @@ namespace GUI.Views.GiangVien
                 var list = KhaoSatBUS.Instance.LayDanhSachSinhVienKhaoSat(tuKhoa, trinhDo);
                 dgSinhVienKhaoSat.ItemsSource = list;
                 txtTotalStudentsCount.Text = $"{list.Count} lượt nộp";
+
+                // Tính toán KPI
+                txtKpiTotalAttempts.Text = $"{list.Count} lượt nộp";
+                if (list.Count > 0)
+                {
+                    decimal avgScore = list.Average(s => s.DiemDatDuoc);
+                    txtKpiAvgScore.Text = $"{avgScore:0.1} / 10";
+
+                    int passCount = list.Count(s => s.DiemDatDuoc >= 5.0m);
+                    double passRate = (double)passCount * 100.0 / list.Count;
+                    txtKpiPassRate.Text = $"{passRate:0}%";
+                }
+                else
+                {
+                    txtKpiAvgScore.Text = "0.0 / 10";
+                    txtKpiPassRate.Text = "0%";
+                }
             }
             catch (Exception ex)
             {
@@ -164,17 +170,55 @@ namespace GUI.Views.GiangVien
 
         private void BtnCapNhatBoDe_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new CapNhatKhaoSatDialog { Owner = Window.GetWindow(this) };
-            if (dlg.ShowDialog() == true)
+            var dlg = new CapNhatKhaoSatDialog();
+            if (ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this)) == true)
             {
-                TaiThongTinBaiKhaoSat();
+                TaiDanhSachBoDeKhaoSat();
+                TaiDanhSachSinhVienKhaoSat();
             }
+        }
+
+        private void BtnChinhSuaBoDeCard_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.DataContext is BaiKhaoSatDTO survey)
+            {
+                var dlg = new CapNhatKhaoSatDialog(survey.MaBaiKhaoSat);
+                if (ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this)) == true)
+                {
+                    TaiDanhSachBoDeKhaoSat();
+                    TaiDanhSachSinhVienKhaoSat();
+                }
+            }
+        }
+
+        private void BtnXemTruocBoDe_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.DataContext is BaiKhaoSatDTO survey)
+            {
+                var questions = KhaoSatBUS.Instance.LayDanhSachCauHoiTheoBaiKhaoSat(survey.MaBaiKhaoSat);
+                var fakeDeThi = new BaiTapDeThiDTO
+                {
+                    TenBaiTapDeThi = survey.TenBaiKhaoSat,
+                    LoaiHinh = "KhaoSat",
+                    ThoiGianLamBaiPhut = survey.ThoiGianPhut,
+                    TongSoCau = survey.TongSoCauHoi,
+                    MoTa = survey.MoTa
+                };
+
+                var dlg = new XemTruocDeThiDialog(fakeDeThi, questions);
+                ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this));
+            }
+        }
+
+        private void BtnRefreshSurveys_Click(object sender, RoutedEventArgs e)
+        {
+            TaiDanhSachBoDeKhaoSat();
         }
 
         private void BtnSuaMaTran_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new SuaMaTranQuyDoiDialog { Owner = Window.GetWindow(this) };
-            if (dlg.ShowDialog() == true)
+            var dlg = new SuaMaTranQuyDoiDialog();
+            if (ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this)) == true)
             {
                 TaiMaTranQuyDoi();
             }
@@ -182,6 +226,12 @@ namespace GUI.Views.GiangVien
 
         private void TxtSearchStudent_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (txtSearchStudentPlaceholder != null)
+            {
+                txtSearchStudentPlaceholder.Visibility = string.IsNullOrEmpty(txtSearchStudent.Text)
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+            }
             TaiDanhSachSinhVienKhaoSat();
         }
 
@@ -202,8 +252,8 @@ namespace GUI.Views.GiangVien
         {
             if (sender is Button btn && btn.DataContext is SinhVienKhaoSatResultDTO student)
             {
-                var dlg = new ChiTietKhaoSatSinhVienDialog(student) { Owner = Window.GetWindow(this) };
-                dlg.ShowDialog();
+                var dlg = new ChiTietKhaoSatSinhVienDialog(student);
+                ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this));
             }
         }
     }

@@ -34,7 +34,111 @@ namespace DAL
                 );
             }
 
-            return (1, "Khảo sát đánh giá năng lực đầu vào CEFR", "Bài kiểm tra chẩn đoán năng lực", 15, true);
+            return (1, "Khảo sát đánh giá năng lực đầu vào CEFR", "Bài kiểm tra chẩn đoán năng lực", 20, true);
+        }
+
+        /// <summary>
+        /// Lấy toàn bộ danh sách 6 bộ đề khảo sát năng lực đầu vào A1 - C2
+        /// </summary>
+        public List<BaiKhaoSatDTO> LayDanhSachTatCaBaiKhaoSat()
+        {
+            var list = new List<BaiKhaoSatDTO>();
+            string sql = @"
+                SELECT MaBaiKhaoSat, TenBaiKhaoSat, MoTa, TongSoCauHoi, DangHoatDong, NgayTao
+                FROM BaiKhaoSatDauVao
+                ORDER BY MaBaiKhaoSat ASC";
+
+            try
+            {
+                DataTable dt = SqlDataProvider.Instance.ExecuteQuery(sql);
+                foreach (DataRow row in dt.Rows)
+                {
+                    int id = Convert.ToInt32(row["MaBaiKhaoSat"]);
+                    string ten = row["TenBaiKhaoSat"]?.ToString() ?? "";
+                    string capDo = "B1";
+                    int thoiGian = 30;
+
+                    if (ten.Contains("Tổng hợp") || ten.Contains("Toàn diện") || id == 7) { capDo = "TongHop"; thoiGian = 35; }
+                    else if (ten.Contains("C2") || id == 6) { capDo = "C2"; thoiGian = 40; }
+                    else if (ten.Contains("C1") || id == 5) { capDo = "C1"; thoiGian = 35; }
+                    else if (ten.Contains("B2") || id == 4) { capDo = "B2"; thoiGian = 30; }
+                    else if (ten.Contains("B1") || id == 3) { capDo = "B1"; thoiGian = 30; }
+                    else if (ten.Contains("A2") || id == 2) { capDo = "A2"; thoiGian = 25; }
+                    else if (ten.Contains("A1") || id == 1) { capDo = "A1"; thoiGian = 25; }
+
+                    list.Add(new BaiKhaoSatDTO
+                    {
+                        MaBaiKhaoSat = id,
+                        TenBaiKhaoSat = ten,
+                        MoTa = row["MoTa"]?.ToString() ?? "",
+                        TongSoCauHoi = Convert.ToInt32(row["TongSoCauHoi"]),
+                        DangHoatDong = row["DangHoatDong"] != DBNull.Value && Convert.ToBoolean(row["DangHoatDong"]),
+                        NgayTao = row["NgayTao"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(row["NgayTao"]),
+                        MaCapDo = capDo,
+                        ThoiGianPhut = thoiGian
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[KhaoSatDAL.LayDanhSachTatCaBaiKhaoSat] {ex.Message}");
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// Kích hoạt một bộ đề khảo sát cụ thể
+        /// </summary>
+        public bool KichHoatBaiKhaoSat(int maBaiKhaoSat)
+        {
+            string sql = @"
+                UPDATE BaiKhaoSatDauVao
+                SET DangHoatDong = CASE WHEN MaBaiKhaoSat = @MaBai THEN 1 ELSE 0 END;";
+            return SqlDataProvider.Instance.ExecuteNonQuery(sql, new[] { new SqlParameter("@MaBai", maBaiKhaoSat) }) > 0;
+        }
+
+        /// <summary>
+        /// Lấy chi tiết thông tin 1 bài khảo sát theo ID
+        /// </summary>
+        public BaiKhaoSatDTO? LayBaiKhaoSatTheoMa(int maBaiKhaoSat)
+        {
+            string sql = @"
+                SELECT TOP 1 MaBaiKhaoSat, TenBaiKhaoSat, MoTa, TongSoCauHoi, DangHoatDong, NgayTao
+                FROM BaiKhaoSatDauVao
+                WHERE MaBaiKhaoSat = @MaBai";
+
+            DataTable dt = SqlDataProvider.Instance.ExecuteQuery(sql, new[] { new SqlParameter("@MaBai", maBaiKhaoSat) });
+            if (dt.Rows.Count > 0)
+            {
+                var row = dt.Rows[0];
+                int id = Convert.ToInt32(row["MaBaiKhaoSat"]);
+                string ten = row["TenBaiKhaoSat"]?.ToString() ?? "";
+                string capDo = "B1";
+                int thoiGian = 30;
+
+                if (ten.Contains("Tổng hợp") || ten.Contains("Toàn diện") || id == 7) { capDo = "TongHop"; thoiGian = 35; }
+                else if (ten.Contains("C2") || id == 6) { capDo = "C2"; thoiGian = 40; }
+                else if (ten.Contains("C1") || id == 5) { capDo = "C1"; thoiGian = 35; }
+                else if (ten.Contains("B2") || id == 4) { capDo = "B2"; thoiGian = 30; }
+                else if (ten.Contains("B1") || id == 3) { capDo = "B1"; thoiGian = 30; }
+                else if (ten.Contains("A2") || id == 2) { capDo = "A2"; thoiGian = 25; }
+                else if (ten.Contains("A1") || id == 1) { capDo = "A1"; thoiGian = 25; }
+
+                return new BaiKhaoSatDTO
+                {
+                    MaBaiKhaoSat = id,
+                    TenBaiKhaoSat = ten,
+                    MoTa = row["MoTa"]?.ToString() ?? "",
+                    TongSoCauHoi = Convert.ToInt32(row["TongSoCauHoi"]),
+                    DangHoatDong = row["DangHoatDong"] != DBNull.Value && Convert.ToBoolean(row["DangHoatDong"]),
+                    NgayTao = row["NgayTao"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(row["NgayTao"]),
+                    MaCapDo = capDo,
+                    ThoiGianPhut = thoiGian
+                };
+            }
+
+            return null;
         }
 
         /// <summary>

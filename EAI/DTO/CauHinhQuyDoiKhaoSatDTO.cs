@@ -83,5 +83,38 @@ namespace DTO
             get => _thuTuSapXep;
             set { if (_thuTuSapXep != value) { _thuTuSapXep = value; OnPropertyChanged(); } }
         }
+
+        public string BadgeBg => MaCapDo switch
+        {
+            "A1" => "#FEF2F2",
+            "A2" => "#FFF7ED",
+            "B1" => "#EFF6FF",
+            "B2" => "#F0FDF4",
+            "C1" => "#FAF5FF",
+            "C2" => "#FEFCE8",
+            _ => "#F8FAFC"
+        };
+
+        public string BadgeBorder => MaCapDo switch
+        {
+            "A1" => "#FECACA",
+            "A2" => "#FED7AA",
+            "B1" => "#BFDBFE",
+            "B2" => "#BBF7D0",
+            "C1" => "#E9D5FF",
+            "C2" => "#FEF08A",
+            _ => "#E2E8F0"
+        };
+
+        public string BadgeFg => !string.IsNullOrEmpty(MauSac) ? MauSac : MaCapDo switch
+        {
+            "A1" => "#DC2626",
+            "A2" => "#EA580C",
+            "B1" => "#2563EB",
+            "B2" => "#15803D",
+            "C1" => "#7E22CE",
+            "C2" => "#A16207",
+            _ => "#334155"
+        };
     }
 }

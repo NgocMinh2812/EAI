@@ -84,12 +84,14 @@ namespace GUI.Views
 
         private void BtnBatDauKhaoSat_Click(object sender, RoutedEventArgs e)
         {
-            if (rbLevelA1.IsChecked == true) _selectedLevel = "A1";
-            else if (rbLevelA2.IsChecked == true) _selectedLevel = "A2";
-            else if (rbLevelB1.IsChecked == true) _selectedLevel = "B1";
-            else if (rbLevelB2.IsChecked == true) _selectedLevel = "B2";
-            else if (rbLevelC1.IsChecked == true) _selectedLevel = "C1";
-            else _selectedLevel = "B1";
+            if (rbLevelTongHop?.IsChecked == true) _selectedLevel = "TongHop";
+            else if (rbLevelA1?.IsChecked == true) _selectedLevel = "A1";
+            else if (rbLevelA2?.IsChecked == true) _selectedLevel = "A2";
+            else if (rbLevelB1?.IsChecked == true) _selectedLevel = "B1";
+            else if (rbLevelB2?.IsChecked == true) _selectedLevel = "B2";
+            else if (rbLevelC1?.IsChecked == true) _selectedLevel = "C1";
+            else if (rbLevelC2?.IsChecked == true) _selectedLevel = "C2";
+            else _selectedLevel = "TongHop";
 
             BatDauKhaoSat(_selectedLevel);
         }
@@ -127,7 +129,9 @@ namespace GUI.Views
                 _userAnswers[i] = -1;
             }
 
-            txtLevelTestingBadge.Text = $"Khảo sát năng lực • Trình độ {level}";
+            txtLevelTestingBadge.Text = level == "TongHop" 
+                ? "Khảo sát năng lực toàn diện • Đa cấp độ A1 - C2" 
+                : $"Khảo sát năng lực • Trình độ {level}";
 
             // Chuyển view
             pnlChonMucDo.Visibility = Visibility.Collapsed;

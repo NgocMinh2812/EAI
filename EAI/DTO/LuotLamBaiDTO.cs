@@ -48,8 +48,29 @@ namespace DTO
                                        : "Chưa đạt ngưỡng điểm yêu cầu, hãy ôn tập lại các câu sai.";
 
         public string HinhThucHienThi => HinhThucLam == "ThiThu" ? "Thi thử" : "Luyện tập";
+        public string HinhThucBg => HinhThucLam == "ThiThu" ? "#EFF6FF" : "#FAF5FF";
+        public string HinhThucFg => HinhThucLam == "ThiThu" ? "#1D4ED8" : "#7E22CE";
+
         public double ThoiGianLamPhutHienThi => Math.Round(ThoiGianLamGiay / 60.0, 1);
         public string SoCauDungTrenTong => $"{SoCauDung}/{TongSoCau}";
-        public string TrangThaiHienThi => TrangThai == "DaNop" ? "Đã nộp bài" : (TrangThai == "HetGio" ? "Hết giờ" : "Đang làm");
+        
+        public string TrangThaiHienThi => TrangThai == "DaNop" ? "Đã nộp bài" : (TrangThai == "HetGio" ? "Hết giờ" : (TrangThai == "DaHuy" ? "Đã hủy" : "Đang làm"));
+        public string TrangThaiBg => TrangThai == "DaNop" ? "#DCFCE7" : (TrangThai == "HetGio" || TrangThai == "DaHuy" ? "#FEE2E2" : "#FEF3C7");
+        public string TrangThaiFg => TrangThai == "DaNop" ? "#15803D" : (TrangThai == "HetGio" || TrangThai == "DaHuy" ? "#B91C1C" : "#B45309");
+
+        public string ScoreColor => DiemSo >= 8.0m ? "#10B981" : (DiemSo >= 6.5m ? "#2563EB" : (DiemSo >= 5.0m ? "#D97706" : "#DC2626"));
+        public string ThoiDiemBatDauHienThi => ThoiDiemBatDau.ToString("dd/MM/yyyy HH:mm");
+
+        public string Initials
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(HoTenNguoiDung))
+                    return string.IsNullOrWhiteSpace(TenDangNhap) ? "HV" : TenDangNhap.Substring(0, Math.Min(2, TenDangNhap.Length)).ToUpper();
+                var parts = HoTenNguoiDung.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length == 1) return parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpper();
+                return $"{parts[0][0]}{parts[^1][0]}".ToUpper();
+            }
+        }
     }
 }

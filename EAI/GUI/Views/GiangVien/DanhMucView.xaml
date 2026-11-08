@@ -292,6 +292,57 @@
             </Style.Triggers>
         </Style>
 
+        <!-- Style Thanh trượt tua Audio Timeline -->
+        <Style x:Key="ModernAudioSliderStyle" TargetType="{x:Type Slider}">
+            <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Slider}">
+                        <Grid VerticalAlignment="Center">
+                            <!-- Đường ray nền -->
+                            <Border Height="4.5" Background="#E2E8F0" CornerRadius="2.25" VerticalAlignment="Center"/>
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.DecreaseLarge}">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Height="4.5" Background="#10B981" CornerRadius="2.25" VerticalAlignment="Center"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.IncreaseLarge}">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Height="4.5" Background="Transparent" VerticalAlignment="Center"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Cursor="Hand">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Width="13" Height="13" Background="#10B981" BorderBrush="White" BorderThickness="2" CornerRadius="6.5">
+                                                    <Border.Effect>
+                                                        <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.25" Color="#0F172A"/>
+                                                    </Border.Effect>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Page.Resources>
 
     <Grid Margin="20">
@@ -856,6 +907,95 @@
                                     <!-- Document Heading -->
                                     <TextBlock x:Name="txtPassageTitle" Text="Tiêu đề học liệu" 
                                                FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,0,12" TextWrapping="Wrap"/>
+
+                                    <!-- ================= KHUNG PHÁT ÂM THANH BÀI NGHE (AUDIO PLAYER) ================= -->
+                                    <Border x:Name="pnlAudioPlayerSection" Visibility="Collapsed"
+                                            Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1.2" CornerRadius="10" Padding="14,12" Margin="0,0,0,16">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <!-- Row 0: Icon Headphones, Tiêu đề âm thanh, Tên tệp, Nút Tua lại, Nút Phát/Tạm dừng -->
+                                            <Grid Grid.Row="0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18" Background="#DCFCE7" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                    <local:LucideIcon Kind="Headphones" Size="18" Foreground="#15803D" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="ÂM THANH BÀI NGHE (AUDIO)" FontSize="10.5" FontWeight="Bold" Foreground="#15803D" Margin="0,0,6,0"/>
+                                                        <Border Background="#DCFCE7" CornerRadius="4" Padding="5,1">
+                                                            <TextBlock Text="Listening" FontSize="9.5" FontWeight="Bold" Foreground="#166534"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <TextBlock x:Name="txtAudioFileName" Text="audio_listening.mp3" FontSize="12.5" FontWeight="SemiBold" Foreground="#0F172A" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                                </StackPanel>
+
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Button x:Name="btnRewindAudio" Click="BtnRewindAudio_Click" Background="White" BorderBrush="#CBD5E1" BorderThickness="1" 
+                                                            Width="32" Height="32" Padding="0" Cursor="Hand" Margin="0,0,8,0" ToolTip="Phát lại từ đầu">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="16">
+                                                                    <local:LucideIcon Kind="RotateCcw" Size="13" Foreground="#475569" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+
+                                                    <Button x:Name="btnTogglePlayAudio" Click="BtnTogglePlayAudio_Click" Background="#059669" Foreground="White" BorderThickness="0" 
+                                                            Padding="12,6" Height="32" Cursor="Hand" ToolTip="Phát hoặc tạm dừng nghe thử tệp âm thanh này">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="bdPlay" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bdPlay" Property="Background" Value="#047857"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <local:LucideIcon x:Name="icoPlayAudio" Kind="Play" Size="13" Foreground="White" Margin="0,0,5,0"/>
+                                                            <TextBlock x:Name="txtPlayAudio" Text="Phát Audio" FontSize="11.5" FontWeight="Bold" Foreground="White"/>
+                                                        </StackPanel>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Row 1: Timeline Seek Slider & Thời lượng -->
+                                            <Border Grid.Row="1" Margin="0,10,0,0" Padding="10,6" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBlock x:Name="txtAudioCurrentTime" Grid.Column="0" Text="00:00" FontFamily="Segoe UI" FontSize="11.5" FontWeight="Bold" Foreground="#0F766E" VerticalAlignment="Center" Margin="2,0,10,0"/>
+
+                                                    <Slider x:Name="sldAudioTimeline" Grid.Column="1" Style="{StaticResource ModernAudioSliderStyle}"
+                                                            Minimum="0" Maximum="100" Value="0" IsMoveToPointEnabled="True" VerticalAlignment="Center"
+                                                            PreviewMouseDown="SldAudioTimeline_PreviewMouseDown"
+                                                            PreviewMouseUp="SldAudioTimeline_PreviewMouseUp"
+                                                            ValueChanged="SldAudioTimeline_ValueChanged"
+                                                            ToolTip="Kéo hoặc nhấp chuột để tua âm thanh"/>
+
+                                                    <TextBlock x:Name="txtAudioTotalTime" Grid.Column="2" Text="00:00" FontFamily="Segoe UI" FontSize="11.5" FontWeight="SemiBold" Foreground="#64748B" VerticalAlignment="Center" Margin="10,0,2,0"/>
+                                                </Grid>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
 
                                     <!-- Khối hiển thị Tóm tắt bài học đầy đủ (Tự động wrap nhiều dòng, không bao giờ bị cắt chữ) -->
                                     <Border x:Name="pnlPassageSummary" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,14" Visibility="Collapsed">

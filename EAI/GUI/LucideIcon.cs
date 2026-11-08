@@ -152,6 +152,7 @@ namespace GUI
         Shuffle,
         Repeat,
         Tag,
+        Percent,
         SlidersHorizontal,
         Terminal,
         Hash,
@@ -558,7 +559,9 @@ namespace GUI
                 LucideIconKind.MessageCircle => "message-circle",
                 LucideIconKind.ClipboardCheck => "clipboard-check",
                 LucideIconKind.ClipboardList => "clipboard-list",
+                LucideIconKind.Sliders => "sliders-horizontal",
                 LucideIconKind.SlidersHorizontal => "sliders-horizontal",
+                LucideIconKind.Percent => "percent",
                 LucideIconKind.Wand2 => "wand-2",
                 LucideIconKind.Image => "camera",
                 _ => ToKebabCase(kind.ToString())

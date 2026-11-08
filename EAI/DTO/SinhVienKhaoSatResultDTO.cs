@@ -26,6 +26,45 @@ namespace DTO
         public string DiemHienThi => $"{DiemDatDuoc:0.0} / 10";
         public string NgayNopFormatted => ThoiDiemNopBai.HasValue ? ThoiDiemNopBai.Value.ToString("dd/MM/yyyy HH:mm") : ThoiDiemBatDau.ToString("dd/MM/yyyy HH:mm");
         public string ThoiDiemNopBaiHienThi => NgayNopFormatted;
+
+        public string BadgeBackground
+        {
+            get => MaCapDo switch
+            {
+                "A1" => "#DCFCE7",
+                "A2" => "#CCFBF1",
+                "B1" => "#DBEAFE",
+                "B2" => "#E0E7FF",
+                "C1" => "#F3E8FF",
+                "C2" => "#FEF3C7",
+                _ => "#F1F5F9"
+            };
+        }
+
+        public string BadgeForeground
+        {
+            get => MaCapDo switch
+            {
+                "A1" => "#15803D",
+                "A2" => "#0F766E",
+                "B1" => "#1D4ED8",
+                "B2" => "#4338CA",
+                "C1" => "#7E22CE",
+                "C2" => "#B45309",
+                _ => "#475569"
+            };
+        }
+
+        public string ScoreColor
+        {
+            get => DiemDatDuoc switch
+            {
+                >= 8.0m => "#15803D",
+                >= 5.0m => "#1D4ED8",
+                _ => "#B45309"
+            };
+        }
+
         public string Initials
         {
             get

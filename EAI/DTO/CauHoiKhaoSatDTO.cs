@@ -466,6 +466,80 @@ namespace DTO
             set { if (_diem != value) { _diem = value; OnPropertyChanged(); } }
         }
 
+        private bool _isAnswersExpanded = false;
+        public bool IsAnswersExpanded
+        {
+            get => _isAnswersExpanded;
+            set { if (_isAnswersExpanded != value) { _isAnswersExpanded = value; OnPropertyChanged(); } }
+        }
+
+        private bool _isInCurrentSurvey = false;
+        public bool IsInCurrentSurvey
+        {
+            get => _isInCurrentSurvey;
+            set { if (_isInCurrentSurvey != value) { _isInCurrentSurvey = value; OnPropertyChanged(); } }
+        }
+
+        public bool HasAudio => !string.IsNullOrEmpty(AudioPath);
+
+        public string SkillBadgeBg => KyNang switch
+        {
+            "NguPhap" => "#EEF2FF",
+            "TuVung" => "#F3E8FF",
+            "Doc" or "DocHieu" => "#ECFDF5",
+            "Nghe" or "NgheHieu" => "#FEF3C7",
+            "Viet" => "#FCE7F3",
+            "Noi" => "#E0F2FE",
+            _ => "#F1F5F9"
+        };
+
+        public string SkillBadgeFg => KyNang switch
+        {
+            "NguPhap" => "#4338CA",
+            "TuVung" => "#7E22CE",
+            "Doc" or "DocHieu" => "#065F46",
+            "Nghe" or "NgheHieu" => "#B45309",
+            "Viet" => "#BE185D",
+            "Noi" => "#0369A1",
+            _ => "#475569"
+        };
+
+        public string DifficultyBadgeBg => DoKho switch
+        {
+            "De" => "#DCFCE7",
+            "Kho" => "#FEE2E2",
+            _ => "#FEF3C7"
+        };
+
+        public string DifficultyBadgeFg => DoKho switch
+        {
+            "De" => "#15803D",
+            "Kho" => "#DC2626",
+            _ => "#B45309"
+        };
+
+        public string LevelBadgeBg => MaTrinhDo switch
+        {
+            "A1" => "#DCFCE7",
+            "A2" => "#CCFBF1",
+            "B1" => "#DBEAFE",
+            "B2" => "#E0E7FF",
+            "C1" => "#F3E8FF",
+            "C2" => "#FEF3C7",
+            _ => "#F1F5F9"
+        };
+
+        public string LevelBadgeFg => MaTrinhDo switch
+        {
+            "A1" => "#15803D",
+            "A2" => "#0F766E",
+            "B1" => "#1D4ED8",
+            "B2" => "#4338CA",
+            "C1" => "#7E22CE",
+            "C2" => "#B45309",
+            _ => "#475569"
+        };
+
         public event PropertyChangedEventHandler? PropertyChanged;
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {

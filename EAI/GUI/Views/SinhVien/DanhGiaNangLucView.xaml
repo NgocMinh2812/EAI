@@ -194,6 +194,33 @@
 
                 <!-- Level Selection Cards -->
                 <StackPanel Margin="0,0,0,20">
+                    <!-- 0. Bộ đề Chung Tổng Hợp Đa Cấp Độ (A1 -> C2) - Mặc định khuyên dùng -->
+                    <RadioButton x:Name="rbLevelTongHop" Style="{StaticResource LevelCardStyle}" GroupName="GroupLevelSelection" IsChecked="True">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="52"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="#E0F2FE" Width="44" Height="44" CornerRadius="12" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <TextBlock Text="🌟" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,15,0">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <TextBlock Text="Khảo sát Toàn diện Đa Cấp độ (A1 ➔ C2)" FontWeight="Bold" FontSize="15.5" Foreground="{StaticResource BrandTeal}"/>
+                                    <Border Background="#CCFBF1" CornerRadius="5" Padding="8,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="⭐ Khuyên dùng • Đo năng lực thực tế" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Không cần chọn trước cấp độ. Bài khảo sát tự động điều phối câu hỏi từ cơ bản đến nâng cao (A1 - C2) để đo lường chính xác trình độ thực tế hiện có của bạn." 
+                                           FontSize="12.5" Foreground="{StaticResource TextGray}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <Border Grid.Column="2" Background="#F0FDFA" BorderBrush="#99F6E4" BorderThickness="1" CornerRadius="8" Padding="10,6" VerticalAlignment="Center">
+                                <TextBlock Text="Tự động xếp lớp CEFR / IELTS / TOEIC" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
+                            </Border>
+                        </Grid>
+                    </RadioButton>
+
                     <!-- A1 Card -->
                     <RadioButton x:Name="rbLevelA1" Style="{StaticResource LevelCardStyle}" GroupName="GroupLevelSelection">
                         <Grid>
@@ -248,8 +275,8 @@
                         </Grid>
                     </RadioButton>
 
-                    <!-- B1 Card (Default selected) -->
-                    <RadioButton x:Name="rbLevelB1" Style="{StaticResource LevelCardStyle}" GroupName="GroupLevelSelection" IsChecked="True">
+                    <!-- B1 Card -->
+                    <RadioButton x:Name="rbLevelB1" Style="{StaticResource LevelCardStyle}" GroupName="GroupLevelSelection">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="52"/>
@@ -325,6 +352,33 @@
                             </StackPanel>
                             <Border Grid.Column="2" Background="#F5F3FF" BorderBrush="#DDD6FE" BorderThickness="1" CornerRadius="8" Padding="10,6" VerticalAlignment="Center">
                                 <TextBlock Text="IELTS 7.5+ • TOEIC 900+" FontSize="11.5" FontWeight="SemiBold" Foreground="#6D28D9"/>
+                            </Border>
+                        </Grid>
+                    </RadioButton>
+
+                    <!-- C2 Card -->
+                    <RadioButton x:Name="rbLevelC2" Style="{StaticResource LevelCardStyle}" GroupName="GroupLevelSelection">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="52"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="#FEF3C7" Width="44" Height="44" CornerRadius="12" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <TextBlock Text="💎" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,15,0">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <TextBlock Text="C2 - Mastery / Native" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}"/>
+                                    <Border Background="#F1F5F9" CornerRadius="5" Padding="8,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="Thành thạo bản ngữ" FontSize="11" FontWeight="SemiBold" Foreground="#475569"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Ngôn ngữ học thuật đỉnh cao, khả năng diễn đạt tinh tế, tự nhiên và chính xác như người bản xứ." 
+                                           FontSize="12.5" Foreground="{StaticResource TextGray}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <Border Grid.Column="2" Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1" CornerRadius="8" Padding="10,6" VerticalAlignment="Center">
+                                <TextBlock Text="IELTS 8.5+ • TOEIC 990" FontSize="11.5" FontWeight="SemiBold" Foreground="#B45309"/>
                             </Border>
                         </Grid>
                     </RadioButton>

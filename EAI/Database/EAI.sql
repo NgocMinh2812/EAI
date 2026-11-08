@@ -1,7 +1,7 @@
 /*
     DATABASE: TiengAnhAI
     Mục đích: CSDL cho đề tài "Ứng dụng khảo thí & học tiếng Anh tích hợp AI"
-    Hệ quản trị: Microsoft SQL Server.
+    Hệ quản trị: Microsoft SQL Server
 */
 
 USE master;
@@ -61,7 +61,7 @@ CREATE TABLE HoSoHocTap (
     DiemMucTieu DECIMAL(5,1) NULL,
     KhungNangLucMucTieu NVARCHAR(30) NULL, -- IELTS / TOEIC / CEFR...
     TrinhDoMucTieu NVARCHAR(10) NULL,     -- A1-C1...
-    TrinhDoDauVao NVARCHAR(10) NULL,      -- A1, A2, B1, B2, C1... (Trình độ khảo sát / đánh giá đầu vào)
+    TrinhDoDauVao NVARCHAR(10) NULL,      -- A1, A2, B1, B2, C1... (Trình độ khảo sát đầu vào)
     DiemDanhGiaDauVao DECIMAL(5,2) NULL,  -- Điểm bài khảo sát / đánh giá năng lực đầu vào
     SoPhutHocTichLuy INT NOT NULL DEFAULT 0,
     GhiChuCaNhan NVARCHAR(MAX) NULL,
@@ -72,7 +72,7 @@ CREATE TABLE HoSoHocTap (
 GO
 
 /* =========================================================
-   2. TRÌNH ĐỘ - CHỦ ĐỀ - BÀI HỌC
+   2. TRÌNH ĐỘ - CHỦ ĐỀ - BÀI HỌC - AUDIO TRANSCRIPT
    ========================================================= */
 
 CREATE TABLE TrinhDo (
@@ -138,6 +138,32 @@ CREATE TABLE TienDoBaiHoc (
 );
 GO
 
+CREATE TABLE BaiHocAudioTranscript (
+    MaAudioTranscript INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    MaBaiHoc INT NULL,
+    AudioPath NVARCHAR(500) NULL,
+    LoaiAudio NVARCHAR(50) NOT NULL CONSTRAINT DF_BaiHocAudio_Loai DEFAULT N'Uploaded', -- 'Uploaded', 'AiTts', 'SpeakingPractice'
+    TieuDeAudio NVARCHAR(200) NULL,
+    ScriptGoc NVARCHAR(MAX) NULL,                     -- Kịch bản nếu được tạo từ TTS
+    TranscriptText NVARCHAR(MAX) NULL,                -- Nội dung bản chép lời toàn bài
+    TranscriptSegmentsJson NVARCHAR(MAX) NULL,        -- JSON danh sách phân đoạn: [{id, start, end, text}]
+    Provider NVARCHAR(50) NOT NULL CONSTRAINT DF_BaiHocAudio_Provider DEFAULT N'Groq',
+    MoHinhSTT NVARCHAR(100) NULL,                    -- Ví dụ: 'whisper-large-v3-turbo'
+    MoHinhTTS NVARCHAR(100) NULL,                    -- Ví dụ: 'canopylabs/orpheus-v1-english'
+    VoiceName NVARCHAR(50) NULL,                     -- Ví dụ: 'diana', 'troy', 'autumn', 'daniel'
+    AudioHash NVARCHAR(64) NULL,                     -- SHA256 mã băm audio/script để tra cứu cache
+    TrangThaiDuyet NVARCHAR(50) NOT NULL CONSTRAINT DF_BaiHocAudio_TrangThai DEFAULT N'ChoDuyet', -- 'ChoDuyet', 'DaDuyet', 'TuChoi'
+    ChoPhepSinhVienXem BIT NOT NULL CONSTRAINT DF_BaiHocAudio_ChoPhepXem DEFAULT 1,
+    ThoiLuongGiay FLOAT NULL,
+    DungLuongBytes BIGINT NULL,
+    NguoiTao INT NULL,
+    NgayTao DATETIME2 NOT NULL CONSTRAINT DF_BaiHocAudio_NgayTao DEFAULT SYSDATETIME(),
+    NgayCapNhat DATETIME2 NOT NULL CONSTRAINT DF_BaiHocAudio_NgayCapNhat DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_BaiHocAudioTranscript_BaiHoc 
+        FOREIGN KEY (MaBaiHoc) REFERENCES BaiHoc(MaBaiHoc) ON DELETE SET NULL
+);
+GO
+
 /* =========================================================
    3. TỪ VỰNG - FLASHCARD - NGỮ PHÁP
    ========================================================= */
@@ -189,8 +215,42 @@ CREATE TABLE ChuDeNguPhap (
 GO
 
 /* =========================================================
-   4. CÂU HỎI - LỰA CHỌN - BÀI TẬP / ĐỀ THI
+   4. CẤU TRÚC ĐỀ THI (BLUEPRINTS) - CÂU HỎI - ĐỀ THI
    ========================================================= */
+
+CREATE TABLE CauTrucDeThi (
+    MaCauTruc INT IDENTITY(1,1) PRIMARY KEY,
+    TenCauTruc NVARCHAR(200) NOT NULL,
+    MaKyThi NVARCHAR(50) NOT NULL,               -- IELTS, TOEIC, VSTEP, CAMBRIDGE_KET, CAMBRIDGE_PET, CAMBRIDGE_FCE, CAMBRIDGE_CAE, STARTERS, MOVERS, FLYERS
+    MaCapDo NVARCHAR(10) NOT NULL,               -- A1, A2, B1, B2, C1, MULTI
+    LoaiDeThi NVARCHAR(50) NOT NULL DEFAULT 'ThiThu', -- ThiThu, LuyenTap, TongHop
+    ThoiGianPhut INT NOT NULL,
+    TongSoCau INT NOT NULL,
+    TongDiem FLOAT NOT NULL DEFAULT 10.0,
+    MoTa NVARCHAR(1000) NULL,
+    NguonThamChieu NVARCHAR(255) NULL,           -- Link / Tài liệu quy chuẩn khảo thí quốc tế
+    NgayXacMinh DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    TrangThai NVARCHAR(30) NOT NULL DEFAULT 'HoatDong'
+);
+GO
+
+CREATE TABLE ChiTietCauTrucDeThi (
+    MaChiTiet INT IDENTITY(1,1) PRIMARY KEY,
+    MaCauTruc INT NOT NULL,
+    TenPhan NVARCHAR(200) NOT NULL,              -- Ví dụ: 'Part 1: Photographs', 'Reading Passage 1', 'Section 1: Listening'
+    ThuTuPhan INT NOT NULL DEFAULT 1,
+    KyNang NVARCHAR(50) NOT NULL,                -- Nghe, Doc, Viet, Noi, NguPhap, TuVung
+    LoaiCauHoiChoPhep NVARCHAR(100) NOT NULL,    -- TracNghiem, DienKhuyet, TrueFalseNotGiven, DungSai, NoiCap, TuLuan, v.v.
+    SoLuongCau INT NOT NULL,
+    DiemMoiCau FLOAT NOT NULL DEFAULT 1.0,
+    ThoiGianPhut INT NULL,
+    YeuCauDoanVan BIT NOT NULL DEFAULT 0,
+    YeuCauAudio BIT NOT NULL DEFAULT 0,
+    MoTa NVARCHAR(500) NULL,
+    CONSTRAINT FK_ChiTietCauTrucDeThi_CauTrucDeThi
+        FOREIGN KEY (MaCauTruc) REFERENCES CauTrucDeThi(MaCauTruc) ON DELETE CASCADE
+);
+GO
 
 CREATE TABLE CauHoi (
     MaCauHoi INT IDENTITY(1,1) PRIMARY KEY,
@@ -208,9 +268,12 @@ CREATE TABLE CauHoi (
     DoKho NVARCHAR(20) NOT NULL DEFAULT N'TrungBinh',
     LoiGiaiChiTiet NVARCHAR(MAX) NULL,
     NguoiTao INT NULL,
-    NguonTao NVARCHAR(30) NOT NULL DEFAULT N'ThuCong', -- ThuCong / NhapFile / AI
+    NguonTao NVARCHAR(30) NOT NULL DEFAULT N'ThuCong', -- ThuCong / NhapFile / AI / HocLieuChuan
     DaKiemDuyet BIT NOT NULL DEFAULT 0,
     NgayTao DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    LoaiNguon NVARCHAR(50) NULL DEFAULT 'Extracted',
+    TepTinNguon NVARCHAR(255) NULL,
+    MaDinhDanhSeed VARCHAR(100) NULL,
     CONSTRAINT FK_CauHoi_ChuDe
         FOREIGN KEY (MaChuDe) REFERENCES ChuDe(MaChuDe),
     CONSTRAINT FK_CauHoi_TrinhDo
@@ -227,11 +290,11 @@ GO
 CREATE TABLE LuaChonDapAn (
     MaLuaChon INT IDENTITY(1,1) PRIMARY KEY,
     MaCauHoi INT NOT NULL,
-    KyHieuLuaChon NVARCHAR(5) NOT NULL, -- A / B / C / D
+    KyHieuLuaChon NVARCHAR(20) NOT NULL, -- A / B / C / D / RUBRIC
     NoiDungLuaChon NVARCHAR(MAX) NOT NULL,
     LaDapAnDung BIT NOT NULL DEFAULT 0,
     CONSTRAINT FK_LuaChonDapAn_CauHoi
-        FOREIGN KEY (MaCauHoi) REFERENCES CauHoi(MaCauHoi)
+        FOREIGN KEY (MaCauHoi) REFERENCES CauHoi(MaCauHoi) ON DELETE CASCADE
 );
 GO
 
@@ -257,6 +320,7 @@ CREATE TABLE BaiTapDeThi (
     SoLanPhatAudio INT NOT NULL DEFAULT 0,
     NguoiTao INT NULL,
     NgayTao DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    MaCauTrucDeThi INT NULL,
     CONSTRAINT FK_BaiTapDeThi_BaiHoc
         FOREIGN KEY (MaBaiHoc) REFERENCES BaiHoc(MaBaiHoc),
     CONSTRAINT FK_BaiTapDeThi_ChuDe
@@ -264,7 +328,9 @@ CREATE TABLE BaiTapDeThi (
     CONSTRAINT FK_BaiTapDeThi_TrinhDo
         FOREIGN KEY (MaTrinhDo) REFERENCES TrinhDo(MaTrinhDo),
     CONSTRAINT FK_BaiTapDeThi_NguoiTao
-        FOREIGN KEY (NguoiTao) REFERENCES NguoiDung(MaNguoiDung)
+        FOREIGN KEY (NguoiTao) REFERENCES NguoiDung(MaNguoiDung),
+    CONSTRAINT FK_BaiTapDeThi_CauTrucDeThi
+        FOREIGN KEY (MaCauTrucDeThi) REFERENCES CauTrucDeThi(MaCauTruc)
 );
 GO
 
@@ -284,7 +350,7 @@ CREATE TABLE CauHoiBaiTap (
     DanhSachLuaChonJson NVARCHAR(MAX) NULL,
     CONSTRAINT UQ_CauHoiBaiTap UNIQUE(MaBaiTapDeThi, MaCauHoi),
     CONSTRAINT FK_CauHoiBaiTap_BaiTapDeThi
-        FOREIGN KEY (MaBaiTapDeThi) REFERENCES BaiTapDeThi(MaBaiTapDeThi),
+        FOREIGN KEY (MaBaiTapDeThi) REFERENCES BaiTapDeThi(MaBaiTapDeThi) ON DELETE CASCADE,
     CONSTRAINT FK_CauHoiBaiTap_CauHoi
         FOREIGN KEY (MaCauHoi) REFERENCES CauHoi(MaCauHoi)
 );
@@ -293,6 +359,20 @@ GO
 /* =========================================================
    5. KHẢO SÁT TRÌNH ĐỘ ĐẦU VÀO
    ========================================================= */
+
+CREATE TABLE CauHinhQuyDoiKhaoSat (
+    MaCauHinh INT IDENTITY(1,1) PRIMARY KEY,
+    MaCapDo NVARCHAR(10) NOT NULL,            -- A1, A2, B1, B2, C1
+    TenHienThi NVARCHAR(100) NOT NULL,        -- A1 (Mất gốc), A2 (Sơ cấp), ...
+    DiemPhanTramMin INT NOT NULL,             -- 0, 31, 51, 71, 86
+    DiemPhanTramMax INT NOT NULL,             -- 30, 50, 70, 85, 100
+    QuyDoiIelts NVARCHAR(50) NOT NULL,        -- IELTS < 3.0, ...
+    QuyDoiToeic NVARCHAR(50) NOT NULL,        -- TOEIC 100 - 250, ...
+    LoTrinhDeXuat NVARCHAR(500) NOT NULL,
+    MauSac NVARCHAR(20) NULL,                 -- Mã màu HEX giao diện (#DC2626, ...)
+    ThuTuSapXep INT NOT NULL DEFAULT 1
+);
+GO
 
 CREATE TABLE BaiKhaoSatDauVao (
     MaBaiKhaoSat INT IDENTITY(1,1) PRIMARY KEY,
@@ -311,7 +391,7 @@ CREATE TABLE CauHoiKhaoSat (
     ThuTuCauHoi INT NOT NULL,
     CONSTRAINT UQ_CauHoiKhaoSat UNIQUE(MaBaiKhaoSat, MaCauHoi),
     CONSTRAINT FK_CauHoiKhaoSat_BaiKhaoSat
-        FOREIGN KEY (MaBaiKhaoSat) REFERENCES BaiKhaoSatDauVao(MaBaiKhaoSat),
+        FOREIGN KEY (MaBaiKhaoSat) REFERENCES BaiKhaoSatDauVao(MaBaiKhaoSat) ON DELETE CASCADE,
     CONSTRAINT FK_CauHoiKhaoSat_CauHoi
         FOREIGN KEY (MaCauHoi) REFERENCES CauHoi(MaCauHoi)
 );
@@ -346,7 +426,7 @@ CREATE TABLE CauTraLoiKhaoSat (
     ThoiDiemTraLoi DATETIME2 NULL,
     CONSTRAINT UQ_CauTraLoiKhaoSat UNIQUE(MaLuotKhaoSat, MaCauHoi),
     CONSTRAINT FK_CauTraLoiKhaoSat_LuotKhaoSat
-        FOREIGN KEY (MaLuotKhaoSat) REFERENCES LuotKhaoSat(MaLuotKhaoSat),
+        FOREIGN KEY (MaLuotKhaoSat) REFERENCES LuotKhaoSat(MaLuotKhaoSat) ON DELETE CASCADE,
     CONSTRAINT FK_CauTraLoiKhaoSat_CauHoi
         FOREIGN KEY (MaCauHoi) REFERENCES CauHoi(MaCauHoi),
     CONSTRAINT FK_CauTraLoiKhaoSat_LuaChon
@@ -390,7 +470,7 @@ CREATE TABLE ChiTietTraLoi (
     ThoiDiemTraLoi DATETIME2 NULL,
     CONSTRAINT UQ_ChiTietTraLoi UNIQUE(MaLuotLamBai, MaCauHoi),
     CONSTRAINT FK_ChiTietTraLoi_LuotLamBai
-        FOREIGN KEY (MaLuotLamBai) REFERENCES LuotLamBai(MaLuotLamBai),
+        FOREIGN KEY (MaLuotLamBai) REFERENCES LuotLamBai(MaLuotLamBai) ON DELETE CASCADE,
     CONSTRAINT FK_ChiTietTraLoi_CauHoi
         FOREIGN KEY (MaCauHoi) REFERENCES CauHoi(MaCauHoi),
     CONSTRAINT FK_ChiTietTraLoi_LuaChon
@@ -410,7 +490,7 @@ CREATE TABLE DanhGiaBaiViet (
     GoiYVietLai NVARCHAR(MAX) NULL,
     ThoiDiemDanhGia DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     CONSTRAINT FK_DanhGiaBaiViet_ChiTietTraLoi
-        FOREIGN KEY (MaChiTietTraLoi) REFERENCES ChiTietTraLoi(MaChiTietTraLoi)
+        FOREIGN KEY (MaChiTietTraLoi) REFERENCES ChiTietTraLoi(MaChiTietTraLoi) ON DELETE CASCADE
 );
 GO
 
@@ -510,7 +590,7 @@ CREATE TABLE TinNhanAI (
     TongSoToken AS ISNULL(SoTokenDauVao,0) + ISNULL(SoTokenDauRa,0) PERSISTED,
     NgayGui DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     CONSTRAINT FK_TinNhanAI_PhienHoiThoai
-        FOREIGN KEY (MaPhienHoiThoai) REFERENCES PhienHoiThoaiAI(MaPhienHoiThoai)
+        FOREIGN KEY (MaPhienHoiThoai) REFERENCES PhienHoiThoaiAI(MaPhienHoiThoai) ON DELETE CASCADE
 );
 GO
 
@@ -556,7 +636,7 @@ CREATE TABLE CauHoiDoAISinh (
     NguoiDuyet INT NULL,
     NgayDuyet DATETIME2 NULL,
     CONSTRAINT FK_CauHoiDoAISinh_YeuCau
-        FOREIGN KEY (MaYeuCauSinhDe) REFERENCES YeuCauSinhDeAI(MaYeuCauSinhDe),
+        FOREIGN KEY (MaYeuCauSinhDe) REFERENCES YeuCauSinhDeAI(MaYeuCauSinhDe) ON DELETE CASCADE,
     CONSTRAINT FK_CauHoiDoAISinh_CauHoi
         FOREIGN KEY (MaCauHoi) REFERENCES CauHoi(MaCauHoi),
     CONSTRAINT FK_CauHoiDoAISinh_NguoiDuyet
@@ -578,10 +658,10 @@ CREATE TABLE NoiDungHocTapAIBaiHoc (
     NgayTao DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     NgayCapNhat DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     CONSTRAINT UQ_NoiDungHocTapAIBaiHoc_MaBaiHoc UNIQUE (MaBaiHoc),
-    CONSTRAINT FK_NoiDungHocTapAIBaiHoc_BaiHoc FOREIGN KEY (MaBaiHoc) REFERENCES BaiHoc(MaBaiHoc) ON DELETE CASCADE
+    CONSTRAINT FK_NoiDungHocTapAIBaiHoc_BaiHoc 
+        FOREIGN KEY (MaBaiHoc) REFERENCES BaiHoc(MaBaiHoc) ON DELETE CASCADE
 );
 GO
-
 
 CREATE TABLE BoCauHoi (
     MaBoCauHoi INT IDENTITY(1,1) PRIMARY KEY,
@@ -680,6 +760,7 @@ CREATE TABLE TepTinNhapLieu (
     SoDongDaNhap INT NULL,
     ThongBaoLoi NVARCHAR(MAX) NULL,
     NgayTaiLen DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    SoCauHoiNhanDien INT NULL DEFAULT 0,
     CONSTRAINT FK_TepTinNhapLieu_NguoiDung
         FOREIGN KEY (NguoiTaiLen) REFERENCES NguoiDung(MaNguoiDung)
 );
@@ -694,6 +775,7 @@ CREATE INDEX IX_BaiHoc_ChuDe_TrinhDo ON BaiHoc(MaChuDe, MaTrinhDo);
 CREATE INDEX IX_TuVung_ChuDe_TrinhDo ON TuVung(MaChuDe, MaTrinhDo);
 CREATE INDEX IX_CauHoi_ChuDe_TrinhDo ON CauHoi(MaChuDe, MaTrinhDo);
 CREATE INDEX IX_CauHoi_Loai_KyNang ON CauHoi(LoaiCauHoi, KyNang);
+CREATE UNIQUE INDEX UX_CauHoi_MaDinhDanhSeed ON CauHoi(MaDinhDanhSeed) WHERE MaDinhDanhSeed IS NOT NULL;
 CREATE INDEX IX_LuotLamBai_NguoiDung_Ngay ON LuotLamBai(MaNguoiDung, ThoiDiemBatDau);
 CREATE INDEX IX_LichSuHocTap_NguoiDung_Ngay ON LichSuHocTap(MaNguoiDung, NgayGhiNhan);
 CREATE INDEX IX_PhienHoiThoaiAI_NguoiDung_Ngay ON PhienHoiThoaiAI(MaNguoiDung, NgayTao);
@@ -701,10 +783,12 @@ CREATE INDEX IX_NhatKyGoiAPI_NgayGhiNhan ON NhatKyGoiAPI(NgayGhiNhan);
 CREATE NONCLUSTERED INDEX IX_NoiDungHocTapAIBaiHoc_Hash ON NoiDungHocTapAIBaiHoc(MaBaiHoc, ContentHash, TrangThai);
 CREATE NONCLUSTERED INDEX IX_BoCauHoi_BaiHoc ON BoCauHoi(MaBaiHoc, LoaiBoCauHoi, TrangThai);
 CREATE NONCLUSTERED INDEX IX_KetQuaLamBaiBoCauHoi_User_Lesson ON KetQuaLamBaiBoCauHoi(MaNguoiDung, MaBaiHoc, LoaiBoCauHoi, ContentHash);
+CREATE NONCLUSTERED INDEX IX_BaiHocAudioTranscript_MaBaiHoc ON BaiHocAudioTranscript (MaBaiHoc ASC, TrangThaiDuyet ASC);
+CREATE NONCLUSTERED INDEX IX_BaiHocAudioTranscript_AudioHash ON BaiHocAudioTranscript (AudioHash ASC);
 GO
 
 /* =========================================================
-   11. VIEW TỔNG HỢP CHO DASHBOARD
+   11. VIEW TỔNG HỢP VÀ TƯƠNG THÍCH
    ========================================================= */
 
 CREATE VIEW vw_TongHopTienTrinhHocTap
@@ -734,8 +818,41 @@ GROUP BY
     hs.SoPhutHocTichLuy;
 GO
 
+CREATE VIEW KetQuaThi 
+AS 
+SELECT 
+    MaLuotLamBai AS MaKetQuaThi, 
+    MaNguoiDung, 
+    MaBaiTapDeThi, 
+    HinhThucLam, 
+    ThoiDiemBatDau, 
+    ThoiDiemNopBai, 
+    ThoiGianLamGiay, 
+    TongSoCau, 
+    SoCauDung, 
+    SoCauSai, 
+    DiemSo, 
+    TrangThai 
+FROM LuotLamBai;
+GO
+
+CREATE VIEW ChiTietKetQuaThi 
+AS 
+SELECT 
+    MaChiTietTraLoi AS MaChiTietKetQuaThi, 
+    MaLuotLamBai AS MaKetQuaThi, 
+    MaCauHoi, 
+    MaLuaChonDaChon, 
+    CauTraLoiVanBan, 
+    KetQuaDungSai, 
+    DiemSo, 
+    AIGiaiThichChiTiet, 
+    ThoiDiemTraLoi 
+FROM ChiTietTraLoi;
+GO
+
 /* =========================================================
-   12. DỮ LIỆU KHỞI TẠO MẪU
+   12. DỮ LIỆU CƠ BẢN / DANH MỤC HỆ THỐNG BAN ĐẦU
    ========================================================= */
 
 INSERT INTO VaiTro(TenVaiTro, MoTa)
@@ -752,6 +869,16 @@ VALUES
 (N'B1', N'Intermediate', N'Trình độ trung cấp'),
 (N'B2', N'Upper-Intermediate', N'Trình độ trên trung cấp'),
 (N'C1', N'Advanced', N'Trình độ nâng cao');
+GO
+
+INSERT INTO CauHinhQuyDoiKhaoSat 
+    (MaCapDo, TenHienThi, DiemPhanTramMin, DiemPhanTramMax, QuyDoiIelts, QuyDoiToeic, LoTrinhDeXuat, MauSac, ThuTuSapXep)
+VALUES
+    (N'A1', N'A1 (Mất gốc)', 0, 30, N'IELTS < 3.0', N'TOEIC 100 - 250', N'Ngữ pháp nền tảng + 500 từ vựng cốt lõi', N'#DC2626', 1),
+    (N'A2', N'A2 (Sơ cấp)', 31, 50, N'IELTS 3.5 - 4.5', N'TOEIC 255 - 450', N'Luyện phản xạ câu & Nghe hiểu đơn giản', N'#EA580C', 2),
+    (N'B1', N'B1 (Trung cấp)', 51, 70, N'IELTS 5.0 - 6.0', N'TOEIC 455 - 650', N'Từ vựng học thuật B1 & Cấu trúc câu ghép', N'#2563EB', 3),
+    (N'B2', N'B2 (Trên trung cấp)', 71, 85, N'IELTS 6.5 - 7.0', N'TOEIC 655 - 800', N'Viết luận Task 2 & Skimming/Scanning đọc hiểu', N'#15803D', 4),
+    (N'C1', N'C1 (Nâng cao)', 86, 100, N'IELTS 7.5 - 8.5+', N'TOEIC 805 - 990', N'Thành ngữ Collocations cao cấp & Debate', N'#7E22CE', 5);
 GO
 
 INSERT INTO ChuDe(MaChuDeCha, TenChuDe, MoTa)
@@ -791,18 +918,7 @@ SELECT
     N'improve your skills';
 GO
 
-PRINT 'Tạo Database thành công';
-GO
-
-/* VIEW tương thích cho KetQuaThi & ChiTietKetQuaThi */
-IF NOT EXISTS (SELECT 1 FROM sys.views WHERE Name = 'KetQuaThi')
-BEGIN
-    EXEC('CREATE VIEW KetQuaThi AS SELECT MaLuotLamBai AS MaKetQuaThi, MaNguoiDung, MaBaiTapDeThi, HinhThucLam, ThoiDiemBatDau, ThoiDiemNopBai, ThoiGianLamGiay, TongSoCau, SoCauDung, SoCauSai, DiemSo, TrangThai FROM LuotLamBai');
-END
-GO
-
-IF NOT EXISTS (SELECT 1 FROM sys.views WHERE Name = 'ChiTietKetQuaThi')
-BEGIN
-    EXEC('CREATE VIEW ChiTietKetQuaThi AS SELECT MaChiTietTraLoi AS MaChiTietKetQuaThi, MaLuotLamBai AS MaKetQuaThi, MaCauHoi, MaLuaChonDaChon, CauTraLoiVanBan, KetQuaDungSai, DiemSo, AIGiaiThichChiTiet, ThoiDiemTraLoi FROM ChiTietTraLoi');
-END
+PRINT N'===================================================================';
+PRINT N'TẠO HOÀN TẤT TOÀN DIỆN SCHEMA CSDL TiengAnhAI (39 BẢNG & VIEWS)!';
+PRINT N'===================================================================';
 GO
