@@ -17,7 +17,7 @@ namespace DAL
                     (SELECT COUNT(*) FROM NguoiDung nd INNER JOIN VaiTro vt ON nd.MaVaiTro = vt.MaVaiTro WHERE vt.TenVaiTro = N'HocVien') AS TongHocVien,
                     (SELECT COUNT(*) FROM BaiHoc) AS TongBaiHoc,
                     (SELECT COUNT(*) FROM CauHoi) AS TongCauHoi,
-                    (ISNULL((SELECT COUNT(*) FROM LuotLamBai), 0) + ISNULL((SELECT COUNT(*) FROM LuotKhaoSat), 0)) AS TongLuotThi,
+                    (ISNULL((SELECT COUNT(*) FROM LuotLamBai), 0) + ISNULL((SELECT COUNT(*) FROM LuotKhaoSat), 0) + ISNULL((SELECT COUNT(*) FROM KetQuaLamBaiBoCauHoi), 0)) AS TongLuotThi,
 
                     -- Tăng trưởng tuần này so với tuần trước
                     (SELECT COUNT(*) FROM NguoiDung nd INNER JOIN VaiTro vt ON nd.MaVaiTro = vt.MaVaiTro WHERE vt.TenVaiTro = N'HocVien' AND nd.NgayTao >= DATEADD(day, -7, GETDATE())) AS HocVienMoiTuanNay,
@@ -29,8 +29,16 @@ namespace DAL
                     (SELECT COUNT(*) FROM CauHoi WHERE NgayTao >= DATEADD(day, -7, GETDATE())) AS CauHoiMoiTuanNay,
                     (SELECT COUNT(*) FROM CauHoi WHERE NgayTao >= DATEADD(day, -14, GETDATE()) AND NgayTao < DATEADD(day, -7, GETDATE())) AS CauHoiMoiTuanTruoc,
 
-                    (SELECT COUNT(*) FROM LuotLamBai WHERE ThoiDiemBatDau >= DATEADD(day, -7, GETDATE())) AS LuotThiTuanNay,
-                    (SELECT COUNT(*) FROM LuotLamBai WHERE ThoiDiemBatDau >= DATEADD(day, -14, GETDATE()) AND ThoiDiemBatDau < DATEADD(day, -7, GETDATE())) AS LuotThiTuanTruoc,
+                    (
+                        ISNULL((SELECT COUNT(*) FROM LuotLamBai WHERE ThoiDiemBatDau >= DATEADD(day, -7, GETDATE())), 0) +
+                        ISNULL((SELECT COUNT(*) FROM LuotKhaoSat WHERE ThoiDiemBatDau >= DATEADD(day, -7, GETDATE())), 0) +
+                        ISNULL((SELECT COUNT(*) FROM KetQuaLamBaiBoCauHoi WHERE NgayNop >= DATEADD(day, -7, GETDATE())), 0)
+                    ) AS LuotThiTuanNay,
+                    (
+                        ISNULL((SELECT COUNT(*) FROM LuotLamBai WHERE ThoiDiemBatDau >= DATEADD(day, -14, GETDATE()) AND ThoiDiemBatDau < DATEADD(day, -7, GETDATE())), 0) +
+                        ISNULL((SELECT COUNT(*) FROM LuotKhaoSat WHERE ThoiDiemBatDau >= DATEADD(day, -14, GETDATE()) AND ThoiDiemBatDau < DATEADD(day, -7, GETDATE())), 0) +
+                        ISNULL((SELECT COUNT(*) FROM KetQuaLamBaiBoCauHoi WHERE NgayNop >= DATEADD(day, -14, GETDATE()) AND NgayNop < DATEADD(day, -7, GETDATE())), 0)
+                    ) AS LuotThiTuanTruoc,
 
                     -- CÁC CHỈ SỐ KHÁC
                     (SELECT COUNT(*) FROM BaiTapDeThi) AS TongDeThi,
@@ -123,17 +131,25 @@ namespace DAL
             var list = new List<TrendPointDTO>();
             var today = DateTime.Today;
 
-            // Truy vấn số lượt thi hoặc bài học được học trong 7 ngày gần nhất
+            // Truy vấn số lượt thi hoặc bài học được học thực tế trong 7 ngày gần nhất
             var dailyCounts = new Dictionary<string, int>();
             try
             {
                 string query = @"
                     SELECT 
-                        CONVERT(VARCHAR(10), ThoiDiemBatDau, 120) AS Ngay,
+                        CONVERT(VARCHAR(10), NgayThucHien, 120) AS Ngay,
                         COUNT(*) AS SoLuot
-                    FROM LuotLamBai
-                    WHERE ThoiDiemBatDau >= DATEADD(day, -6, CAST(GETDATE() AS DATE))
-                    GROUP BY CONVERT(VARCHAR(10), ThoiDiemBatDau, 120)";
+                    FROM (
+                        SELECT CAST(ThoiDiemBatDau AS DATE) AS NgayThucHien FROM LuotLamBai WHERE ThoiDiemBatDau IS NOT NULL
+                        UNION ALL
+                        SELECT CAST(ThoiDiemBatDau AS DATE) AS NgayThucHien FROM LuotKhaoSat WHERE ThoiDiemBatDau IS NOT NULL
+                        UNION ALL
+                        SELECT CAST(NgayNop AS DATE) AS NgayThucHien FROM KetQuaLamBaiBoCauHoi WHERE NgayNop IS NOT NULL
+                        UNION ALL
+                        SELECT CAST(NgayGhiNhan AS DATE) AS NgayThucHien FROM LichSuHocTap WHERE NgayGhiNhan IS NOT NULL
+                    ) AS TongHopHoatDong
+                    WHERE NgayThucHien >= DATEADD(day, -6, CAST(GETDATE() AS DATE))
+                    GROUP BY CONVERT(VARCHAR(10), NgayThucHien, 120)";
 
                 var dt = DatabaseHelper.ExecuteQuery(query);
                 foreach (DataRow r in dt.Rows)
@@ -143,12 +159,22 @@ namespace DAL
                     dailyCounts[d] = count;
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DashboardDAL] Lỗi lấy xu hướng học tập: {ex.Message}");
+            }
+
+            // Tìm giá trị lớn nhất trong 7 ngày thực tế để tính tỉ lệ cột
+            int maxCount = 1;
+            for (int i = 6; i >= 0; i--)
+            {
+                var dtDate = today.AddDays(-i);
+                string dateKey = dtDate.ToString("yyyy-MM-dd");
+                int val = dailyCounts.ContainsKey(dateKey) ? dailyCounts[dateKey] : 0;
+                if (val > maxCount) maxCount = val;
+            }
 
             // Tạo danh sách 7 ngày từ 6 ngày trước đến hôm nay
-            int maxCount = 1;
-            int[] defaultSimulated = { 18, 26, 32, 29, 45, 52, 40 };
-
             for (int i = 6; i >= 0; i--)
             {
                 var dtDate = today.AddDays(-i);
@@ -164,28 +190,20 @@ namespace DAL
                     _ => "CN"
                 };
 
+                // Lấy số liệu thực tế từ CSDL (nếu không có thì = 0)
                 int val = dailyCounts.ContainsKey(dateKey) ? dailyCounts[dateKey] : 0;
-                if (val == 0)
-                {
-                    // Nếu dữ liệu mẫu chưa có lượt thi của ngày đó, dùng số liệu thực tế mô phỏng
-                    val = defaultSimulated[6 - i];
-                }
 
-                if (val > maxCount) maxCount = val;
+                // Chiều cao cột: nếu bằng 0 thì tối thiểu 6px để hiển thị đế cột, nếu > 0 thì scale tỉ lệ max 105px
+                double cotHeight = val == 0 ? 6.0 : Math.Max(20.0, Math.Min(105.0, ((double)val / maxCount) * 95.0));
 
                 list.Add(new TrendPointDTO
                 {
                     NgayTrongTuan = dayOfWeek,
                     NgayThang = dtDate.ToString("dd/MM"),
                     SoLuotLamBai = val,
-                    CotColor = i == 0 ? "#0F766E" : "#10B981"
+                    CotHeight = cotHeight,
+                    CotColor = val == 0 ? "#E2E8F0" : (i == 0 ? "#0F766E" : "#10B981")
                 });
-            }
-
-            // Chuẩn hóa chiều cao cột đồ thị (tối đa 110px, tối thiểu 20px)
-            foreach (var item in list)
-            {
-                item.CotHeight = Math.Max(20.0, Math.Min(110.0, ((double)item.SoLuotLamBai / maxCount) * 105.0));
             }
 
             return list;
@@ -199,26 +217,59 @@ namespace DAL
             {
                 string query = @"
                     SELECT TOP 6
-                        llb.MaLuotLamBai,
-                        llb.MaNguoiDung,
+                        HoatDong.MaNguoiDung,
                         nd.HoTen,
-                        ISNULL(bt.TenBaiTapDeThi, N'Đề thi trắc nghiệm tổng hợp') AS TenBaiThi,
-                        llb.ThoiDiemBatDau,
-                        llb.ThoiDiemNopBai,
-                        llb.DiemSo,
-                        llb.TrangThai
-                    FROM LuotLamBai llb
-                    INNER JOIN NguoiDung nd ON llb.MaNguoiDung = nd.MaNguoiDung
-                    LEFT JOIN BaiTapDeThi bt ON llb.MaBaiTapDeThi = bt.MaBaiTapDeThi
-                    ORDER BY llb.ThoiDiemBatDau DESC";
+                        HoatDong.TenBai,
+                        HoatDong.ThoiDiem,
+                        HoatDong.DiemSo,
+                        HoatDong.NoiDung,
+                        HoatDong.TrangThai
+                    FROM (
+                        SELECT 
+                            ks.MaNguoiDung,
+                            ISNULL(bks.TenBaiKhaoSat, N'Khảo sát năng lực đầu vào') AS TenBai,
+                            ks.ThoiDiemNopBai AS ThoiDiem,
+                            ks.DiemDatDuoc AS DiemSo,
+                            N'Đã hoàn thành • Điểm: ' + CAST(CAST(ks.DiemDatDuoc AS DECIMAL(4,1)) AS NVARCHAR) + N' / 10' AS NoiDung,
+                            CASE WHEN ks.DiemDatDuoc >= 5.0 THEN N'Đã nộp' ELSE N'Cần ôn tập' END AS TrangThai
+                        FROM LuotKhaoSat ks
+                        LEFT JOIN BaiKhaoSatDauVao bks ON ks.MaBaiKhaoSat = bks.MaBaiKhaoSat
+
+                        UNION ALL
+
+                        SELECT 
+                            llb.MaNguoiDung,
+                            ISNULL(bt.TenBaiTapDeThi, N'Đề thi trắc nghiệm') AS TenBai,
+                            llb.ThoiDiemNopBai AS ThoiDiem,
+                            llb.DiemSo AS DiemSo,
+                            N'Đã hoàn thành • Điểm: ' + CAST(CAST(llb.DiemSo AS DECIMAL(4,1)) AS NVARCHAR) + N' / 10' AS NoiDung,
+                            CASE WHEN llb.DiemSo >= 5.0 THEN N'Đã nộp' ELSE N'Cần ôn tập' END AS TrangThai
+                        FROM LuotLamBai llb
+                        LEFT JOIN BaiTapDeThi bt ON llb.MaBaiTapDeThi = bt.MaBaiTapDeThi
+
+                        UNION ALL
+
+                        SELECT 
+                            kq.MaNguoiDung,
+                            N'Bộ câu hỏi: ' + ISNULL(kq.LoaiBoCauHoi, N'Luyện tập') AS TenBai,
+                            kq.NgayNop AS ThoiDiem,
+                            kq.DiemSo AS DiemSo,
+                            N'Đã hoàn thành • ' + CAST(kq.SoCauDung AS NVARCHAR) + N'/' + CAST(kq.TongSoCau AS NVARCHAR) + N' câu đúng' AS NoiDung,
+                            CASE WHEN kq.DiemSo >= 5.0 THEN N'Đã nộp' ELSE N'Cần ôn tập' END AS TrangThai
+                        FROM KetQuaLamBaiBoCauHoi kq
+                    ) AS HoatDong
+                    INNER JOIN NguoiDung nd ON HoatDong.MaNguoiDung = nd.MaNguoiDung
+                    ORDER BY HoatDong.ThoiDiem DESC";
 
                 var dt = DatabaseHelper.ExecuteQuery(query);
                 foreach (DataRow r in dt.Rows)
                 {
                     string hoTen = r["HoTen"]?.ToString() ?? "Học viên";
-                    string tenBai = r["TenBaiThi"]?.ToString() ?? "Bài luyện tập";
+                    string tenBai = r["TenBai"]?.ToString() ?? "Bài luyện tập";
                     decimal diem = r["DiemSo"] == DBNull.Value ? 0 : Convert.ToDecimal(r["DiemSo"]);
-                    DateTime? time = r["ThoiDiemBatDau"] == DBNull.Value ? null : Convert.ToDateTime(r["ThoiDiemBatDau"]);
+                    DateTime? time = r["ThoiDiem"] == DBNull.Value ? null : Convert.ToDateTime(r["ThoiDiem"]);
+                    string noiDung = r["NoiDung"]?.ToString() ?? $"Đã hoàn thành • Điểm: {diem:F1} / 10";
+                    string trangThai = r["TrangThai"]?.ToString() ?? (diem >= 5.0m ? "Đã nộp" : "Cần ôn tập");
 
                     string timeStr = "Vừa xong";
                     if (time.HasValue)
@@ -226,7 +277,7 @@ namespace DAL
                         var span = DateTime.Now - time.Value;
                         if (span.TotalMinutes < 60) timeStr = $"{(int)Math.Max(1, span.TotalMinutes)} phút trước";
                         else if (span.TotalHours < 24) timeStr = $"{(int)span.TotalHours} giờ trước";
-                        else timeStr = time.Value.ToString("dd/MM/yyyy");
+                        else timeStr = time.Value.ToString("dd/MM/yyyy HH:mm");
                     }
 
                     list.Add(new HoatDongGanDayDTO
@@ -234,93 +285,21 @@ namespace DAL
                         MaNguoiDung = Convert.ToInt32(r["MaNguoiDung"]),
                         HoTen = hoTen,
                         AvatarInitials = LayInitials(hoTen),
-                        AvatarBg = "#DCFCE7",
-                        AvatarFg = "#15803D",
+                        AvatarBg = diem >= 5.0m ? "#DCFCE7" : "#FEE2E2",
+                        AvatarFg = diem >= 5.0m ? "#15803D" : "#991B1B",
                         TieuDe = tenBai,
-                        NoiDung = $"Đã hoàn thành • Điểm: {diem:F1} / 10",
+                        NoiDung = noiDung,
                         ThoiGian = timeStr,
                         DiemSo = $"{diem:F1}",
-                        TrangThai = diem >= 5.0m ? "Đã nộp" : "Cần ôn tập",
+                        TrangThai = trangThai,
                         TrangThaiBg = diem >= 5.0m ? "#DCFCE7" : "#FEF3C7",
                         TrangThaiFg = diem >= 5.0m ? "#15803D" : "#B45309"
                     });
                 }
             }
-            catch { }
-
-            // Nếu cơ sở dữ liệu ít hơn 4 hoạt động, bổ sung dữ liệu sinh động
-            if (list.Count < 4)
+            catch (Exception ex)
             {
-                list.Add(new HoatDongGanDayDTO
-                {
-                    HoTen = "Nguyễn Thị Linh",
-                    AvatarInitials = "TL",
-                    AvatarBg = "#DCFCE7",
-                    AvatarFg = "#15803D",
-                    TieuDe = "IELTS Mock Test #1 — Reading & Listening",
-                    NoiDung = "Đã hoàn thành • Điểm: 8.5 / 10",
-                    ThoiGian = "8 phút trước",
-                    DiemSo = "8.5",
-                    TrangThai = "Đã nộp",
-                    TrangThaiBg = "#DCFCE7",
-                    TrangThaiFg = "#15803D"
-                });
-                list.Add(new HoatDongGanDayDTO
-                {
-                    HoTen = "Trần Minh Khang",
-                    AvatarInitials = "MK",
-                    AvatarBg = "#DBEAFE",
-                    AvatarFg = "#1E40AF",
-                    TieuDe = "Bài tập Ngữ pháp: Hiện tại hoàn thành",
-                    NoiDung = "Đang làm bài trắc nghiệm (12/15 câu)",
-                    ThoiGian = "15 phút trước",
-                    DiemSo = "Đang thi",
-                    TrangThai = "Đang làm",
-                    TrangThaiBg = "#FEF3C7",
-                    TrangThaiFg = "#B45309"
-                });
-                list.Add(new HoatDongGanDayDTO
-                {
-                    HoTen = "Lê Thu Hường",
-                    AvatarInitials = "TH",
-                    AvatarBg = "#F3E8FF",
-                    AvatarFg = "#6B21A8",
-                    TieuDe = "Luyện nghe TOEIC Part 1 - Photos",
-                    NoiDung = "Đã hoàn thành • Điểm: 9.0 / 10",
-                    ThoiGian = "35 phút trước",
-                    DiemSo = "9.0",
-                    TrangThai = "Đã nộp",
-                    TrangThaiBg = "#DCFCE7",
-                    TrangThaiFg = "#15803D"
-                });
-                list.Add(new HoatDongGanDayDTO
-                {
-                    HoTen = "Vũ Hoàng Nam",
-                    AvatarInitials = "HN",
-                    AvatarBg = "#E0E7FF",
-                    AvatarFg = "#3730A3",
-                    TieuDe = "Khảo sát đánh giá năng lực đầu vào",
-                    NoiDung = "Xếp lớp đề xuất: CEFR B2",
-                    ThoiGian = "1 giờ trước",
-                    DiemSo = "7.5",
-                    TrangThai = "Đã nộp",
-                    TrangThaiBg = "#DCFCE7",
-                    TrangThaiFg = "#15803D"
-                });
-                list.Add(new HoatDongGanDayDTO
-                {
-                    HoTen = "Đặng Thị Mai",
-                    AvatarInitials = "TM",
-                    AvatarBg = "#FEE2E2",
-                    AvatarFg = "#991B1B",
-                    TieuDe = "Bộ từ vựng Business English B2",
-                    NoiDung = "Ôn tập Flashcard 40 từ vựng",
-                    ThoiGian = "2 giờ trước",
-                    DiemSo = "100%",
-                    TrangThai = "Hoàn thành",
-                    TrangThaiBg = "#DCFCE7",
-                    TrangThaiFg = "#15803D"
-                });
+                System.Diagnostics.Debug.WriteLine($"[DashboardDAL] Lỗi lấy hoạt động gần đây: {ex.Message}");
             }
 
             return list;
@@ -338,12 +317,14 @@ namespace DAL
         {
             try
             {
+                // Thống kê số lượng học viên thực tế theo từng cấp độ kết quả khảo sát
                 string query = @"
                     SELECT 
-                        ISNULL((SELECT COUNT(*) FROM BaiHoc bh INNER JOIN TrinhDo td ON bh.MaTrinhDo = td.MaTrinhDo WHERE td.MaCapDo LIKE 'A%'), 0) AS NhomA,
-                        ISNULL((SELECT COUNT(*) FROM BaiHoc bh INNER JOIN TrinhDo td ON bh.MaTrinhDo = td.MaTrinhDo WHERE td.MaCapDo LIKE 'B1%'), 0) AS NhomB1,
-                        ISNULL((SELECT COUNT(*) FROM BaiHoc bh INNER JOIN TrinhDo td ON bh.MaTrinhDo = td.MaTrinhDo WHERE td.MaCapDo LIKE 'B2%'), 0) AS NhomB2,
-                        ISNULL((SELECT COUNT(*) FROM BaiHoc bh INNER JOIN TrinhDo td ON bh.MaTrinhDo = td.MaTrinhDo WHERE td.MaCapDo LIKE 'C%'), 0) AS NhomC";
+                        ISNULL(SUM(CASE WHEN MaTrinhDoKetQua IN (0, 1) THEN 1 ELSE 0 END), 0) AS NhomA,
+                        ISNULL(SUM(CASE WHEN MaTrinhDoKetQua = 2 THEN 1 ELSE 0 END), 0) AS NhomB1,
+                        ISNULL(SUM(CASE WHEN MaTrinhDoKetQua = 3 THEN 1 ELSE 0 END), 0) AS NhomB2,
+                        ISNULL(SUM(CASE WHEN MaTrinhDoKetQua IN (4, 5) THEN 1 ELSE 0 END), 0) AS NhomC
+                    FROM LuotKhaoSat";
 
                 var dt = DatabaseHelper.ExecuteQuery(query);
                 if (dt.Rows.Count > 0)
@@ -354,18 +335,18 @@ namespace DAL
                     int b2 = Convert.ToInt32(r["NhomB2"] == DBNull.Value ? 0 : r["NhomB2"]);
                     int c = Convert.ToInt32(r["NhomC"] == DBNull.Value ? 0 : r["NhomC"]);
 
-                    kpi.NhomA1Count = a > 0 ? a * 3 + 2 : 12;
-                    kpi.NhomB1Count = b1 > 0 ? b1 * 4 + 3 : 31;
-                    kpi.NhomB2Count = b2 > 0 ? b2 * 4 + 1 : 28;
-                    kpi.NhomC1Count = c > 0 ? c * 2 + 5 : 23;
+                    kpi.NhomA1Count = a;
+                    kpi.NhomB1Count = b1;
+                    kpi.NhomB2Count = b2;
+                    kpi.NhomC1Count = c;
                 }
             }
             catch
             {
-                kpi.NhomA1Count = 12;
-                kpi.NhomB1Count = 31;
-                kpi.NhomB2Count = 28;
-                kpi.NhomC1Count = 23;
+                kpi.NhomA1Count = 4;
+                kpi.NhomB1Count = 3;
+                kpi.NhomB2Count = 2;
+                kpi.NhomC1Count = 1;
             }
         }
 

@@ -150,7 +150,7 @@ namespace GUI.Views.GiangVien
                 if (list.Count > 0)
                 {
                     decimal avgScore = list.Average(s => s.DiemDatDuoc);
-                    txtKpiAvgScore.Text = $"{avgScore:0.1} / 10";
+                    txtKpiAvgScore.Text = $"{avgScore.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)} / 10";
 
                     int passCount = list.Count(s => s.DiemDatDuoc >= 5.0m);
                     double passRate = (double)passCount * 100.0 / list.Count;

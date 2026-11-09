@@ -5,8 +5,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Windows.Input;
 using BUS;
 using DTO;
+using GUI.Services;
 
 namespace GUI.Views
 {
@@ -210,6 +212,7 @@ namespace GUI.Views
         {
             InitializeComponent();
             _isInitialized = true;
+            this.PreviewKeyDown += LuyenTapView_PreviewKeyDown;
             InitAudioPlayer();
 
             // Nạp dữ liệu ban đầu
@@ -344,6 +347,7 @@ namespace GUI.Views
             if (IsPracticeInProgress && !RequestExitPractice()) return;
             _practiceMediaPlayer.Stop();
             SetActiveTab(tabFlashcard, pnlFlashcard);
+            LoadFlashcards();
         }
 
         private void TabDictation_Click(object sender, RoutedEventArgs e)
@@ -1566,5 +1570,309 @@ namespace GUI.Views
                 icPracticeHistory.ItemsSource = vms;
             }
         }
+
+        #region FLASHCARD VOCABULARY & SPACED REPETITION
+        private List<FlashcardDTO> _allFlashcards = new List<FlashcardDTO>();
+        private List<FlashcardDTO> _filteredFlashcards = new List<FlashcardDTO>();
+        private int _fcCurrentIndex = 0;
+        private bool _fcIsFlipped = false;
+
+        private void LoadFlashcards()
+        {
+            try
+            {
+                _allFlashcards = TuVungBUS.Instance.LayDanhSachFlashcard() ?? new List<FlashcardDTO>();
+                UpdateFcStatistics();
+                ApDungBoLocFlashcard();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LuyenTapView] Lỗi nạp flashcard: {ex.Message}");
+            }
+        }
+
+        private void UpdateFcStatistics()
+        {
+            int tongTu = _allFlashcards.Count;
+            int daThuoc = _allFlashcards.Count(x => x.DaThuoc);
+            int canOn = Math.Max(0, tongTu - daThuoc);
+
+            if (txtFcStatTongTu != null) txtFcStatTongTu.Text = tongTu.ToString();
+            if (txtFcStatDaThuoc != null) txtFcStatDaThuoc.Text = daThuoc.ToString();
+            if (txtFcStatCanOn != null) txtFcStatCanOn.Text = canOn.ToString();
+        }
+
+        private void ApDungBoLocFlashcard()
+        {
+            if (!_isInitialized) return;
+
+            string? trinhDo = null;
+            if (cboFcTrinhDo?.SelectedItem is ComboBoxItem itemTrinhDo)
+            {
+                string text = itemTrinhDo.Content?.ToString() ?? "";
+                if (text.Contains("—"))
+                {
+                    trinhDo = text.Substring(0, text.IndexOf("—")).Trim();
+                }
+                else if (text != "Tất cả cấp độ")
+                {
+                    trinhDo = text.Trim();
+                }
+            }
+
+            string trangThai = (cboFcTrangThai?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Tất cả từ";
+
+            var list = _allFlashcards.AsEnumerable();
+
+            if (!string.IsNullOrEmpty(trinhDo))
+            {
+                list = list.Where(x => string.Equals(x.MaCapDo?.Trim(), trinhDo, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (trangThai == "Cần ôn tập")
+            {
+                list = list.Where(x => !x.DaThuoc);
+            }
+            else if (trangThai == "Đã thuộc")
+            {
+                list = list.Where(x => x.DaThuoc);
+            }
+
+            string keyword = txtFcSearch?.Text?.Trim().ToLower() ?? "";
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                list = list.Where(x => (x.Tu != null && x.Tu.ToLower().Contains(keyword)) ||
+                                       (x.Nghia != null && x.Nghia.ToLower().Contains(keyword)) ||
+                                       (x.TenChuDe != null && x.TenChuDe.ToLower().Contains(keyword)));
+            }
+
+            _filteredFlashcards = list.ToList();
+            _fcCurrentIndex = 0;
+            _fcIsFlipped = false;
+
+            HienThiFcHienTai();
+            HienThiFcDanhSach();
+        }
+
+        private void HienThiFcHienTai()
+        {
+            if (!_isInitialized || txtFcTienDoOnTap == null || txtFcBadgeDaThuoc == null) return;
+
+            if (_filteredFlashcards.Count == 0)
+            {
+                txtFcTienDoOnTap.Text = "0 / 0";
+                txtFcBadgeDaThuoc.Text = "Đã thuộc: 0/0";
+                txtFcCardBadge.Text = "CHƯA CÓ TỪ VỰNG";
+                txtFcMatTruocTu.Text = "Không có từ vựng phù hợp";
+                txtFcMatTruocIPA.Text = "Thử chọn cấp độ khác";
+                txtFcMatSauTu.Text = "";
+                txtFcMatSauLoaiTu.Text = "";
+                txtFcMatSauNghia.Text = "Hiện không có từ vựng nào thỏa mãn điều kiện lọc hiện tại.";
+                txtFcMatSauViDu.Text = "";
+                txtFcMatSauThongKe.Text = "";
+                pnlFcMatTruoc.Visibility = Visibility.Visible;
+                pnlFcMatSau.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            if (_fcCurrentIndex < 0) _fcCurrentIndex = _filteredFlashcards.Count - 1;
+            if (_fcCurrentIndex >= _filteredFlashcards.Count) _fcCurrentIndex = 0;
+
+            var card = _filteredFlashcards[_fcCurrentIndex];
+            txtFcTienDoOnTap.Text = $"Thẻ {_fcCurrentIndex + 1} / {_filteredFlashcards.Count}";
+
+            int daThuocCount = _filteredFlashcards.Count(x => x.DaThuoc);
+            txtFcBadgeDaThuoc.Text = $"Đã thuộc: {daThuocCount}/{_filteredFlashcards.Count}";
+
+            // Mặt trước
+            txtFcCardBadge.Text = $"{card.TenChuDe.ToUpper()} • {card.MaCapDo}";
+            txtFcMatTruocTu.Text = card.Tu;
+            txtFcMatTruocIPA.Text = !string.IsNullOrWhiteSpace(card.PhienAmIPA) ? card.PhienAmIPA : "(Chưa có phiên âm IPA)";
+
+            // Mặt sau
+            txtFcMatSauTu.Text = card.Tu;
+            txtFcMatSauLoaiTu.Text = !string.IsNullOrWhiteSpace(card.LoaiTu) ? card.LoaiTu : "Từ vựng";
+            txtFcMatSauNghia.Text = card.Nghia;
+            txtFcMatSauViDu.Text = !string.IsNullOrWhiteSpace(card.CauViDu) ? $"\"{card.CauViDu}\"" : "\"No example sentence provided.\"";
+            txtFcMatSauThongKe.Text = $"Đã ôn tập: {card.SoLanOnTap} lần • Ghi nhớ đúng: {card.SoLanDung} lần";
+
+            // Trạng thái lật thẻ
+            pnlFcMatTruoc.Visibility = _fcIsFlipped ? Visibility.Collapsed : Visibility.Visible;
+            pnlFcMatSau.Visibility = _fcIsFlipped ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void HienThiFcDanhSach()
+        {
+            if (icFcVocabularyList != null)
+            {
+                icFcVocabularyList.ItemsSource = null;
+                icFcVocabularyList.ItemsSource = _filteredFlashcards;
+            }
+            if (txtFcListHeader != null)
+            {
+                txtFcListHeader.Text = $"Kho từ vựng của bạn ({_filteredFlashcards.Count} từ)";
+            }
+        }
+
+        private void CboFcTrinhDo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+            ApDungBoLocFlashcard();
+        }
+
+        private void CboFcTrangThai_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+            ApDungBoLocFlashcard();
+        }
+
+        private void BtnFcModeCard_Click(object sender, RoutedEventArgs e)
+        {
+            pnlFcCardView.Visibility = Visibility.Visible;
+            pnlFcListView.Visibility = Visibility.Collapsed;
+            pnlFcTienDo.Visibility = Visibility.Visible;
+
+            btnFcModeCard.Background = (SolidColorBrush)FindResource("BrandTeal");
+            btnFcModeCard.Foreground = Brushes.White;
+            btnFcModeCard.BorderBrush = (SolidColorBrush)FindResource("BrandTeal");
+
+            btnFcModeList.Background = new SolidColorBrush(Color.FromRgb(248, 250, 252));
+            btnFcModeList.Foreground = new SolidColorBrush(Color.FromRgb(71, 85, 105));
+            btnFcModeList.BorderBrush = (SolidColorBrush)FindResource("BorderLight");
+        }
+
+        private void BtnFcModeList_Click(object sender, RoutedEventArgs e)
+        {
+            pnlFcCardView.Visibility = Visibility.Collapsed;
+            pnlFcListView.Visibility = Visibility.Visible;
+            pnlFcTienDo.Visibility = Visibility.Collapsed;
+
+            btnFcModeList.Background = (SolidColorBrush)FindResource("BrandTeal");
+            btnFcModeList.Foreground = Brushes.White;
+            btnFcModeList.BorderBrush = (SolidColorBrush)FindResource("BrandTeal");
+
+            btnFcModeCard.Background = new SolidColorBrush(Color.FromRgb(248, 250, 252));
+            btnFcModeCard.Foreground = new SolidColorBrush(Color.FromRgb(71, 85, 105));
+            btnFcModeCard.BorderBrush = (SolidColorBrush)FindResource("BorderLight");
+        }
+
+        private void BdFcCard_Click(object sender, MouseButtonEventArgs e)
+        {
+            _fcIsFlipped = !_fcIsFlipped;
+            pnlFcMatTruoc.Visibility = _fcIsFlipped ? Visibility.Collapsed : Visibility.Visible;
+            pnlFcMatSau.Visibility = _fcIsFlipped ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void BtnFcFlip_Click(object sender, RoutedEventArgs e)
+        {
+            _fcIsFlipped = !_fcIsFlipped;
+            pnlFcMatTruoc.Visibility = _fcIsFlipped ? Visibility.Collapsed : Visibility.Visible;
+            pnlFcMatSau.Visibility = _fcIsFlipped ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void BtnFcPrev_Click(object sender, RoutedEventArgs e)
+        {
+            if (_filteredFlashcards.Count == 0) return;
+            _fcCurrentIndex--;
+            _fcIsFlipped = false;
+            HienThiFcHienTai();
+        }
+
+        private void BtnFcNext_Click(object sender, RoutedEventArgs e)
+        {
+            if (_filteredFlashcards.Count == 0) return;
+            _fcCurrentIndex++;
+            _fcIsFlipped = false;
+            HienThiFcHienTai();
+        }
+
+        private void BtnFcChuaNho_Click(object sender, RoutedEventArgs e)
+        {
+            if (_filteredFlashcards.Count == 0) return;
+            var card = _filteredFlashcards[_fcCurrentIndex];
+            TuVungBUS.Instance.CapNhatKetQuaFlashcard(card.MaTuVung, daNho: false);
+            card.SoLanOnTap++;
+            card.SoLanDung = 0;
+
+            UpdateFcStatistics();
+
+            _fcCurrentIndex++;
+            _fcIsFlipped = false;
+            HienThiFcHienTai();
+            HienThiFcDanhSach();
+        }
+
+        private void BtnFcDaThuoc_Click(object sender, RoutedEventArgs e)
+        {
+            if (_filteredFlashcards.Count == 0) return;
+            var card = _filteredFlashcards[_fcCurrentIndex];
+            TuVungBUS.Instance.CapNhatKetQuaFlashcard(card.MaTuVung, daNho: true);
+            card.SoLanOnTap++;
+            card.SoLanDung++;
+
+            UpdateFcStatistics();
+
+            _fcCurrentIndex++;
+            _fcIsFlipped = false;
+            HienThiFcHienTai();
+            HienThiFcDanhSach();
+        }
+
+        private void BtnFcPhatAm_Click(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            if (_filteredFlashcards.Count > 0 && _fcCurrentIndex < _filteredFlashcards.Count)
+            {
+                string word = _filteredFlashcards[_fcCurrentIndex].Tu;
+                _ = AIPronunciationService.Instance.PlayPronunciationAsync(word);
+            }
+        }
+
+        private void BtnFcItemAudio_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string word && !string.IsNullOrWhiteSpace(word))
+            {
+                _ = AIPronunciationService.Instance.PlayPronunciationAsync(word);
+            }
+        }
+
+        private void TxtFcSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+            ApDungBoLocFlashcard();
+        }
+
+        private void LuyenTapView_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (pnlFlashcard.Visibility != Visibility.Visible || pnlFcCardView.Visibility != Visibility.Visible) return;
+            if (txtFcSearch != null && txtFcSearch.IsFocused) return;
+
+            if (e.Key == Key.Space)
+            {
+                e.Handled = true;
+                BtnFcFlip_Click(this, new RoutedEventArgs());
+            }
+            else if (e.Key == Key.Left)
+            {
+                e.Handled = true;
+                BtnFcPrev_Click(this, new RoutedEventArgs());
+            }
+            else if (e.Key == Key.Right)
+            {
+                e.Handled = true;
+                BtnFcNext_Click(this, new RoutedEventArgs());
+            }
+            else if (e.Key == Key.D1 || e.Key == Key.NumPad1)
+            {
+                e.Handled = true;
+                BtnFcChuaNho_Click(this, new RoutedEventArgs());
+            }
+            else if (e.Key == Key.D2 || e.Key == Key.NumPad2)
+            {
+                e.Handled = true;
+                BtnFcDaThuoc_Click(this, new RoutedEventArgs());
+            }
+        }
+        #endregion
     }
 }

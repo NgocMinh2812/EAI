@@ -77,42 +77,66 @@
             <!-- ================= CỘT 1: TỪ VỰNG & TÀI NGUYÊN ================= -->
             <StackPanel Grid.Column="0">
 
-                <!-- Card: Từ vựng hôm nay -->
+                <!-- Card: Từ vựng hôm nay & Flashcard -->
                 <Border Style="{StaticResource AdminCardStyle}">
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
                             <TextBlock Text="TỪ VỰNG HÔM NAY" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextGray}"/>
-                            <TextBlock Text="Xem tất cả" HorizontalAlignment="Right" FontSize="11.5" Foreground="{StaticResource AdminDarkGreen}" FontWeight="SemiBold" Cursor="Hand" MouseLeftButtonUp="BtnXemTatCaTuVung_Click"/>
+                            <TextBlock Text="Xem tất cả" HorizontalAlignment="Right" FontSize="11.5" Foreground="{StaticResource AdminDarkGreen}" FontWeight="SemiBold" Cursor="Hand" MouseLeftButtonUp="BtnXemTatCaTuVung_Click" ToolTip="Mở bộ thẻ Flashcard ôn tập"/>
                         </Grid>
 
-                        <TextBlock Text="perseverance" FontWeight="Bold" FontSize="20" Foreground="{StaticResource TextDark}" Margin="0,0,0,2"/>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="txtTuVungWord" Text="perseverance" FontWeight="Bold" FontSize="20" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
+                            <Button Grid.Column="1" Width="28" Height="28" Background="#F0FDF4" BorderBrush="#DCFCE7" BorderThickness="1" 
+                                    Cursor="Hand" Click="BtnPhatAmTuVungHomNay_Click" ToolTip="Nghe phát âm từ vựng hôm nay">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="14">
+                                            <local:LucideIcon Kind="Volume2" Size="14" Foreground="#15803D" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="bd" Property="Background" Value="#DCFCE7"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <TextBlock Text="/ˌpɜː.sɪˈvɪə.rəns/" Foreground="{StaticResource TextGray}" FontSize="12.5" Margin="0,0,8,0"/>
+                            <TextBlock x:Name="txtTuVungPhienAm" Text="/ˌpɜː.sɪˈvɪə.rəns/" Foreground="{StaticResource TextGray}" FontSize="12.5" Margin="0,0,8,0"/>
                             <Border Background="#F1F5F9" CornerRadius="4" Padding="6,1">
-                                <TextBlock Text="danh từ" FontSize="11" Foreground="{StaticResource TextGray}"/>
+                                <TextBlock x:Name="txtTuVungLoaiTu" Text="danh từ" FontSize="11" Foreground="{StaticResource TextGray}"/>
                             </Border>
                         </StackPanel>
 
-                        <TextBlock Text="Sự kiên trì, bền chí trong việc thực hiện mục tiêu dù gặp nhiều khó khăn và thử thách trên đường đi." 
+                        <TextBlock x:Name="txtTuVungNghia" Text="Sự kiên trì, bền chí trong việc thực hiện mục tiêu dù gặp nhiều khó khăn và thử thách trên đường đi." 
                                    Foreground="{StaticResource TextDark}" FontSize="12.5" TextWrapping="Wrap" Margin="0,0,0,12" LineHeight="18"/>
 
                         <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,14">
-                            <TextBlock Text="&quot;Learning English requires perseverance and daily practice.&quot;" 
+                            <TextBlock x:Name="txtTuVungCauViDu" Text="&quot;Learning English requires perseverance and daily practice.&quot;" 
                                        FontStyle="Italic" FontSize="12" Foreground="{StaticResource TextGray}" TextWrapping="Wrap"/>
                         </Border>
 
-                        <!-- Plant graphic illustration -->
-                        <Border Background="#F0FDF4" CornerRadius="12" Height="90" Margin="0,0,0,14" BorderBrush="#DCFCE7" BorderThickness="1">
+                        <!-- Plant graphic illustration / Spaced Repetition Hint -->
+                        <Border Background="#F0FDF4" CornerRadius="12" Height="90" Margin="0,0,0,14" BorderBrush="#DCFCE7" BorderThickness="1" 
+                                Cursor="Hand" MouseLeftButtonUp="BtnXemTatCaTuVung_Click" ToolTip="Nhấp vào để ôn tập Flashcard ngay">
                             <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <StackPanel HorizontalAlignment="Center">
                                     <TextBlock Text="🌱" FontSize="36" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="Cây tri thức tăng trưởng" FontSize="10.5" Foreground="#15803D" FontWeight="Medium" Margin="0,2,0,0"/>
+                                    <TextBlock Text="Cây tri thức tăng trưởng • Ôn tập Flashcard" FontSize="10.5" Foreground="#15803D" FontWeight="Medium" Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
 
                         <Button Background="{StaticResource AdminDarkGreen}" Foreground="White" 
-                                FontWeight="SemiBold" FontSize="13" Padding="12,9" Cursor="Hand" BorderThickness="0" Click="BtnTaoFlashcard_Click">
+                                FontWeight="SemiBold" FontSize="13" Padding="12,9" Cursor="Hand" BorderThickness="0" Click="BtnTaoFlashcard_Click" ToolTip="Mở giao diện tạo Flashcard mới">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
@@ -273,14 +297,7 @@
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
                                         <TextBlock Grid.Row="0" Text="{Binding SoLuotLamBai}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                                        <Border Grid.Row="1" Width="26" Height="{Binding CotHeight}" VerticalAlignment="Bottom" CornerRadius="6,6,0,0">
-                                            <Border.Background>
-                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                                    <GradientStop Color="#34D399" Offset="0"/>
-                                                    <GradientStop Color="#0F4C3A" Offset="1"/>
-                                                </LinearGradientBrush>
-                                            </Border.Background>
-                                        </Border>
+                                        <Border Grid.Row="1" Width="26" Height="{Binding CotHeight}" VerticalAlignment="Bottom" CornerRadius="6,6,0,0" Background="{Binding CotColor}"/>
                                         <TextBlock Grid.Row="2" Text="{Binding NgayTrongTuan}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,6,0,1"/>
                                         <TextBlock Grid.Row="3" Text="{Binding NgayThang}" FontSize="9.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
                                     </Grid>

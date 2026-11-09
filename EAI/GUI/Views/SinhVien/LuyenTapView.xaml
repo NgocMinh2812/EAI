@@ -253,7 +253,7 @@
                             BorderBrush="{StaticResource BrandTeal}" Foreground="{StaticResource BrandTeal}" FontWeight="SemiBold" Click="TabHub_Click"/>
                     <Button x:Name="tabWrongQuestions" Content="Ôn tập câu đã sai" Style="{StaticResource TabHeaderButton}" Margin="15,0,0,0" Click="TabWrongQuestions_Click"/>
                     <Button x:Name="tabHistory" Content="Lịch sử luyện tập" Style="{StaticResource TabHeaderButton}" Margin="15,0,0,0" Click="TabHistory_Click"/>
-                    <Button x:Name="tabFlashcard" Content="Flashcard từ vựng (Sắp ra mắt)" Style="{StaticResource TabHeaderButton}" Margin="15,0,0,0" Click="TabFlashcard_Click"/>
+                    <Button x:Name="tabFlashcard" Content="Flashcard từ vựng" Style="{StaticResource TabHeaderButton}" Margin="15,0,0,0" Click="TabFlashcard_Click"/>
                     <Button x:Name="tabDictation" Content="Nghe chép chính tả (Sắp ra mắt)" Style="{StaticResource TabHeaderButton}" Margin="15,0,0,0" Click="TabDictation_Click"/>
                 </StackPanel>
             </Border>
@@ -864,20 +864,378 @@
                     </StackPanel>
 
                     <!-- ========================================================================= -->
-                    <!-- TAB 4: FLASHCARD VOCABULARY (ĐANG PHÁT TRIỂN) -->
+                    <!-- TAB 4: FLASHCARD VOCABULARY & SPACED REPETITION CHO HỌC VIÊN -->
                     <!-- ========================================================================= -->
                     <StackPanel x:Name="pnlFlashcard" Visibility="Collapsed">
-                        <Border Background="White" CornerRadius="16" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="45,40" Margin="0,10,0,20">
-                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Border Background="{StaticResource BrandTealLight}" Width="72" Height="72" CornerRadius="36" HorizontalAlignment="Center" Margin="0,0,0,18">
-                                    <TextBlock Text="🗂️" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <TextBlock Text="Tính Năng Flashcard Từ Vựng Đang Phát Triển" FontSize="19" FontWeight="Bold" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                                <TextBlock Text="Hệ thống học từ vựng thông minh theo thuật toán lặp lại ngắt quãng (Spaced Repetition) đang được hoàn thiện và sẽ ra mắt trong bản cập nhật kế tiếp." 
-                                           FontSize="13.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="540" TextAlignment="Center" Margin="0,0,0,22" LineHeight="22"/>
-                                <Button Content="🎯 Quay lại Luyện tập kỹ năng &amp; chủ đề" Style="{StaticResource TealActionButton}" Padding="22,11" HorizontalAlignment="Center" Click="TabHub_Click"/>
-                            </StackPanel>
+                        <!-- 1. Header Banner & Thống kê Spaced Repetition -->
+                        <Border CornerRadius="18" Padding="26,22" Margin="0,0,0,18">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#0F766E" Offset="0"/>
+                                    <GradientStop Color="#042F2E" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Tiêu đề & Giới thiệu -->
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                        <Border Background="#14B8A6" CornerRadius="12" Padding="8,3" Margin="0,0,8,0">
+                                            <TextBlock Text="SPACED REPETITION (SRS)" FontSize="10.5" FontWeight="Bold" Foreground="White"/>
+                                        </Border>
+                                        <TextBlock Text="Phương pháp học ngắt quãng thông minh" FontSize="11" Foreground="#99F6E4" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Thẻ Ghi Nhớ &amp; Phản Xạ Từ Vựng" FontSize="21" FontWeight="Bold" Foreground="White" Margin="0,0,0,6"/>
+                                    <TextBlock Text="Lặp lại ngắt quãng dựa trên mức độ ghi nhớ thực tế của bạn, kết hợp giọng phát âm AI chuẩn bản xứ giúp học nhanh nhớ lâu." 
+                                               FontSize="13" Foreground="#CCFBF1" TextWrapping="Wrap" MaxWidth="640" LineHeight="19"/>
+                                </StackPanel>
+
+                                <!-- Thống kê vắn tắt bên phải -->
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0,0,0">
+                                    <!-- Thẻ Tổng từ -->
+                                    <Border Background="#134E4A" CornerRadius="12" Padding="14,10" Margin="0,0,10,0" MinWidth="90">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="TỔNG TỪ" FontSize="10.5" FontWeight="SemiBold" Foreground="#5EEAD4" HorizontalAlignment="Center"/>
+                                            <TextBlock x:Name="txtFcStatTongTu" Text="13" FontSize="20" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <!-- Thẻ Đã thuộc -->
+                                    <Border Background="#065F46" CornerRadius="12" Padding="14,10" Margin="0,0,10,0" MinWidth="90">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="ĐÃ THUỘC" FontSize="10.5" FontWeight="SemiBold" Foreground="#86EFAC" HorizontalAlignment="Center"/>
+                                            <TextBlock x:Name="txtFcStatDaThuoc" Text="0" FontSize="20" FontWeight="Bold" Foreground="#86EFAC" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <!-- Thẻ Cần ôn -->
+                                    <Border Background="#78350F" CornerRadius="12" Padding="14,10" MinWidth="90">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="CẦN ÔN TẬP" FontSize="10.5" FontWeight="SemiBold" Foreground="#FDE047" HorizontalAlignment="Center"/>
+                                            <TextBlock x:Name="txtFcStatCanOn" Text="13" FontSize="20" FontWeight="Bold" Foreground="#FDE047" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
                         </Border>
+
+                        <!-- 2. Thanh lọc trình độ, trạng thái & Chuyển chế độ -->
+                        <Border Background="White" CornerRadius="14" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="16,12" Margin="0,0,0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Lọc Cấp độ -->
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Trình độ: " FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <ComboBox x:Name="cboFcTrinhDo" Width="140" Height="34" FontSize="12" SelectionChanged="CboFcTrinhDo_SelectionChanged">
+                                        <ComboBoxItem Content="Tất cả cấp độ" IsSelected="True"/>
+                                        <ComboBoxItem Content="A1 — Cơ bản"/>
+                                        <ComboBoxItem Content="A2 — Sơ cấp"/>
+                                        <ComboBoxItem Content="B1 — Trung cấp"/>
+                                        <ComboBoxItem Content="B2 — Trên trung cấp"/>
+                                        <ComboBoxItem Content="C1 — Cao cấp"/>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <!-- Lọc Trạng thái -->
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                                    <TextBlock Text="Trạng thái: " FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <ComboBox x:Name="cboFcTrangThai" Width="135" Height="34" FontSize="12" SelectionChanged="CboFcTrangThai_SelectionChanged">
+                                        <ComboBoxItem Content="Tất cả từ" IsSelected="True"/>
+                                        <ComboBoxItem Content="Cần ôn tập"/>
+                                        <ComboBoxItem Content="Đã thuộc"/>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <!-- Thanh tiến độ ở giữa (dành cho chế độ Flashcard) -->
+                                <StackPanel Grid.Column="2" x:Name="pnlFcTienDo" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock x:Name="txtFcTienDoOnTap" Text="Thẻ 1 / 13" FontSize="13.5" FontWeight="Bold" Foreground="#0F766E" VerticalAlignment="Center"/>
+                                    <Border Background="#DCFCE7" BorderBrush="#BBF7D0" BorderThickness="1" CornerRadius="8" Padding="10,5" Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <local:LucideIcon Kind="Check" Size="13" Foreground="#15803D" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="txtFcBadgeDaThuoc" Text="Đã thuộc: 0/13" FontSize="12" FontWeight="SemiBold" Foreground="#15803D" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- Nút chuyển Chế độ: Thẻ lật / Danh sách -->
+                                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button x:Name="btnFcModeCard" Content="🃏 Luyện thẻ Flashcard" Style="{StaticResource ModernFilterChipButton}" Margin="0,0,6,0" 
+                                            Background="#0F766E" Foreground="White" BorderBrush="#0F766E" Click="BtnFcModeCard_Click"/>
+                                    <Button x:Name="btnFcModeList" Content="📖 Sổ tay từ vựng" Style="{StaticResource ModernFilterChipButton}" Margin="0" 
+                                            Background="#F8FAFC" Foreground="#475569" BorderBrush="#E2E8F0" Click="BtnFcModeList_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- 3A. VIEW CHẾ ĐỘ 1: THẺ FLASHCARD TƯƠNG TÁC -->
+                        <StackPanel x:Name="pnlFcCardView" Visibility="Visible">
+                            <!-- Flashcard Interactive Box -->
+                            <Border x:Name="bdFcCard" CornerRadius="20" Margin="0,4,0,16" MinHeight="370" Cursor="Hand" MouseLeftButtonUp="BdFcCard_Click">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="22" Direction="270" ShadowDepth="5" Opacity="0.10" Color="#0F172A"/>
+                                </Border.Effect>
+
+                                <Grid>
+                                    <!-- ============= MẶT TRƯỚC (FRONT) ============= -->
+                                    <Border x:Name="pnlFcMatTruoc" CornerRadius="20" BorderBrush="#86EFAC" BorderThickness="2" Visibility="Visible" Padding="40,32">
+                                        <Border.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                <GradientStop Color="#F0FDF4" Offset="0"/>
+                                                <GradientStop Color="#DCFCE7" Offset="1"/>
+                                            </LinearGradientBrush>
+                                        </Border.Background>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <!-- Top Topic Badge -->
+                                            <Border Grid.Row="0" HorizontalAlignment="Center" Background="White" CornerRadius="12" Padding="14,5" BorderBrush="#BBF7D0" BorderThickness="1">
+                                                <TextBlock x:Name="txtFcCardBadge" Text="TỪ VỰNG HỌC THUẬT • B2" FontSize="11.5" FontWeight="Bold" Foreground="#15803D"/>
+                                            </Border>
+
+                                            <!-- Middle: Big Word & IPA -->
+                                            <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,20">
+                                                <TextBlock x:Name="txtFcMatTruocTu" Text="perseverance" FontSize="40" FontWeight="Bold" Foreground="#0F172A" 
+                                                           HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+                                                <TextBlock x:Name="txtFcMatTruocIPA" Text="/ˌpɜː.sɪˈvɪə.rəns/" FontSize="18" FontStyle="Italic" Foreground="#047857" 
+                                                           HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                                            </StackPanel>
+
+                                            <!-- Nút loa phát âm AI -->
+                                            <Button Grid.Row="2" HorizontalAlignment="Center" Width="48" Height="48" Background="White" BorderBrush="#86EFAC" 
+                                                    BorderThickness="1.5" Cursor="Hand" Click="BtnFcPhatAm_Click" ToolTip="Nghe AI phát âm từ vựng này" Margin="0,0,0,14">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="24">
+                                                            <local:LucideIcon Kind="Volume2" Size="22" Foreground="#0F766E" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="bd" Property="Background" Value="#F0FDF4"/>
+                                                                <Setter TargetName="bd" Property="BorderBrush" Value="#22C55E"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+
+                                            <!-- Hint footer -->
+                                            <TextBlock Grid.Row="3" Text="👆 Nhấp vào thẻ hoặc bấm phím Cách để lật mặt sau xem nghĩa &amp; ví dụ" 
+                                                       FontSize="12" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- ============= MẶT SAU (BACK) ============= -->
+                                    <Border x:Name="pnlFcMatSau" CornerRadius="20" BorderBrush="#93C5FD" BorderThickness="2" Visibility="Collapsed" Padding="40,32">
+                                        <Border.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                <GradientStop Color="#F0F9FF" Offset="0"/>
+                                                <GradientStop Color="#E0F2FE" Offset="1"/>
+                                            </LinearGradientBrush>
+                                        </Border.Background>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <!-- Top Bar mặt sau -->
+                                            <Grid Grid.Row="0">
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                                    <TextBlock x:Name="txtFcMatSauTu" Text="perseverance" FontSize="19" FontWeight="Bold" Foreground="#1E3A8A" VerticalAlignment="Center"/>
+                                                    <Border Background="#DBEAFE" CornerRadius="6" Padding="8,3" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                        <TextBlock x:Name="txtFcMatSauLoaiTu" Text="danh từ" FontSize="11" FontWeight="SemiBold" Foreground="#1D4ED8"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <Button HorizontalAlignment="Right" Width="36" Height="36" Background="White" BorderBrush="#BFDBFE" 
+                                                        BorderThickness="1" Cursor="Hand" Click="BtnFcPhatAm_Click" ToolTip="Nghe lại phát âm">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border CornerRadius="18" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                <local:LucideIcon Kind="Volume2" Size="16" Foreground="#1D4ED8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </Grid>
+
+                                            <!-- Nội dung giải nghĩa & ví dụ -->
+                                            <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="0,14">
+                                                <TextBlock Text="GIẢI NGHĨA:" FontSize="11" FontWeight="Bold" Foreground="#64748B" Margin="0,0,0,4"/>
+                                                <TextBlock x:Name="txtFcMatSauNghia" Text="Sự kiên trì, bền chí trong việc thực hiện mục tiêu dù gặp nhiều khó khăn và thử thách." 
+                                                           FontSize="18" FontWeight="SemiBold" Foreground="#0F172A" TextWrapping="Wrap" Margin="0,0,0,14" LineHeight="26"/>
+
+                                                <Border Background="White" CornerRadius="12" Padding="16,12" BorderBrush="#BAE6FD" BorderThickness="1">
+                                                    <StackPanel>
+                                                        <TextBlock Text="CÂU VÍ DỤ MINH HỌA:" FontSize="10.5" FontWeight="Bold" Foreground="#0284C7" Margin="0,0,0,4"/>
+                                                        <TextBlock x:Name="txtFcMatSauViDu" Text="&quot;Learning English requires perseverance and daily practice.&quot;" 
+                                                                   FontSize="14" FontStyle="Italic" Foreground="#334155" TextWrapping="Wrap" LineHeight="20"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+
+                                            <!-- Thống kê cá nhân thẻ này -->
+                                            <Border Grid.Row="2" Background="#EFF6FF" CornerRadius="8" Padding="12,6" HorizontalAlignment="Center" Margin="0,0,0,10">
+                                                <TextBlock x:Name="txtFcMatSauThongKe" Text="Đã ôn tập: 0 lần • Ghi nhớ đúng: 0 lần" FontSize="11.5" Foreground="#1E40AF"/>
+                                            </Border>
+
+                                            <!-- Hint footer -->
+                                            <TextBlock Grid.Row="3" Text="👆 Nhấp vào thẻ hoặc bấm phím Cách để quay lại mặt trước" 
+                                                       FontSize="12" Foreground="#64748B" HorizontalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <!-- Thanh điều khiển & Đánh giá ghi nhớ -->
+                            <Border Background="White" CornerRadius="16" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="20,16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Nút chuyển thẻ: Trước / Lật / Sau -->
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button Content="◀ Từ trước" Style="{StaticResource SecondaryButton}" Padding="14,10" Margin="0,0,8,0" Click="BtnFcPrev_Click"/>
+                                        <Button Content="🔄 Lật mặt thẻ" Style="{StaticResource SecondaryButton}" Padding="16,10" Margin="0,0,8,0" Click="BtnFcFlip_Click"/>
+                                        <Button Content="Từ tiếp theo ▶" Style="{StaticResource SecondaryButton}" Padding="14,10" Click="BtnFcNext_Click"/>
+                                    </StackPanel>
+
+                                    <!-- Hai nút hành động ôn tập Spaced Repetition -->
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <!-- Nút Chưa nhớ (Ôn lại) -->
+                                        <Button Style="{StaticResource SecondaryButton}" Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" 
+                                                Foreground="#DC2626" Height="44" Padding="20,0" Margin="0,0,12,0" Cursor="Hand" Click="BtnFcChuaNho_Click" ToolTip="Chưa nhớ từ này">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <local:LucideIcon Kind="X" Size="16" Foreground="#DC2626" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Chưa nhớ (Ôn lại)" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <!-- Nút Đã nhớ từ này -->
+                                        <Button Style="{StaticResource TealActionButton}" Height="44" Padding="22,0" Cursor="Hand" Click="BtnFcDaThuoc_Click" ToolTip="Đã nhớ từ này">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <local:LucideIcon Kind="Check" Size="16" Foreground="White" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Đã thuộc từ này" FontSize="13.5" FontWeight="Bold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- 3B. VIEW CHẾ ĐỘ 2: SỔ TAY TỪ VỰNG DẠNG GRID CARD -->
+                        <StackPanel x:Name="pnlFcListView" Visibility="Collapsed">
+                            <Border Background="White" CornerRadius="16" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="20,18">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,16">
+                                        <TextBlock x:Name="txtFcListHeader" Text="Tất cả từ vựng trong kho học tập (13 từ)" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
+                                        
+                                        <!-- Khung tìm kiếm từ vựng -->
+                                        <Border Width="260" Height="34" CornerRadius="8" BorderBrush="#CBD5E1" BorderThickness="1" Background="White" Padding="10,0" HorizontalAlignment="Right">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <local:LucideIcon Kind="Search" Size="14" Foreground="#94A3B8" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                <TextBox x:Name="txtFcSearch" Grid.Column="1" BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center" 
+                                                         FontSize="12.5" TextChanged="TxtFcSearch_TextChanged"/>
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Danh sách các thẻ từ vựng nhỏ gọn -->
+                                    <ItemsControl x:Name="icFcVocabularyList">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Orientation="Horizontal"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Width="334" Margin="0,0,12,14" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="14">
+                                                    <Grid>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                        </Grid.RowDefinitions>
+                                                        
+                                                        <!-- Header: Cấp độ, chủ đề & Badge đã thuộc -->
+                                                        <Grid Grid.Row="0" Margin="0,0,0,8">
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <Border Background="#CCFBF1" CornerRadius="6" Padding="6,2" Margin="0,0,6,0">
+                                                                    <TextBlock Text="{Binding MaCapDo}" FontSize="10.5" FontWeight="Bold" Foreground="#0F766E"/>
+                                                                </Border>
+                                                                <TextBlock Text="{Binding TenChuDe}" FontSize="11" Foreground="#64748B" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+
+                                                            <!-- Badge Đã thuộc hoặc Cần ôn -->
+                                                            <Border HorizontalAlignment="Right" CornerRadius="6" Padding="6,2" Background="{Binding DaThuocBadgeBg}">
+                                                                <TextBlock Text="{Binding DaThuocBadgeText}" FontSize="10.5" FontWeight="Bold" Foreground="{Binding DaThuocBadgeFg}"/>
+                                                            </Border>
+                                                        </Grid>
+
+                                                        <!-- Từ vựng, IPA & Nút phát âm -->
+                                                        <Grid Grid.Row="1" Margin="0,0,0,6">
+                                                            <StackPanel VerticalAlignment="Center">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <TextBlock Text="{Binding Tu}" FontSize="18" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="{Binding LoaiTu, StringFormat=' ({0})'}" FontSize="11.5" FontStyle="Italic" Foreground="#64748B" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                                                </StackPanel>
+                                                                <TextBlock Text="{Binding PhienAmIPA}" FontSize="12.5" FontStyle="Italic" Foreground="#047857" Margin="0,2,0,0"/>
+                                                            </StackPanel>
+
+                                                            <!-- Nút nghe phát âm -->
+                                                            <Button HorizontalAlignment="Right" VerticalAlignment="Center" Width="32" Height="32" 
+                                                                    Background="White" BorderBrush="#CBD5E1" BorderThickness="1" Cursor="Hand" 
+                                                                    Tag="{Binding Tu}" Click="BtnFcItemAudio_Click" ToolTip="Nghe phát âm">
+                                                                <Button.Template>
+                                                                    <ControlTemplate TargetType="Button">
+                                                                        <Border CornerRadius="16" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                            <local:LucideIcon Kind="Volume2" Size="14" Foreground="#0F766E" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                        </Border>
+                                                                    </ControlTemplate>
+                                                                </Button.Template>
+                                                            </Button>
+                                                        </Grid>
+
+                                                        <!-- Nghĩa tiếng Việt -->
+                                                        <TextBlock Grid.Row="2" Text="{Binding Nghia}" FontSize="13" FontWeight="SemiBold" Foreground="#1E293B" 
+                                                                   TextWrapping="Wrap" Margin="0,0,0,6" LineHeight="18"/>
+
+                                                        <!-- Ví dụ minh họa -->
+                                                        <Border Grid.Row="3" Background="#F1F5F9" CornerRadius="6" Padding="8,6">
+                                                            <TextBlock Text="{Binding CauViDu, StringFormat='&quot;{0}&quot;'}" FontSize="11.5" FontStyle="Italic" 
+                                                                       Foreground="#475569" TextWrapping="Wrap" LineHeight="16"/>
+                                                        </Border>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
                     </StackPanel>
 
                     <!-- ========================================================================= -->

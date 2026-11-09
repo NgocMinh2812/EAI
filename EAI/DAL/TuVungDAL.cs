@@ -70,14 +70,14 @@ namespace DAL
 
         public void CapNhatKetQuaFlashcard(int maNguoiDung, int maTuVung, bool daNho)
         {
-            if (maNguoiDung <= 0 || maTuVung <= 0) return;
+            if (maNguoiDung < 0 || maTuVung <= 0) return;
 
             string query = @"
                 IF EXISTS (SELECT 1 FROM Flashcard WHERE MaNguoiDung = @MaND AND MaTuVung = @MaTV)
                 BEGIN
                     UPDATE Flashcard
                     SET SoLanOnTap = SoLanOnTap + 1,
-                        SoLanDung = SoLanDung + CASE WHEN @DaNho = 1 THEN 1 ELSE 0 END,
+                        SoLanDung = CASE WHEN @DaNho = 1 THEN SoLanDung + 1 ELSE 0 END,
                         LanOnTapCuoi = SYSDATETIME()
                     WHERE MaNguoiDung = @MaND AND MaTuVung = @MaTV;
                 END
@@ -102,6 +102,128 @@ namespace DAL
             {
                 System.Diagnostics.Debug.WriteLine($"[TuVungDAL] Lỗi lưu Flashcard: {ex.Message}");
             }
+        }
+
+        public bool ThemTuVungVaFlashcard(TuVungDTO tuVung, int maNguoiDung, out int maTuVungMoi, out int maFlashcardMoi)
+        {
+            maTuVungMoi = 0;
+            maFlashcardMoi = 0;
+            if (string.IsNullOrWhiteSpace(tuVung.Tu) || string.IsNullOrWhiteSpace(tuVung.Nghia))
+                return false;
+
+            string sql = @"
+                DECLARE @MaTV INT = 0;
+                SELECT @MaTV = MaTuVung FROM TuVung WHERE LOWER(LTRIM(RTRIM(Tu))) = LOWER(LTRIM(RTRIM(@Tu)));
+
+                IF @MaTV = 0 OR @MaTV IS NULL
+                BEGIN
+                    INSERT INTO TuVung (MaChuDe, MaTrinhDo, Tu, LoaiTu, PhienAmIPA, Nghia, CauViDu, DuongDanAudio, CumTuDiKem, NgayTao)
+                    VALUES (@MaChuDe, @MaTrinhDo, @Tu, @LoaiTu, @PhienAmIPA, @Nghia, @CauViDu, @DuongDanAudio, @CumTuDiKem, SYSDATETIME());
+                    SET @MaTV = CAST(SCOPE_IDENTITY() AS INT);
+                END
+                ELSE
+                BEGIN
+                    UPDATE TuVung
+                    SET LoaiTu = CASE WHEN @LoaiTu IS NOT NULL AND @LoaiTu <> '' THEN @LoaiTu ELSE LoaiTu END,
+                        PhienAmIPA = CASE WHEN @PhienAmIPA IS NOT NULL AND @PhienAmIPA <> '' THEN @PhienAmIPA ELSE PhienAmIPA END,
+                        Nghia = @Nghia,
+                        CauViDu = CASE WHEN @CauViDu IS NOT NULL AND @CauViDu <> '' THEN @CauViDu ELSE CauViDu END,
+                        MaChuDe = ISNULL(@MaChuDe, MaChuDe),
+                        MaTrinhDo = ISNULL(@MaTrinhDo, MaTrinhDo)
+                    WHERE MaTuVung = @MaTV;
+                END
+
+                DECLARE @MaFC INT = 0;
+                IF @MaND >= 0
+                BEGIN
+                    SELECT @MaFC = MaFlashcard FROM Flashcard WHERE MaNguoiDung = @MaND AND MaTuVung = @MaTV;
+
+                    IF @MaFC = 0 OR @MaFC IS NULL
+                    BEGIN
+                        INSERT INTO Flashcard (MaNguoiDung, MaTuVung, SoLanOnTap, SoLanDung, NgayOnTapTiepTheo, LanOnTapCuoi)
+                        VALUES (@MaND, @MaTV, 0, 0, DATEADD(day, 1, SYSDATETIME()), SYSDATETIME());
+                        SET @MaFC = CAST(SCOPE_IDENTITY() AS INT);
+                    END
+                END
+
+                SELECT ISNULL(@MaTV, 0) AS MaTuVung, ISNULL(@MaFC, 0) AS MaFlashcard;";
+
+            SqlParameter[] parameters = new[]
+            {
+                new SqlParameter("@Tu", tuVung.Tu.Trim()),
+                new SqlParameter("@LoaiTu", (object?)tuVung.LoaiTu ?? DBNull.Value),
+                new SqlParameter("@PhienAmIPA", (object?)tuVung.PhienAmIPA ?? DBNull.Value),
+                new SqlParameter("@Nghia", tuVung.Nghia.Trim()),
+                new SqlParameter("@CauViDu", (object?)tuVung.CauViDu ?? DBNull.Value),
+                new SqlParameter("@DuongDanAudio", (object?)tuVung.DuongDanAudio ?? DBNull.Value),
+                new SqlParameter("@CumTuDiKem", (object?)tuVung.CumTuDiKem ?? DBNull.Value),
+                new SqlParameter("@MaChuDe", (object?)tuVung.MaChuDe ?? DBNull.Value),
+                new SqlParameter("@MaTrinhDo", (object?)tuVung.MaTrinhDo ?? DBNull.Value),
+                new SqlParameter("@MaND", maNguoiDung)
+            };
+
+            try
+            {
+                DataTable dt = SqlDataProvider.Instance.ExecuteQuery(sql, parameters);
+                if (dt.Rows.Count > 0)
+                {
+                    maTuVungMoi = Convert.ToInt32(dt.Rows[0]["MaTuVung"]);
+                    maFlashcardMoi = Convert.ToInt32(dt.Rows[0]["MaFlashcard"]);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TuVungDAL] Lỗi thêm từ vựng/flashcard: {ex.Message}");
+            }
+            return false;
+        }
+
+        public FlashcardDTO? LayTuVungHomNay()
+        {
+            string query = @"
+                SELECT TOP 1 tv.MaTuVung, tv.Tu, tv.LoaiTu, tv.PhienAmIPA, tv.Nghia, tv.CauViDu,
+                       tv.DuongDanAudio, tv.CumTuDiKem, td.MaCapDo, cd.TenChuDe,
+                       ISNULL(fc.MaFlashcard, 0) AS MaFlashcard,
+                       ISNULL(fc.SoLanOnTap, 0) AS SoLanOnTap,
+                       ISNULL(fc.SoLanDung, 0) AS SoLanDung,
+                       fc.LanOnTapCuoi
+                FROM TuVung tv
+                LEFT JOIN TrinhDo td ON tv.MaTrinhDo = td.MaTrinhDo
+                LEFT JOIN ChuDe cd ON tv.MaChuDe = cd.MaChuDe
+                LEFT JOIN Flashcard fc ON tv.MaTuVung = fc.MaTuVung
+                ORDER BY tv.NgayTao DESC, tv.MaTuVung DESC";
+
+            try
+            {
+                DataTable dt = SqlDataProvider.Instance.ExecuteQuery(query);
+                if (dt.Rows.Count > 0)
+                {
+                    DataRow row = dt.Rows[0];
+                    return new FlashcardDTO
+                    {
+                        MaFlashcard = Convert.ToInt32(row["MaFlashcard"]),
+                        MaTuVung = Convert.ToInt32(row["MaTuVung"]),
+                        Tu = row["Tu"]?.ToString() ?? "",
+                        LoaiTu = row["LoaiTu"]?.ToString() ?? "",
+                        PhienAmIPA = row["PhienAmIPA"]?.ToString() ?? "",
+                        Nghia = row["Nghia"]?.ToString() ?? "",
+                        CauViDu = row["CauViDu"]?.ToString() ?? "",
+                        DuongDanAudio = row["DuongDanAudio"] == DBNull.Value ? null : row["DuongDanAudio"]?.ToString(),
+                        CumTuDiKem = row["CumTuDiKem"]?.ToString() ?? "",
+                        MaCapDo = row["MaCapDo"]?.ToString() ?? "B2",
+                        TenChuDe = row["TenChuDe"]?.ToString() ?? "Từ vựng chung",
+                        SoLanOnTap = Convert.ToInt32(row["SoLanOnTap"]),
+                        SoLanDung = Convert.ToInt32(row["SoLanDung"]),
+                        LanOnTapCuoi = row["LanOnTapCuoi"] == DBNull.Value ? null : Convert.ToDateTime(row["LanOnTapCuoi"])
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TuVungDAL] Lỗi lấy từ vựng hôm nay: {ex.Message}");
+            }
+            return null;
         }
 
         public List<CauHoiKhaoSatDTO> LayCauHoiLuyenTap(string? kyNang = null, string? trinhDo = null, int top = 10)

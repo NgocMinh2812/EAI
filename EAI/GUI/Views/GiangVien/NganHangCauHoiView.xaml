@@ -970,6 +970,18 @@
                                         </Border>
                                     </Grid>
 
+                                    <!-- Bài học liên kết trong hệ thống -->
+                                    <Grid Margin="0,0,0,5" Visibility="{Binding CurrentCauHoi.TenBaiHoc, Converter={StaticResource StringNotEmptyToVisConverter}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Bài học:" FontSize="11" FontWeight="SemiBold" Foreground="#047857" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1" Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="4" Padding="6,3">
+                                            <TextBlock Text="{Binding CurrentCauHoi.TenBaiHoc}" FontSize="11" FontWeight="SemiBold" Foreground="#065F46" TextTrimming="CharacterEllipsis"/>
+                                        </Border>
+                                    </Grid>
+
                                     <!-- Tệp tin nguồn -->
                                     <Grid Margin="0,0,0,4">
                                         <Grid.ColumnDefinitions>

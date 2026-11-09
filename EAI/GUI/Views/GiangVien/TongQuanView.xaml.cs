@@ -4,12 +4,15 @@ using System.Windows.Controls;
 using System.Windows.Navigation;
 using BUS;
 using DTO;
+using GUI.Services;
+using GUI.Views.Common;
 
 namespace GUI.Views.GiangVien
 {
     public partial class TongQuanView : Page
     {
         private readonly DashboardBUS _dashboardBUS = new DashboardBUS();
+        private readonly TuVungBUS _tuVungBUS = TuVungBUS.Instance;
 
         public TongQuanView()
         {
@@ -22,6 +25,27 @@ namespace GUI.Views.GiangVien
         private async void TongQuanView_Loaded(object sender, RoutedEventArgs e)
         {
             await LoadRealKpisAsync();
+            LoadTuVungHomNay();
+        }
+
+        private void LoadTuVungHomNay()
+        {
+            try
+            {
+                var tv = _tuVungBUS.LayTuVungHomNay();
+                if (tv != null)
+                {
+                    txtTuVungWord.Text = tv.Tu;
+                    txtTuVungPhienAm.Text = !string.IsNullOrWhiteSpace(tv.PhienAmIPA) ? tv.PhienAmIPA : "";
+                    txtTuVungLoaiTu.Text = !string.IsNullOrWhiteSpace(tv.LoaiTu) ? tv.LoaiTu : "từ vựng";
+                    txtTuVungNghia.Text = tv.Nghia;
+                    txtTuVungCauViDu.Text = !string.IsNullOrWhiteSpace(tv.CauViDu) ? $"\"{tv.CauViDu}\"" : "\"Practice makes perfect.\"";
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TongQuanView] Lỗi tải từ vựng hôm nay: {ex.Message}");
+            }
         }
 
         private async System.Threading.Tasks.Task LoadRealKpisAsync()
@@ -130,16 +154,32 @@ namespace GUI.Views.GiangVien
             }
         }
 
+        private void BtnPhatAmTuVungHomNay_Click(object sender, RoutedEventArgs e)
+        {
+            string word = txtTuVungWord.Text.Trim();
+            if (!string.IsNullOrWhiteSpace(word))
+            {
+                _ = AIPronunciationService.Instance.PlayPronunciationAsync(word);
+            }
+        }
+
         private void BtnTaoFlashcard_Click(object sender, RoutedEventArgs e)
         {
-            Common.ThongBaoDialog.ThongTin(
-                "Mở hộp thoại tạo nhanh Thẻ Flashcard từ vựng mới kèm phiên âm IPA và audio phát âm chuẩn.", 
-                "Quản lý Flashcard");
+            var dlg = new TaoFlashcardDialog(openStudyTab: false);
+            ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this));
+
+            if (dlg.HasNewFlashcard)
+            {
+                LoadTuVungHomNay();
+            }
         }
 
         private void BtnXemTatCaTuVung_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            this.NavigationService?.Navigate(new DanhMucView());
+            var dlg = new TaoFlashcardDialog(openStudyTab: true);
+            ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this));
+
+            LoadTuVungHomNay();
         }
 
         private void BtnTaiNguyenGrammar_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)

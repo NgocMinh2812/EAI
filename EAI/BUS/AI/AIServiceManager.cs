@@ -206,6 +206,10 @@ namespace BUS.AI
                 string skillInstruction = GeminiAIService.GetSkillQuestionInstruction(normSkill);
                 string levelInstruction = GeminiAIService.GetLevelInstruction(trinhDo);
 
+                bool laSoanTuDo = string.IsNullOrWhiteSpace(noiDung) ||
+                                  noiDung.Trim().Length < 120 ||
+                                  string.Equals(tieuDe.Trim(), noiDung.Trim(), StringComparison.OrdinalIgnoreCase);
+
                 string typeInstruction = "";
                 if (!string.IsNullOrWhiteSpace(yeuCauLoaiCauHoi) && !yeuCauLoaiCauHoi.Equals("Auto", StringComparison.OrdinalIgnoreCase))
                 {
@@ -215,6 +219,17 @@ namespace BUS.AI
                 {
                     typeInstruction = normSkill switch
                     {
+                        "NguPhap" => "TỰ ĐỘNG LỰA CHỌN CÁC DẠNG BÀI TẬP PHÙ HỢP KỸ NĂNG NGỮ PHÁP (GRAMMAR):\n" +
+                                     "- Phân bổ đa dạng các dạng:\n" +
+                                     "  + 'TracNghiem' (Trắc nghiệm 4 lựa chọn A, B, C, D - Chọn dạng đúng của động từ/cấu trúc/từ loại vào câu)\n" +
+                                     "  + 'DienKhuyet' (Điền từ/dạng từ còn thiếu vào chỗ trống, cung cấp 'DapAnVanBan')\n" +
+                                     "  + 'SuaLoiSai' (Tìm và sửa lỗi sai ngữ pháp trong câu, cung cấp 'DapAnVanBan')\n" +
+                                     "  + 'VietLaiCau' (Viết lại câu dùng từ gợi ý sao cho nghĩa không đổi, cung cấp 'DapAnVanBan')",
+                        "TuVung" => "TỰ ĐỘNG LỰA CHỌN CÁC DẠNG BÀI TẬP PHÙ HỢP TỪ VỰNG (VOCABULARY):\n" +
+                                    "- Phân bổ đa dạng các dạng:\n" +
+                                    "  + 'TracNghiem' (Từ đồng nghĩa, trái nghĩa, cụm từ cố định Collocations, điền từ vào ngữ cảnh câu)\n" +
+                                    "  + 'DienKhuyet' (Điền từ vựng thích hợp vào chỗ trống, cung cấp 'DapAnVanBan')\n" +
+                                    "  + 'TraLoiNgan' (Giải nghĩa từ hoặc hoàn thành cụm từ, cung cấp 'DapAnVanBan')",
                         "Nghe" => "TỰ ĐỘNG LỰA CHỌN CÁC DẠNG CÂU HỎI PHÙ HỢP KỸ NĂNG NGHE (LISTENING):\n" +
                                   "- Tạo kịch bản hội thoại/audio (Audio Script) hoàn chỉnh trong trường 'DoanVanDoc'.\n" +
                                   "- Phân bổ đa dạng các dạng:\n" +
@@ -240,7 +255,58 @@ namespace BUS.AI
                     };
                 }
 
-                string prompt = $@"Bạn là chuyên gia khảo thí và sư phạm tiếng Anh hàng đầu chuẩn quốc tế (CEFR / Cambridge / IELTS).
+                string prompt;
+                if (laSoanTuDo)
+                {
+                    prompt = $@"Bạn là Chuyên gia Khảo thí và Giảng viên Sư phạm Tiếng Anh quốc tế (Cambridge / CEFR).
+Nhiệm vụ của bạn là SOẠN ĐÚNG {soLuong} CÂU HỎI / BÀI TẬP TIẾNG ANH CHUẨN MỰC, BÁM SÁT 100% VÀO CHỦ ĐỀ: '{tieuDe}'.
+
+THÔNG TIN YÊU CẦU:
+- Chủ đề cần ra đề: {tieuDe}
+- Trình độ CEFR: {trinhDo} ({levelInstruction})
+- Kỹ năng trọng tâm: {normSkill}
+
+ĐỊNH HƯỚNG DẠNG CÂU HỎI:
+{typeInstruction}
+
+QUY TẮC BẮT BUỘC ĐỂ ĐẢM BẢO CHẤT LƯỢNG VÀ TÍNH HỢP LÝ:
+1. TRỌNG TÂM KIẾN THỨC: Mọi câu hỏi PHẢI kiểm tra chính xác kiến thức, cấu trúc, từ vựng hoặc điểm ngữ pháp của chủ đề '{tieuDe}'.
+   - Ví dụ: Nếu chủ đề là 'Ngữ pháp đưa ra lời khuyên', toàn bộ câu hỏi PHẢI xoay quanh các cấu trúc khuyên nhủ trong tiếng Anh (should, shouldn't, ought to, had better, If I were you, Why don't you..., suggest, recommend...).
+   - TUYỆT ĐỐI KHÔNG tự động chuyển sang chủ đề khác (như Agile/Scrum, IT, công nghệ, cuộc họp kỹ thuật) nếu người dùng không yêu cầu!
+2. KHÔNG DÙNG BÀI ĐỌC ẢO / KHÔNG HỎI 'ACCORDING TO THE PASSAGE':
+   - TUYỆT ĐỐI KHÔNG sinh câu hỏi có cụm từ 'According to the passage', 'According to the text', 'The author mentions' vì đây là bộ bài tập/câu hỏi tình huống độc lập, không có bài đọc.
+   - Để trường 'DoanVanDoc' là rỗng ("").
+3. TÌNH HUỐNG THỰC TẾ, DỄ HIỂU:
+   - Các câu hỏi phải có ngữ cảnh tình huống giao tiếp đời sống tự nhiên, rõ ràng (ví dụ: đoạn thoại ngắn giữa 2 người A & B, hoặc câu tình huống hoàn chỉnh).
+4. GIẢI THÍCH SƯ PHẠM CHI TIẾT ('GiaiThichChiTiet'):
+   - BẮT BUỘC giải thích cặn kẽ bằng Tiếng Việt:
+     + Nêu rõ quy tắc/công thức ngữ pháp hoặc nghĩa của từ vựng được áp dụng.
+     + Giải thích ngắn gọn vì sao đáp án này đúng và vì sao các lựa chọn khác sai.
+     + TUYỆT ĐỐI KHÔNG ghi '➔ Dẫn chứng bài học: [câu bịa]' hay '➔ Dẫn chứng: Câu hỏi luyện tập...'.
+5. KHÔNG GẮN KÝ HIỆU ĐÁP ÁN VÀO NỘI DUNG LỰA CHỌN:
+   - Trong 'DanhSachLuaChon', chỉ ghi nội dung phương án thuần túy (ví dụ: 'should stay home', không ghi 'should stay home (Đúng ✓)' hay kèm dấu tick).
+6. ĐỘ KHÓ PHÂN BỔ THEO CEFR {trinhDo}:
+   - ~25% câu Dễ ('De'), ~50% câu Trung bình ('TrungBinh'), ~25% câu Khó ('Kho').
+
+Trả về DUY NHẤT một mảng JSON thuần túy (không kèm markdown văn bản bên ngoài):
+[
+  {{
+    ""NoiDungCauHoi"": ""Nội dung câu hỏi / yêu cầu bài tập"",
+    ""LoaiCauHoi"": ""TracNghiem"" (hoặc ""DungSai"", ""TrueFalseNotGiven"", ""DienKhuyet"", ""TraLoiNgan"", ""VietLaiCau"", ""SuaLoiSai"", ""TuLuan""),
+    ""DanhSachLuaChon"": [""A. ..."", ""B. ..."", ""C. ..."", ""D. ...""],
+    ""DapAnDungIndex"": 0,
+    ""DapAnVanBan"": ""Đáp án chữ chính xác cho dạng điền từ / trả lời ngắn / viết lại / sửa lỗi (nếu có)"",
+    ""TieuChiCham"": ""Tiêu chí chấm nếu là tự luận"",
+    ""GiaiThichChiTiet"": ""Quy tắc ngữ pháp / ý nghĩa từ vựng: ... Vì sao đáp án này đúng: ..."",
+    ""KyNang"": ""{normSkill}"",
+    ""DoKho"": ""TrungBinh"",
+    ""DoanVanDoc"": """"
+  }}
+]";
+                }
+                else
+                {
+                    prompt = $@"Bạn là chuyên gia khảo thí và sư phạm tiếng Anh hàng đầu chuẩn quốc tế (CEFR / Cambridge / IELTS).
 Nhiệm vụ của bạn là phân tích tài liệu bài học sau và tạo ra đúng {soLuong} câu hỏi / bài tập tiếng Anh chất lượng cao đạt chuẩn khảo thí, phù hợp với kỹ năng, cấp độ và nội dung bài học.
 
 THÔNG TIN BÀI HỌC:
@@ -266,17 +332,18 @@ QUY TẮC BẮT BUỘC ĐỂ ĐA DẠNG HÓA CÂU HỎI:
    - 'TraLoiNgan': Trả lời ngắn bằng 1 từ hoặc cụm từ ngắn. Điền đáp án chuẩn vào trường 'DapAnVanBan'.
    - 'VietLaiCau': Viết lại câu giữ nguyên nghĩa. Điền câu viết lại chuẩn vào trường 'DapAnVanBan'.
    - 'SuaLoiSai': Tìm và sửa lỗi sai trong câu. Điền phần sửa chuẩn vào trường 'DapAnVanBan'.
-   - 'TuLuan': Đề bài viết đoạn văn / bài luận. Điền tiêu chí chấm (Rubric: Task Achievement, Coherence, Vocabulary, Grammar) và số từ tối thiểu vào trường 'TieuChiCham'.
+   - 'TuLuan': Đề bài viết đoạn văn / bài luận. Điền tiêu chí chấm và số từ tối thiểu vào trường 'TieuChiCham'.
 2. ĐỘ KHÓ PHÂN BỔ THEO CEFR {trinhDo}:
-   - ~20-30% câu Dễ ('De')
-   - ~50-60% câu Trung bình ('TrungBinh')
-   - ~20% câu Khó phân hóa ('Kho')
-3. NGUYÊN TẮC GIẢI THÍCH VÀ DẪN CHỨNG BẮT BUỘC ('GiaiThichChiTiet'):
-   - Nếu câu hỏi có dẫn chứng trực tiếp từ tài liệu: ghi rõ ""➔ Dẫn chứng bài học: '[Trích dẫn câu]' - Giải thích: [Giải thích]"".
-   - Nếu là câu hỏi luyện tập / vận dụng kiến thức mở rộng: ghi rõ ""➔ Dẫn chứng: Câu hỏi luyện tập không có dẫn chứng trực tiếp từ nội dung bài học. - Giải thích: [Giải thích]"".
+   - ~20-30% câu Dễ ('De'), ~50-60% câu Trung bình ('TrungBinh'), ~20% câu Khó ('Kho').
+3. NGUYÊN TẮC GIẢI THÍCH CHI TIẾT ('GiaiThichChiTiet'):
+   - BẮT BUỘC giải thích bằng Tiếng Việt rõ ràng:
+     + Trích dẫn thông tin hoặc quy tắc áp dụng.
+     + Giải thích lý do đáp án đúng và phân tích các phương án còn lại.
 4. NẾU KỸ NĂNG LÀ ĐỌC HOẶC NGHE:
    - Bắt buộc điền bài đọc hoàn chỉnh hoặc kịch bản audio thoại vào trường 'DoanVanDoc'.
-5. Trả về DUY NHẤT một mảng JSON thuần túy (không kèm markdown văn bản bên ngoài):
+5. KHÔNG GẮN KÝ HIỆU '(Đúng ✓)' VÀO 'DanhSachLuaChon': Chỉ lưu nội dung đáp án thuần túy.
+
+Trả về DUY NHẤT một mảng JSON thuần túy (không kèm markdown văn bản bên ngoài):
 [
   {{
     ""NoiDungCauHoi"": ""Nội dung câu hỏi / yêu cầu bài tập"",
@@ -284,13 +351,14 @@ QUY TẮC BẮT BUỘC ĐỂ ĐA DẠNG HÓA CÂU HỎI:
     ""DanhSachLuaChon"": [""A. ..."", ""B. ..."", ""C. ..."", ""D. ...""],
     ""DapAnDungIndex"": 0,
     ""DapAnVanBan"": ""Đáp án chữ chính xác cho dạng điền từ / trả lời ngắn / viết lại / sửa lỗi (nếu có)"",
-    ""TieuChiCham"": ""Tiêu chí chấm và số từ tối thiểu nếu là tự luận"",
-    ""GiaiThichChiTiet"": ""➔ Dẫn chứng bài học: '...' - Giải thích: ..."",
+    ""TieuChiCham"": ""Tiêu chí chấm nếu là tự luận"",
+    ""GiaiThichChiTiet"": ""Giải thích chi tiết: ..."",
     ""KyNang"": ""{normSkill}"",
     ""DoKho"": ""TrungBinh"",
     ""DoanVanDoc"": ""Đoạn văn đọc hiểu hoặc kịch bản audio thoại""
   }}
 ]";
+                }
 
                 var response = await ExecutePromptAsync(prompt, preferredProvider, preferredModel, "Tạo câu hỏi bằng AI", ct);
                 if (response.Success && !string.IsNullOrWhiteSpace(response.Text))
@@ -318,7 +386,7 @@ QUY TẮC BẮT BUỘC ĐỂ ĐA DẠNG HÓA CÂU HỎI:
 
                     if (questions != null && questions.Count > 0)
                     {
-                        string passage = BoCauHoiBUS.TrichXuatDoanVanDocHieu(cleanContent);
+                        string passage = laSoanTuDo ? "" : BoCauHoiBUS.TrichXuatDoanVanDocHieu(cleanContent);
                         for (int i = 0; i < questions.Count; i++)
                         {
                             var q = questions[i];
@@ -326,9 +394,26 @@ QUY TẮC BẮT BUỘC ĐỂ ĐA DẠNG HÓA CÂU HỎI:
                             if (string.IsNullOrWhiteSpace(q.KyNang)) q.KyNang = normSkill;
                             if (string.IsNullOrWhiteSpace(q.DoKho)) q.DoKho = i < 2 ? "De" : (i >= 8 ? "Kho" : "TrungBinh");
                             if (string.IsNullOrWhiteSpace(q.LoaiCauHoi)) q.LoaiCauHoi = "TracNghiem";
-                            if (string.IsNullOrWhiteSpace(q.DoanVanDoc) && (q.KyNang == "Doc" || normSkill == "Doc" || q.KyNang == "Nghe" || normSkill == "Nghe"))
+
+                            if (laSoanTuDo)
+                            {
+                                q.DoanVanDoc = null; // Soạn tự do: không gắn đoạn văn ảo
+                            }
+                            else if (string.IsNullOrWhiteSpace(q.DoanVanDoc) && (q.KyNang == "Doc" || normSkill == "Doc" || q.KyNang == "Nghe" || normSkill == "Nghe"))
                             {
                                 q.DoanVanDoc = passage;
+                            }
+
+                            // Làm sạch phương án, loại bỏ các ký hiệu đúng/sai thừa nếu AI thêm vào text
+                            if (q.DanhSachLuaChon != null)
+                            {
+                                for (int k = 0; k < q.DanhSachLuaChon.Count; k++)
+                                {
+                                    string opt = q.DanhSachLuaChon[k];
+                                    opt = System.Text.RegularExpressions.Regex.Replace(opt, @"\s*[\(\[]?\s*(?:Đúng|Đáp án đúng|Correct)\s*[\✓\✔]?\s*[\)\]]?\s*$", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase).Trim();
+                                    opt = System.Text.RegularExpressions.Regex.Replace(opt, @"[\✓\✔]\s*$", "").Trim();
+                                    q.DanhSachLuaChon[k] = opt;
+                                }
                             }
                         }
                         return questions;

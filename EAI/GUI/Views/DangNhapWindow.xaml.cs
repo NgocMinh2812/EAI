@@ -75,6 +75,12 @@ namespace GUI.Views
 
             txtRegNameError.Visibility = Visibility.Collapsed;
             txtRegEmailError.Visibility = Visibility.Collapsed;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                txtEmail.Focus();
+                if (txtEmail.Text == EmailPlaceholder) txtEmail.SelectAll();
+            }), System.Windows.Threading.DispatcherPriority.Input);
         }
 
         private void SwitchToRegisterTab()
@@ -97,6 +103,12 @@ namespace GUI.Views
 
             footerLogin.Visibility = Visibility.Collapsed;
             footerRegister.Visibility = Visibility.Visible;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                txtRegName.Focus();
+                if (txtRegName.Text == NamePlaceholder) txtRegName.SelectAll();
+            }), System.Windows.Threading.DispatcherPriority.Input);
         }
 
         // ================= INPUT PLACEHOLDER HANDLERS =================
@@ -455,27 +467,173 @@ namespace GUI.Views
                 "Quên mật khẩu");
         }
 
-        private void TxtPassword_KeyDown(object sender, KeyEventArgs e)
+        // ================= PREVIEW KEY DOWN NAVIGATION (TAB & ENTER) =================
+
+        private void TxtEmail_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            if ((e.Key == Key.Tab && (Keyboard.Modifiers & ModifierKeys.Shift) == 0) || e.Key == Key.Enter)
             {
+                e.Handled = true;
+                if (txtPasswordVisible.Visibility == Visibility.Visible)
+                    txtPasswordVisible.Focus();
+                else
+                    txtPassword.Focus();
+            }
+        }
+
+        private void TxtPassword_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Tab)
+            {
+                e.Handled = true;
+                if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0)
+                {
+                    txtEmail.Focus();
+                    if (txtEmail.Text == EmailPlaceholder) txtEmail.SelectAll();
+                }
+                else
+                {
+                    btnLogin.Focus();
+                }
+            }
+            else if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
                 LoginButton_Click(sender, e);
             }
         }
 
-        private void TxtPasswordVisible_KeyDown(object sender, KeyEventArgs e)
+        private void TxtPasswordVisible_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            if (e.Key == Key.Tab)
             {
+                e.Handled = true;
+                if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0)
+                {
+                    txtEmail.Focus();
+                    if (txtEmail.Text == EmailPlaceholder) txtEmail.SelectAll();
+                }
+                else
+                {
+                    btnLogin.Focus();
+                }
+            }
+            else if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
                 LoginButton_Click(sender, e);
             }
         }
 
-        private void TxtRegConfirmPassword_KeyDown(object sender, KeyEventArgs e)
+        private void BtnLogin_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            if (e.Key == Key.Tab)
             {
+                e.Handled = true;
+                if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0)
+                {
+                    if (txtPasswordVisible.Visibility == Visibility.Visible)
+                        txtPasswordVisible.Focus();
+                    else
+                        txtPassword.Focus();
+                }
+                else
+                {
+                    txtEmail.Focus();
+                    if (txtEmail.Text == EmailPlaceholder) txtEmail.SelectAll();
+                }
+            }
+        }
+
+        private void TxtRegName_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if ((e.Key == Key.Tab && (Keyboard.Modifiers & ModifierKeys.Shift) == 0) || e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                txtRegEmail.Focus();
+                if (txtRegEmail.Text == EmailPlaceholder) txtRegEmail.SelectAll();
+            }
+        }
+
+        private void TxtRegEmail_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Tab)
+            {
+                e.Handled = true;
+                if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0)
+                {
+                    txtRegName.Focus();
+                    if (txtRegName.Text == NamePlaceholder) txtRegName.SelectAll();
+                }
+                else
+                {
+                    txtRegPassword.Focus();
+                }
+            }
+            else if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                txtRegPassword.Focus();
+            }
+        }
+
+        private void TxtRegPassword_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Tab)
+            {
+                e.Handled = true;
+                if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0)
+                {
+                    txtRegEmail.Focus();
+                    if (txtRegEmail.Text == EmailPlaceholder) txtRegEmail.SelectAll();
+                }
+                else
+                {
+                    txtRegConfirmPassword.Focus();
+                }
+            }
+            else if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                txtRegConfirmPassword.Focus();
+            }
+        }
+
+        private void TxtRegConfirmPassword_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Tab)
+            {
+                e.Handled = true;
+                if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0)
+                {
+                    txtRegPassword.Focus();
+                }
+                else
+                {
+                    btnRegister.Focus();
+                }
+            }
+            else if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
                 RegisterButton_Click(sender, e);
+            }
+        }
+
+        private void BtnRegister_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Tab)
+            {
+                e.Handled = true;
+                if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0)
+                {
+                    txtRegConfirmPassword.Focus();
+                }
+                else
+                {
+                    txtRegName.Focus();
+                    if (txtRegName.Text == NamePlaceholder) txtRegName.SelectAll();
+                }
             }
         }
     }

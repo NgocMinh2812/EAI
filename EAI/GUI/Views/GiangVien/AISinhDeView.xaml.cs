@@ -28,7 +28,262 @@ namespace GUI.Views.GiangVien
 
         private void AISinhDeView_Loaded(object sender, RoutedEventArgs e)
         {
+            CapNhatThongTinMoHinhAI();
+            NapDanhSachBaiHocCoSan();
             TaiDanhSachChoDuyet();
+        }
+
+        private void CapNhatThongTinMoHinhAI()
+        {
+            try
+            {
+                BUS.AI.AIServiceManager.Instance.SyncActiveConfigFromStorage();
+                string provider = BUS.AI.AIServiceManager.Instance.ActiveProviderType.ToString();
+                string model = BUS.AI.AIServiceManager.Instance.ActiveModel ?? "Mặc định";
+                txtActiveAiModelInfo.Text = $"{provider} ({model})";
+            }
+            catch
+            {
+                txtActiveAiModelInfo.Text = "Google Gemini (gemini-1.5-flash)";
+            }
+        }
+
+        private void NapDanhSachBaiHocCoSan()
+        {
+            try
+            {
+                var lessons = BaiHocBUS.LayDanhSachBaiHoc();
+                cboExistingLesson.Items.Clear();
+                cboExistingLesson.Items.Add(new ComboBoxItem
+                {
+                    Content = "-- Nhập chủ đề / yêu cầu tự do --",
+                    Tag = null,
+                    IsSelected = true
+                });
+
+                if (lessons != null)
+                {
+                    foreach (var bh in lessons)
+                    {
+                        string display = $"[{bh.MaTrinhDo ?? "B1"}] {bh.TieuDe} ({bh.TenLoaiHienThi ?? bh.LoaiBaiHoc})";
+                        cboExistingLesson.Items.Add(new ComboBoxItem
+                        {
+                            Content = display,
+                            Tag = bh
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[NapDanhSachBaiHocCoSan] {ex.Message}");
+            }
+        }
+
+        private void CboExistingLesson_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (cboExistingLesson.SelectedItem is ComboBoxItem item && item.Tag is BaiHocDTO bh)
+            {
+                string content = !string.IsNullOrWhiteSpace(bh.TomTat) 
+                    ? bh.TomTat 
+                    : (!string.IsNullOrWhiteSpace(bh.NoiDung) ? bh.NoiDung : bh.TieuDe);
+                if (content.Length > 300) content = content.Substring(0, 300) + "...";
+
+                txtPrompt.Text = $"Bài học: {bh.TieuDe}\nNội dung trọng tâm: {content}";
+
+                // Tự động map Trình độ
+                if (!string.IsNullOrEmpty(bh.MaTrinhDo))
+                {
+                    for (int i = 0; i < cboLevel.Items.Count; i++)
+                    {
+                        if ((cboLevel.Items[i] as ComboBoxItem)?.Content?.ToString()?.StartsWith(bh.MaTrinhDo, StringComparison.OrdinalIgnoreCase) == true)
+                        {
+                            cboLevel.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+
+                // Tự động map Kỹ năng
+                string skillTag = bh.LoaiBaiHoc switch
+                {
+                    "Nghe" => "Nghe",
+                    "Doc" => "Doc",
+                    "Viet" => "Viet",
+                    "Noi" => "Noi",
+                    "NguPhap" => "NguPhap",
+                    "TuVung" => "TuVung",
+                    _ => ""
+                };
+                if (!string.IsNullOrEmpty(skillTag))
+                {
+                    for (int i = 0; i < cboSkill.Items.Count; i++)
+                    {
+                        if (string.Equals((cboSkill.Items[i] as ComboBoxItem)?.Tag?.ToString(), skillTag, StringComparison.OrdinalIgnoreCase))
+                        {
+                            cboSkill.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void BtnClearPrompt_Click(object sender, RoutedEventArgs e)
+        {
+            txtPrompt.Text = "";
+            txtPrompt.Focus();
+        }
+
+        private void QuickPrompt_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string tagStr)
+            {
+                var parts = tagStr.Split('|');
+                if (parts.Length >= 1) txtPrompt.Text = parts[0];
+
+                if (parts.Length >= 2 && !string.IsNullOrEmpty(parts[1]))
+                {
+                    for (int i = 0; i < cboSkill.Items.Count; i++)
+                    {
+                        if (string.Equals((cboSkill.Items[i] as ComboBoxItem)?.Tag?.ToString(), parts[1], StringComparison.OrdinalIgnoreCase))
+                        {
+                            cboSkill.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (parts.Length >= 3 && !string.IsNullOrEmpty(parts[2]))
+                {
+                    for (int i = 0; i < cboLevel.Items.Count; i++)
+                    {
+                        if ((cboLevel.Items[i] as ComboBoxItem)?.Content?.ToString()?.StartsWith(parts[2], StringComparison.OrdinalIgnoreCase) == true)
+                        {
+                            cboLevel.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (parts.Length >= 4 && !string.IsNullOrEmpty(parts[3]))
+                {
+                    for (int i = 0; i < cboQuestionType.Items.Count; i++)
+                    {
+                        if (string.Equals((cboQuestionType.Items[i] as ComboBoxItem)?.Tag?.ToString(), parts[3], StringComparison.OrdinalIgnoreCase))
+                        {
+                            cboQuestionType.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void BtnApproveAll_Click(object sender, RoutedEventArgs e)
+        {
+            var list = AISinhDeBUS.Instance.LayDanhSachChoDuyet();
+            if (list == null || list.Count == 0)
+            {
+                Common.ThongBaoDialog.CanhBao("Không có câu hỏi nào đang chờ duyệt trong hàng đợi.", "Thông báo");
+                return;
+            }
+
+            string chuDeGoiY = list.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.ChuDeYeuCau))?.ChuDeYeuCau ?? txtPrompt.Text.Trim();
+            var dlg = new XacNhanPheDuyetVaTaoBoDialog(list.Count, chuDeGoiY)
+            {
+                Owner = Window.GetWindow(this)
+            };
+
+            if (dlg.ShowDialog() != true) return;
+
+            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
+            var (success, fail, dsMaMoi, err) = AISinhDeBUS.Instance.PheDuyetTatCa(list);
+            TaiDanhSachChoDuyet();
+
+            if (success > 0 && dsMaMoi.Count > 0)
+            {
+                if (dlg.HanhDong == HanhDongPheDuyet.TaoBoMoi)
+                {
+                    bool okBo = BoCauHoiBUS.Instance.TaoBoCauHoiTuDanhSachMaCauHoi(
+                        tenBo: dlg.TenBoMoi,
+                        moTa: dlg.MoTaBoMoi,
+                        tenNguon: chuDeGoiY,
+                        maCauHois: dsMaMoi,
+                        nguoiTaoId: userId,
+                        out int maBoMoi,
+                        out string errBo
+                    );
+
+                    if (okBo)
+                    {
+                        Common.ThongBaoDialog.ThanhCong(
+                            $"✓ Đã phê duyệt {success} câu hỏi vào Ngân hàng câu hỏi!\n" +
+                            $"✓ Đã tạo thành công Bộ câu hỏi mới: '{dlg.TenBoMoi}' (Mã #{maBoMoi}) gồm {dsMaMoi.Count} câu hỏi.",
+                            "Phê duyệt & Tạo bộ thành công");
+                    }
+                    else
+                    {
+                        Common.ThongBaoDialog.CanhBao(
+                            $"Đã phê duyệt {success} câu hỏi vào Ngân hàng câu hỏi thành công, nhưng không thể tạo bộ câu hỏi: {errBo}",
+                            "Thông báo");
+                    }
+                }
+                else if (dlg.HanhDong == HanhDongPheDuyet.ThemVaoBoCoSan)
+                {
+                    bool okBo = BoCauHoiBUS.Instance.ThemDanhSachCauHoiVaoBo(
+                        maBo: dlg.MaBoCoSan,
+                        maCauHois: dsMaMoi,
+                        out int soLuongThem,
+                        out string errBo
+                    );
+
+                    if (okBo)
+                    {
+                        Common.ThongBaoDialog.ThanhCong(
+                            $"✓ Đã phê duyệt {success} câu hỏi vào Ngân hàng câu hỏi!\n" +
+                            $"✓ Đã thêm thành công {soLuongThem} câu hỏi vào Bộ câu hỏi '{dlg.TenBoCoSan}'.",
+                            "Phê duyệt & Thêm vào bộ thành công");
+                    }
+                    else
+                    {
+                        Common.ThongBaoDialog.CanhBao(
+                            $"Đã phê duyệt {success} câu hỏi vào Ngân hàng câu hỏi thành công, nhưng không thể thêm vào bộ câu hỏi: {errBo}",
+                            "Thông báo");
+                    }
+                }
+                else
+                {
+                    Common.ThongBaoDialog.ThanhCong(
+                        $"✓ Đã phê duyệt {success} câu hỏi vào Ngân hàng câu hỏi chung thành công!",
+                        "Phê duyệt thành công");
+                }
+            }
+            else if (fail > 0)
+            {
+                Common.ThongBaoDialog.Loi($"Phê duyệt thất bại: {err}", "Lỗi phê duyệt");
+            }
+        }
+
+        private void BtnRejectAll_Click(object sender, RoutedEventArgs e)
+        {
+            var list = AISinhDeBUS.Instance.LayDanhSachChoDuyet();
+            if (list == null || list.Count == 0)
+            {
+                Common.ThongBaoDialog.CanhBao("Không có câu hỏi nào đang chờ duyệt trong hàng đợi.", "Thông báo");
+                return;
+            }
+
+            bool xacNhan = Common.ThongBaoDialog.XacNhanXoa(
+                Window.GetWindow(this),
+                $"Bạn có chắc chắn muốn TỪ CHỐI TOÀN BỘ {list.Count} câu hỏi đang chờ trong hàng đợi không?\nThao tác này sẽ xóa các câu hỏi khỏi danh sách chờ duyệt.",
+                "Xác nhận từ chối tất cả");
+
+            if (!xacNhan) return;
+
+            var (success, err) = AISinhDeBUS.Instance.TuChoiTatCa();
+            TaiDanhSachChoDuyet();
+            Common.ThongBaoDialog.ThongTin($"Đã từ chối {success} câu hỏi khỏi hàng đợi kiểm duyệt.", "Đã từ chối tất cả");
         }
 
         #region Tab Navigation
@@ -76,12 +331,16 @@ namespace GUI.Views.GiangVien
                     pnlEmptyQueue.Visibility = Visibility.Visible;
                     txtPendingCount.Text = "0 chờ duyệt";
                     txtPendingCount.Foreground = (Brush)FindResource("AdminMint");
+                    if (btnApproveAll != null) { btnApproveAll.IsEnabled = false; btnApproveAll.Opacity = 0.5; }
+                    if (btnRejectAll != null) { btnRejectAll.IsEnabled = false; btnRejectAll.Opacity = 0.5; }
                     return;
                 }
 
                 pnlEmptyQueue.Visibility = Visibility.Collapsed;
                 txtPendingCount.Text = $"{list.Count} chờ duyệt";
                 txtPendingCount.Foreground = new SolidColorBrush(Color.FromRgb(180, 83, 9));
+                if (btnApproveAll != null) { btnApproveAll.IsEnabled = true; btnApproveAll.Opacity = 1.0; }
+                if (btnRejectAll != null) { btnRejectAll.IsEnabled = true; btnRejectAll.Opacity = 1.0; }
 
                 foreach (var item in list)
                 {
@@ -205,8 +464,10 @@ namespace GUI.Views.GiangVien
 
             var bodyStack = new StackPanel();
 
-            // Đoạn văn tham chiếu (nếu có)
-            if (!string.IsNullOrWhiteSpace(q.DoanVanDoc))
+            // Đoạn văn tham chiếu (chỉ hiển thị khi có nội dung thực sự và không phải tiêu đề lặp lại)
+            if (!string.IsNullOrWhiteSpace(q.DoanVanDoc) && 
+                q.DoanVanDoc.Trim().Length > 45 && 
+                !string.Equals(q.DoanVanDoc.Trim(), q.ChuDeYeuCau?.Trim(), StringComparison.OrdinalIgnoreCase))
             {
                 var docBorder = new Border
                 {
@@ -268,9 +529,24 @@ namespace GUI.Views.GiangVien
                     };
                     optGrid.Children.Add(keyBorder);
 
+                    // Làm sạch nội dung lựa chọn để tránh lặp ký hiệu đúng/sai
+                    string cleanOpt = opt.NoiDungLuaChon ?? "";
+                    cleanOpt = System.Text.RegularExpressions.Regex.Replace(cleanOpt, @"\s*[\(\[]?\s*(?:Đúng|Đáp án đúng|Correct)\s*[\✓\✔]?\s*[\)\]]?\s*$", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase).Trim();
+                    cleanOpt = System.Text.RegularExpressions.Regex.Replace(cleanOpt, @"[\✓\✔]\s*$", "").Trim();
+
+                    string optDisplayText;
+                    if (opt.KyHieuLuaChon == "ANS")
+                    {
+                        optDisplayText = $"Đáp án mẫu: {cleanOpt.Replace("|", "  /  ")}";
+                    }
+                    else
+                    {
+                        optDisplayText = cleanOpt + (opt.LaDapAnDung ? "  ✓ (Đáp án đúng)" : "");
+                    }
+
                     var txtOpt = new TextBlock
                     {
-                        Text = opt.NoiDungLuaChon + (opt.LaDapAnDung ? "  ✓ (Đáp án đúng)" : ""),
+                        Text = optDisplayText,
                         FontSize = 12.5,
                         Foreground = opt.LaDapAnDung ? new SolidColorBrush(Color.FromRgb(21, 128, 61)) : (Brush)FindResource("TextDark"),
                         FontWeight = opt.LaDapAnDung ? FontWeights.Bold : FontWeights.Normal,
@@ -378,11 +654,69 @@ namespace GUI.Views.GiangVien
             btnDuyet.Content = stackDuyet;
             btnDuyet.Click += (s, e) =>
             {
+                string chuDeGoiY = !string.IsNullOrWhiteSpace(q.ChuDeYeuCau) ? q.ChuDeYeuCau : (txtPrompt?.Text.Trim() ?? "Chủ đề tự do");
+                var dlg = new XacNhanPheDuyetVaTaoBoDialog(1, chuDeGoiY)
+                {
+                    Owner = Window.GetWindow(this)
+                };
+
+                if (dlg.ShowDialog() != true) return;
+
                 bool thanhCong = AISinhDeBUS.Instance.PheDuyetCauHoiAI(q.MaCauHoiAI, out int maCauHoiMoi, out string err);
                 if (thanhCong)
                 {
+                    int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
                     TaiDanhSachChoDuyet();
-                    Common.ThongBaoDialog.ThanhCong($"✓ Đã phê duyệt và lưu vào Ngân hàng câu hỏi thành công!\nMã câu hỏi chính thức: #{maCauHoiMoi}.", "Phê duyệt thành công");
+
+                    if (dlg.HanhDong == HanhDongPheDuyet.TaoBoMoi && maCauHoiMoi > 0)
+                    {
+                        bool okBo = BoCauHoiBUS.Instance.TaoBoCauHoiTuDanhSachMaCauHoi(
+                            tenBo: dlg.TenBoMoi,
+                            moTa: dlg.MoTaBoMoi,
+                            tenNguon: chuDeGoiY,
+                            maCauHois: new List<int> { maCauHoiMoi },
+                            nguoiTaoId: userId,
+                            out int maBoMoi,
+                            out string errBo
+                        );
+
+                        if (okBo)
+                        {
+                            Common.ThongBaoDialog.ThanhCong(
+                                $"✓ Đã phê duyệt câu hỏi #{maCauHoiMoi} vào Ngân hàng câu hỏi!\n" +
+                                $"✓ Đã tạo thành công Bộ câu hỏi mới: '{dlg.TenBoMoi}' (Mã #{maBoMoi}).",
+                                "Phê duyệt & Tạo bộ thành công");
+                        }
+                        else
+                        {
+                            Common.ThongBaoDialog.CanhBao(
+                                $"Đã phê duyệt câu hỏi #{maCauHoiMoi} vào Ngân hàng câu hỏi thành công, nhưng không thể tạo bộ câu hỏi: {errBo}",
+                                "Thông báo");
+                        }
+                    }
+                    else if (dlg.HanhDong == HanhDongPheDuyet.ThemVaoBoCoSan && maCauHoiMoi > 0)
+                    {
+                        bool okBo = BoCauHoiBUS.Instance.ThemCauHoiVaoBo(dlg.MaBoCoSan, maCauHoiMoi, out string errBo);
+                        if (okBo)
+                        {
+                            Common.ThongBaoDialog.ThanhCong(
+                                $"✓ Đã phê duyệt câu hỏi #{maCauHoiMoi} vào Ngân hàng câu hỏi!\n" +
+                                $"✓ Đã thêm vào Bộ câu hỏi '{dlg.TenBoCoSan}'.",
+                                "Phê duyệt & Thêm vào bộ thành công");
+                        }
+                        else
+                        {
+                            Common.ThongBaoDialog.CanhBao(
+                                $"Đã phê duyệt câu hỏi #{maCauHoiMoi} vào Ngân hàng câu hỏi thành công, nhưng không thể thêm vào bộ: {errBo}",
+                                "Thông báo");
+                        }
+                    }
+                    else
+                    {
+                        Common.ThongBaoDialog.ThanhCong(
+                            $"✓ Đã phê duyệt câu hỏi #{maCauHoiMoi} và lưu vào Ngân hàng câu hỏi thành công!",
+                            "Phê duyệt thành công");
+                    }
                 }
                 else
                 {
@@ -394,6 +728,55 @@ namespace GUI.Views.GiangVien
             mainStack.Children.Add(actionStack);
             cardBorder.Child = mainStack;
             return cardBorder;
+        }
+
+        private static string DoanKyNangTuPrompt(string prompt)
+        {
+            if (string.IsNullOrWhiteSpace(prompt)) return "NguPhap";
+            string p = prompt.ToLowerInvariant();
+
+            if (p.Contains("ngữ pháp") || p.Contains("ngu phap") || p.Contains("grammar") ||
+                p.Contains("thì ") || p.Contains("tense") || p.Contains("câu điều kiện") ||
+                p.Contains("lời khuyên") || p.Contains("advice") || p.Contains("modal") ||
+                p.Contains("mệnh đề") || p.Contains("bị động") || p.Contains("passive") ||
+                p.Contains("so sánh") || p.Contains("comparison") || p.Contains("preposition") || p.Contains("giới từ") ||
+                p.Contains("hoàn thành") || p.Contains("quá khứ") || p.Contains("tương lai") || p.Contains("hiện tại"))
+            {
+                return "NguPhap";
+            }
+
+            if (p.Contains("từ vựng") || p.Contains("tu vung") || p.Contains("vocabulary") || p.Contains("vocab") ||
+                p.Contains("từ đồng nghĩa") || p.Contains("antonym") || p.Contains("synonym") ||
+                p.Contains("chuyên ngành") || p.Contains("idiom") || p.Contains("phrasal verb") || p.Contains("collocation"))
+            {
+                return "TuVung";
+            }
+
+            if (p.Contains("nghe") || p.Contains("listening") || p.Contains("audio") ||
+                p.Contains("hội thoại") || p.Contains("dialogue") || p.Contains("conversation"))
+            {
+                return "Nghe";
+            }
+
+            if (p.Contains("viết lại") || p.Contains("sửa lỗi") || p.Contains("writing") ||
+                p.Contains("essay") || p.Contains("paragraph") || p.Contains("thư") || p.Contains("email"))
+            {
+                return "Viet";
+            }
+
+            if (p.Contains("nói") || p.Contains("speaking") || p.Contains("phát âm") ||
+                p.Contains("pronunciation") || p.Contains("trọng âm") || p.Contains("stress") || p.Contains("ipa"))
+            {
+                return "Noi";
+            }
+
+            if (p.Contains("đọc") || p.Contains("reading") || p.Contains("đoạn văn") ||
+                p.Contains("passage") || p.Contains("bài đọc"))
+            {
+                return "Doc";
+            }
+
+            return "NguPhap";
         }
 
         private async void BtnSinhCauHoi_Click(object sender, RoutedEventArgs e)
@@ -413,12 +796,16 @@ namespace GUI.Views.GiangVien
             if (count <= 0) count = 5;
 
             string selectedSkillTag = (cboSkill.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "";
-            string loaiBaiHoc = !string.IsNullOrWhiteSpace(selectedSkillTag) ? selectedSkillTag : "Doc";
+            string loaiBaiHoc = !string.IsNullOrWhiteSpace(selectedSkillTag) ? selectedSkillTag : DoanKyNangTuPrompt(prompt);
 
             string selectedQTypeTag = (cboQuestionType.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "";
             string? yeuCauLoaiCauHoi = !string.IsNullOrWhiteSpace(selectedQTypeTag) ? selectedQTypeTag : null;
 
-            string modelSelection = (cboModel.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Google Gemini";
+            // Đồng bộ mô hình AI hoạt động từ Giám sát hệ thống
+            BUS.AI.AIServiceManager.Instance.SyncActiveConfigFromStorage();
+            string activeProvider = BUS.AI.AIServiceManager.Instance.ActiveProviderType.ToString();
+            string activeModel = BUS.AI.AIServiceManager.Instance.ActiveModel ?? "Mặc định";
+            string modelDisplay = $"{activeProvider} ({activeModel})";
 
             _generationCts = new CancellationTokenSource();
             var ct = _generationCts.Token;
@@ -426,7 +813,7 @@ namespace GUI.Views.GiangVien
             btnSinhCauHoi.Visibility = Visibility.Collapsed;
             pnlGeneratingProgress.Visibility = Visibility.Visible;
             btnCancelGeneration.IsEnabled = true;
-            txtGeneratingStatus.Text = $"Đang phân tích, gọi AI ({modelSelection}) và lưu vào CSDL...";
+            txtGeneratingStatus.Text = $"Đang phân tích, gọi AI ({modelDisplay}) và lưu vào CSDL...";
 
             int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
 
@@ -438,7 +825,7 @@ namespace GUI.Views.GiangVien
                     count: count,
                     skill: loaiBaiHoc,
                     questionType: yeuCauLoaiCauHoi,
-                    modelSelection: modelSelection,
+                    modelSelection: "", // Tự động lấy cấu hình Active từ Giám sát hệ thống
                     userId: userId,
                     ct: ct
                 );
@@ -447,12 +834,12 @@ namespace GUI.Views.GiangVien
                 {
                     TaiDanhSachChoDuyet();
                     Common.ThongBaoDialog.ThanhCong(
-                        $"AI ({modelSelection}) đã tạo thành công {questions.Count} câu hỏi theo chủ đề '{prompt}'!\nCác câu hỏi đã được lưu an toàn vào hàng đợi kiểm duyệt.",
+                        $"AI ({modelDisplay}) đã tạo thành công {questions.Count} câu hỏi theo chủ đề '{prompt}'!\nCác câu hỏi đã được lưu an toàn vào hàng đợi kiểm duyệt.",
                         "Tạo câu hỏi thành công");
                 }
                 else
                 {
-                    Common.ThongBaoDialog.CanhBao(error ?? "Không nhận được phản hồi từ AI. Vui lòng kiểm tra API key hoặc chọn mô hình khác.", "Thông báo AI");
+                    Common.ThongBaoDialog.CanhBao(error ?? "Không nhận được phản hồi từ AI. Vui lòng kiểm tra lại cấu hình API key tại Giám sát hệ thống.", "Thông báo AI");
                 }
             }
             catch (OperationCanceledException)
@@ -490,8 +877,8 @@ namespace GUI.Views.GiangVien
         {
             var openFileDialog = new OpenFileDialog
             {
-                Title = "Chọn tệp đề thi / câu hỏi (.xlsx, .docx, .json)",
-                Filter = "Tất cả định dạng hỗ trợ (*.xlsx;*.docx;*.json)|*.xlsx;*.docx;*.json|Excel Spreadsheet (*.xlsx)|*.xlsx|Word Document (*.docx)|*.docx|JSON Data (*.json)|*.json"
+                Title = "Chọn tệp đề thi / câu hỏi (.txt, .docx, .xlsx, .json)",
+                Filter = "Tất cả định dạng hỗ trợ (*.txt;*.docx;*.xlsx;*.json)|*.txt;*.docx;*.xlsx;*.json|Văn bản thuần Text (*.txt)|*.txt|Word Document (*.docx)|*.docx|Excel Spreadsheet (*.xlsx)|*.xlsx|JSON Data (*.json)|*.json"
             };
 
             if (openFileDialog.ShowDialog() == true)
@@ -534,9 +921,9 @@ namespace GUI.Views.GiangVien
             }
 
             string ext = Path.GetExtension(filePath).ToLower();
-            if (ext != ".xlsx" && ext != ".docx" && ext != ".json")
+            if (ext != ".xlsx" && ext != ".docx" && ext != ".json" && ext != ".txt")
             {
-                Common.ThongBaoDialog.CanhBao("Hệ thống chỉ hỗ trợ các tệp có định dạng .xlsx, .docx hoặc .json.", "Định dạng không hỗ trợ");
+                Common.ThongBaoDialog.CanhBao("Hệ thống chỉ hỗ trợ các tệp có định dạng .txt, .docx, .xlsx hoặc .json.", "Định dạng không hỗ trợ");
                 return;
             }
 
@@ -656,6 +1043,29 @@ namespace GUI.Views.GiangVien
             else
             {
                 Common.ThongBaoDialog.Loi($"Không thể lưu vào ngân hàng câu hỏi: {errorMessage}", "Lỗi lưu dữ liệu");
+            }
+        }
+
+        private void BtnDownloadTemplateTxt_Click(object sender, RoutedEventArgs e)
+        {
+            var saveFileDialog = new SaveFileDialog
+            {
+                Title = "Tải file Text mẫu (.txt)",
+                Filter = "Văn bản thuần Text (*.txt)|*.txt",
+                FileName = "Mau_CauHoi_EnglishAI.txt"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    AISinhDeBUS.Instance.TaoFileMauTxt(saveFileDialog.FileName);
+                    Common.ThongBaoDialog.ThanhCong($"Đã lưu file mẫu Text thành công tại:\n{saveFileDialog.FileName}", "Tải mẫu thành công");
+                }
+                catch (Exception ex)
+                {
+                    Common.ThongBaoDialog.Loi($"Không thể lưu file mẫu: {ex.Message}", "Lỗi");
+                }
             }
         }
 

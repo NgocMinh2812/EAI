@@ -23,6 +23,10 @@ namespace DTO
 
         public string IpaFormatted => string.IsNullOrWhiteSpace(LoaiTu) ? PhienAmIPA : $"{PhienAmIPA} ({LoaiTu})";
         public string TopicBadge => $"{TenChuDe.ToUpper()} • {MaCapDo}";
-        public bool DaThuoc => SoLanDung >= 2;
+        public bool DaThuoc => SoLanDung >= 1;
+
+        public string DaThuocBadgeText => DaThuoc ? "✓ Đã thuộc" : "Cần ôn tập";
+        public string DaThuocBadgeBg => DaThuoc ? "#DCFCE7" : "#FEF3C7";
+        public string DaThuocBadgeFg => DaThuoc ? "#15803D" : "#B45309";
     }
 }

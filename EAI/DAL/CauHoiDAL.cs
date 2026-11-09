@@ -300,9 +300,9 @@ namespace DAL
                     // 1. INSERT CÂU HỎI MỚI
                     string insertSql = @"
                         INSERT INTO CauHoi (MaChuDe, MaTrinhDo, LoaiCauHoi, KyNang, DoKho, NoiDungCauHoi, 
-                                            DoanVanDoc, DuongDanAudio, GiaiThichDapAn, LoiGiaiChiTiet, DaKiemDuyet, NguoiTao, NguonTao, NgayTao, DoanVanDanChung, LoaiNguon, TepTinNguon, MaDinhDanhSeed)
+                                            DoanVanDoc, DuongDanAudio, GiaiThichDapAn, LoiGiaiChiTiet, DaKiemDuyet, NguoiTao, NguonTao, NgayTao, DoanVanDanChung, LoaiNguon, TepTinNguon, MaDinhDanhSeed, MaBaiHoc)
                         VALUES (@MaChuDe, @MaTrinhDo, @LoaiCauHoi, @KyNang, @DoKho, @NoiDung, 
-                                @DoanVanDoc, @AudioPath, @GiaiThich, @LoiGiai, @DaKiemDuyet, @NguoiTao, @NguonTao, SYSDATETIME(), @DoanVanDanChung, @LoaiNguon, @TepTinNguon, @MaDinhDanhSeed);
+                                @DoanVanDoc, @AudioPath, @GiaiThich, @LoiGiai, @DaKiemDuyet, @NguoiTao, @NguonTao, SYSDATETIME(), @DoanVanDanChung, @LoaiNguon, @TepTinNguon, @MaDinhDanhSeed, @MaBaiHoc);
                         SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
                     using var cmd = new SqlCommand(insertSql, conn, trans);
@@ -323,6 +323,7 @@ namespace DAL
                     cmd.Parameters.AddWithValue("@LoaiNguon", string.IsNullOrWhiteSpace(cauHoi.LoaiNguon) ? "Extracted" : cauHoi.LoaiNguon);
                     cmd.Parameters.AddWithValue("@TepTinNguon", (object?)cauHoi.TepTinNguon ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@MaDinhDanhSeed", (object?)cauHoi.MaDinhDanhSeed ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@MaBaiHoc", (object?)cauHoi.MaBaiHoc ?? DBNull.Value);
 
                     maCauHoi = (int)cmd.ExecuteScalar();
                     cauHoi.MaCauHoi = maCauHoi;
@@ -345,7 +346,8 @@ namespace DAL
                             DaKiemDuyet = @DaKiemDuyet,
                             DoanVanDanChung = @DoanVanDanChung,
                             LoaiNguon = @LoaiNguon,
-                            TepTinNguon = @TepTinNguon
+                            TepTinNguon = @TepTinNguon,
+                            MaBaiHoc = COALESCE(@MaBaiHoc, MaBaiHoc)
                         WHERE MaCauHoi = @MaCauHoi;
 
                         -- Gỡ liên kết khóa ngoại tạm thời nếu có lượt làm bài trước đó tham chiếu
@@ -370,6 +372,7 @@ namespace DAL
                     cmd.Parameters.AddWithValue("@DoanVanDanChung", (object?)cauHoi.DoanVanDanChung ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LoaiNguon", string.IsNullOrWhiteSpace(cauHoi.LoaiNguon) ? "Extracted" : cauHoi.LoaiNguon);
                     cmd.Parameters.AddWithValue("@TepTinNguon", (object?)cauHoi.TepTinNguon ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@MaBaiHoc", (object?)cauHoi.MaBaiHoc ?? DBNull.Value);
 
                     cmd.ExecuteNonQuery();
                 }

@@ -80,6 +80,79 @@ namespace BUS
             return BoCauHoiDAL.Instance.ThemCauHoiVaoBo(maBo, maCauHoi, out errorMessage);
         }
 
+        /// <summary>
+        /// Tạo một bộ câu hỏi mới từ danh sách các mã câu hỏi đã tồn tại trong Ngân hàng câu hỏi
+        /// </summary>
+        public bool TaoBoCauHoiTuDanhSachMaCauHoi(
+            string tenBo,
+            string? moTa,
+            string? tenNguon,
+            List<int> maCauHois,
+            int nguoiTaoId,
+            out int maBoMoi,
+            out string errorMessage)
+        {
+            maBoMoi = 0;
+            errorMessage = string.Empty;
+            if (string.IsNullOrWhiteSpace(tenBo))
+            {
+                errorMessage = "Tên bộ câu hỏi không được để trống.";
+                return false;
+            }
+
+            if (maCauHois == null || maCauHois.Count == 0)
+            {
+                errorMessage = "Danh sách câu hỏi trống.";
+                return false;
+            }
+
+            var bo = new BoCauHoiDTO
+            {
+                TenBoCauHoi = tenBo.Trim(),
+                MoTa = moTa?.Trim(),
+                NguonTao = "AI",
+                TenNguon = tenNguon,
+                NguoiTao = nguoiTaoId
+            };
+
+            var dsCauHoi = maCauHois.Select(id => new CauHoiKhaoSatDTO { MaCauHoi = id }).ToList();
+            bool ok = BoCauHoiDAL.Instance.LuuBoCauHoi(bo, dsCauHoi, nguoiTaoId, out errorMessage);
+            if (ok)
+            {
+                maBoMoi = bo.MaBoCauHoi;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Thêm danh sách các mã câu hỏi vào một bộ câu hỏi đã có sẵn
+        /// </summary>
+        public bool ThemDanhSachCauHoiVaoBo(int maBo, List<int> maCauHois, out int soLuongThem, out string errorMessage)
+        {
+            soLuongThem = 0;
+            errorMessage = string.Empty;
+            if (maBo <= 0 || maCauHois == null || maCauHois.Count == 0)
+            {
+                errorMessage = "Dữ liệu bộ câu hỏi hoặc danh sách câu hỏi không hợp lệ.";
+                return false;
+            }
+
+            foreach (int maCH in maCauHois)
+            {
+                if (BoCauHoiDAL.Instance.ThemCauHoiVaoBo(maBo, maCH, out string err))
+                {
+                    soLuongThem++;
+                }
+                else
+                {
+                    errorMessage = err;
+                }
+            }
+
+            return soLuongThem > 0;
+        }
+
         public bool XoaCauHoiVinhVien(int maCauHoi, out string errorMessage)
         {
             return BoCauHoiDAL.Instance.XoaCauHoiVinhVien(maCauHoi, out errorMessage);

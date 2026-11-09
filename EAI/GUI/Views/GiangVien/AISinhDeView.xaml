@@ -31,19 +31,47 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="QuickPromptBtn" TargetType="Button">
+            <Setter Property="Background" Value="#F1F5F9"/>
+            <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderLight}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Padding" Value="9,5"/>
+            <Setter Property="Margin" Value="0,0,6,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#E2E8F0"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#CBD5E1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Page.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="25">
-        <StackPanel MaxWidth="1200" HorizontalAlignment="Stretch">
+    <Grid Margin="24,18,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <!-- ================= TOP HEADER ================= -->
-            <StackPanel Margin="0,0,0,16">
-                <TextBlock Text="Tạo câu hỏi bằng AI &amp; Nhập tệp" FontWeight="Bold" FontSize="20" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                <TextBlock Text="Tạo câu hỏi trắc nghiệm tự động bằng AI và nhập dữ liệu tệp hàng loạt" FontSize="12.5" Foreground="{StaticResource TextGray}"/>
-            </StackPanel>
+        <!-- ================= TOP HEADER & TABS ================= -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,14">
+            <TextBlock Text="Tạo câu hỏi bằng AI &amp; Nhập tệp" FontWeight="Bold" FontSize="20" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
+            <TextBlock Text="Tạo câu hỏi trắc nghiệm tự động bằng AI và nhập dữ liệu tệp hàng loạt" FontSize="12.5" Foreground="{StaticResource TextGray}" Margin="0,0,0,14"/>
 
             <!-- Mode Switcher Tabs -->
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal">
                 <Button x:Name="tabAISinhDe" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
                         FontWeight="SemiBold" FontSize="13" Padding="16,8" Cursor="Hand" BorderThickness="0" Margin="0,0,8,0" Click="TabAISinhDe_Click">
                     <Button.Template>
@@ -69,17 +97,19 @@
                     </Button.Template>
                 </Button>
             </StackPanel>
+        </StackPanel>
 
-            <!-- ================= VIEW 1: AI SINH ĐỀ ================= -->
-            <Grid x:Name="pnlAISinhDe" Visibility="Visible">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="380"/>
-                    <ColumnDefinition Width="20"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+        <!-- ================= VIEW 1: AI SINH ĐỀ (SPLIT-VIEW) ================= -->
+        <Grid x:Name="pnlAISinhDe" Grid.Row="1" Visibility="Visible">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="385"/>
+                <ColumnDefinition Width="18"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-                <!-- Left Column: Generator Form -->
-                <Border Grid.Column="0" Style="{StaticResource AdminCardStyle}">
+            <!-- Left Column: Generator Form (Cuộn độc lập, ghim cố định không trôi) -->
+            <Border Grid.Column="0" Style="{StaticResource AdminCardStyle}" Padding="0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="18,16">
                     <StackPanel>
                         <!-- Form Title -->
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
@@ -89,13 +119,23 @@
                             <TextBlock Text="Yêu cầu tạo câu hỏi bằng AI" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
                         </StackPanel>
 
-                        <!-- AI Model -->
-                        <TextBlock Text="MÔ HÌNH AI" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
-                        <ComboBox x:Name="cboModel" Height="36" SelectedIndex="0" Margin="0,0,0,14" Cursor="Hand">
-                            <ComboBoxItem Content="Google Gemini (gemini-1.5-flash)"/>
-                            <ComboBoxItem Content="Groq Cloud (llama-3.3-70b-versatile)"/>
-                            <ComboBoxItem Content="xKiro AI Gateway (qwen/qwen-2.5-72b-instruct)"/>
-                        </ComboBox>
+                        <!-- AI Model (Đồng bộ trực tiếp từ cấu hình Giám sát hệ thống) -->
+                        <Border Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,14">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <local:LucideIcon Kind="Cpu" Size="16" Foreground="#15803D" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="MÔ HÌNH HOẠT ĐỘNG:" FontSize="10" FontWeight="Bold" Foreground="#15803D" Margin="0,0,5,0"/>
+                                        <TextBlock x:Name="txtActiveAiModelInfo" Text="Google Gemini (Đang tải...)" FontSize="10.5" FontWeight="SemiBold" Foreground="#166534"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Được đồng bộ và quản lý tập trung từ mục Giám sát hệ thống" FontSize="9.5" Foreground="#15803D"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
 
                         <!-- Skill and Question Type -->
                         <Grid Margin="0,0,0,14">
@@ -107,7 +147,8 @@
 
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="KỸ NĂNG MỤC TIÊU" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
-                                <ComboBox x:Name="cboSkill" Height="36" SelectedIndex="0" Cursor="Hand">
+                                <ComboBox x:Name="cboSkill" Height="36" SelectedIndex="0" Cursor="Hand"
+                                          ScrollViewer.CanContentScroll="False" VirtualizingPanel.ScrollUnit="Pixel">
                                     <ComboBoxItem Content="Tự động theo chủ đề" Tag=""/>
                                     <ComboBoxItem Content="Đọc hiểu (Reading)" Tag="Doc"/>
                                     <ComboBoxItem Content="Nghe hiểu (Listening)" Tag="Nghe"/>
@@ -120,7 +161,8 @@
 
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="DẠNG CÂU HỎI" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
-                                <ComboBox x:Name="cboQuestionType" Height="36" SelectedIndex="0" Cursor="Hand">
+                                <ComboBox x:Name="cboQuestionType" Height="36" SelectedIndex="0" Cursor="Hand"
+                                          ScrollViewer.CanContentScroll="False" VirtualizingPanel.ScrollUnit="Pixel">
                                     <ComboBoxItem Content="Tự động đa dạng theo kỹ năng" Tag=""/>
                                     <ComboBoxItem Content="Trắc nghiệm (Multiple Choice)" Tag="TracNghiem"/>
                                     <ComboBoxItem Content="Đúng / Sai (True / False)" Tag="DungSai"/>
@@ -146,7 +188,8 @@
 
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="CẤP ĐỘ" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
-                                <ComboBox x:Name="cboLevel" Height="36" SelectedIndex="2" Cursor="Hand">
+                                <ComboBox x:Name="cboLevel" Height="36" SelectedIndex="2" Cursor="Hand"
+                                          ScrollViewer.CanContentScroll="False" VirtualizingPanel.ScrollUnit="Pixel">
                                     <ComboBoxItem Content="A1 — Cơ bản"/>
                                     <ComboBoxItem Content="A2 — Sơ cấp"/>
                                     <ComboBoxItem Content="B1 — Trung cấp"/>
@@ -159,7 +202,8 @@
 
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="SỐ CÂU" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
-                                <ComboBox x:Name="cboCount" Height="36" SelectedIndex="0" Cursor="Hand">
+                                <ComboBox x:Name="cboCount" Height="36" SelectedIndex="0" Cursor="Hand"
+                                          ScrollViewer.CanContentScroll="False" VirtualizingPanel.ScrollUnit="Pixel">
                                     <ComboBoxItem Content="5"/>
                                     <ComboBoxItem Content="10"/>
                                     <ComboBoxItem Content="15"/>
@@ -168,12 +212,41 @@
                             </StackPanel>
                         </Grid>
 
+                        <!-- Nguồn học liệu: Chọn bài học có sẵn trong hệ thống hoặc nhập prompt tự do -->
+                        <TextBlock Text="NGUỒN NỘI DUNG / BÀI HỌC CÓ SẴN (TÙY CHỌN)" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
+                        <ComboBox x:Name="cboExistingLesson" Height="36" Margin="0,0,0,14" SelectionChanged="CboExistingLesson_SelectionChanged" Cursor="Hand"
+                                  ScrollViewer.CanContentScroll="False" VirtualizingPanel.ScrollUnit="Pixel">
+                            <ComboBoxItem Content="-- Nhập chủ đề / yêu cầu tự do --" IsSelected="True"/>
+                        </ComboBox>
+
                         <!-- Prompt / Topic -->
-                        <TextBlock Text="PROMPT / CHỦ ĐỀ" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
-                        <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,18">
-                            <TextBox x:Name="txtPrompt" Height="100" TextWrapping="Wrap" AcceptsReturn="True" BorderThickness="0" Background="Transparent"
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="YÊU CẦU / CHỦ ĐỀ RA ĐỀ (*)" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
+                            <Button Grid.Column="1" Content="Xóa trắng" FontSize="11" Foreground="#64748B" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnClearPrompt_Click"/>
+                        </Grid>
+                        <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,10">
+                            <TextBox x:Name="txtPrompt" Height="90" TextWrapping="Wrap" AcceptsReturn="True" BorderThickness="0" Background="Transparent"
                                      Text="5 câu ngữ pháp Thì Hiện Tại Hoàn Thành, B1, kèm giải thích chi tiết..." FontSize="13" Foreground="{StaticResource TextDark}"/>
                         </Border>
+
+                        <!-- Gợi ý chủ đề nhanh (Quick Prompt Suggestions) -->
+                        <TextBlock Text="GỢI Ý CHỦ ĐỀ NHANH:" FontWeight="SemiBold" FontSize="10.5" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
+                        <WrapPanel Margin="0,0,0,14">
+                            <Button Content="✨ Thì Hiện tại hoàn thành" Style="{StaticResource QuickPromptBtn}" Click="QuickPrompt_Click" 
+                                    Tag="Thì Hiện tại hoàn thành (Present Perfect Tense) - phân biệt với Quá khứ đơn, cách dùng Since/For và các trạng từ chỉ thời gian|NguPhap|B1|TracNghiem"/>
+                            <Button Content="✨ Phỏng vấn &amp; IT" Style="{StaticResource QuickPromptBtn}" Click="QuickPrompt_Click" 
+                                    Tag="Từ vựng tiếng Anh chuyên ngành Công nghệ thông tin và Phỏng vấn xin việc (Job Interview &amp; IT Vocabulary)|TuVung|B2|TracNghiem"/>
+                            <Button Content="✨ Đọc hiểu: Trí tuệ AI" Style="{StaticResource QuickPromptBtn}" Click="QuickPrompt_Click" 
+                                    Tag="Đoạn văn đọc hiểu về tác động của Trí tuệ nhân tạo (AI) trong giáo dục và công việc tương lai|Doc|B1|TrueFalseNotGiven"/>
+                            <Button Content="✨ Nghe: Đặt phòng khách sạn" Style="{StaticResource QuickPromptBtn}" Click="QuickPrompt_Click" 
+                                    Tag="Kịch bản hội thoại đặt phòng khách sạn và dịch vụ lữ hành (Hotel Reservation &amp; Travel Services)|Nghe|A2|TracNghiem"/>
+                            <Button Content="✨ Viết lại câu công sở" Style="{StaticResource QuickPromptBtn}" Click="QuickPrompt_Click" 
+                                    Tag="Viết lại câu sử dụng từ gợi ý và tìm sửa lỗi sai ngữ pháp câu ghép, câu phức|Viet|B2|VietLaiCau"/>
+                        </WrapPanel>
 
                         <!-- Generation Progress State -->
                         <Border x:Name="pnlGeneratingProgress" Background="#FEF3C7" BorderBrush="#FCD34D" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,14" Visibility="Collapsed">
@@ -211,15 +284,72 @@
                             </Button.Template>
                         </Button>
                     </StackPanel>
-                </Border>
+                </ScrollViewer>
+            </Border>
 
-                <!-- Right Column: Verification List -->
-                <Border Grid.Column="2" Style="{StaticResource AdminCardStyle}">
-                    <StackPanel>
-                        <Grid Margin="0,0,0,16">
-                            <TextBlock Text="Kiểm duyệt câu hỏi do AI tạo &amp; Nhập tệp" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}"/>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <Button x:Name="btnRefreshQueue" Background="#F1F5F9" BorderThickness="0" Padding="8,4" Margin="0,0,8,0" Cursor="Hand" Click="BtnRefreshQueue_Click">
+            <!-- Right Column: Verification List (Ghim thanh công cụ trên đầu, danh sách câu hỏi cuộn riêng) -->
+            <Border Grid.Column="2" Style="{StaticResource AdminCardStyle}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Top Action Bar (Cố định ở trên đầu danh sách) -->
+                    <Border Grid.Row="0" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="20,16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="Kiểm duyệt câu hỏi do AI tạo &amp; Nhập tệp" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}"/>
+                                <TextBlock Text="Xem lại, sửa trực tiếp hoặc phê duyệt câu hỏi vào Ngân hàng câu hỏi" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <!-- Nút Phê duyệt tất cả -->
+                                <Button x:Name="btnApproveAll" Background="{StaticResource AdminDarkGreen}" Foreground="White" BorderThickness="0"
+                                        Padding="10,6" Margin="0,0,6,0" Cursor="Hand" Click="BtnApproveAll_Click" ToolTip="Phê duyệt toàn bộ các câu hỏi đang chờ vào Ngân hàng câu hỏi">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bdApproveAll" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <local:LucideIcon Kind="Check" Size="13" Foreground="White" Margin="0,0,4,0"/>
+                                                    <TextBlock Text="Duyệt tất cả" FontSize="11.5" FontWeight="SemiBold" Foreground="White"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdApproveAll" Property="Background" Value="#047857"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+
+                                <!-- Nút Từ chối tất cả -->
+                                <Button x:Name="btnRejectAll" Background="#FEE2E2" BorderThickness="0"
+                                        Padding="10,6" Margin="0,0,6,0" Cursor="Hand" Click="BtnRejectAll_Click" ToolTip="Từ chối và dọn sạch toàn bộ hàng đợi kiểm duyệt">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bdRejectAll" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <local:LucideIcon Kind="X" Size="12" Foreground="#DC2626" Margin="0,0,4,0"/>
+                                                    <TextBlock Text="Từ chối tất cả" FontSize="11.5" FontWeight="SemiBold" Foreground="#DC2626"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdRejectAll" Property="Background" Value="#FECACA"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+
+                                <Button x:Name="btnRefreshQueue" Background="#F1F5F9" BorderThickness="0" Padding="8,6" Margin="0,0,8,0" Cursor="Hand" Click="BtnRefreshQueue_Click" ToolTip="Tải lại danh sách hàng đợi">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
                                             <Border x:Name="bdRfQ" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
@@ -254,36 +384,41 @@
                                         </ControlTemplate>
                                     </Button.Template>
                                 </Button>
-                                <Border Background="#FEF3C7" CornerRadius="6" Padding="8,4">
+                                <Border Background="#FEF3C7" CornerRadius="6" Padding="8,5">
                                     <TextBlock x:Name="txtPendingCount" Text="0 chờ duyệt" FontSize="11.5" FontWeight="SemiBold" Foreground="#B45309"/>
                                 </Border>
                             </StackPanel>
                         </Grid>
+                    </Border>
 
-                        <!-- Empty State -->
-                        <Border x:Name="pnlEmptyQueue" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="10" Padding="32" Visibility="Collapsed">
-                            <StackPanel HorizontalAlignment="Center">
-                                <Border Width="48" Height="48" CornerRadius="24" Background="#E2E8F0" Margin="0,0,0,12" HorizontalAlignment="Center">
-                                    <local:LucideIcon Kind="CheckCircle2" Size="24" Foreground="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <TextBlock Text="Không có câu hỏi nào đang chờ duyệt" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                                <TextBlock Text="Bạn có thể tạo câu hỏi mới bằng AI hoặc nhập tệp dữ liệu đề thi ở tab bên cạnh." FontSize="12.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
+                    <!-- Danh sách câu hỏi cuộn mượt mà độc lập, không kéo cột form -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20,16">
+                        <StackPanel>
+                            <!-- Empty State -->
+                            <Border x:Name="pnlEmptyQueue" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="10" Padding="32" Visibility="Collapsed">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <Border Width="48" Height="48" CornerRadius="24" Background="#E2E8F0" Margin="0,0,0,12" HorizontalAlignment="Center">
+                                        <local:LucideIcon Kind="CheckCircle2" Size="24" Foreground="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Không có câu hỏi nào đang chờ duyệt" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                    <TextBlock Text="Bạn có thể tạo câu hỏi mới bằng AI hoặc nhập tệp dữ liệu đề thi ở tab bên cạnh." FontSize="12.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
 
-                        <!-- Dynamic Questions Container -->
-                        <StackPanel x:Name="pnlQuestionsList"/>
+                            <!-- Dynamic Questions Container -->
+                            <StackPanel x:Name="pnlQuestionsList"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
 
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <!-- ================= VIEW 2: NHẬP TỆP HÀNG LOẠT ================= -->
-            <Grid x:Name="pnlNhapTep" Visibility="Collapsed">
-                <Border Style="{StaticResource AdminCardStyle}">
+        <!-- ================= VIEW 2: NHẬP TỆP HÀNG LOẠT ================= -->
+        <ScrollViewer x:Name="pnlNhapTep" Grid.Row="1" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Border Style="{StaticResource AdminCardStyle}">
                     <StackPanel>
                         <TextBlock Text="Bóc tách dữ liệu đề thi tự động từ file mẫu chuẩn" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
-                        <TextBlock Text="Hỗ trợ các định dạng file Excel (.xlsx), Word (.docx) hoặc JSON chuẩn hóa theo cấu trúc của EnglishAI." FontSize="13" Foreground="{StaticResource TextGray}" Margin="0,0,0,20"/>
+                        <TextBlock Text="Hỗ trợ các định dạng file Văn bản (.txt), Word (.docx), Excel (.xlsx) hoặc JSON chuẩn hóa theo cấu trúc của EnglishAI." FontSize="13" Foreground="{StaticResource TextGray}" Margin="0,0,0,20"/>
 
                         <!-- Drag and Drop Zone -->
                         <Border x:Name="dropZoneBorder" Background="#F8FAFC" BorderBrush="#94A3B8" BorderThickness="2" CornerRadius="12" Padding="30" Margin="0,0,0,20" 
@@ -293,17 +428,17 @@
                                     <local:LucideIcon Kind="FolderOpen" Size="28" Foreground="#0F766E" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                                 <TextBlock Text="Kéo thả file đề thi vào đây hoặc bấm để chọn tệp từ máy tính" FontWeight="SemiBold" FontSize="14" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                                <TextBlock Text="Hỗ trợ định dạng .xlsx, .docx, .json • Tự động nhận diện cấu trúc đề thi" FontSize="12" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Hỗ trợ định dạng .txt, .docx, .xlsx, .json • Tự động nhận diện cấu trúc đề thi trắc nghiệm" FontSize="12" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Border>
 
                         <!-- Download Template Buttons -->
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                             <Button Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
-                                    FontWeight="Medium" Padding="14,8" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" Click="BtnDownloadTemplateExcel_Click">
+                                    FontWeight="Medium" Padding="14,8" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" Click="BtnDownloadTemplateTxt_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <local:LucideIcon Kind="Download" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Tải file Excel mẫu (.xlsx)"/>
+                                    <local:LucideIcon Kind="FileText" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Tải file Text mẫu (.txt)"/>
                                 </StackPanel>
                             </Button>
                             <Button Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
@@ -311,6 +446,13 @@
                                 <StackPanel Orientation="Horizontal">
                                     <local:LucideIcon Kind="Download" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
                                     <TextBlock Text="Tải file Word mẫu (.docx)"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
+                                    FontWeight="Medium" Padding="14,8" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" Click="BtnDownloadTemplateExcel_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <local:LucideIcon Kind="Download" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Tải file Excel mẫu (.xlsx)"/>
                                 </StackPanel>
                             </Button>
                             <Button Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
@@ -389,8 +531,7 @@
                         </StackPanel>
                     </StackPanel>
                 </Border>
-            </Grid>
+            </ScrollViewer>
 
-        </StackPanel>
-    </ScrollViewer>
+        </Grid>
 </Page>

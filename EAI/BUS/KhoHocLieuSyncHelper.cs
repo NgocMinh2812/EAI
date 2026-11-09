@@ -213,14 +213,25 @@ namespace BUS
                 string safeFileName = SanitizeFolderName(lessonTitle) + ext;
                 string destPath = Path.Combine(targetFolder, safeFileName);
 
-                int counter = 1;
-                while (File.Exists(destPath))
+                // Nếu file nguồn chính là file đích, không cần sao chép
+                if (string.Equals(Path.GetFullPath(sourceFilePath), Path.GetFullPath(destPath), StringComparison.OrdinalIgnoreCase))
                 {
-                    safeFileName = $"{SanitizeFolderName(lessonTitle)}_{counter}{ext}";
-                    destPath = Path.Combine(targetFolder, safeFileName);
-                    counter++;
+                    return destPath;
                 }
 
+                // Nếu file đích đã tồn tại cùng kích thước hoặc là bản ghi của chính bài học này, ghi đè an toàn thay vì tạo thêm đuôi _1, _2
+                var sourceFi = new FileInfo(sourceFilePath);
+                if (File.Exists(destPath))
+                {
+                    var destFi = new FileInfo(destPath);
+                    if (sourceFi.Length == destFi.Length)
+                    {
+                        // File giống hệt nhau, không cần sinh thêm file trùng
+                        return destPath;
+                    }
+                }
+
+                // Nếu khác file và đã tồn tại, ghi đè cập nhật nội dung bài học mới nhất
                 File.Copy(sourceFilePath, destPath, true);
                 return destPath;
             }
@@ -336,8 +347,8 @@ namespace BUS
                         };
 
                         bh.DungLuongHienThi = match.Length > 1024 * 1024
-                            ? $"{(match.Length / (1024.0 * 1024.0)):0.1} MB"
-                            : $"{(match.Length / 1024.0):0.1} KB";
+                            ? $"{(match.Length / (1024.0 * 1024.0)):0.0} MB"
+                            : $"{(match.Length / 1024.0):0.0} KB";
                     }
                     else
                     {

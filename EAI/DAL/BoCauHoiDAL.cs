@@ -92,10 +92,12 @@ namespace DAL
                        td.TenTrinhDo, ch.NoiDungCauHoi, ch.DoanVanDoc, ch.GiaiThichDapAn,
                        ch.MaChuDe, ch.MaTrinhDo AS MaTrinhDoId, ch.LoaiCauHoi, ch.DoKho,
                        ch.DuongDanAudio AS AudioPath, ch.DaKiemDuyet, ch.NguoiTao AS NguoiTaoId, ch.NgayTao,
-                       ch.DoanVanDanChung, ch.LoaiNguon, ch.TepTinNguon, ch.MaDinhDanhSeed
+                       ch.DoanVanDanChung, ch.LoaiNguon, ch.TepTinNguon, ch.MaDinhDanhSeed,
+                       ch.MaBaiHoc, bh.TieuDe AS TenBaiHoc
                 FROM BoCauHoi_CauHoi bc
                 INNER JOIN CauHoi ch ON bc.MaCauHoi = ch.MaCauHoi
                 LEFT JOIN TrinhDo td ON ch.MaTrinhDo = td.MaTrinhDo
+                LEFT JOIN BaiHoc bh ON ch.MaBaiHoc = bh.MaBaiHoc
                 WHERE bc.MaBoCauHoi = @MaBo
                   AND (@TuKhoa IS NULL OR @TuKhoa = '' OR ch.NoiDungCauHoi LIKE N'%' + @TuKhoa + N'%')
                   AND (@KyNang IS NULL OR @KyNang = 'All' OR @KyNang LIKE N'%All%' OR @KyNang LIKE N'%Tất cả%' OR ch.KyNang = @KyNang
@@ -148,7 +150,9 @@ namespace DAL
                         DoanVanDanChung = row.Table.Columns.Contains("DoanVanDanChung") && row["DoanVanDanChung"] != DBNull.Value ? row["DoanVanDanChung"]?.ToString() : null,
                         LoaiNguon = row.Table.Columns.Contains("LoaiNguon") && row["LoaiNguon"] != DBNull.Value ? row["LoaiNguon"]?.ToString() : "Extracted",
                         TepTinNguon = row.Table.Columns.Contains("TepTinNguon") && row["TepTinNguon"] != DBNull.Value ? row["TepTinNguon"]?.ToString() : null,
-                        MaDinhDanhSeed = row.Table.Columns.Contains("MaDinhDanhSeed") && row["MaDinhDanhSeed"] != DBNull.Value ? row["MaDinhDanhSeed"]?.ToString() : null
+                        MaDinhDanhSeed = row.Table.Columns.Contains("MaDinhDanhSeed") && row["MaDinhDanhSeed"] != DBNull.Value ? row["MaDinhDanhSeed"]?.ToString() : null,
+                        MaBaiHoc = row.Table.Columns.Contains("MaBaiHoc") && row["MaBaiHoc"] != DBNull.Value ? Convert.ToInt32(row["MaBaiHoc"]) : null,
+                        TenBaiHoc = row.Table.Columns.Contains("TenBaiHoc") && row["TenBaiHoc"] != DBNull.Value ? row["TenBaiHoc"]?.ToString() : null
                     });
                 }
 
@@ -225,7 +229,9 @@ namespace DAL
                         DoanVanDanChung = row.Table.Columns.Contains("DoanVanDanChung") && row["DoanVanDanChung"] != DBNull.Value ? row["DoanVanDanChung"]?.ToString() : null,
                         LoaiNguon = row.Table.Columns.Contains("LoaiNguon") && row["LoaiNguon"] != DBNull.Value ? row["LoaiNguon"]?.ToString() : "Extracted",
                         TepTinNguon = row.Table.Columns.Contains("TepTinNguon") && row["TepTinNguon"] != DBNull.Value ? row["TepTinNguon"]?.ToString() : null,
-                        MaDinhDanhSeed = row.Table.Columns.Contains("MaDinhDanhSeed") && row["MaDinhDanhSeed"] != DBNull.Value ? row["MaDinhDanhSeed"]?.ToString() : null
+                        MaDinhDanhSeed = row.Table.Columns.Contains("MaDinhDanhSeed") && row["MaDinhDanhSeed"] != DBNull.Value ? row["MaDinhDanhSeed"]?.ToString() : null,
+                        MaBaiHoc = row.Table.Columns.Contains("MaBaiHoc") && row["MaBaiHoc"] != DBNull.Value ? Convert.ToInt32(row["MaBaiHoc"]) : null,
+                        TenBaiHoc = row.Table.Columns.Contains("TenBaiHoc") && row["TenBaiHoc"] != DBNull.Value ? row["TenBaiHoc"]?.ToString() : null
                     });
                 }
 
