@@ -1,66 +1,143 @@
 <Page x:Class="GUI.Views.BaiVietAIView"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Title="Luyện viết luận &amp; Chấm bài bằng AI - TiếngAnhAI"
+      xmlns:local="clr-namespace:GUI"
+      Title="Luyện viết &amp; Chấm Chữa Bài AI - EAI"
       FontFamily="Segoe UI"
-      Background="#F4F7F6">
+      Background="#F8FAFC">
 
     <Page.Resources>
+        <!-- Brand Colors -->
         <SolidColorBrush x:Key="BrandTeal" Color="#0F766E" />
         <SolidColorBrush x:Key="BrandTealDark" Color="#042F2E" />
         <SolidColorBrush x:Key="BrandTealLight" Color="#E6F7F3" />
+        <SolidColorBrush x:Key="BrandTealBorder" Color="#99F6E4" />
         <SolidColorBrush x:Key="BrandMint" Color="#10B981" />
+        <SolidColorBrush x:Key="BrandMintSoft" Color="#DCFCE7" />
         <SolidColorBrush x:Key="TextDark" Color="#0F172A" />
+        <SolidColorBrush x:Key="TextMuted" Color="#475569" />
         <SolidColorBrush x:Key="TextGray" Color="#64748B" />
         <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0" />
         <SolidColorBrush x:Key="CardBg" Color="#FFFFFF" />
 
+        <!-- Card Container Style -->
         <Style x:Key="CardStyle" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource CardBg}"/>
-            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="CornerRadius" Value="12"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderLight}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Padding" Value="16"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.05" Color="Black"/>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.04" Color="Black"/>
                 </Setter.Value>
             </Setter>
         </Style>
 
+        <!-- Primary Action Button -->
         <Style x:Key="TealActionButton" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource BrandTeal}"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#0F766E" Offset="0"/>
+                        <GradientStop Color="#0D9488" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="Padding" Value="18,10"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Opacity" Value="0.92"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="b" Property="Background" Value="#94A3B8"/>
+                                <Setter Property="Cursor" Value="No"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Opacity" Value="0.9"/>
-                </Trigger>
-            </Style.Triggers>
+        </Style>
+
+        <!-- Secondary Button -->
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#F1F5F9"/>
+            <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="11,7"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#E2E8F0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Level Tab Pill Style -->
+        <Style x:Key="LevelTabPill" TargetType="Button">
+            <Setter Property="Background" Value="#F1F5F9"/>
+            <Setter Property="Foreground" Value="{StaticResource TextGray}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="0,0,6,4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#E6F7F3"/>
+                                <Setter Property="Foreground" Value="{StaticResource BrandTeal}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ActiveLevelTabPill" TargetType="Button" BasedOn="{StaticResource LevelTabPill}">
+            <Setter Property="Background" Value="{StaticResource BrandTeal}"/>
+            <Setter Property="Foreground" Value="White"/>
         </Style>
     </Page.Resources>
 
-    <Grid Background="#F4F7F6">
+    <Grid Background="#F8FAFC">
         <Grid.RowDefinitions>
-            <RowDefinition Height="64"/>
+            <!-- Top Header -->
+            <RowDefinition Height="56"/>
+            <!-- Body Content (2 Spacious Columns) -->
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Top Header -->
-        <Border Grid.Row="0" Background="{StaticResource CardBg}" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="25,0">
+        <!-- ================= TOP HEADER ================= -->
+        <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="18,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -68,162 +145,439 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="TiếngAnhAI / " Foreground="{StaticResource TextGray}" FontSize="13"/>
-                    <TextBlock Text="Phòng luyện viết luận &amp; Chấm chữa bài bằng AI" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}"/>
-                </StackPanel>
-
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
-                    <Button Content="📑 Chọn đề bài mẫu khác" Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
-                            FontWeight="Medium" Padding="12,6" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" Click="BtnChangeTopic_Click"/>
-                    <Border Background="{StaticResource BrandTealLight}" CornerRadius="8" Padding="12,6">
-                        <TextBlock Text="🤖 Chấm bài theo chuẩn IELTS Band 9.0" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource BrandTeal}"/>
+                <!-- Left: Title & User Target Badge -->
+                <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                    <local:LucideIcon Kind="PenTool" Size="19" Foreground="{StaticResource BrandTeal}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="Luyện Viết &amp; Chấm Chữa Bài AI" FontWeight="Bold" FontSize="14.5" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
+                    
+                    <Border x:Name="badgeUserLevel" Background="{StaticResource BrandTealLight}" CornerRadius="6" Padding="8,3" Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock x:Name="txtUserLevelBadge" Text="Học viên: B1 (Target 5.0)" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrandTeal}"/>
                     </Border>
+                </WrapPanel>
+
+                <!-- Right: Model indicator & History Button -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#F8FAFC" CornerRadius="6" Padding="8,4" Margin="0,0,8,0" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                        <TextBlock x:Name="txtActiveModelBadge" Text="🤖 AI Coach" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextGray}"/>
+                    </Border>
+                    
+                    <!-- Nút mở Lịch sử bài chấm -->
+                    <Button x:Name="btnToggleHistory" Style="{StaticResource SecondaryButton}" Click="BtnToggleHistory_Click" ToolTip="Xem tất cả bài viết đã chấm được lưu trong CSDL">
+                        <StackPanel Orientation="Horizontal">
+                            <local:LucideIcon Kind="History" Size="14" Foreground="{StaticResource BrandTeal}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="txtToggleHistoryLabel" Text="Lịch sử bài chấm (0)" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- Main Content Area: Left Editor + Right Analysis -->
-        <Grid Grid.Row="1" Margin="25">
+        <!-- ================= BODY: 2-COLUMN BALANCED WORKFLOW ================= -->
+        <Grid Grid.Row="1" Margin="16,14,16,16">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.1*"/>
-                <ColumnDefinition Width="0.9*"/>
+                <!-- Cột 1: Soạn thảo, Đề bài & Hướng dẫn bố cục -->
+                <ColumnDefinition Width="1.08*"/>
+                <!-- Cột 2: Đánh giá & Chấm chữa bài AI -->
+                <ColumnDefinition Width="0.92*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- ================= LEFT: WRITING EDITOR ================= -->
-            <Border Grid.Column="0" Style="{StaticResource CardStyle}" Margin="0,0,15,0">
+            <!-- ================= CỘT 1: KHU VỰC ĐỀ BÀI, BỐ CỤC & SOẠN THẢO ================= -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,0,12,0">
+                <StackPanel>
+                    
+                    <!-- 1. BỘ CHỌN TRÌNH ĐỘ THÍCH ỨNG (A1 - A2 - B1 - B2) -->
+                    <Border Style="{StaticResource CardStyle}" Padding="14,10" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- WrapPanel chứa các nút Trình độ (Không bao giờ bị tràn hay đè chữ) -->
+                            <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="Trình độ:" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}" Margin="0,4,8,0" VerticalAlignment="Center"/>
+                                <Button x:Name="btnLevelA1" Content="A1 (50-80 từ)" Style="{StaticResource LevelTabPill}" Tag="A1" Click="BtnSelectLevel_Click"/>
+                                <Button x:Name="btnLevelA2" Content="A2 (80-120 từ)" Style="{StaticResource LevelTabPill}" Tag="A2" Click="BtnSelectLevel_Click"/>
+                                <Button x:Name="btnLevelB1" Content="B1 (120-180 từ)" Style="{StaticResource ActiveLevelTabPill}" Tag="B1" Click="BtnSelectLevel_Click"/>
+                                <Button x:Name="btnLevelB2" Content="B2 (180-250 từ)" Style="{StaticResource LevelTabPill}" Tag="B2" Click="BtnSelectLevel_Click"/>
+                            </WrapPanel>
+
+                            <!-- Nút AI tạo đề -->
+                            <Button Grid.Column="1" x:Name="btnCustomAITopic" Content="✨ AI tạo đề" Style="{StaticResource SecondaryButton}" VerticalAlignment="Center" Margin="6,0,0,0" Click="BtnCustomAITopic_Click"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- 2. KHUNG ĐỀ BÀI HIỆN TẠI -->
+                    <Border Background="#F8FAFC" CornerRadius="10" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="14" Margin="0,0,0,12">
+                        <StackPanel>
+                            <!-- Hàng Huy hiệu & Nút bật tắt dàn ý (Tách biệt 2 cột rõ ràng) -->
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <Border Background="#DBEAFE" CornerRadius="6" Padding="7,3" Margin="0,0,6,4">
+                                        <TextBlock x:Name="txtBadgeLevel" Text="TRÌNH ĐỘ B1" FontSize="10.5" FontWeight="Bold" Foreground="#1D4ED8"/>
+                                    </Border>
+                                    <Border Background="#FEF3C7" CornerRadius="6" Padding="7,3" Margin="0,0,6,4">
+                                        <TextBlock x:Name="txtBadgeTargetWords" Text="MỤC TIÊU: 120-180 TỪ" FontSize="10.5" FontWeight="Bold" Foreground="#B45309"/>
+                                    </Border>
+                                    <Border Background="#E0E7FF" CornerRadius="6" Padding="7,3" Margin="0,0,6,4">
+                                        <TextBlock x:Name="txtBadgeGenre" Text="OPINION PARAGRAPH" FontSize="10.5" FontWeight="Bold" Foreground="#4338CA"/>
+                                    </Border>
+                                </WrapPanel>
+
+                                <Button Grid.Column="1" x:Name="btnToggleScaffolding" Content="💡 Hướng dẫn bố cục ▾" Background="Transparent" BorderThickness="0" 
+                                        Foreground="{StaticResource BrandTeal}" FontWeight="SemiBold" FontSize="12" Cursor="Hand" 
+                                        VerticalAlignment="Top" Margin="6,0,0,0" Click="BtnToggleScaffolding_Click"/>
+                            </Grid>
+
+                            <!-- Tên đề bài -->
+                            <TextBox x:Name="txtEssayTopic" 
+                                     Text="The Benefits of Learning English Online: In recent years, online English learning has become increasingly popular. What are the key advantages of this learning method?" 
+                                     FontWeight="SemiBold" FontSize="13.5" TextWrapping="Wrap" Foreground="{StaticResource TextDark}"
+                                     BorderThickness="0" Background="Transparent" AcceptsReturn="True"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 3. KHUNG HƯỚNG DẪN BỐ CỤC ĐOẠN VĂN (SCAFFOLDING GUIDE: DÀN Ý, CÂU HỎI & VÍ DỤ SÁT ĐỀ) -->
+                    <Border x:Name="pnlScaffoldingGuide" Visibility="Visible" Background="#F0FDFA" CornerRadius="10" 
+                            BorderBrush="{StaticResource BrandTealBorder}" BorderThickness="1" Padding="14" Margin="0,0,0,12">
+                        <StackPanel>
+                            <!-- Header Dàn ý -->
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,10">
+                                <local:LucideIcon Kind="Sparkles" Size="16" Foreground="{StaticResource BrandTeal}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Bố cục dàn ý, Câu hỏi gợi ý &amp; Ví dụ câu sát đề bài" FontWeight="Bold" FontSize="13" 
+                                           Foreground="{StaticResource BrandTealDark}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <!-- Phần 1: Mở đoạn (Topic Sentence) -->
+                            <Border Background="White" CornerRadius="8" Padding="12,10" Margin="0,0,0,8" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="📌 1. MỞ ĐOẠN (TOPIC SENTENCE) - Giới thiệu chủ đề bài viết:" FontWeight="Bold" FontSize="11.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,3"/>
+                                    
+                                    <!-- Câu hỏi định hướng -->
+                                    <TextBlock x:Name="txtGuideQuestionMoDoan" Text="❓ Câu hỏi gợi ý: Chủ đề chính là gì? Nhận định khái quát của bạn về vấn đề này ra sao?" 
+                                               FontSize="11.5" Foreground="#0369A1" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,4"/>
+                                    
+                                    <!-- Ví dụ câu mở đoạn mẫu sát đề -->
+                                    <Border Background="#F8FAFC" CornerRadius="6" Padding="8,6" BorderBrush="#E2E8F0" BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="✍️ Ví dụ câu mở đầu sát đề bài:" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource TextGray}"/>
+                                            <TextBlock x:Name="txtGuideTopicSentence" Text="&quot;In recent years, studying English online has brought about significant advantages for modern students.&quot;" 
+                                                       FontStyle="Italic" FontSize="12" Foreground="{StaticResource BrandTeal}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Phần 2: Thân đoạn (Supporting Ideas, Questions & Examples) -->
+                            <Border Background="White" CornerRadius="8" Padding="12,10" Margin="0,0,0,8" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="📌 2. THÂN ĐOẠN (SUPPORTING SENTENCES) - Triển khai 2–3 ý chính &amp; Ví dụ:" FontWeight="Bold" FontSize="11.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,3"/>
+                                    
+                                    <!-- Câu hỏi định hướng -->
+                                    <TextBlock x:Name="txtGuideQuestionThanDoan" Text="❓ Câu hỏi gợi ý: Vì sao bạn nhận định như vậy? Có ví dụ thực tế nào chứng minh cho ý kiến của bạn không?" 
+                                               FontSize="11.5" Foreground="#0369A1" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,5"/>
+
+                                    <!-- 3 Ý chính -->
+                                    <TextBlock x:Name="txtGuideIdea1" Text="• Ý 1: Linh hoạt thời gian và địa điểm học tập (Flexible study schedule anytime, anywhere)." FontSize="11.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,3" TextWrapping="Wrap"/>
+                                    <TextBlock x:Name="txtGuideIdea2" Text="• Ý 2: Tiếp cận kho học liệu phong phú và công nghệ AI (Access to rich online resources and AI tools)." FontSize="11.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,3" TextWrapping="Wrap"/>
+                                    <TextBlock x:Name="txtGuideIdea3" Text="• Ý 3: Tiết kiệm chi phí đi lại và tự chủ tiến độ (Cost-effective and autonomous pace)." FontSize="11.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,5" TextWrapping="Wrap"/>
+
+                                    <!-- Ví dụ minh họa thực tế sát đề bài -->
+                                    <Border Background="#F8FAFC" CornerRadius="6" Padding="8,6" Margin="0,0,0,6" BorderBrush="#E2E8F0" BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="✍️ Ví dụ câu minh họa sát đề bài (Example sentence):" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource TextGray}"/>
+                                            <TextBlock x:Name="txtGuideExampleBody" Text="&quot;For example, students can practice speaking with AI chatbots and review recorded grammar lectures at midnight without commuting.&quot;" 
+                                                       FontStyle="Italic" FontSize="11.5" Foreground="#15803D" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Từ nối gợi ý & Từ vựng then chốt -->
+                                    <WrapPanel Margin="0,2,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="🔗 Từ nối gợi ý: " FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="txtGuideConnectors" Text="First, Moreover, In addition, For example, Finally" FontSize="11" FontWeight="Bold" Foreground="#B45309" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,10,0"/>
+                                    </WrapPanel>
+                                    <WrapPanel Margin="0,3,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="📚 Từ vựng gợi ý: " FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="txtGuideVocab" Text="flexibility, autonomous learning, interactive tools, cost-effective, self-discipline" FontSize="11" FontWeight="SemiBold" Foreground="#4338CA" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Phần 3: Kết đoạn (Concluding Sentence) -->
+                            <Border Background="White" CornerRadius="8" Padding="12,10" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="📌 3. KẾT ĐOẠN (CONCLUDING SENTENCE) - Khẳng định lại quan điểm:" FontWeight="Bold" FontSize="11.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,3"/>
+                                    
+                                    <!-- Câu hỏi định hướng -->
+                                    <TextBlock x:Name="txtGuideQuestionKetDoan" Text="❓ Câu hỏi gợi ý: Tóm lại, thông điệp hoặc lời khuyên quan trọng nhất bạn muốn để lại cho người đọc là gì?" 
+                                               FontSize="11.5" Foreground="#0369A1" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,4"/>
+
+                                    <!-- Ví dụ câu kết luận sát đề -->
+                                    <Border Background="#F8FAFC" CornerRadius="6" Padding="8,6" BorderBrush="#E2E8F0" BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="✍️ Ví dụ câu kết luận sát đề bài:" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource TextGray}"/>
+                                            <TextBlock x:Name="txtGuideConcludingSentence" Text="&quot;In conclusion, online English acquisition is a highly rewarding approach that empowers learners to excel at their own pace.&quot;" 
+                                                       FontStyle="Italic" FontSize="12" Foreground="{StaticResource BrandTeal}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 4. KHU VỰC NHẬP BÀI VIẾT -->
+                    <Border Style="{StaticResource CardStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Thanh đếm từ (2 Cột riêng biệt - 100% không đè chữ) -->
+                            <Grid Grid.Row="0" Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBlock x:Name="txtWordCount" Grid.Column="0" Text="Số từ: 0 • Mục tiêu: 120–180 từ" 
+                                           FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextGray}" 
+                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                
+                                <TextBlock Grid.Column="1" Text="💡 Gõ trực tiếp hoặc Ctrl+V dán bài" FontSize="11" Foreground="{StaticResource TextGray}" 
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <!-- Khung Soạn thảo -->
+                            <TextBox x:Name="txtEssayInput" Grid.Row="1" MinHeight="230" TextWrapping="Wrap" AcceptsReturn="True" 
+                                     VerticalScrollBarVisibility="Auto" FontSize="13.5" Padding="12" BorderBrush="{StaticResource BorderLight}" 
+                                     BorderThickness="1" TextChanged="TxtEssayInput_TextChanged"/>
+
+                            <!-- Thanh công cụ hành động -->
+                            <Grid Grid.Row="2" Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <Button Content="+ Viết bài mới" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Click="BtnNewEssay_Click"/>
+                                    <Button Content="📋 Dán bài viết" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Click="BtnPaste_Click"/>
+                                    <Button Content="🗑️ Làm sạch" Style="{StaticResource SecondaryButton}" Click="BtnClear_Click"/>
+                                </WrapPanel>
+
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button x:Name="btnGradeEssay" Content="✨ Chấm bài bằng AI" Style="{StaticResource TealActionButton}" Click="BtnGradeEssay_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ================= CỘT 2: KẾT QUẢ CHẤM & PHÂN TÍCH AI (RỘNG RÃI, THOÁNG ĐÃNG) ================= -->
+            <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                <Grid>
+                    <!-- 1. Trạng thái Loading khi AI đang chấm -->
+                    <Border x:Name="pnlLoading" Visibility="Collapsed" Background="White" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <StackPanel HorizontalAlignment="Center">
+                            <ProgressBar IsIndeterminate="True" Width="200" Height="6" Foreground="{StaticResource BrandTeal}" Background="#E2E8F0" BorderThickness="0" Margin="0,0,0,14"/>
+                            <TextBlock Text="AI đang chấm và sửa bài..." FontWeight="Bold" FontSize="15" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Đang phân tích cấu trúc, ngữ pháp và đối chiếu tiêu chuẩn học thuật..." 
+                                       FontSize="12.5" Foreground="{StaticResource TextGray}" TextAlignment="Center" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 2. Trạng thái Báo lỗi -->
+                    <Border x:Name="pnlError" Visibility="Collapsed" Background="#FEF2F2" BorderBrush="#FCA5A5" BorderThickness="1" CornerRadius="8" Padding="14" VerticalAlignment="Top">
+                        <StackPanel>
+                            <TextBlock Text="⚠️ Không thể chấm bài viết" FontWeight="Bold" FontSize="13.5" Foreground="#B91C1C" Margin="0,0,0,4"/>
+                            <TextBlock x:Name="txtErrorDetail" Text="AI API không phản hồi." FontSize="12" Foreground="#7F1D1D" TextWrapping="Wrap"/>
+                            <Button Content="🔄 Thử lại" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left" Margin="0,8,0,0" Click="BtnRetry_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 3. Trạng thái Mặc định khi chưa chấm -->
+                    <Border x:Name="pnlEmptyPlaceholder" Visibility="Visible" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <StackPanel HorizontalAlignment="Center" MaxWidth="360">
+                            <Border Width="60" Height="60" CornerRadius="30" Background="{StaticResource BrandTealLight}" HorizontalAlignment="Center" Margin="0,0,0,14">
+                                <local:LucideIcon Kind="Sparkles" Size="28" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Sẵn sàng chấm bài bằng AI" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Bạn hãy chọn trình độ, xem hướng dẫn bố cục ở bên trái, tự viết đoạn văn rồi bấm [Chấm bài bằng AI] để nhận đánh giá chi tiết!" 
+                                       FontSize="13" Foreground="{StaticResource TextGray}" TextAlignment="Center" TextWrapping="Wrap" Margin="0,8,0,0" LineHeight="20"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 4. KHU VỰC HIỂN THỊ KẾT QUẢ ĐÃ CHẤM -->
+                    <ScrollViewer x:Name="scrollResults" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,0,4,0">
+                            
+                            <!-- Overall Band Score Banner -->
+                            <Border Background="{StaticResource BrandTealLight}" CornerRadius="10" Padding="14" Margin="0,0,0,12" BorderBrush="{StaticResource BrandTealBorder}" BorderThickness="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Grid.Column="0" Background="{StaticResource BrandTeal}" Width="66" Height="66" CornerRadius="10" Margin="0,0,14,0">
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock x:Name="txtBandScore" Text="7.0" FontSize="25" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="BAND SCORE" FontSize="8.5" FontWeight="Bold" Foreground="#CCFBF1" HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Đánh giá tổng quan từ AI" FontWeight="Bold" FontSize="14.5" Foreground="{StaticResource BrandTealDark}" Margin="0,0,0,3"/>
+                                        <TextBlock x:Name="txtNhanXetTongQuan" Text="Bài viết triển khai ý mạch lạc, cấu trúc rõ ràng." 
+                                                   FontSize="12.5" TextWrapping="Wrap" LineHeight="19" Foreground="{StaticResource TextDark}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- 4 Criteria Breakdown (2 Cột riêng biệt - Không đè chữ) -->
+                            <Border Background="#F8FAFC" CornerRadius="8" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="14" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Điểm chi tiết theo 4 tiêu chí chuẩn học thuật:" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextDark}" Margin="0,0,0,10"/>
+
+                                    <!-- Tiêu chí 1: Task Achievement -->
+                                    <Grid Margin="0,0,0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Task Achievement (Đáp ứng đề)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis" Margin="0,0,8,0"/>
+                                        <TextBlock Grid.Column="1" x:Name="txtTaskScore" Text="7.0 / 9.0" FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
+                                    </Grid>
+                                    <ProgressBar x:Name="pbTask" Value="70" Maximum="100" Height="5" Foreground="{StaticResource BrandTeal}" Background="#E2E8F0" BorderThickness="0" Margin="0,0,0,10"/>
+
+                                    <!-- Tiêu chí 2: Coherence & Cohesion -->
+                                    <Grid Margin="0,0,0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Coherence &amp; Cohesion (Mạch lạc &amp; Liên kết)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis" Margin="0,0,8,0"/>
+                                        <TextBlock Grid.Column="1" x:Name="txtCoherenceScore" Text="7.0 / 9.0" FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
+                                    </Grid>
+                                    <ProgressBar x:Name="pbCoherence" Value="70" Maximum="100" Height="5" Foreground="{StaticResource BrandTeal}" Background="#E2E8F0" BorderThickness="0" Margin="0,0,0,10"/>
+
+                                    <!-- Tiêu chí 3: Lexical Resource -->
+                                    <Grid Margin="0,0,0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Lexical Resource (Vốn từ vựng)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis" Margin="0,0,8,0"/>
+                                        <TextBlock Grid.Column="1" x:Name="txtLexicalScore" Text="7.0 / 9.0" FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
+                                    </Grid>
+                                    <ProgressBar x:Name="pbLexical" Value="70" Maximum="100" Height="5" Foreground="{StaticResource BrandTeal}" Background="#E2E8F0" BorderThickness="0" Margin="0,0,0,10"/>
+
+                                    <!-- Tiêu chí 4: Grammatical Range & Accuracy -->
+                                    <Grid Margin="0,0,0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Grammar Range &amp; Accuracy (Độ chính xác ngữ pháp)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis" Margin="0,0,8,0"/>
+                                        <TextBlock Grid.Column="1" x:Name="txtGrammarScore" Text="6.5 / 9.0" FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
+                                    </Grid>
+                                    <ProgressBar x:Name="pbGrammar" Value="65" Maximum="100" Height="5" Foreground="{StaticResource BrandTeal}" Background="#E2E8F0" BorderThickness="0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Danh sách góp ý lỗi sai bằng tiếng Việt -->
+                            <TextBlock Text="🔍 Chi tiết góp ý &amp; Lời khuyên từ Gia sư AI:" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextDark}" Margin="0,0,0,8"/>
+                            <StackPanel x:Name="pnlErrorList" Margin="0,0,0,12"/>
+
+                            <!-- Bài viết sau chỉnh sửa -->
+                            <Border Background="#F0FDF4" CornerRadius="8" BorderBrush="#86EFAC" BorderThickness="1" Padding="12" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,5">
+                                        <TextBlock Text="✍️ Bài viết sau khi sửa lỗi ngữ pháp &amp; chính tả:" FontWeight="Bold" FontSize="12" Foreground="#166534"/>
+                                        <Button Content="Sao chép" Style="{StaticResource SecondaryButton}" Padding="7,2" FontSize="10.5" HorizontalAlignment="Right" Click="BtnCopyCorrected_Click"/>
+                                    </Grid>
+                                    <TextBlock x:Name="txtCorrectedEssay" Text="" TextWrapping="Wrap" LineHeight="20" FontSize="12.5" Foreground="#14532D"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Gợi ý viết lại nâng cấp -->
+                            <Border Background="#EFF6FF" CornerRadius="8" BorderBrush="#93C5FD" BorderThickness="1" Padding="12">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,5">
+                                        <TextBlock Text="🌟 Bản gợi ý nâng cấp câu văn chuẩn band cao:" FontWeight="Bold" FontSize="12" Foreground="#1E40AF"/>
+                                        <Button Content="Sao chép" Style="{StaticResource SecondaryButton}" Padding="7,2" FontSize="10.5" HorizontalAlignment="Right" Click="BtnCopyBand8_Click"/>
+                                    </Grid>
+                                    <TextBlock x:Name="txtBand8Essay" Text="" TextWrapping="Wrap" LineHeight="20" FontSize="12.5" Foreground="#1E3A8A"/>
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
+                    </ScrollViewer>
+
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ================= MODAL OVERLAY: LỊCH SỬ BÀI VIẾT ĐÃ CHẤM ================= -->
+        <Grid x:Name="modalHistory" Grid.RowSpan="2" Visibility="Collapsed" Background="#80000000" Panel.ZIndex="1000">
+            <Border Width="680" MaxHeight="560" Background="White" CornerRadius="14" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="24" ShadowDepth="4" Opacity="0.18" Color="Black"/>
+                </Border.Effect>
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Topic Prompt Card -->
-                    <Border Grid.Row="0" Background="#F8FAFC" CornerRadius="10" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="16" Margin="0,0,0,15">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                <Border Background="#DBEAFE" CornerRadius="6" Padding="8,2" Margin="0,0,8,0">
-                                    <TextBlock Text="IELTS TASK 2" FontSize="11" FontWeight="Bold" Foreground="#1D4ED8"/>
-                                </Border>
-                                <Border Background="#FEF3C7" CornerRadius="6" Padding="8,2">
-                                    <TextBlock Text="OPINION ESSAY" FontSize="11" FontWeight="Bold" Foreground="#B45309"/>
-                                </Border>
-                            </StackPanel>
-                            <TextBlock x:Name="txtEssayTopic" Text="Some people argue that artificial intelligence and technology will completely replace human teachers in the future. To what extent do you agree or disagree?" 
-                                       FontWeight="SemiBold" FontSize="14" TextWrapping="Wrap" Foreground="{StaticResource TextDark}"/>
-                        </StackPanel>
-                    </Border>
+                    <!-- Header Modal -->
+                    <Grid Grid.Row="0" Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
-                    <!-- Word Count & Timer Bar -->
-                    <Grid Grid.Row="1" Margin="0,0,0,8">
-                        <TextBlock x:Name="txtWordCount" Text="Số từ: 254 từ • Đạt độ dài tối thiểu (>= 250 từ)" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource BrandTeal}"/>
-                        <TextBlock Text="⏱️ Thời gian: 28 phút" FontSize="12.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Right"/>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="{StaticResource BrandTealLight}" CornerRadius="8" Width="36" Height="36" Margin="0,0,10,0">
+                                <local:LucideIcon Kind="History" Size="18" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Lịch Sử Bài Viết Đã Chấm" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}"/>
+                                <TextBlock Text="Tất cả bài viết được lưu trữ an toàn trong CSDL theo tài khoản học viên" FontSize="11.5" Foreground="{StaticResource TextGray}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Button Grid.Column="1" Style="{StaticResource SecondaryButton}" Content="✕ Đóng" Padding="12,6" FontSize="12" Click="BtnCloseHistoryModal_Click"/>
                     </Grid>
 
-                    <!-- Text Area Input -->
-                    <TextBox x:Name="txtEssayInput" Grid.Row="2" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" 
-                             FontSize="14" Padding="14" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
-                             TextChanged="TxtEssayInput_TextChanged"/>
+                    <!-- Body: Danh sách bài viết cuộn mượt mà -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,14">
+                        <StackPanel x:Name="pnlHistoryList"/>
+                    </ScrollViewer>
 
-                    <!-- Action Buttons -->
-                    <Grid Grid.Row="3" Margin="0,15,0,0">
-                        <Button Content="🗑️ Xóa trắng" Background="Transparent" Foreground="{StaticResource TextGray}" 
-                                BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left" Click="BtnClear_Click"/>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Content="💾 Lưu bài nháp" Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
-                                    FontWeight="Medium" Padding="14,10" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" Click="BtnSaveDraft_Click"/>
-                            <Button Content="✨ Chấm bài bằng AI" Style="{StaticResource TealActionButton}" Click="BtnGradeEssay_Click"/>
-                        </StackPanel>
+                    <!-- Footer Modal -->
+                    <Grid Grid.Row="2" Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" x:Name="txtModalHistoryStats" Text="Tổng cộng: 0 bài đã chấm" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrandTeal}" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Content="Đóng cửa sổ" Style="{StaticResource SecondaryButton}" Padding="16,7" Click="BtnCloseHistoryModal_Click"/>
                     </Grid>
                 </Grid>
             </Border>
-
-            <!-- ================= RIGHT: AI EVALUATION & FEEDBACK ================= -->
-            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
-                <StackPanel>
-                    <!-- Overall Band Score Banner -->
-                    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,15">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Border Grid.Column="0" Background="{StaticResource BrandTealLight}" Width="75" Height="75" CornerRadius="14" Margin="0,0,18,0">
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock x:Name="txtBandScore" Text="7.0" FontSize="26" FontWeight="Bold" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="OVERALL" FontSize="10" FontWeight="Bold" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock Text="Đánh giá tổng quan từ AI" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
-                                <TextBlock Text="Bài viết triển khai ý mạch lạc, lập luận thuyết phục. Vốn từ vựng học thuật phong phú và cấu trúc câu đa dạng." 
-                                           FontSize="13" TextWrapping="Wrap" Foreground="{StaticResource TextGray}"/>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <!-- 4 Criteria Breakdown -->
-                    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,15">
-                        <StackPanel>
-                            <TextBlock Text="Điểm chi tiết theo 4 tiêu chí chuẩn IELTS" FontWeight="Bold" FontSize="14.5" Margin="0,0,0,14"/>
-
-                            <!-- Criteria 1 -->
-                            <Grid Margin="0,0,0,10">
-                                <TextBlock Text="Task Achievement (Đáp ứng đề)" FontSize="13" FontWeight="SemiBold"/>
-                                <TextBlock Text="7.5 / 9.0" FontSize="13" FontWeight="Bold" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Right"/>
-                            </Grid>
-                            <ProgressBar Value="75" Maximum="100" Height="6" Foreground="{StaticResource BrandTeal}" Background="#E2E8F0" BorderThickness="0" Margin="0,0,0,12"/>
-
-                            <!-- Criteria 2 -->
-                            <Grid Margin="0,0,0,10">
-                                <TextBlock Text="Coherence &amp; Cohesion (Mạch lạc &amp; Liên kết)" FontSize="13" FontWeight="SemiBold"/>
-                                <TextBlock Text="7.0 / 9.0" FontSize="13" FontWeight="Bold" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Right"/>
-                            </Grid>
-                            <ProgressBar Value="70" Maximum="100" Height="6" Foreground="{StaticResource BrandTeal}" Background="#E2E8F0" BorderThickness="0" Margin="0,0,0,12"/>
-
-                            <!-- Criteria 3 -->
-                            <Grid Margin="0,0,0,10">
-                                <TextBlock Text="Lexical Resource (Từ vựng học thuật)" FontSize="13" FontWeight="SemiBold"/>
-                                <TextBlock Text="7.0 / 9.0" FontSize="13" FontWeight="Bold" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Right"/>
-                            </Grid>
-                            <ProgressBar Value="70" Maximum="100" Height="6" Foreground="{StaticResource BrandTeal}" Background="#E2E8F0" BorderThickness="0" Margin="0,0,0,12"/>
-
-                            <!-- Criteria 4 -->
-                            <Grid Margin="0,0,0,10">
-                                <TextBlock Text="Grammar Range &amp; Accuracy (Ngữ pháp &amp; Độ chuẩn xác)" FontSize="13" FontWeight="SemiBold"/>
-                                <TextBlock Text="6.5 / 9.0" FontSize="13" FontWeight="Bold" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Right"/>
-                            </Grid>
-                            <ProgressBar Value="65" Maximum="100" Height="6" Foreground="{StaticResource BrandTeal}" Background="#E2E8F0" BorderThickness="0"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Suggestions & Rewrite -->
-                    <Border Style="{StaticResource CardStyle}">
-                        <StackPanel>
-                            <TextBlock Text="💡 Gợi ý nâng cấp câu văn bằng AI (Band 8.0+):" FontWeight="Bold" FontSize="14.5" Margin="0,0,0,12"/>
-
-                            <Border Background="#FEF2F2" CornerRadius="8" Padding="12" Margin="0,0,0,10" BorderBrush="#FCA5A5" BorderThickness="1">
-                                <StackPanel>
-                                    <TextBlock Text="Câu gốc của bạn (Có thể cải thiện):" FontSize="11.5" FontWeight="SemiBold" Foreground="#991B1B"/>
-                                    <TextBlock Text="&quot;AI is very good and it can help students study anytime.&quot;" FontStyle="Italic" FontSize="13" Margin="0,3,0,0"/>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Background="#F0FDF4" CornerRadius="8" Padding="12" BorderBrush="#86EFAC" BorderThickness="1">
-                                <StackPanel>
-                                    <TextBlock Text="Gợi ý viết lại chuẩn học thuật Band 8.0:" FontSize="11.5" FontWeight="SemiBold" Foreground="#166534"/>
-                                    <TextBlock Text="&quot;Artificial intelligence plays an instrumental role in facilitating round-the-clock, autonomous learning for students.&quot;" 
-                                               FontWeight="SemiBold" FontSize="13" Foreground="#14532D" TextWrapping="Wrap" Margin="0,3,0,0"/>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-            </ScrollViewer>
         </Grid>
+
     </Grid>
 </Page>

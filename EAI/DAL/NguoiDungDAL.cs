@@ -182,6 +182,68 @@ namespace DAL
             return SqlDataProvider.Instance.ExecuteNonQuery(query, parameters) > 0;
         }
 
+        public bool CapNhatHoSoHocVien(int userId, string hoTen, string email, string? soDienThoai, DateTime? ngaySinh, string? duongDanAnh)
+        {
+            string query = @"
+                UPDATE NguoiDung 
+                SET HoTen = @HoTen, 
+                    Email = @Email, 
+                    SoDienThoai = @Phone, 
+                    NgaySinh = @NgaySinh,
+                    DuongDanAnhDaiDien = ISNULL(@Avatar, DuongDanAnhDaiDien)
+                WHERE MaNguoiDung = @MaND";
+
+            SqlParameter[] parameters = new[]
+            {
+                new SqlParameter("@HoTen", hoTen),
+                new SqlParameter("@Email", email.Trim()),
+                new SqlParameter("@Phone", (object?)soDienThoai ?? DBNull.Value),
+                new SqlParameter("@NgaySinh", (object?)ngaySinh ?? DBNull.Value),
+                new SqlParameter("@Avatar", (object?)duongDanAnh ?? DBNull.Value),
+                new SqlParameter("@MaND", userId)
+            };
+
+            return SqlDataProvider.Instance.ExecuteNonQuery(query, parameters) > 0;
+        }
+
+        public bool KiemTraEmailTonTai(string email, int excludeUserId)
+        {
+            string query = "SELECT COUNT(*) FROM NguoiDung WHERE Email = @Email AND MaNguoiDung != @ExcludeId";
+            object obj = SqlDataProvider.Instance.ExecuteScalar(query, new[]
+            {
+                new SqlParameter("@Email", email.Trim()),
+                new SqlParameter("@ExcludeId", excludeUserId)
+            });
+            return obj != null && Convert.ToInt32(obj) > 0;
+        }
+
+        public bool KiemTraMatKhau(int userId, string hashedPassword, string rawPassword)
+        {
+            string query = @"
+                SELECT COUNT(*) 
+                FROM NguoiDung 
+                WHERE MaNguoiDung = @Id 
+                  AND (MatKhauMaHoa = @Hash OR MatKhauMaHoa = @Raw OR MatKhauMaHoa = N'CHANGE_ME_HASH')";
+
+            object obj = SqlDataProvider.Instance.ExecuteScalar(query, new[]
+            {
+                new SqlParameter("@Id", userId),
+                new SqlParameter("@Hash", hashedPassword),
+                new SqlParameter("@Raw", rawPassword)
+            });
+            return obj != null && Convert.ToInt32(obj) > 0;
+        }
+
+        public bool CapNhatAnhDaiDien(int userId, string duongDanAnh)
+        {
+            string query = "UPDATE NguoiDung SET DuongDanAnhDaiDien = @Avatar WHERE MaNguoiDung = @MaND";
+            return SqlDataProvider.Instance.ExecuteNonQuery(query, new[]
+            {
+                new SqlParameter("@Avatar", duongDanAnh),
+                new SqlParameter("@MaND", userId)
+            }) > 0;
+        }
+
         private static NguoiDungDTO FromDataRow(DataRow row) => MapDataRowToDTO(row);
 
         public List<NguoiDungDTO> GetAll(string? keyword = null, string? role = null, bool? isActive = null)

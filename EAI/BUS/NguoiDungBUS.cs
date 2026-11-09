@@ -435,6 +435,110 @@ namespace BUS
             return (false, "Lỗi khi cập nhật hồ sơ vào cơ sở dữ liệu.");
         }
 
+        public (bool Success, string Message) CapNhatHoSoSinhVien(
+            int userId,
+            string hoTen,
+            string email,
+            string? soDienThoai,
+            DateTime? ngaySinh,
+            string? duongDanAnh = null)
+        {
+            if (userId <= 0) return (false, "Mã tài khoản không hợp lệ.");
+
+            if (!KiemTraDinhDangHoTen(hoTen, out string nameErr, out string validName))
+                return (false, nameErr);
+            hoTen = validName;
+
+            if (string.IsNullOrWhiteSpace(email))
+                return (false, "Email không được để trống.");
+
+            email = email.Trim();
+            if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                return (false, "Địa chỉ Email không đúng định dạng (Ví dụ: sinhvien@gmail.com).");
+
+            if (_dal.KiemTraEmailTonTai(email, userId))
+                return (false, "Email này đã được sử dụng bởi một tài khoản khác trong hệ thống.");
+
+            if (!string.IsNullOrWhiteSpace(soDienThoai))
+            {
+                string cleanPhone = soDienThoai.Trim();
+                if (!Regex.IsMatch(cleanPhone, @"^(0|\+84)[0-9]{9,10}$"))
+                    return (false, "Số điện thoại không hợp lệ (Ví dụ: 0912345678).");
+                soDienThoai = cleanPhone;
+            }
+
+            bool ok = _dal.CapNhatHoSoHocVien(userId, hoTen, email, soDienThoai, ngaySinh, duongDanAnh);
+            if (ok)
+            {
+                if (SessionHelper.CurrentUser != null && SessionHelper.CurrentUser.MaNguoiDung == userId)
+                {
+                    SessionHelper.CurrentUser.HoTen = hoTen;
+                    SessionHelper.CurrentUser.Email = email;
+                    SessionHelper.CurrentUser.SoDienThoai = soDienThoai;
+                    SessionHelper.CurrentUser.NgaySinh = ngaySinh;
+                    if (!string.IsNullOrEmpty(duongDanAnh))
+                    {
+                        SessionHelper.CurrentUser.DuongDanAnhDaiDien = duongDanAnh;
+                    }
+                }
+                return (true, "Cập nhật thông tin cá nhân thành công!");
+            }
+            return (false, "Lỗi khi lưu thông tin vào cơ sở dữ liệu.");
+        }
+
+        public (bool Success, string Message) DoiMatKhauHocVien(
+            int userId,
+            string currentPassword,
+            string newPassword,
+            string confirmPassword)
+        {
+            if (userId <= 0) return (false, "Mã tài khoản không hợp lệ.");
+
+            if (string.IsNullOrWhiteSpace(currentPassword))
+                return (false, "Vui lòng nhập mật khẩu hiện tại.");
+
+            if (string.IsNullOrWhiteSpace(newPassword))
+                return (false, "Vui lòng nhập mật khẩu mới.");
+
+            if (newPassword.Length < 6)
+                return (false, "Mật khẩu mới phải có tối thiểu 6 ký tự.");
+
+            if (newPassword != confirmPassword)
+                return (false, "Mật khẩu xác nhận không khớp với mật khẩu mới.");
+
+            if (newPassword == currentPassword)
+                return (false, "Mật khẩu mới không được trùng với mật khẩu hiện tại.");
+
+            string currentHash = HashPassword(currentPassword);
+            if (!_dal.KiemTraMatKhau(userId, currentHash, currentPassword.Trim()))
+            {
+                return (false, "Mật khẩu hiện tại không chính xác. Vui lòng kiểm tra lại!");
+            }
+
+            string newHash = HashPassword(newPassword);
+            bool ok = _dal.ResetMatKhau(userId, newHash);
+            if (ok)
+            {
+                if (SessionHelper.CurrentUser != null && SessionHelper.CurrentUser.MaNguoiDung == userId)
+                {
+                    SessionHelper.CurrentUser.MatKhauMaHoa = newHash;
+                }
+                return (true, "Đổi mật khẩu thành công! Hãy ghi nhớ mật khẩu mới của bạn.");
+            }
+            return (false, "Lỗi khi cập nhật mật khẩu mới vào cơ sở dữ liệu.");
+        }
+
+        public bool CapNhatAnhDaiDien(int userId, string duongDanAnh)
+        {
+            if (userId <= 0 || string.IsNullOrWhiteSpace(duongDanAnh)) return false;
+            bool ok = _dal.CapNhatAnhDaiDien(userId, duongDanAnh);
+            if (ok && SessionHelper.CurrentUser != null && SessionHelper.CurrentUser.MaNguoiDung == userId)
+            {
+                SessionHelper.CurrentUser.DuongDanAnhDaiDien = duongDanAnh;
+            }
+            return ok;
+        }
+
         public (int SoBaiHoc, int SoCauHoi, int SoDeThi) LayThongKeGiangVien(int userId)
         {
             return _dal.LayThongKeGiangVien(userId);

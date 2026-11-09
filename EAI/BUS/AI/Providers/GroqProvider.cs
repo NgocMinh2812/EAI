@@ -55,7 +55,7 @@ namespace BUS.AI.Providers
                         new { role = "user", content = prompt }
                     },
                     temperature = 0.4,
-                    max_tokens = 900
+                    max_tokens = 3500
                 };
             }
             else
@@ -68,7 +68,7 @@ namespace BUS.AI.Providers
                         new { role = "user", content = prompt }
                     },
                     temperature = 0.4,
-                    max_tokens = 2048
+                    max_tokens = 3500
                 };
             }
 
@@ -81,7 +81,7 @@ namespace BUS.AI.Providers
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
                 request.Content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
-                using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
                 using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
 
                 var response = await _httpClient.SendAsync(request, linkedCts.Token);

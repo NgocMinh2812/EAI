@@ -118,7 +118,40 @@ namespace DAL
             return SqlDataProvider.Instance.ExecuteNonQuery(query, parameters) > 0;
         }
 
-        public bool CapNhatHoSoHocTap(int maNguoiDung, string? trinhDoDauVao, string khungNangLuc, decimal? diemMucTieu)
+        public bool CapNhatHoSoHocTap(int maNguoiDung, string? trinhDoDauVao, string khungNangLuc, decimal? diemMucTieu, string? ghiChu = null)
+        {
+            string query = @"
+                IF EXISTS (SELECT 1 FROM HoSoHocTap WHERE MaNguoiDung = @MaND)
+                BEGIN
+                    UPDATE HoSoHocTap
+                    SET TrinhDoDauVao = ISNULL(@TrinhDoDauVao, TrinhDoDauVao),
+                        KhungNangLucMucTieu = @Khung,
+                        DiemMucTieu = @Diem,
+                        GhiChuCaNhan = ISNULL(@GhiChu, GhiChuCaNhan),
+                        NgayCapNhat = SYSDATETIME()
+                    WHERE MaNguoiDung = @MaND;
+                END
+                ELSE
+                BEGIN
+                    INSERT INTO HoSoHocTap (MaNguoiDung, TrinhDoDauVao, KhungNangLucMucTieu, DiemMucTieu, GhiChuCaNhan, SoPhutHocTichLuy, NgayCapNhat)
+                    VALUES (@MaND, @TrinhDoDauVao, @Khung, @Diem, @GhiChu, 0, SYSDATETIME());
+                END";
+
+            SqlParameter[] parameters = new[]
+            {
+                new SqlParameter("@MaND", maNguoiDung),
+                new SqlParameter("@TrinhDoDauVao", (object?)trinhDoDauVao ?? DBNull.Value),
+                new SqlParameter("@Khung", (object?)khungNangLuc ?? DBNull.Value),
+                new SqlParameter("@Diem", (object?)diemMucTieu ?? DBNull.Value),
+                new SqlParameter("@GhiChu", (object?)ghiChu ?? DBNull.Value)
+            };
+
+            return SqlDataProvider.Instance.ExecuteNonQuery(query, parameters) > 0;
+        }
+
+        // Legacy overload kept for backward compatibility
+        public bool CapNhatHoSoHocTap(int maNguoiDung, string? trinhDoDauVao, string khungNangLuc, decimal? diemMucTieu) => CapNhatHoSoHocTap(maNguoiDung, trinhDoDauVao, khungNangLuc, diemMucTieu, null);
+        private bool CapNhatHoSoHocTapOld_Unused(int maNguoiDung, string? trinhDoDauVao, string khungNangLuc, decimal? diemMucTieu)
         {
             string query = @"
                 IF EXISTS (SELECT 1 FROM HoSoHocTap WHERE MaNguoiDung = @MaND)

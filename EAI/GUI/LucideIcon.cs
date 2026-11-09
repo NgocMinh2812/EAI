@@ -309,6 +309,7 @@ namespace GUI
         {
             SnapsToDevicePixels = true;
             UseLayoutRounding = true;
+            ClipToBounds = true;
         }
 
         private static void OnKindChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

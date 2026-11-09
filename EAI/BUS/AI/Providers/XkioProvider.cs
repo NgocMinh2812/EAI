@@ -65,7 +65,8 @@ namespace BUS.AI.Providers
             {
                 model = targetModel,
                 messages = new[] { new { role = "user", content = prompt } },
-                temperature = 0.5
+                temperature = 0.5,
+                max_tokens = 3500
             };
 
             string requestJson = JsonSerializer.Serialize(requestObj);
