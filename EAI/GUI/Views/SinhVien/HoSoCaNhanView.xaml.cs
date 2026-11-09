@@ -467,6 +467,15 @@ namespace GUI.Views
 
         private void BtnLogout_Click(object sender, RoutedEventArgs e)
         {
+            bool confirm = Common.ThongBaoDialog.XacNhan(
+                Window.GetWindow(this), 
+                "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản học viên hiện tại?", 
+                "Xác nhận đăng xuất", 
+                confirmText: "Đăng xuất", 
+                cancelText: "Ở lại");
+
+            if (!confirm) return;
+
             SessionHelper.Logout();
             var dangNhapWindow = new DangNhapWindow();
             dangNhapWindow.Show();

@@ -98,12 +98,48 @@
                         <TextBlock Text="Trang chủ" FontWeight="SemiBold"/>
                     </StackPanel>
                     
-                    <Border Grid.Column="1" Background="#F1F5F9" CornerRadius="8" Width="300" HorizontalAlignment="Left" Margin="30,0,0,0" Height="36">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
-                            <TextBlock Text="🔍" Foreground="{StaticResource TextGray}"/>
-                            <TextBox Background="Transparent" BorderThickness="0" Width="250" Margin="10,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource TextGray}" Text="Tìm kiếm..."/>
-                        </StackPanel>
-                    </Border>
+                    <!-- Khung Tìm Kiếm với Gợi ý trực tiếp (Live Autocomplete) -->
+                    <Grid Grid.Column="1" HorizontalAlignment="Left" Margin="30,0,0,0">
+                        <Border x:Name="borderStudentSearch" Background="#F1F5F9" CornerRadius="8" Width="330" Height="36" Padding="10,0" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                            <Grid VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="🔍" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <Grid Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBox x:Name="txtStudentSearch" Background="Transparent" BorderThickness="0" 
+                                             Foreground="{StaticResource TextDark}" FontSize="13" VerticalAlignment="Center"
+                                             TextChanged="TxtStudentSearch_TextChanged" PreviewKeyDown="TxtStudentSearch_PreviewKeyDown"/>
+                                    <TextBlock x:Name="txtStudentSearchPlaceholder" Text="Tìm kiếm bài học, kỹ năng, chức năng..." 
+                                               Foreground="{StaticResource TextGray}" FontSize="13" VerticalAlignment="Center" 
+                                               IsHitTestVisible="False"/>
+                                </Grid>
+                                <Button x:Name="btnClearStudentSearch" Grid.Column="2" Content="✕" 
+                                        Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextGray}" 
+                                        FontSize="11" Cursor="Hand" Visibility="Collapsed" Click="BtnClearStudentSearch_Click" 
+                                        Padding="4,2" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Popup Gợi ý tìm kiếm -->
+                        <Popup x:Name="popStudentSuggestions" PlacementTarget="{Binding ElementName=borderStudentSearch}" 
+                               Placement="Bottom" IsOpen="False" StaysOpen="False" AllowsTransparency="True" 
+                               PopupAnimation="Fade" VerticalOffset="5">
+                            <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
+                                    CornerRadius="10" Width="390" MaxHeight="380" Padding="6">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.12" Color="Black"/>
+                                </Border.Effect>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel x:Name="pnlStudentSuggestions">
+                                        <!-- Cac item goi y duoc them tu code-behind -->
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Border>
+                        </Popup>
+                    </Grid>
                     
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
                         <Button Background="Transparent" BorderThickness="0" Margin="0,0,15,0" Cursor="Hand">

@@ -315,30 +315,60 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Search Box -->
-                    <Border Grid.Column="0" Background="#F1F5F9" CornerRadius="9" Width="360" Height="36" VerticalAlignment="Center" Padding="10,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <local:LucideIcon Kind="Search" Size="14" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBox x:Name="txtGlobalSearch" Grid.Column="1" Text="Tìm kiếm người dùng, bài học, câu hỏi..." 
-                                     Foreground="{StaticResource TextGray}" Background="Transparent" BorderThickness="0" 
-                                     VerticalAlignment="Center" FontSize="12.5"/>
-                            <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="4" Padding="4,1" VerticalAlignment="Center">
-                                <TextBlock Text="⌘ F" FontSize="10.5" Foreground="{StaticResource TextGray}" FontWeight="SemiBold"/>
-                            </Border>
-                        </Grid>
-                    </Border>
-
-                    <!-- Breadcrumbs in Center -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="25,0,0,0">
+                    <!-- Breadcrumbs on Left -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,25,0">
                         <TextBlock Text="Admin" Foreground="{StaticResource TextGray}" FontSize="13"/>
                         <TextBlock Text="  ›  " Foreground="{StaticResource TextLightGray}" FontSize="13"/>
                         <TextBlock x:Name="txtBreadcrumb" Text="Tổng quan" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}"/>
                     </StackPanel>
+
+                    <!-- Global Search Box (Nằm sau Admin > Tổng quan) with Live Suggestions -->
+                    <Grid Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <Border x:Name="borderAdminSearch" Background="#F1F5F9" CornerRadius="9" Width="380" Height="36" Padding="10,0" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                            <Grid VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <local:LucideIcon Kind="Search" Size="14" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <Grid Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBox x:Name="txtGlobalSearch" Foreground="{StaticResource TextDark}" 
+                                             Background="Transparent" BorderThickness="0" 
+                                             VerticalAlignment="Center" FontSize="12.5"
+                                             TextChanged="TxtGlobalSearch_TextChanged" PreviewKeyDown="TxtGlobalSearch_PreviewKeyDown"/>
+                                    <TextBlock x:Name="txtGlobalSearchPlaceholder" Text="Tìm kiếm người dùng, bài học, câu hỏi..." 
+                                               Foreground="{StaticResource TextGray}" FontSize="12.5" VerticalAlignment="Center" 
+                                               IsHitTestVisible="False"/>
+                                </Grid>
+                                <Button x:Name="btnClearAdminSearch" Grid.Column="2" Content="✕" 
+                                        Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextGray}" 
+                                        FontSize="11" Cursor="Hand" Visibility="Collapsed" Click="BtnClearAdminSearch_Click" 
+                                        Padding="4,2" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                <Border Grid.Column="3" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="4" Padding="4,1" VerticalAlignment="Center">
+                                    <TextBlock Text="⌘ F" FontSize="10.5" Foreground="{StaticResource TextGray}" FontWeight="SemiBold"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Autocomplete Suggestions Popup for Admin -->
+                        <Popup x:Name="popAdminSuggestions" PlacementTarget="{Binding ElementName=borderAdminSearch}" 
+                               Placement="Bottom" IsOpen="False" StaysOpen="False" AllowsTransparency="True" 
+                               PopupAnimation="Fade" VerticalOffset="5">
+                            <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
+                                    CornerRadius="10" Width="440" MaxHeight="400" Padding="6">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.12" Color="Black"/>
+                                </Border.Effect>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel x:Name="pnlAdminSuggestions">
+                                        <!-- Danh sach goi y duoc them tu code-behind -->
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Border>
+                        </Popup>
+                    </Grid>
 
                     <!-- Right Quick Actions -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
