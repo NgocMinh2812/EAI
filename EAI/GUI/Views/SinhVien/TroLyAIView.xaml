@@ -285,13 +285,14 @@
         <!-- COT PHAI: KHU VUC CHATBOT CHINH -->
         <Grid Grid.Column="1" Background="#F8FAFC">
             <Grid.RowDefinitions>
-                <RowDefinition Height="68"/>
+                <RowDefinition Height="64"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- ROW 0: TOP HEADER BAR -->
-            <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="24,0">
+            <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="20,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -301,15 +302,15 @@
 
                     <!-- Bot Info Header -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Grid Margin="0,0,14,0">
-                            <Border Width="42" Height="42" CornerRadius="21">
+                        <Grid Margin="0,0,12,0">
+                            <Border Width="38" Height="38" CornerRadius="19">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                                         <GradientStop Color="#0F766E" Offset="0"/>
                                         <GradientStop Color="#14B8A6" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Border.Background>
-                                <local:LucideIcon Kind="Bot" Size="22" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <local:LucideIcon Kind="Bot" Size="20" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <Ellipse Width="10" Height="10" Fill="#16A34A" Stroke="White" StrokeThickness="1.8" 
                                      HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,1"/>
@@ -317,7 +318,7 @@
 
                         <StackPanel VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="Gia sư AI Tiếng Anh" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}" Margin="0,0,8,0"/>
+                                <TextBlock Text="Gia sư AI Tiếng Anh" FontWeight="Bold" FontSize="14.5" Foreground="{StaticResource TextDark}" Margin="0,0,8,0"/>
                                 <Border Background="{StaticResource BrandMintSoft}" CornerRadius="6" Padding="6,2" Margin="0,0,6,0">
                                     <TextBlock Text="AI Online 24/7" FontSize="11" FontWeight="Bold" Foreground="#15803D"/>
                                 </Border>
@@ -326,28 +327,18 @@
                                 </Border>
                             </StackPanel>
                             <TextBlock Text="Giải đáp ngữ pháp, tra từ vựng, hướng dẫn đáp án &amp; luyện giao tiếp song ngữ" 
-                                       FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,3,0,0"
-                                       TextTrimming="CharacterEllipsis" MaxWidth="360"/>
+                                       FontSize="11.5" Foreground="{StaticResource TextGray}" Margin="0,2,0,0"
+                                       TextTrimming="CharacterEllipsis" MaxWidth="380"/>
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Right Controls: Bo loc chu de va nut thao tac -->
+                    <!-- Right Controls: Nut thao tac (Chua le 125px cho nut thu nho/phong to/dong cua so) -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
-                        <Border Background="#F1F5F9" CornerRadius="8" Padding="3" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal">
-                                <Button x:Name="btnModeAll" Content="🌟 Tất cả" Style="{StaticResource ActiveFilterTabPill}" Tag="All" Click="BtnMode_Click"/>
-                                <Button x:Name="btnModeGrammar" Content="💡 Ngữ pháp" Style="{StaticResource FilterTabPill}" Tag="Grammar" Click="BtnMode_Click"/>
-                                <Button x:Name="btnModeVocab" Content="📚 Từ vựng" Style="{StaticResource FilterTabPill}" Tag="Vocab" Click="BtnMode_Click"/>
-                                <Button x:Name="btnModeExplain" Content="🎯 Giải đáp" Style="{StaticResource FilterTabPill}" Tag="Explain" Click="BtnMode_Click"/>
-                                <Button x:Name="btnModeSpeaking" Content="🗣️ Giao tiếp" Style="{StaticResource FilterTabPill}" Tag="Speaking" Click="BtnMode_Click"/>
-                            </StackPanel>
-                        </Border>
-
                         <!-- Nut Xoa cuoc tro chuyen hien tai -->
-                        <Button x:Name="btnClearCurrentChat" Style="{StaticResource GhostIconButtonStyle}" Margin="0,0,6,0" 
+                        <Button x:Name="btnClearCurrentChat" Style="{StaticResource GhostIconButtonStyle}" Margin="0,0,8,0" 
                                 ToolTip="Xóa nội dung cuộc trò chuyện hiện tại" Click="BtnClearCurrentChat_Click">
                             <StackPanel Orientation="Horizontal">
-                                <local:LucideIcon Kind="Trash2" Size="15" Foreground="{StaticResource TextGray}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                <local:LucideIcon Kind="Trash2" Size="15" Foreground="{StaticResource TextGray}" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="Xóa chat" FontSize="12" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
@@ -360,8 +351,35 @@
                 </Grid>
             </Border>
 
-            <!-- ROW 1: KHU VUC TIN NHAN -->
-            <ScrollViewer x:Name="chatScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,18">
+            <!-- ROW 1: THANH BO LOC CHU DE & CHE DO HOC TAP -->
+            <Border Grid.Row="1" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="20,7">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                        <local:LucideIcon Kind="Sliders" Size="14" Foreground="{StaticResource BrandTeal}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Chế độ học:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                        <Border Background="#F1F5F9" CornerRadius="8" Padding="3" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="btnModeAll" Content="🌟 Tất cả" Style="{StaticResource ActiveFilterTabPill}" Tag="All" Click="BtnMode_Click"/>
+                                <Button x:Name="btnModeGrammar" Content="💡 Ngữ pháp" Style="{StaticResource FilterTabPill}" Tag="Grammar" Click="BtnMode_Click"/>
+                                <Button x:Name="btnModeVocab" Content="📚 Từ vựng" Style="{StaticResource FilterTabPill}" Tag="Vocab" Click="BtnMode_Click"/>
+                                <Button x:Name="btnModeExplain" Content="🎯 Giải đáp" Style="{StaticResource FilterTabPill}" Tag="Explain" Click="BtnMode_Click"/>
+                                <Button x:Name="btnModeSpeaking" Content="🗣️ Giao tiếp" Style="{StaticResource FilterTabPill}" Tag="Speaking" Click="BtnMode_Click"/>
+                            </StackPanel>
+                        </Border>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- ROW 2: KHU VUC TIN NHAN -->
+            <ScrollViewer x:Name="chatScrollViewer" Grid.Row="2" VerticalScrollBarVisibility="Auto" Padding="24,18">
                 <StackPanel x:Name="pnlChatContent" MaxWidth="920" HorizontalAlignment="Stretch">
 
                     <!-- TRANG CHAO DON THAN THIEN & GOI Y CHU DE BAN DAU -->
@@ -548,8 +566,8 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- ROW 2: THANH SOAN THAO VA GUI CAU HOI -->
-            <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0" Padding="24,12,24,16">
+            <!-- ROW 3: THANH SOAN THAO VA GUI CAU HOI -->
+            <Border Grid.Row="3" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0" Padding="24,12,24,16">
                 <StackPanel MaxWidth="920" HorizontalAlignment="Stretch">
 
                     <!-- Hang Chip goi y cau hoi nhanh -->
