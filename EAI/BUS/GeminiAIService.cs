@@ -85,6 +85,23 @@ namespace BUS
         /// </summary>
         public static async Task<string?> GoiGeminiApiAsync(string prompt, string module = "NoiDungHocTap")
         {
+            // ƯU TIÊN SỐ 1: GỌI QUA CENTRALIZED BACKEND EAI.AIBackend.API
+            if (AI.Configuration.AIConfigHelper.IsUseCentralizedBackend())
+            {
+                try
+                {
+                    string? beReply = await AI.EAIBackendClient.ChatAsync(prompt);
+                    if (!string.IsNullOrWhiteSpace(beReply))
+                    {
+                        return beReply;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[GeminiAIService.GoiGeminiApiAsync] Centralized Backend gặp lỗi hoặc offline: {ex.Message}. Fallback về Gemini nội bộ...");
+                }
+            }
+
             var keys = LayDanhSachApiKeyKhaDung(module);
             if (keys.Count == 0)
             {

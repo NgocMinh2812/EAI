@@ -107,6 +107,33 @@ namespace BUS.AI
                 }
             }
 
+            // BƯỚC 1.5: ƯU TIÊN GỌI QUA CENTRALIZED BACKEND EAI.AIBackend.API (http://localhost:5281)
+            if (AIConfigHelper.IsUseCentralizedBackend())
+            {
+                try
+                {
+                    var (beSuccess, beTranscript, beErr) = await EAIBackendClient.TranscribeAudioAsync(audioFilePath, language, ct);
+                    if (beSuccess && beTranscript != null)
+                    {
+                        beTranscript.MaBaiHoc = maBaiHoc;
+                        beTranscript.AudioPath = audioFilePath;
+                        beTranscript.AudioHash = audioHash;
+
+                        try
+                        {
+                            AudioTranscriptDAL.Instance.LuuAudioTranscript(beTranscript);
+                        }
+                        catch { }
+
+                        return (true, beTranscript, string.Empty);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[GroqAudioService.STT] Centralized Backend gặp lỗi hoặc offline: {ex.Message}. Fallback về Groq trực tiếp...");
+                }
+            }
+
             // BƯỚC 2: KIỂM TRA GROQ API KEY
             string apiKey = AIConfigHelper.GetGroqKey();
             if (string.IsNullOrWhiteSpace(apiKey))
@@ -242,6 +269,43 @@ namespace BUS.AI
                 {
                     System.Diagnostics.Debug.WriteLine($"[GroqAudioService.TTS] Tái sử dụng Audio đã tạo từ Cache (Hash: {scriptHash[..8]}). Không gọi Groq API.");
                     return (true, cached, string.Empty);
+                }
+            }
+
+            // BƯỚC 1.5: ƯU TIÊN GỌI QUA CENTRALIZED BACKEND EAI.AIBackend.API (http://localhost:5281)
+            if (AIConfigHelper.IsUseCentralizedBackend())
+            {
+                try
+                {
+                    var (beOk, bePath, beErr) = await EAIBackendClient.GenerateSpeechAsync(script, targetVoice, ct);
+                    if (beOk && !string.IsNullOrEmpty(bePath) && File.Exists(bePath))
+                    {
+                        var resultDto = new AudioTranscriptDTO
+                        {
+                            MaBaiHoc = maBaiHoc,
+                            AudioPath = bePath,
+                            LoaiAudio = "AiTts",
+                            TieuDeAudio = script.Length > 60 ? script.Substring(0, 60) + "..." : script,
+                            ScriptGoc = script,
+                            Provider = "EAI.AIBackend (Groq Orpheus)",
+                            MoHinhTTS = targetModel,
+                            VoiceName = targetVoice,
+                            AudioHash = scriptHash,
+                            TrangThaiDuyet = "DaDuyet"
+                        };
+
+                        try
+                        {
+                            AudioTranscriptDAL.Instance.LuuAudioTranscript(resultDto);
+                        }
+                        catch { }
+
+                        return (true, resultDto, string.Empty);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[GroqAudioService.TTS] Centralized Backend gặp lỗi hoặc offline: {ex.Message}. Fallback về Groq trực tiếp...");
                 }
             }
 

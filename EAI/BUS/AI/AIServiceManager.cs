@@ -87,6 +87,38 @@ namespace BUS.AI
             string actionName = "AI Generation", 
             CancellationToken ct = default)
         {
+            var sw = Stopwatch.StartNew();
+
+            // 1. ƯU TIÊN SỐ 1: GỌI QUA CENTRALIZED BACKEND EAI.AIBackend.API (http://localhost:5281)
+            if (Configuration.AIConfigHelper.IsUseCentralizedBackend())
+            {
+                try
+                {
+                    string? beReply = await EAIBackendClient.ChatAsync(prompt, preferredProvider, preferredModel, ct);
+                    sw.Stop();
+                    if (!string.IsNullOrWhiteSpace(beReply))
+                    {
+                        var beResponse = AIResponse.Ok(beReply, "EAI.AIBackend Gateway", preferredModel ?? "Auto", sw.ElapsedMilliseconds, 200);
+                        Metrics.Record(new AIRequestLog
+                        {
+                            ActionName = actionName,
+                            Provider = "EAI.AIBackend",
+                            Model = preferredModel ?? "Auto",
+                            LatencyMs = sw.ElapsedMilliseconds,
+                            Success = true,
+                            StatusCode = 200,
+                            PromptPreview = prompt.Length > 120 ? prompt.Substring(0, 120) + "..." : prompt
+                        });
+                        return beResponse;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[AIServiceManager] Centralized Backend gặp lỗi hoặc chưa khởi chạy: {ex.Message}. Thử fallback về cấu hình Provider nội bộ...");
+                }
+            }
+
+            // 2. FALLBACK NỘI BỘ (Khi Centralized Backend offline hoặc cấu hình tắt)
             if (string.IsNullOrWhiteSpace(preferredProvider))
             {
                 SyncActiveConfigFromStorage();
@@ -101,7 +133,7 @@ namespace BUS.AI
             var provider = GetProvider(targetType);
             string? targetModel = !string.IsNullOrWhiteSpace(preferredModel) ? preferredModel : (targetType == ActiveProviderType ? ActiveModel : null);
 
-            var sw = Stopwatch.StartNew();
+            if (!sw.IsRunning) sw.Restart();
             AIResponse response = await provider.GenerateContentAsync(prompt, targetModel, ct);
             sw.Stop();
 

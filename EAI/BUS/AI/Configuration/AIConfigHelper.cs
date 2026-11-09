@@ -395,6 +395,30 @@ namespace BUS.AI.Configuration
         }
 
         /// <summary>
+        /// Địa chỉ dịch vụ Centralized Backend EAI.AIBackend.API (Mặc định: http://localhost:5281)
+        /// </summary>
+        public static string BackendBaseUrl
+        {
+            get
+            {
+                var config = Configuration;
+                string? url = config["AIBackend:BaseUrl"] ?? GetEnvVar("AI_BACKEND_URL");
+                return !string.IsNullOrWhiteSpace(url) ? url.TrimEnd('/') : "http://localhost:5281";
+            }
+        }
+
+        /// <summary>
+        /// Cờ kiểm tra ưu tiên chuyển toàn bộ request AI qua Backend tập trung EAI.AIBackend.API
+        /// </summary>
+        public static bool IsUseCentralizedBackend()
+        {
+            var config = Configuration;
+            string? val = config["AIBackend:Enabled"] ?? GetEnvVar("AI_BACKEND_ENABLED");
+            if (bool.TryParse(val, out bool enabled)) return enabled;
+            return true; // Mặc định BẬT để EAI Desktop sử dụng hoàn toàn Backend mới!
+        }
+
+        /// <summary>
         /// Làm sạch và che giấu chuỗi API Key khi hiển thị trên giao diện hoặc lưu trữ log
         /// </summary>
         public static string MaskKey(string key)
