@@ -166,7 +166,7 @@
                     <TextBlock Text="Quản lý Hồ sơ cá nhân &amp; Mục tiêu học tập" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
                     <Border Background="{StaticResource BrandTealLight}" CornerRadius="8" Padding="12,6">
                         <TextBlock x:Name="txtStudentId" Text="ID Học Viên: EAI-2026-0001" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource BrandTeal}"/>
                     </Border>

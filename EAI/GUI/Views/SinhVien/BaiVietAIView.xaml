@@ -156,7 +156,7 @@
                 </WrapPanel>
 
                 <!-- Right: Model indicator & History Button -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
                     <Border Background="#F8FAFC" CornerRadius="6" Padding="8,4" Margin="0,0,8,0" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
                         <TextBlock x:Name="txtActiveModelBadge" Text="🤖 AI Coach" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextGray}"/>
                     </Border>

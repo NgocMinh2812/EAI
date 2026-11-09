@@ -326,12 +326,13 @@
                                 </Border>
                             </StackPanel>
                             <TextBlock Text="Giải đáp ngữ pháp, tra từ vựng, hướng dẫn đáp án &amp; luyện giao tiếp song ngữ" 
-                                       FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,3,0,0"/>
+                                       FontSize="12" Foreground="{StaticResource TextGray}" Margin="0,3,0,0"
+                                       TextTrimming="CharacterEllipsis" MaxWidth="360"/>
                         </StackPanel>
                     </StackPanel>
 
                     <!-- Right Controls: Bo loc chu de va nut thao tac -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,125,0">
                         <Border Background="#F1F5F9" CornerRadius="8" Padding="3" Margin="0,0,12,0">
                             <StackPanel Orientation="Horizontal">
                                 <Button x:Name="btnModeAll" Content="🌟 Tất cả" Style="{StaticResource ActiveFilterTabPill}" Tag="All" Click="BtnMode_Click"/>
