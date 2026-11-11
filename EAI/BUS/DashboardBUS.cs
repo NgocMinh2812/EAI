@@ -8,9 +8,9 @@ namespace BUS
     {
         private readonly DashboardDAL _dal = new DashboardDAL();
 
-        public DashboardKpiDTO LaySoLieuTongQuan()
+        public DashboardKpiDTO LaySoLieuTongQuan(int filterPeriod = 0)
         {
-            return _dal.GetKpiStats();
+            return _dal.GetKpiStats(filterPeriod);
         }
 
         public (bool IsConnected, long LatencyMs, string Message) KiemTraKetNoiDatabase()

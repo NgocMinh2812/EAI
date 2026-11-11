@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using BUS;
 using DTO;
 
@@ -22,6 +23,28 @@ namespace GUI.Views.GiangVien
         public NguoiDungView()
         {
             InitializeComponent();
+            Loaded += (s, e) => UpdateFilterChipStyles();
+            ApplyFilter(resetPage: true);
+        }
+
+        public NguoiDungView(string? searchKeyword = null, string? filterRole = null) : this()
+        {
+            if (!string.IsNullOrWhiteSpace(searchKeyword) && txtSearchUser != null)
+            {
+                txtSearchUser.Text = searchKeyword.Trim();
+                txtSearchUser.Foreground = (Brush)FindResource("TextDark");
+            }
+            if (!string.IsNullOrWhiteSpace(filterRole) && cboRoleFilter != null)
+            {
+                foreach (ComboBoxItem item in cboRoleFilter.Items)
+                {
+                    if (string.Equals(item.Tag?.ToString(), filterRole, StringComparison.OrdinalIgnoreCase))
+                    {
+                        cboRoleFilter.SelectedItem = item;
+                        break;
+                    }
+                }
+            }
             ApplyFilter(resetPage: true);
         }
 
@@ -155,19 +178,47 @@ namespace GUI.Views.GiangVien
         private void FilterStatus_All(object sender, RoutedEventArgs e)
         {
             _statusFilter = "All";
+            UpdateFilterChipStyles();
             ApplyFilter(resetPage: true);
         }
 
         private void FilterStatus_Active(object sender, RoutedEventArgs e)
         {
             _statusFilter = "Active";
+            UpdateFilterChipStyles();
             ApplyFilter(resetPage: true);
         }
 
         private void FilterStatus_Locked(object sender, RoutedEventArgs e)
         {
             _statusFilter = "Locked";
+            UpdateFilterChipStyles();
             ApplyFilter(resetPage: true);
+        }
+
+        private void UpdateFilterChipStyles()
+        {
+            if (btnFilterAll == null || btnFilterActive == null || btnFilterLocked == null) return;
+
+            var activeBg = new SolidColorBrush(Color.FromRgb(4, 120, 87));   // #047857 Emerald 700
+            var activeBorder = new SolidColorBrush(Color.FromRgb(5, 150, 105)); // #059669
+            var activeFg = Brushes.White;
+
+            var inactiveBg = new SolidColorBrush(Color.FromRgb(241, 245, 249)); // #F1F5F9 Slate 100
+            var inactiveBorder = new SolidColorBrush(Color.FromRgb(226, 232, 240)); // #E2E8F0 Slate 200
+            var inactiveFg = new SolidColorBrush(Color.FromRgb(71, 85, 105)); // #475569 Slate 600
+
+            void StyleChip(Button btn, bool isActive)
+            {
+                btn.Background = isActive ? activeBg : inactiveBg;
+                btn.BorderBrush = isActive ? activeBorder : inactiveBorder;
+                btn.Foreground = isActive ? activeFg : inactiveFg;
+                btn.FontWeight = isActive ? FontWeights.Bold : FontWeights.SemiBold;
+            }
+
+            StyleChip(btnFilterAll, _statusFilter == "All");
+            StyleChip(btnFilterActive, _statusFilter == "Active");
+            StyleChip(btnFilterLocked, _statusFilter == "Locked");
         }
 
         private void BtnResetMatKhau_Click(object sender, RoutedEventArgs e)

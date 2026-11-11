@@ -33,12 +33,22 @@ namespace DTO
         public int DaKhoa { get; set; } = 0;
         public int TongChuDe { get; set; } = 0;
         public int TongDeThi { get; set; } = 0;
+        public int TongLuyenTap { get; set; } = 0;
+
+        // Số lượng tăng mới trong chu kỳ
+        public int HocVienMoi { get; set; } = 0;
+        public int BaiHocMoi { get; set; } = 0;
+        public int CauHoiMoi { get; set; } = 0;
+        public int LuotThiMoi { get; set; } = 0;
 
         // Thống kê nhóm học theo trình độ
-        public int NhomA1Count { get; set; } = 12;
-        public int NhomB1Count { get; set; } = 31;
-        public int NhomB2Count { get; set; } = 28;
-        public int NhomC1Count { get; set; } = 23;
+        public int NhomA1Count { get; set; } = 0;
+        public int NhomB1Count { get; set; } = 0;
+        public int NhomB2Count { get; set; } = 0;
+        public int NhomC1Count { get; set; } = 0;
+
+        // Chu kỳ thống kê
+        public string TenKyThongKe { get; set; } = "so với tuần trước";
 
         // Dữ liệu bài học & đề thi nổi bật thực tế từ CSDL
         public DashboardItemDTO? BaiHoc1 { get; set; }
@@ -51,11 +61,16 @@ namespace DTO
         // Danh sách hoạt động gần đây
         public List<HoatDongGanDayDTO> DanhSachHoatDong { get; set; } = new List<HoatDongGanDayDTO>();
 
-        private static string FormatTrend(double pct)
+        public string FormatTrend(double pct, int countNew = -1)
         {
-            if (pct > 0) return $"+{pct:F1}% so với tuần trước";
-            if (pct < 0) return $"{pct:F1}% so với tuần trước";
-            return "0.0% so với tuần trước";
+            string sign = pct > 0 ? "+" : "";
+            string pctStr = $"{sign}{pct:F1}%";
+            if (countNew >= 0)
+            {
+                string newStr = countNew > 0 ? $"+{countNew} mới" : "0 mới";
+                return $"{newStr} • {pctStr}\n{TenKyThongKe}";
+            }
+            return $"{pctStr} {TenKyThongKe}";
         }
     }
 
@@ -80,6 +95,7 @@ namespace DTO
         public string NoiDung { get; set; } = "";
         public string ThoiGian { get; set; } = "";
         public string DiemSo { get; set; } = "";
+        public string LoaiHoatDong { get; set; } = "KhaoSat"; // KhaoSat, ThiThu, LuyenTap
         public string TrangThai { get; set; } = "Đã nộp";
         public string TrangThaiBg { get; set; } = "#DCFCE7";
         public string TrangThaiFg { get; set; } = "#15803D";

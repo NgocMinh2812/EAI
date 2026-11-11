@@ -182,17 +182,32 @@ namespace DAL
         public FlashcardDTO? LayTuVungHomNay()
         {
             string query = @"
-                SELECT TOP 1 tv.MaTuVung, tv.Tu, tv.LoaiTu, tv.PhienAmIPA, tv.Nghia, tv.CauViDu,
-                       tv.DuongDanAudio, tv.CumTuDiKem, td.MaCapDo, cd.TenChuDe,
-                       ISNULL(fc.MaFlashcard, 0) AS MaFlashcard,
-                       ISNULL(fc.SoLanOnTap, 0) AS SoLanOnTap,
-                       ISNULL(fc.SoLanDung, 0) AS SoLanDung,
-                       fc.LanOnTapCuoi
-                FROM TuVung tv
-                LEFT JOIN TrinhDo td ON tv.MaTrinhDo = td.MaTrinhDo
-                LEFT JOIN ChuDe cd ON tv.MaChuDe = cd.MaChuDe
-                LEFT JOIN Flashcard fc ON tv.MaTuVung = fc.MaTuVung
-                ORDER BY tv.NgayTao DESC, tv.MaTuVung DESC";
+                DECLARE @TotalWords INT;
+                SELECT @TotalWords = COUNT(*) FROM TuVung;
+
+                IF @TotalWords > 0
+                BEGIN
+                    DECLARE @DayOffset INT = DATEDIFF(day, '2024-01-01', CAST(GETDATE() AS DATE)) % @TotalWords;
+                    
+                    WITH OrderedTuVung AS (
+                        SELECT tv.MaTuVung, tv.Tu, tv.LoaiTu, tv.PhienAmIPA, tv.Nghia, tv.CauViDu,
+                               tv.DuongDanAudio, tv.CumTuDiKem, td.MaCapDo, cd.TenChuDe,
+                               ISNULL(fc.MaFlashcard, 0) AS MaFlashcard,
+                               ISNULL(fc.SoLanOnTap, 0) AS SoLanOnTap,
+                               ISNULL(fc.SoLanDung, 0) AS SoLanDung,
+                               fc.LanOnTapCuoi,
+                               ROW_NUMBER() OVER (ORDER BY tv.MaTuVung ASC) - 1 AS RowNum
+                        FROM TuVung tv
+                        LEFT JOIN TrinhDo td ON tv.MaTrinhDo = td.MaTrinhDo
+                        LEFT JOIN ChuDe cd ON tv.MaChuDe = cd.MaChuDe
+                        LEFT JOIN Flashcard fc ON tv.MaTuVung = fc.MaTuVung
+                    )
+                    SELECT * FROM OrderedTuVung WHERE RowNum = @DayOffset;
+                END
+                ELSE
+                BEGIN
+                    SELECT TOP 0 1 AS Dummy;
+                END";
 
             try
             {

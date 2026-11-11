@@ -319,6 +319,9 @@ namespace BUS
 
         public (bool Success, string Message) XoaTaiKhoan(int userId)
         {
+            if (SessionHelper.CurrentUser != null && !SessionHelper.IsAdmin)
+                return (false, "Chỉ Quản trị viên hệ thống mới có quyền xóa tài khoản.");
+
             var user = _dal.GetById(userId);
             if (user == null)
                 return (false, "Tài khoản không tồn tại trong hệ thống.");
@@ -369,6 +372,9 @@ namespace BUS
 
         public (bool Success, string Message) ResetMatKhau(int userId, string newPassword = "123456")
         {
+            if (SessionHelper.CurrentUser != null && !SessionHelper.IsAdmin && SessionHelper.CurrentUser.MaNguoiDung != userId)
+                return (false, "Bạn không có quyền quản trị để đặt lại mật khẩu cho tài khoản khác.");
+
             if (userId <= 0) return (false, "Mã người dùng không hợp lệ.");
 
             var user = _dal.GetById(userId);

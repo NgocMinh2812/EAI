@@ -215,8 +215,9 @@
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Vai trò" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
                                 <ComboBox x:Name="cboVaiTro" Height="38" SelectedIndex="0">
-                                    <ComboBoxItem Content="Học viên" Tag="2"/>
-                                    <ComboBoxItem Content="Giảng viên" Tag="1"/>
+                                    <ComboBoxItem Content="Học viên" Tag="1"/>
+                                    <ComboBoxItem Content="Giảng viên" Tag="0"/>
+                                    <ComboBoxItem Content="Quản trị viên" Tag="2"/>
                                 </ComboBox>
                             </StackPanel>
 

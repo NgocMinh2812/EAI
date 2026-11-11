@@ -1913,6 +1913,11 @@ namespace GUI.Views
             pnlDanhSachBaiHoc.Visibility = Visibility.Visible;
         }
 
+        private void BtnThongBao_Click(object sender, RoutedEventArgs e)
+        {
+            Common.ThongBaoDialog.ThongTin("Bạn hiện không có thông báo mới nào từ hệ thống học tập.", "Thông báo");
+        }
+
         private void NavAIChat_Click(object sender, RoutedEventArgs e)
         {
             if (MainWindow.Instance != null)

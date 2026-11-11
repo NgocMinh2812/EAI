@@ -289,8 +289,15 @@ namespace DAL
                 int maLuotLamBai = (int)cmdLuot.ExecuteScalar();
 
                 string queryChiTiet = @"
-                    INSERT INTO ChiTietTraLoi (MaLuotLamBai, MaCauHoi, MaLuaChonDaChon, CauTraLoiVanBan, KetQuaDungSai, DiemSo, ThoiDiemTraLoi)
-                    VALUES (@MaLuot, @MaCauHoi, @MaLC, @VanBan, @DungSai, @DiemCau, SYSDATETIME());";
+                    IF EXISTS (SELECT 1 FROM CauHoi WHERE MaCauHoi = @MaCauHoi)
+                    BEGIN
+                        DECLARE @ActualLC INT = @MaLC;
+                        IF @ActualLC IS NOT NULL AND NOT EXISTS (SELECT 1 FROM LuaChonDapAn WHERE MaLuaChon = @ActualLC)
+                            SET @ActualLC = NULL;
+
+                        INSERT INTO ChiTietTraLoi (MaLuotLamBai, MaCauHoi, MaLuaChonDaChon, CauTraLoiVanBan, KetQuaDungSai, DiemSo, ThoiDiemTraLoi)
+                        VALUES (@MaLuot, @MaCauHoi, @ActualLC, @VanBan, @DungSai, @DiemCau, SYSDATETIME());
+                    END";
 
                 decimal diemMoiCau = tongSoCau > 0 ? (10.0m / tongSoCau) : 0m;
 
@@ -299,7 +306,7 @@ namespace DAL
                     using var cmdCT = new SqlCommand(queryChiTiet, conn, trans);
                     cmdCT.Parameters.AddWithValue("@MaLuot", maLuotLamBai);
                     cmdCT.Parameters.AddWithValue("@MaCauHoi", item.MaCauHoi);
-                    cmdCT.Parameters.AddWithValue("@MaLC", (object?)item.MaLuaChon ?? DBNull.Value);
+                    cmdCT.Parameters.AddWithValue("@MaLC", (item.MaLuaChon.HasValue && item.MaLuaChon.Value > 0) ? (object)item.MaLuaChon.Value : DBNull.Value);
                     cmdCT.Parameters.AddWithValue("@VanBan", (object?)item.CauTraLoiVanBan ?? DBNull.Value);
                     cmdCT.Parameters.AddWithValue("@DungSai", item.DungSai ? 1 : 0);
                     cmdCT.Parameters.AddWithValue("@DiemCau", item.DungSai ? diemMoiCau : 0m);

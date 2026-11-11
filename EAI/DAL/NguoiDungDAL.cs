@@ -30,16 +30,12 @@ namespace DAL
                 INNER JOIN VaiTro vt ON nd.MaVaiTro = vt.MaVaiTro
                 LEFT JOIN HoSoHocTap hs ON nd.MaNguoiDung = hs.MaNguoiDung
                 WHERE (nd.TenDangNhap = @Identifier OR nd.Email = @Identifier)
-                  AND (nd.MatKhauMaHoa = @Password 
-                       OR nd.MatKhauMaHoa = @RawPassword 
-                       OR nd.MatKhauMaHoa = N'CHANGE_ME_HASH'
-                       OR (@RawPassword = 'admin' AND nd.TenDangNhap IN ('admin', 'quantri')))";
+                  AND nd.MatKhauMaHoa = @Password;";
 
             SqlParameter[] parameters = new[]
             {
                 new SqlParameter("@Identifier", usernameOrEmail),
-                new SqlParameter("@Password", matKhauMaHoa),
-                new SqlParameter("@RawPassword", string.IsNullOrEmpty(rawPassword) ? matKhauMaHoa : rawPassword)
+                new SqlParameter("@Password", matKhauMaHoa)
             };
 
             DataTable table = SqlDataProvider.Instance.ExecuteQuery(query, parameters);
@@ -47,16 +43,14 @@ namespace DAL
             {
                 var user = FromDataRow(table.Rows[0]);
 
-                // Cập nhật lần đăng nhập cuối và đồng bộ mật khẩu đã mã hóa nếu trước đó là CHANGE_ME_HASH hoặc plaintext
+                // Cập nhật lần đăng nhập cuối
                 string updateLastLogin = @"
                     UPDATE NguoiDung 
-                    SET LanDangNhapCuoi = SYSDATETIME(),
-                        MatKhauMaHoa = @NewHash
+                    SET LanDangNhapCuoi = SYSDATETIME()
                     WHERE MaNguoiDung = @MaND";
                 SqlDataProvider.Instance.ExecuteNonQuery(updateLastLogin, new[] 
                 { 
-                    new SqlParameter("@MaND", user.MaNguoiDung),
-                    new SqlParameter("@NewHash", matKhauMaHoa)
+                    new SqlParameter("@MaND", user.MaNguoiDung)
                 });
 
                 user.LanDangNhapCuoi = DateTime.Now;
@@ -542,7 +536,8 @@ namespace DAL
                     DELETE FROM DiemYeuNguoiDung WHERE MaNguoiDung = @id;
                     DELETE FROM DeXuatHocTap WHERE MaNguoiDung = @id;
                     DELETE FROM Flashcard WHERE MaNguoiDung = @id;
-                    DELETE FROM ThongBao WHERE MaNguoiDung = @id;
+                    IF OBJECT_ID('dbo.ThongBao', 'U') IS NOT NULL
+                        DELETE FROM ThongBao WHERE MaNguoiDung = @id;
 
                     -- 5. Xóa yêu cầu sinh đề AI và tệp tin nhập liệu
                     DELETE FROM CauHoiDoAISinh WHERE MaYeuCauSinhDe IN (SELECT MaYeuCauSinhDe FROM YeuCauSinhDeAI WHERE NguoiYeuCau = @id);

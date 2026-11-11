@@ -2,23 +2,27 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using NAudio.Wave;
 
 namespace BUS.AI
 {
-    public class MicrophoneRecorder
+    public class MicrophoneRecorder : IDisposable
     {
         [DllImport("winmm.dll", EntryPoint = "mciSendStringA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
         private static extern int MciSendString(string lpstrCommand, StringBuilder? lpstrReturnString, int uReturnLength, IntPtr hwndCallback);
 
         private bool _isRecording;
         private string? _currentTempFile;
+        private WaveIn? _waveIn;
+        private WaveFileWriter? _waveWriter;
+        private bool _usedNAudio;
 
         public bool IsRecording => _isRecording;
         public string? CurrentTempFile => _currentTempFile;
 
         /// <summary>
-        /// Bắt đầu ghi âm từ microphone thông qua Windows Multimedia API.
-        /// Ghi âm định dạng WAV chuẩn 16-bit PCM Mono.
+        /// Bắt đầu ghi âm từ microphone thông qua NAudio chuẩn 64-bit (16-bit Mono 16000Hz).
+        /// Tự động fallback về Windows MCI nếu driver âm thanh không hỗ trợ WASAPI.
         /// </summary>
         public bool StartRecording(out string error)
         {
@@ -29,20 +33,46 @@ namespace BUS.AI
                 return false;
             }
 
+            string tempDir = Path.Combine(Path.GetTempPath(), "EAI_AudioRecordings");
+            if (!Directory.Exists(tempDir))
+            {
+                Directory.CreateDirectory(tempDir);
+            }
+            _currentTempFile = Path.Combine(tempDir, $"speak_{Guid.NewGuid():N}.wav");
+
+            // Cách tiếp cận 1: Thư viện hiện đại NAudio WaveIn
             try
             {
-                // Đóng phiên ghi âm cũ nếu còn sót
+                if (WaveIn.DeviceCount > 0)
+                {
+                    _waveIn = new WaveIn
+                    {
+                        WaveFormat = new WaveFormat(16000, 16, 1) // 16kHz Mono chuẩn cho Whisper / STT
+                    };
+
+                    _waveWriter = new WaveFileWriter(_currentTempFile, _waveIn.WaveFormat);
+                    _waveIn.DataAvailable += (s, a) =>
+                    {
+                        _waveWriter?.Write(a.Buffer, 0, a.BytesRecorded);
+                    };
+
+                    _waveIn.StartRecording();
+                    _isRecording = true;
+                    _usedNAudio = true;
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MicrophoneRecorder] NAudio init failed, falling back to MCI: {ex.Message}");
+                CleanupNAudio();
+            }
+
+            // Cách tiếp cận 2: Fallback WinMM MCI
+            try
+            {
                 MciSendString("close eai_rec", null, 0, IntPtr.Zero);
 
-                string tempDir = Path.Combine(Path.GetTempPath(), "EAI_AudioRecordings");
-                if (!Directory.Exists(tempDir))
-                {
-                    Directory.CreateDirectory(tempDir);
-                }
-
-                _currentTempFile = Path.Combine(tempDir, $"speak_{Guid.NewGuid():N}.wav");
-
-                // Mở waveaudio mới: 16-bit mono 16000Hz (chuẩn tối ưu cho Whisper STT)
                 int res = MciSendString("open new Type waveaudio Alias eai_rec", null, 0, IntPtr.Zero);
                 if (res != 0)
                 {
@@ -65,6 +95,7 @@ namespace BUS.AI
                 }
 
                 _isRecording = true;
+                _usedNAudio = false;
                 return true;
             }
             catch (Exception ex)
@@ -90,9 +121,15 @@ namespace BUS.AI
 
             try
             {
-                // Lưu tệp WAV
-                MciSendString($"save eai_rec \"{_currentTempFile}\"", null, 0, IntPtr.Zero);
-                MciSendString("close eai_rec", null, 0, IntPtr.Zero);
+                if (_usedNAudio)
+                {
+                    CleanupNAudio();
+                }
+                else
+                {
+                    MciSendString($"save eai_rec \"{_currentTempFile}\"", null, 0, IntPtr.Zero);
+                    MciSendString("close eai_rec", null, 0, IntPtr.Zero);
+                }
 
                 _isRecording = false;
 
@@ -114,6 +151,31 @@ namespace BUS.AI
             }
         }
 
+        private void CleanupNAudio()
+        {
+            try
+            {
+                _waveIn?.StopRecording();
+            }
+            catch { }
+
+            try
+            {
+                _waveWriter?.Flush();
+                _waveWriter?.Dispose();
+            }
+            catch { }
+
+            try
+            {
+                _waveIn?.Dispose();
+            }
+            catch { }
+
+            _waveWriter = null;
+            _waveIn = null;
+        }
+
         /// <summary>
         /// Xóa bỏ an toàn tệp ghi âm tạm nhằm tuân thủ quy tắc bảo mật và quyền riêng tư của sinh viên
         /// </summary>
@@ -129,6 +191,15 @@ namespace BUS.AI
             catch { }
             _currentTempFile = null;
         }
+
+        public void Dispose()
+        {
+            if (_isRecording)
+            {
+                StopRecording(out _, out _);
+            }
+            CleanupNAudio();
+            CleanupTempFile();
+        }
     }
 }
-

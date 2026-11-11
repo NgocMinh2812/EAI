@@ -22,6 +22,32 @@ namespace GUI.Views.GiangVien
             DataContextChanged += Page_DataContextChanged;
         }
 
+        public NoiDungHocTapView(string? searchKeyword = null, string? kyNang = null, int? targetLessonId = null) : this()
+        {
+            Loaded += (s, e) =>
+            {
+                if (DataContext is NoiDungHocTapViewModel vm)
+                {
+                    if (!string.IsNullOrWhiteSpace(searchKeyword))
+                    {
+                        vm.TuKhoaTimKiem = searchKeyword.Trim();
+                    }
+                    if (!string.IsNullOrWhiteSpace(kyNang))
+                    {
+                        vm.SelectedKyNangFilter = kyNang.Trim();
+                    }
+                    if (targetLessonId.HasValue && targetLessonId.Value > 0)
+                    {
+                        var target = vm.DanhSachBaiHoc.FirstOrDefault(b => b.MaBaiHoc == targetLessonId.Value);
+                        if (target != null)
+                        {
+                            vm.SelectedBaiHocInList = target;
+                        }
+                    }
+                }
+            };
+        }
+
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             if (DataContext is NoiDungHocTapViewModel vm)

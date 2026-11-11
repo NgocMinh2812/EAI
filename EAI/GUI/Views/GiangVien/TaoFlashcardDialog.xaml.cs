@@ -42,6 +42,18 @@ namespace GUI.Views.GiangVien
             };
         }
 
+        public TaoFlashcardDialog(string? prefillWord, string? prefillPhienAm = null, string? prefillNghia = null, string? prefillViDu = null, bool openStudyTab = false)
+            : this(openStudyTab)
+        {
+            this.Loaded += (s, e) =>
+            {
+                if (!string.IsNullOrWhiteSpace(prefillWord)) txtTu.Text = prefillWord;
+                if (!string.IsNullOrWhiteSpace(prefillPhienAm)) txtPhienAm.Text = prefillPhienAm;
+                if (!string.IsNullOrWhiteSpace(prefillNghia)) txtNghia.Text = prefillNghia;
+                if (!string.IsNullOrWhiteSpace(prefillViDu)) txtCauViDu.Text = prefillViDu;
+            };
+        }
+
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)

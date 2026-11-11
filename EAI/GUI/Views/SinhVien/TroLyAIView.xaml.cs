@@ -894,7 +894,8 @@ namespace GUI.Views
         {
             try
             {
-                var aiResp = await HoiThoaiAIBUS.Instance.GuiCauHoiChoAIAsync(query, _currentLearningMode);
+                long sessionId = _currentSession?.DbId ?? 0;
+                var aiResp = await HoiThoaiAIBUS.Instance.GuiCauHoiChoAIAsync(query, _currentLearningMode, sessionId);
                 if (aiResp != null && aiResp.Success && !string.IsNullOrWhiteSpace(aiResp.Text))
                 {
                     return aiResp.Text.Trim();

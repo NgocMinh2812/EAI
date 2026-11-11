@@ -52,6 +52,27 @@ namespace GUI.Views.GiangVien
             AdminMainFrame.Navigated += AdminMainFrame_Navigated;
             Closing += GiangVienWindow_Closing;
             PreviewKeyDown += GiangVienWindow_PreviewKeyDown;
+
+            popNotifications.PlacementTarget = btnNotificationBell;
+            popNotifications.Placement = System.Windows.Controls.Primitives.PlacementMode.Custom;
+            popNotifications.CustomPopupPlacementCallback = (popupSize, targetSize, offset) =>
+            {
+                // Căn lề phải popup khớp chính xác với lề phải nút Chuông thông báo (bù trừ margin đổ bóng 12px)
+                double x = targetSize.Width - popupSize.Width + 12;
+                double y = targetSize.Height - 8;
+                return new[] { new System.Windows.Controls.Primitives.CustomPopupPlacement(new Point(x, y), System.Windows.Controls.Primitives.PopupPrimaryAxis.Horizontal) };
+            };
+
+            popAdminSuggestions.PlacementTarget = borderAdminSearch;
+            popAdminSuggestions.Placement = System.Windows.Controls.Primitives.PlacementMode.Custom;
+            popAdminSuggestions.CustomPopupPlacementCallback = (popupSize, targetSize, offset) =>
+            {
+                // Căn lề trái popup khớp chính xác với lề trái thanh tìm kiếm (bù trừ margin đổ bóng 12px)
+                double x = -12;
+                double y = targetSize.Height - 8;
+                return new[] { new System.Windows.Controls.Primitives.CustomPopupPlacement(new Point(x, y), System.Windows.Controls.Primitives.PopupPrimaryAxis.Horizontal) };
+            };
+
             // Mở mặc định trang Tổng quan sử dụng page cache để bảo toàn tiến trình
             AdminMainFrame.Navigate(GetOrCreatePage<TongQuanView>());
             Closed += (s, e) => _pageCache.Clear();
@@ -285,6 +306,10 @@ namespace GUI.Views.GiangVien
                 SetActiveButton(btnNavGiamSat);
                 txtBreadcrumb.Text = "Giám sát hệ thống";
             }
+            else if (e.Content is TroLyAIView)
+            {
+                txtBreadcrumb.Text = "Trợ lý AI";
+            }
         }
 
         private void SetActiveButton(Button btn)
@@ -384,7 +409,9 @@ namespace GUI.Views.GiangVien
 
         private void TopNavTroLyAI_Click(object sender, RoutedEventArgs e)
         {
-            NavAISinhDe_Click(sender, e);
+            ResetNavButtons();
+            txtBreadcrumb.Text = "Trợ lý AI";
+            AdminMainFrame.Navigate(GetOrCreatePage<TroLyAIView>());
         }
 
         private void AdminMainFrame_Navigating(object sender, NavigatingCancelEventArgs e)
@@ -471,6 +498,58 @@ namespace GUI.Views.GiangVien
             this.WindowState = WindowState.Minimized;
         }
 
+        private bool _notif1Read = false;
+        private bool _notif2Read = false;
+        private bool _notif3Read = false;
+
+        private void UpdateNotificationStatus()
+        {
+            int unread = (_notif1Read ? 0 : 1) + (_notif2Read ? 0 : 1) + (_notif3Read ? 0 : 1);
+            lblNotificationCount.Text = $"Thông báo hệ thống ({unread})";
+            bdNotificationBadge.Visibility = unread > 0 ? Visibility.Visible : Visibility.Collapsed;
+            pnlNotifItem1.Opacity = _notif1Read ? 0.55 : 1.0;
+            pnlNotifItem2.Opacity = _notif2Read ? 0.55 : 1.0;
+            pnlNotifItem3.Opacity = _notif3Read ? 0.55 : 1.0;
+        }
+
+        private void BtnNotification_Click(object sender, RoutedEventArgs e)
+        {
+            popNotifications.PlacementTarget = btnNotificationBell;
+            popNotifications.IsOpen = !popNotifications.IsOpen;
+        }
+
+        private void BtnMarkAllNotificationsRead_Click(object sender, RoutedEventArgs e)
+        {
+            _notif1Read = true;
+            _notif2Read = true;
+            _notif3Read = true;
+            UpdateNotificationStatus();
+        }
+
+        private void NotifItem1_Click(object sender, MouseButtonEventArgs e)
+        {
+            _notif1Read = true;
+            UpdateNotificationStatus();
+            popNotifications.IsOpen = false;
+            AdminMainFrame.Navigate(GetOrCreatePage<DeThiLuyenTapView>());
+        }
+
+        private void NotifItem2_Click(object sender, MouseButtonEventArgs e)
+        {
+            _notif2Read = true;
+            UpdateNotificationStatus();
+            popNotifications.IsOpen = false;
+            AdminMainFrame.Navigate(GetOrCreatePage<NganHangCauHoiView>());
+        }
+
+        private void NotifItem3_Click(object sender, MouseButtonEventArgs e)
+        {
+            _notif3Read = true;
+            UpdateNotificationStatus();
+            popNotifications.IsOpen = false;
+            AdminMainFrame.Navigate(GetOrCreatePage<GiamSatHeThongView>());
+        }
+
         private void BtnCloseWindow_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
@@ -533,8 +612,11 @@ namespace GUI.Views.GiangVien
             return RemoveDiacritics(source).Contains(RemoveDiacritics(query));
         }
 
+        private System.Windows.Threading.DispatcherTimer? _searchDebounceTimer;
+
         private void BtnClearAdminSearch_Click(object sender, RoutedEventArgs e)
         {
+            _searchDebounceTimer?.Stop();
             txtGlobalSearch.Text = string.Empty;
             popAdminSuggestions.IsOpen = false;
         }
@@ -546,9 +628,20 @@ namespace GUI.Views.GiangVien
                 popAdminSuggestions.IsOpen = false;
                 e.Handled = true;
             }
+            else if (e.Key == Key.Enter)
+            {
+                string query = txtGlobalSearch.Text.Trim();
+                if (!string.IsNullOrEmpty(query))
+                {
+                    _searchDebounceTimer?.Stop();
+                    popAdminSuggestions.IsOpen = false;
+                    AdminMainFrame.Navigate(new NoiDungHocTapView(searchKeyword: query));
+                    e.Handled = true;
+                }
+            }
         }
 
-        private async void TxtGlobalSearch_TextChanged(object sender, TextChangedEventArgs e)
+        private void TxtGlobalSearch_TextChanged(object sender, TextChangedEventArgs e)
         {
             string query = txtGlobalSearch.Text.Trim();
 
@@ -557,10 +650,35 @@ namespace GUI.Views.GiangVien
 
             if (string.IsNullOrEmpty(query))
             {
+                _searchDebounceTimer?.Stop();
                 popAdminSuggestions.IsOpen = false;
                 pnlAdminSuggestions.Children.Clear();
                 return;
             }
+
+            if (_searchDebounceTimer == null)
+            {
+                _searchDebounceTimer = new System.Windows.Threading.DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(250)
+                };
+                _searchDebounceTimer.Tick += async (s, ev) =>
+                {
+                    _searchDebounceTimer.Stop();
+                    await ExecuteAdminGlobalSearchAsync(txtGlobalSearch.Text.Trim());
+                };
+            }
+            else
+            {
+                _searchDebounceTimer.Stop();
+            }
+
+            _searchDebounceTimer.Start();
+        }
+
+        private async System.Threading.Tasks.Task ExecuteAdminGlobalSearchAsync(string query)
+        {
+            if (string.IsNullOrEmpty(query)) return;
 
             pnlAdminSuggestions.Children.Clear();
 
@@ -601,7 +719,7 @@ namespace GUI.Views.GiangVien
                 var users = await System.Threading.Tasks.Task.Run(() => NguoiDungBUS.Instance.LayDanhSach(keyword: query));
                 if (users != null && users.Count > 0)
                 {
-                    foreach (var u in users.Take(5))
+                    foreach (var u in users.Take(4))
                     {
                         string role = u.TenVaiTro == "GiangVien" ? "Giảng viên" : (u.TenVaiTro == "Admin" ? "Quản trị viên" : "Học viên");
                         string info = $"{u.Email} • {role} • Trạng thái: {(u.TrangThaiHoatDong ? "Đang hoạt động" : "Bị khóa")}";
@@ -609,7 +727,7 @@ namespace GUI.Views.GiangVien
                         {
                             popAdminSuggestions.IsOpen = false;
                             txtGlobalSearch.Text = string.Empty;
-                            AdminMainFrame.Navigate(GetOrCreatePage<NguoiDungView>());
+                            AdminMainFrame.Navigate(new NguoiDungView(searchKeyword: u.HoTen));
                         }));
                         matchCount++;
                     }
@@ -623,14 +741,14 @@ namespace GUI.Views.GiangVien
                 var lessons = await System.Threading.Tasks.Task.Run(() => BaiHocBUS.LayDanhSachTuDatabase(search: query));
                 if (lessons != null && lessons.Count > 0)
                 {
-                    foreach (var l in lessons.Take(5))
+                    foreach (var l in lessons.Take(4))
                     {
                         string info = $"Cấp độ: {l.MaTrinhDo} • {l.TenChuDe} • Trạng thái: {(l.DaXuatBan ? "Đã xuất bản" : "Bản nháp")}";
                         pnlAdminSuggestions.Children.Add(CreateSuggestionItem("📖", l.TieuDe, info, "Bài học", "#DCFCE7", "#15803D", () =>
                         {
                             popAdminSuggestions.IsOpen = false;
                             txtGlobalSearch.Text = string.Empty;
-                            AdminMainFrame.Navigate(GetOrCreatePage<NoiDungHocTapView>());
+                            AdminMainFrame.Navigate(new NoiDungHocTapView(targetLessonId: l.MaBaiHoc));
                         }));
                         matchCount++;
                     }
@@ -638,7 +756,29 @@ namespace GUI.Views.GiangVien
             }
             catch { }
 
-            // 4. Nếu không có kết quả
+            // 4. Tra cứu Ngân hàng câu hỏi thực tế
+            try
+            {
+                var questions = await System.Threading.Tasks.Task.Run(() => DAL.CauHoiDAL.Instance.TimKiemCauHoi(query, 4));
+                if (questions != null && questions.Count > 0)
+                {
+                    foreach (var q in questions)
+                    {
+                        string shortContent = q.NoiDungCauHoi.Length > 55 ? q.NoiDungCauHoi.Substring(0, 52) + "..." : q.NoiDungCauHoi;
+                        string info = $"Mã #{q.MaCauHoi} • Độ khó: {q.DoKho} • Kỹ năng: {q.KyNang}";
+                        pnlAdminSuggestions.Children.Add(CreateSuggestionItem("❓", shortContent, info, "Câu hỏi", "#F3E8FF", "#7E22CE", () =>
+                        {
+                            popAdminSuggestions.IsOpen = false;
+                            txtGlobalSearch.Text = string.Empty;
+                            AdminMainFrame.Navigate(new NganHangCauHoiView(q.MaCauHoi));
+                        }));
+                        matchCount++;
+                    }
+                }
+            }
+            catch { }
+
+            // 5. Nếu không có kết quả
             if (matchCount == 0)
             {
                 var emptyBorder = new Border
@@ -658,7 +798,7 @@ namespace GUI.Views.GiangVien
                 });
                 spEmpty.Children.Add(new TextBlock
                 {
-                    Text = "Thử tìm kiếm với tên người dùng, email, tiêu đề bài học hoặc chức năng...",
+                    Text = "Thử tìm kiếm với tên người dùng, email, tiêu đề bài học, câu hỏi hoặc chức năng...",
                     FontSize = 11,
                     Foreground = (Brush)new BrushConverter().ConvertFromString("#94A3B8")!,
                     HorizontalAlignment = HorizontalAlignment.Center,

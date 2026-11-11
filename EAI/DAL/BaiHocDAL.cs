@@ -325,8 +325,8 @@ namespace DAL
                     double diemThi = r["DiemTBThi"] == DBNull.Value ? 0 : Convert.ToDouble(r["DiemTBThi"]);
                     double diemKS = r["DiemKhaoSat"] == DBNull.Value ? 0 : Convert.ToDouble(r["DiemKhaoSat"]);
 
-                    dto.DiemTrungBinh = diemThi > 0 ? diemThi : (diemKS > 0 ? diemKS : 75.0);
-                    dto.ChuoiHocLienTiep = dto.SoPhutHocTichLuy > 0 ? Math.Max(1, dto.SoPhutHocTichLuy / 30) : 1;
+                    dto.DiemTrungBinh = diemThi > 0 ? diemThi : (diemKS > 0 ? diemKS : 0.0);
+                    dto.ChuoiHocLienTiep = dto.SoPhutHocTichLuy > 0 ? Math.Max(1, dto.SoPhutHocTichLuy / 30) : 0;
                 }
 
                 // 2. Tỷ lệ theo kỹ năng
@@ -347,7 +347,7 @@ namespace DAL
                     string kn = r["KyNang"]?.ToString() ?? "";
                     int tong = Convert.ToInt32(r["TongCau"]);
                     int dung = Convert.ToInt32(r["SoDung"]);
-                    int pct = tong > 0 ? (dung * 100 / tong) : 70;
+                    int pct = tong > 0 ? (dung * 100 / tong) : 0;
 
                     if (kn == "TuVung") dto.TyLeTuVung = pct;
                     else if (kn == "NguPhap") dto.TyLeNguPhap = pct;

@@ -190,12 +190,8 @@ namespace GUI.Views.GiangVien
             }
 
             string chuDeGoiY = list.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.ChuDeYeuCau))?.ChuDeYeuCau ?? txtPrompt.Text.Trim();
-            var dlg = new XacNhanPheDuyetVaTaoBoDialog(list.Count, chuDeGoiY)
-            {
-                Owner = Window.GetWindow(this)
-            };
-
-            if (dlg.ShowDialog() != true) return;
+            var dlg = new XacNhanPheDuyetVaTaoBoDialog(list.Count, chuDeGoiY);
+            if (Common.ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this)) != true) return;
 
             int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
             var (success, fail, dsMaMoi, err) = AISinhDeBUS.Instance.PheDuyetTatCa(list);
@@ -597,8 +593,8 @@ namespace GUI.Views.GiangVien
             btnSua.Content = stackSua;
             btnSua.Click += (s, e) =>
             {
-                var dlg = new SuaCauHoiAIDialog(q) { Owner = Window.GetWindow(this) };
-                if (dlg.ShowDialog() == true)
+                var dlg = new SuaCauHoiAIDialog(q);
+                if (Common.ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this)) == true)
                 {
                     TaiDanhSachChoDuyet();
                 }
@@ -655,12 +651,8 @@ namespace GUI.Views.GiangVien
             btnDuyet.Click += (s, e) =>
             {
                 string chuDeGoiY = !string.IsNullOrWhiteSpace(q.ChuDeYeuCau) ? q.ChuDeYeuCau : (txtPrompt?.Text.Trim() ?? "Chủ đề tự do");
-                var dlg = new XacNhanPheDuyetVaTaoBoDialog(1, chuDeGoiY)
-                {
-                    Owner = Window.GetWindow(this)
-                };
-
-                if (dlg.ShowDialog() != true) return;
+                var dlg = new XacNhanPheDuyetVaTaoBoDialog(1, chuDeGoiY);
+                if (Common.ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this)) != true) return;
 
                 bool thanhCong = AISinhDeBUS.Instance.PheDuyetCauHoiAI(q.MaCauHoiAI, out int maCauHoiMoi, out string err);
                 if (thanhCong)

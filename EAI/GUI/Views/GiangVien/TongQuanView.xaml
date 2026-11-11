@@ -71,7 +71,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="20"/>
                 <!-- Column 3: Thống kê & Thao tác nhanh -->
-                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="320"/>
             </Grid.ColumnDefinitions>
 
             <!-- ================= CỘT 1: TỪ VỰNG & TÀI NGUYÊN ================= -->
@@ -129,8 +129,8 @@
                                 Cursor="Hand" MouseLeftButtonUp="BtnXemTatCaTuVung_Click" ToolTip="Nhấp vào để ôn tập Flashcard ngay">
                             <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <StackPanel HorizontalAlignment="Center">
-                                    <TextBlock Text="🌱" FontSize="36" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="Cây tri thức tăng trưởng • Ôn tập Flashcard" FontSize="10.5" Foreground="#15803D" FontWeight="Medium" Margin="0,2,0,0"/>
+                                    <TextBlock Text="📚" FontSize="34" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Thẻ ghi nhớ thông minh • Bấm để ôn tập ngay" FontSize="11" Foreground="#15803D" FontWeight="SemiBold" Margin="0,3,0,0"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -445,52 +445,54 @@
                             </Grid.ColumnDefinitions>
 
                             <!-- Thẻ KPI 1: Học viên -->
-                            <Border Grid.Row="0" Grid.Column="0" Background="#F8FAFC" CornerRadius="8" Padding="6,8" Margin="0,0,3,6" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
-                                <StackPanel HorizontalAlignment="Center">
+                            <Border Grid.Row="0" Grid.Column="0" Background="#F8FAFC" CornerRadius="8" Padding="6,7" Margin="0,0,3,6" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                                <StackPanel HorizontalAlignment="Stretch">
                                     <local:LucideIcon Kind="Users" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,0,3" HorizontalAlignment="Center"/>
                                     <TextBlock x:Name="txtKpiHocVien" Text="0" FontWeight="Bold" FontSize="17" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Học viên" FontSize="10.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="txtTrendHocVien" Text="+12.5%" FontSize="9.5" FontWeight="SemiBold" Foreground="#16A34A" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                    <TextBlock x:Name="txtTrendHocVien" Text="+12.5%" FontSize="9" FontWeight="SemiBold" Foreground="#16A34A" HorizontalAlignment="Stretch" TextAlignment="Center" TextWrapping="Wrap" Margin="0,3,0,0"/>
                                 </StackPanel>
                             </Border>
 
                             <!-- Thẻ KPI 2: Bài học -->
-                            <Border Grid.Row="0" Grid.Column="1" Background="#F8FAFC" CornerRadius="8" Padding="6,8" Margin="3,0,0,6" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
-                                <StackPanel HorizontalAlignment="Center">
+                            <Border Grid.Row="0" Grid.Column="1" Background="#F8FAFC" CornerRadius="8" Padding="6,7" Margin="3,0,0,6" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                                <StackPanel HorizontalAlignment="Stretch">
                                     <local:LucideIcon Kind="BookOpen" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,0,3" HorizontalAlignment="Center"/>
                                     <TextBlock x:Name="txtKpiBaiHoc" Text="0" FontWeight="Bold" FontSize="17" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Bài học" FontSize="10.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="txtTrendBaiHoc" Text="+8.3%" FontSize="9.5" FontWeight="SemiBold" Foreground="#16A34A" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                    <TextBlock x:Name="txtTrendBaiHoc" Text="+8.3%" FontSize="9" FontWeight="SemiBold" Foreground="#16A34A" HorizontalAlignment="Stretch" TextAlignment="Center" TextWrapping="Wrap" Margin="0,3,0,0"/>
                                 </StackPanel>
                             </Border>
 
                             <!-- Thẻ KPI 3: Câu hỏi -->
-                            <Border Grid.Row="1" Grid.Column="0" Background="#F8FAFC" CornerRadius="8" Padding="6,8" Margin="0,3,3,0" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
-                                <StackPanel HorizontalAlignment="Center">
+                            <Border Grid.Row="1" Grid.Column="0" Background="#F8FAFC" CornerRadius="8" Padding="6,7" Margin="0,3,3,0" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                                <StackPanel HorizontalAlignment="Stretch">
                                     <local:LucideIcon Kind="HelpCircle" Size="14" Foreground="#2563EB" Margin="0,0,0,3" HorizontalAlignment="Center"/>
                                     <TextBlock x:Name="txtKpiCauHoi" Text="0" FontWeight="Bold" FontSize="17" Foreground="#2563EB" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Câu hỏi" FontSize="10.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="txtTrendCauHoi" Text="+15.0%" FontSize="9.5" FontWeight="SemiBold" Foreground="#16A34A" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                    <TextBlock x:Name="txtTrendCauHoi" Text="+15.0%" FontSize="9" FontWeight="SemiBold" Foreground="#16A34A" HorizontalAlignment="Stretch" TextAlignment="Center" TextWrapping="Wrap" Margin="0,3,0,0"/>
                                 </StackPanel>
                             </Border>
 
                             <!-- Thẻ KPI 4: Lượt thi -->
-                            <Border Grid.Row="1" Grid.Column="1" Background="#F8FAFC" CornerRadius="8" Padding="6,8" Margin="3,3,0,0" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
-                                <StackPanel HorizontalAlignment="Center">
+                            <Border Grid.Row="1" Grid.Column="1" Background="#F8FAFC" CornerRadius="8" Padding="6,7" Margin="3,3,0,0" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                                <StackPanel HorizontalAlignment="Stretch">
                                     <local:LucideIcon Kind="CheckCircle2" Size="14" Foreground="#0F766E" Margin="0,0,0,3" HorizontalAlignment="Center"/>
                                     <TextBlock x:Name="txtKpiLuotThi" Text="0" FontWeight="Bold" FontSize="17" Foreground="#0F766E" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Lượt thi" FontSize="10.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="txtTrendLuotThi" Text="+24.8%" FontSize="9.5" FontWeight="SemiBold" Foreground="#16A34A" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                    <TextBlock x:Name="txtTrendLuotThi" Text="+24.8%" FontSize="9" FontWeight="SemiBold" Foreground="#16A34A" HorizontalAlignment="Stretch" TextAlignment="Center" TextWrapping="Wrap" Margin="0,3,0,0"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
 
-                        <!-- Phụ trợ: Đề thi & Chờ duyệt -->
+                        <!-- Phụ trợ: Đề thi, Luyện tập & Chờ duyệt -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,12">
                             <TextBlock Text="Đề thi: " FontSize="11" Foreground="{StaticResource TextGray}"/>
                             <TextBlock x:Name="txtKpiDeThi" Text="0" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
-                            <TextBlock Text="  •  Chờ duyệt: " FontSize="11" Foreground="{StaticResource TextGray}"/>
-                            <TextBlock x:Name="txtKpiChoDuyet" Text="0" FontSize="11" FontWeight="Bold" Foreground="#EA580C"/>
+                            <TextBlock Text="  •  Luyện tập: " FontSize="11" Foreground="{StaticResource TextGray}"/>
+                            <TextBlock x:Name="txtKpiLuyenTap" Text="0" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
+                            <TextBlock Text="  •  Câu hỏi chờ duyệt: " FontSize="11" Foreground="{StaticResource TextGray}"/>
+                            <TextBlock x:Name="txtKpiChoDuyet" Text="0" FontSize="11" FontWeight="Bold" Foreground="#EA580C" Cursor="Hand" ToolTip="Nhấn để duyệt 5 câu hỏi AI sinh" MouseLeftButtonUp="TxtKpiChoDuyet_Click"/>
                         </StackPanel>
 
                         <Button Content="Xem phân tích học viên" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
@@ -562,7 +564,7 @@
                                     </Border>
                                     <TextBlock Text="Nhóm A1 — Cơ bản" FontSize="12" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
                                 </StackPanel>
-                                <TextBlock x:Name="txtNhomA1Count" Text="12" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="txtNhomA1Count" Text="0" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
                         </Border>
 
@@ -575,7 +577,7 @@
                                     </Border>
                                     <TextBlock Text="Nhóm B1 — Trung cấp" FontSize="12" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
                                 </StackPanel>
-                                <TextBlock x:Name="txtNhomB1Count" Text="31" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="txtNhomB1Count" Text="0" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
                         </Border>
 
@@ -588,7 +590,7 @@
                                     </Border>
                                     <TextBlock Text="Nhóm B2 — Trên trung cấp" FontSize="12" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
                                 </StackPanel>
-                                <TextBlock x:Name="txtNhomB2Count" Text="28" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="txtNhomB2Count" Text="0" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
                         </Border>
 
@@ -601,7 +603,7 @@
                                     </Border>
                                     <TextBlock Text="Nhóm C1 — Nâng cao" FontSize="12" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
                                 </StackPanel>
-                                <TextBlock x:Name="txtNhomC1Count" Text="23" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="txtNhomC1Count" Text="0" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
                         </Border>
                     </StackPanel>

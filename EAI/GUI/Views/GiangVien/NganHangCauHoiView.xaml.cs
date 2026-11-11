@@ -13,6 +13,11 @@ namespace GUI.Views.GiangVien
             Unloaded += NganHangCauHoiView_Unloaded;
         }
 
+        public NganHangCauHoiView(int? maCauHoi) : this()
+        {
+            // Có thể dùng maCauHoi để tìm kiếm hoặc highlight câu hỏi
+        }
+
         private void NganHangCauHoiView_Loaded(object sender, RoutedEventArgs e)
         {
             if (DataContext is NganHangCauHoiViewModel vm)

@@ -27,7 +27,9 @@ namespace GUI.Views.GiangVien
                 chkHoatDong.IsChecked = existingUser.TrangThaiHoatDong;
 
                 // Chọn vai trò
-                if (existingUser.TenVaiTro == "GiangVien")
+                if (existingUser.TenVaiTro == "QuanTriVien" || existingUser.MaVaiTro == 2)
+                    cboVaiTro.SelectedIndex = 2;
+                else if (existingUser.TenVaiTro == "GiangVien" || existingUser.MaVaiTro == 0)
                     cboVaiTro.SelectedIndex = 1;
                 else
                     cboVaiTro.SelectedIndex = 0;
@@ -96,7 +98,12 @@ namespace GUI.Views.GiangVien
             if (cboVaiTro.SelectedItem is ComboBoxItem roleItem && roleItem.Tag != null)
             {
                 UserData.MaVaiTro = int.Parse(roleItem.Tag.ToString()!);
-                UserData.TenVaiTro = UserData.MaVaiTro == 1 ? "GiangVien" : "HocVien";
+                UserData.TenVaiTro = UserData.MaVaiTro switch
+                {
+                    0 => "GiangVien",
+                    2 => "QuanTriVien",
+                    _ => "HocVien"
+                };
             }
 
             // Trình độ mục tiêu

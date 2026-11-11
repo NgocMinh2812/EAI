@@ -224,11 +224,30 @@ namespace GUI.Views
             if (dialog.ShowDialog() == true)
             {
                 string selectedFile = dialog.FileName;
-                bool ok = NguoiDungBUS.Instance.CapNhatAnhDaiDien(user.MaNguoiDung, selectedFile);
+                string targetFile = selectedFile;
+                try
+                {
+                    string avatarDir = System.IO.Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
+                        "EnglishAI", "Avatars");
+                    if (!System.IO.Directory.Exists(avatarDir)) 
+                        System.IO.Directory.CreateDirectory(avatarDir);
+
+                    string ext = System.IO.Path.GetExtension(selectedFile);
+                    string targetName = $"avatar_{user.MaNguoiDung}_{DateTime.Now:yyyyMMddHHmmss}{ext}";
+                    targetFile = System.IO.Path.Combine(avatarDir, targetName);
+                    System.IO.File.Copy(selectedFile, targetFile, true);
+                }
+                catch
+                {
+                    targetFile = selectedFile;
+                }
+
+                bool ok = NguoiDungBUS.Instance.CapNhatAnhDaiDien(user.MaNguoiDung, targetFile);
                 if (ok)
                 {
-                    user.DuongDanAnhDaiDien = selectedFile;
-                    CapNhatHienThiAvatar(selectedFile, user.AvatarInitials);
+                    user.DuongDanAnhDaiDien = targetFile;
+                    CapNhatHienThiAvatar(targetFile, user.AvatarInitials);
                     MainWindow.Instance?.CapNhatThongTinHocVien();
                     Common.ThongBaoDialog.ThanhCong("✅ Cập nhật ảnh đại diện thành công!", "Đổi ảnh đại diện");
                 }

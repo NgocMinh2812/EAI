@@ -128,7 +128,25 @@ namespace BUS
                         }
                     }
                 }
-                // 2. Dạng câu hỏi nhập văn bản (DienKhuyet, TraLoiNgan, VietLaiCau, SuaLoiSai)
+                // 2. Dạng câu hỏi Tự luận / Viết bài (TuLuan)
+                else if (q.IsDangTuLuan)
+                {
+                    if (!string.IsNullOrWhiteSpace(textAnswer))
+                    {
+                        int wordCount = textAnswer.Split(new[] { ' ', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
+                        
+                        // Kiểm tra nếu có đáp án mẫu chuẩn hoặc yêu cầu từ khóa
+                        bool isSampleMatched = !string.IsNullOrWhiteSpace(q.DapAnDungText) &&
+                            ChuankHoaChuoiTraLoi(textAnswer).Contains(ChuankHoaChuoiTraLoi(q.DapAnDungText));
+
+                        // Đạt nếu khớp từ khóa/đáp án mẫu hoặc bài viết có độ dài hợp lý (>= 10 từ)
+                        if (wordCount >= 10 || isSampleMatched)
+                        {
+                            isCorrect = true;
+                        }
+                    }
+                }
+                // 3. Dạng câu hỏi nhập văn bản (DienKhuyet, TraLoiNgan, VietLaiCau, SuaLoiSai)
                 else if (q.IsDangNhapVanBan || !string.IsNullOrWhiteSpace(textAnswer))
                 {
                     if (!string.IsNullOrWhiteSpace(textAnswer))
@@ -161,15 +179,6 @@ namespace BUS
                             }
                             if (isCorrect) break;
                         }
-                    }
-                }
-                // 3. Dạng câu hỏi Tự luận / Viết bài (TuLuan)
-                else if (q.IsDangTuLuan)
-                {
-                    int wordCount = string.IsNullOrWhiteSpace(textAnswer) ? 0 : textAnswer.Split(new[] { ' ', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
-                    if (wordCount >= 20)
-                    {
-                        isCorrect = true;
                     }
                 }
 

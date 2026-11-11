@@ -20,6 +20,31 @@ namespace GUI.Views.GiangVien
             Loaded += KhaoSatDauVaoView_Loaded;
         }
 
+        public KhaoSatDauVaoView(string? searchKeyword = null, string? filterLevel = null) : this()
+        {
+            Loaded += (s, e) =>
+            {
+                if (!string.IsNullOrWhiteSpace(searchKeyword) && txtSearchStudent != null)
+                {
+                    txtSearchStudent.Text = searchKeyword.Trim();
+                }
+
+                if (!string.IsNullOrWhiteSpace(filterLevel) && cboFilterLevel != null)
+                {
+                    foreach (ComboBoxItem item in cboFilterLevel.Items)
+                    {
+                        if (string.Equals(item.Tag?.ToString(), filterLevel, StringComparison.OrdinalIgnoreCase))
+                        {
+                            cboFilterLevel.SelectedItem = item;
+                            break;
+                        }
+                    }
+                }
+
+                TaiDanhSachSinhVienKhaoSat();
+            };
+        }
+
         private void KhaoSatDauVaoView_Loaded(object sender, RoutedEventArgs e)
         {
             TaiDanhSachBoDeKhaoSat();

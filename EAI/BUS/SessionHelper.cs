@@ -13,7 +13,14 @@ namespace BUS
         public static bool IsGiangVien => 
             CurrentUser != null && 
             (string.Equals(CurrentUser.TenVaiTro, "GiangVien", StringComparison.OrdinalIgnoreCase) || 
-             string.Equals(CurrentUser.TenVaiTro, "QuanTriVien", StringComparison.OrdinalIgnoreCase));
+             string.Equals(CurrentUser.TenVaiTro, "QuanTriVien", StringComparison.OrdinalIgnoreCase) ||
+             CurrentUser.MaVaiTro == 1);
+
+        public static bool IsAdmin =>
+            CurrentUser != null && 
+            (string.Equals(CurrentUser.TenVaiTro, "QuanTriVien", StringComparison.OrdinalIgnoreCase) ||
+             CurrentUser.MaVaiTro == 1 ||
+             string.Equals(CurrentUser.TenDangNhap, "admin", StringComparison.OrdinalIgnoreCase));
 
         public static void Logout()
         {

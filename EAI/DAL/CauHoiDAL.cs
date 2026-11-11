@@ -405,5 +405,42 @@ namespace DAL
                 return false;
             }
         }
+
+        public List<(int MaCauHoi, string NoiDungCauHoi, string KyNang, string DoKho)> TimKiemCauHoi(string keyword, int limit = 5)
+        {
+            var list = new List<(int, string, string, string)>();
+            if (string.IsNullOrWhiteSpace(keyword)) return list;
+
+            string query = @"
+                SELECT TOP (@Limit) MaCauHoi, NoiDungCauHoi, ISNULL(KyNang, N'Tổng hợp') AS KyNang, ISNULL(DoKho, N'TrungBinh') AS DoKho
+                FROM CauHoi
+                WHERE NoiDungCauHoi LIKE '%' + @Keyword + '%' OR GiaiThichDapAn LIKE '%' + @Keyword + '%'
+                ORDER BY MaCauHoi DESC";
+
+            try
+            {
+                using var conn = SqlDataProvider.Instance.GetConnection();
+                conn.Open();
+                using var cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@Keyword", keyword.Trim());
+                cmd.Parameters.AddWithValue("@Limit", limit);
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    int id = reader.GetInt32(0);
+                    string noiDung = reader.GetString(1);
+                    string kyNang = reader.GetString(2);
+                    string doKho = reader.GetString(3);
+                    list.Add((id, noiDung, kyNang, doKho));
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CauHoiDAL.TimKiemCauHoi] Lỗi: {ex.Message}");
+            }
+
+            return list;
+        }
     }
 }

@@ -91,9 +91,13 @@ namespace BUS
         }
 
         /// <summary>
-        /// Gửi câu hỏi đến Trợ lý AI sử dụng Provider và Model được Admin cấu hình qua AIConfigurationService
+        /// Gửi câu hỏi đến Trợ lý AI kèm ngữ cảnh hội thoại đa lượt (Multi-turn conversation context)
         /// </summary>
-        public async Task<AIResponse> GuiCauHoiChoAIAsync(string userMessage, string mode = "General", CancellationToken ct = default)
+        public async Task<AIResponse> GuiCauHoiChoAIAsync(
+            string userMessage, 
+            string mode = "General", 
+            long maPhien = 0,
+            CancellationToken ct = default)
         {
             string activeModel = AIConfigurationService.Instance.ActiveModel;
             var activeProvider = AIConfigurationService.Instance.ActiveProvider;
@@ -122,7 +126,32 @@ namespace BUS
                     "Trình bày mạch lạc, có cấu trúc gạch đầu dòng và ví dụ minh họa."
             };
 
-            string fullPrompt = $"{systemPrompt}\n\n[Câu hỏi của học viên]:\n{userMessage}";
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine(systemPrompt);
+            sb.AppendLine();
+
+            // Nạp lịch sử đa lượt gần nhất nếu có mã phiên
+            if (maPhien > 0)
+            {
+                var history = LayDanhSachTinNhan(maPhien);
+                if (history != null && history.Count > 0)
+                {
+                    sb.AppendLine("--- [LỊCH SỬ HỘI THOẠI TRƯỚC ĐÓ] ---");
+                    int skipCount = Math.Max(0, history.Count - 8);
+                    foreach (var msg in System.Linq.Enumerable.Skip(history, skipCount))
+                    {
+                        string sender = (msg.LoaiNguoiGui == "NguoiDung" || msg.LoaiNguoiGui == "User") ? "Học viên" : "Gia sư AI";
+                        // Tránh lặp lại câu hỏi hiện tại nếu vừa được lưu vào DB
+                        if (sender == "Học viên" && msg.NoiDungTinNhan == userMessage && msg == System.Linq.Enumerable.Last(history))
+                            continue;
+                        sb.AppendLine($"{sender}: {msg.NoiDungTinNhan}");
+                    }
+                    sb.AppendLine("--- [HẾT LỊCH SỬ HỘI THOẠI] ---\n");
+                }
+            }
+
+            sb.AppendLine($"[Câu hỏi của học viên]:\n{userMessage}");
+            string fullPrompt = sb.ToString();
 
             return await AIServiceManager.Instance.ExecutePromptAsync(
                 prompt: fullPrompt,

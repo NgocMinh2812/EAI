@@ -81,8 +81,10 @@ namespace BUS
                 catch { }
             }
 
-            // Nếu chưa có, tự động tạo KhoHocLieu chuẩn tại d:\TDC\HK5\CDPTUD\EAI\KhoHocLieu
-            string defaultKho = @"d:\TDC\HK5\CDPTUD\EAI\KhoHocLieu";
+            // Tự động xác định hoặc tạo KhoHocLieu chuẩn linh hoạt theo Repository hoặc AppData
+            string repoKho = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\KhoHocLieu"));
+            string appDataKho = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EnglishAI", "KhoHocLieu");
+            string defaultKho = Directory.Exists(Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\.."))) ? repoKho : appDataKho;
             try
             {
                 if (!Directory.Exists(defaultKho))

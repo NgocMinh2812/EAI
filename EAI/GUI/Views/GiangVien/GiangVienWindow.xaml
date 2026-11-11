@@ -324,7 +324,7 @@
 
                     <!-- Global Search Box (Nằm sau Admin > Tổng quan) with Live Suggestions -->
                     <Grid Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center">
-                        <Border x:Name="borderAdminSearch" Background="#F1F5F9" CornerRadius="9" Width="380" Height="36" Padding="10,0" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
+                        <Border x:Name="borderAdminSearch" Background="#F1F5F9" CornerRadius="9" Width="400" Height="36" Padding="10,0" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
                             <Grid VerticalAlignment="Center">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -354,84 +354,177 @@
 
                         <!-- Autocomplete Suggestions Popup for Admin -->
                         <Popup x:Name="popAdminSuggestions" PlacementTarget="{Binding ElementName=borderAdminSearch}" 
-                               Placement="Bottom" IsOpen="False" StaysOpen="False" AllowsTransparency="True" 
-                               PopupAnimation="Fade" VerticalOffset="5">
-                            <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
-                                    CornerRadius="10" Width="440" MaxHeight="400" Padding="6">
-                                <Border.Effect>
-                                    <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.12" Color="Black"/>
-                                </Border.Effect>
-                                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                    <StackPanel x:Name="pnlAdminSuggestions">
-                                        <!-- Danh sach goi y duoc them tu code-behind -->
-                                    </StackPanel>
-                                </ScrollViewer>
-                            </Border>
+                               Placement="Custom" IsOpen="False" StaysOpen="False" AllowsTransparency="True" 
+                               PopupAnimation="Fade">
+                            <Grid Margin="12">
+                                <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
+                                        CornerRadius="12" Width="400" MaxHeight="430">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="20" ShadowDepth="4" Direction="270" Opacity="0.08" Color="#0F172A"/>
+                                    </Border.Effect>
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+                                        <!-- Header Bar -->
+                                        <Border Grid.Row="0" Background="#F8FAFC" CornerRadius="11,11,0,0" Padding="14,9" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <local:LucideIcon Kind="Search" Size="13" Foreground="#047857" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="KẾT QUẢ TÌM KIẾM TOÀN HỆ THỐNG" FontSize="11" FontWeight="Bold" Foreground="#475569" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <!-- Scrollable suggestions -->
+                                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="8">
+                                            <StackPanel x:Name="pnlAdminSuggestions">
+                                                <!-- Danh sach goi y duoc them tu code-behind -->
+                                            </StackPanel>
+                                        </ScrollViewer>
+                                    </Grid>
+                                </Border>
+                            </Grid>
                         </Popup>
                     </Grid>
 
                     <!-- Right Quick Actions -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                        <!-- Trợ lý AI Button -->
-                        <Button Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" 
-                                BorderThickness="1" Padding="12,6" Margin="0,0,12,0" Cursor="Hand" Click="TopNavTroLyAI_Click"
-                                ToolTip="Mở chức năng Tạo câu hỏi bằng AI &amp; Nhập tệp">
+                        <!-- Trợ lý AI Button (Conversational AI Assistant) -->
+                        <Button Background="#047857" BorderBrush="#059669" 
+                                BorderThickness="1" Padding="14,7" Margin="0,0,12,0" Cursor="Hand" Click="TopNavTroLyAI_Click"
+                                ToolTip="Mở Trợ lý AI đàm thoại &amp; giải đáp học tập trực tiếp">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
-                                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="9" Padding="{TemplateBinding Padding}">
+                                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Opacity="0.18" Color="#047857"/>
+                                        </Border.Effect>
                                         <ContentPresenter VerticalAlignment="Center"/>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="bd" Property="Background" Value="#F1F5F9"/>
-                                            <Setter TargetName="bd" Property="BorderBrush" Value="#CBD5E1"/>
+                                            <Setter TargetName="bd" Property="Background" Value="#065F46"/>
+                                            <Setter TargetName="bd" Property="BorderBrush" Value="#047857"/>
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter TargetName="bd" Property="Background" Value="#022C22"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Button.Template>
                             <StackPanel Orientation="Horizontal">
-                                <local:LucideIcon Kind="Sparkles" Size="14" Foreground="{StaticResource AdminMint}" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Trợ lý AI" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
+                                <local:LucideIcon Kind="Sparkles" Size="14" Foreground="#A7F3D0" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Trợ lý AI" FontWeight="Bold" FontSize="12.5" Foreground="White" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
-                        <!-- Notification Bell (Circular button with modern hover & notification tooltip) -->
-                        <Button Width="36" Height="36" Margin="0,0,14,0" Cursor="Hand" Background="Transparent" BorderThickness="0">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="bellBorder" Background="Transparent" CornerRadius="18" Width="36" Height="36">
-                                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <!-- Notification Bell (Circular button with modern hover & notification popup) -->
+                        <Grid Margin="0,0,14,0">
+                            <Button x:Name="btnNotificationBell" Width="36" Height="36" Cursor="Hand" Background="Transparent" BorderThickness="0" Click="BtnNotification_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="bellBorder" Background="Transparent" CornerRadius="18" Width="36" Height="36">
                                             <local:LucideIcon Kind="Bell" Size="16" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            <!-- Notification badge dot -->
-                                            <Border Background="#EF4444" Width="8" Height="8" CornerRadius="4" 
-                                                    HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-2,-3,0"/>
-                                        </Grid>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="bellBorder" Property="Background" Value="#F1F5F9"/>
-                                        </Trigger>
-                                        <Trigger Property="IsPressed" Value="True">
-                                            <Setter TargetName="bellBorder" Property="Background" Value="#E2E8F0"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                            <Button.ToolTip>
-                                <ToolTip Background="#0F172A" Foreground="White" BorderThickness="0" Padding="12,8">
-                                    <StackPanel>
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                            <local:LucideIcon Kind="Bell" Size="14" Foreground="White" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Thông báo hệ thống (3 mới)" FontWeight="Bold" FontSize="12.5" Foreground="White" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="bellBorder" Property="Background" Value="#F1F5F9"/>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter TargetName="bellBorder" Property="Background" Value="#E2E8F0"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <!-- Notification badge dot -->
+                            <Border x:Name="bdNotificationBadge" Background="#EF4444" Width="8" Height="8" CornerRadius="4" 
+                                    HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5,5,0" IsHitTestVisible="False"/>
+
+                            <!-- Interactive Notification Popup -->
+                            <Popup x:Name="popNotifications" PlacementTarget="{Binding ElementName=btnNotificationBell}" 
+                                   Placement="Custom" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
+                                <Grid Margin="12">
+                                    <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
+                                            CornerRadius="12" Width="360">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="20" ShadowDepth="4" Direction="270" Opacity="0.08" Color="#0F172A"/>
+                                        </Border.Effect>
+                                        <StackPanel>
+                                            <!-- Header with distinct tinted background for strong visual contrast -->
+                                            <Border Background="#F8FAFC" CornerRadius="11,11,0,0" Padding="14,10" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1">
+                                                <Grid>
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <local:LucideIcon Kind="Bell" Size="14" Foreground="{StaticResource AdminDarkGreen}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                        <TextBlock x:Name="lblNotificationCount" Text="Thông báo hệ thống (3)" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextDark}"/>
+                                                    </StackPanel>
+                                                    <Button Content="Đánh dấu đã đọc" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" 
+                                                            Foreground="{StaticResource AdminDarkGreen}" FontSize="11" FontWeight="SemiBold" Cursor="Hand" Click="BtnMarkAllNotificationsRead_Click"/>
+                                                </Grid>
+                                            </Border>
+
+                                        <!-- Notification Items Container -->
+                                        <StackPanel Margin="14,12,14,14">
+                                            <!-- Item 1 -->
+                                            <Border x:Name="pnlNotifItem1" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,8" Cursor="Hand" MouseLeftButtonUp="NotifItem1_Click">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border Grid.Column="0" Background="#FEF3C7" Width="28" Height="28" CornerRadius="14" Margin="0,0,8,0" VerticalAlignment="Top">
+                                                        <local:LucideIcon Kind="Timer" Size="14" Foreground="#B45309" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="2 bài nộp Đề thi IELTS từ học viên" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextDark}"/>
+                                                        <TextBlock Text="Học viên vừa hoàn thành bài thi thử, bấm để xem chi tiết." FontSize="11" Foreground="{StaticResource TextGray}" TextWrapping="Wrap" Margin="0,2,0,4"/>
+                                                        <TextBlock Text="10 phút trước • Cần kiểm tra" FontSize="10" Foreground="#B45309" FontWeight="Medium"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+
+                                            <!-- Item 2 -->
+                                            <Border x:Name="pnlNotifItem2" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,8" Cursor="Hand" MouseLeftButtonUp="NotifItem2_Click">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border Grid.Column="0" Background="#DCFCE7" Width="28" Height="28" CornerRadius="14" Margin="0,0,8,0" VerticalAlignment="Top">
+                                                        <local:LucideIcon Kind="Sparkles" Size="14" Foreground="#15803D" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="AI vừa hoàn tất bóc tách câu hỏi" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextDark}"/>
+                                                        <TextBlock Text="Đã sinh thành công 48 câu hỏi TOEIC mới vào kho lưu trữ." FontSize="11" Foreground="{StaticResource TextGray}" TextWrapping="Wrap" Margin="0,2,0,4"/>
+                                                        <TextBlock Text="35 phút trước • Tự động" FontSize="10" Foreground="#15803D" FontWeight="Medium"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+
+                                            <!-- Item 3 -->
+                                            <Border x:Name="pnlNotifItem3" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="10" Cursor="Hand" MouseLeftButtonUp="NotifItem3_Click">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border Grid.Column="0" Background="#E0F2FE" Width="28" Height="28" CornerRadius="14" Margin="0,0,8,0" VerticalAlignment="Top">
+                                                        <local:LucideIcon Kind="Laptop" Size="14" Foreground="#0369A1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="Cập nhật hệ thống EAI 2026.1" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextDark}"/>
+                                                        <TextBlock Text="Hạ tầng cơ sở dữ liệu và AI Engine hoạt động ổn định 99.9%." FontSize="11" Foreground="{StaticResource TextGray}" TextWrapping="Wrap" Margin="0,2,0,4"/>
+                                                        <TextBlock Text="2 giờ trước • Hệ thống" FontSize="10" Foreground="{StaticResource TextGray}" FontWeight="Medium"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
                                         </StackPanel>
-                                        <TextBlock Text="• 2 bài nộp Đề thi IELTS từ học viên cần chấm điểm" FontSize="11.5" Foreground="#CBD5E1" Margin="0,2"/>
-                                        <TextBlock Text="• AI vừa bóc tách hoàn tất 48 câu hỏi TOEIC" FontSize="11.5" Foreground="#CBD5E1" Margin="0,2"/>
-                                        <TextBlock Text="• Cập nhật phiên bản hệ thống 2026.1 thành công" FontSize="11" Foreground="#94A3B8" Margin="0,2"/>
                                     </StackPanel>
-                                </ToolTip>
-                            </Button.ToolTip>
-                        </Button>
+                                </Border>
+                            </Grid>
+                        </Popup>
+                        </Grid>
 
                         <!-- Avatar Badge (Clickable) -->
                         <Border Background="{StaticResource AdminDarkGreen}" Width="34" Height="34" CornerRadius="17" Margin="0,0,14,0" Cursor="Hand" MouseLeftButtonUp="PnlUserProfile_Click" ToolTip="Hồ sơ giảng viên">

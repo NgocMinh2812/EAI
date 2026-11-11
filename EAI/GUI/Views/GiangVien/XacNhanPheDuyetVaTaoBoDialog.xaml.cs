@@ -32,11 +32,11 @@ namespace GUI.Views.GiangVien
 
             txtSoLuongPheDuyet.Text = $"{soLuongCauHoi} câu hỏi";
             string safeTopic = !string.IsNullOrWhiteSpace(chuDe) ? chuDe.Trim() : "Luyện tập tiếng Anh";
-            if (safeTopic.Length > 55) safeTopic = safeTopic.Substring(0, 52) + "...";
             txtChuDeYeuCau.Text = $"Chủ đề / Yêu cầu: {safeTopic}";
 
             // Gợi ý tên bộ mới
-            txtTenBoMoi.Text = $"Bộ câu hỏi: {safeTopic}";
+            string suggestName = safeTopic.Length > 60 ? safeTopic.Substring(0, 57) + "..." : safeTopic;
+            txtTenBoMoi.Text = $"Bộ câu hỏi: {suggestName}";
             txtMoTaBoMoi.Text = $"Bộ câu hỏi luyện tập tạo bằng AI theo chủ đề '{safeTopic}'";
 
             NapDanhSachBoCauHoiCoSan();

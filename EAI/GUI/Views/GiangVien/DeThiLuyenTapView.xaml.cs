@@ -15,6 +15,28 @@ namespace GUI.Views.GiangVien
             AttachViewModelEvents();
         }
 
+        public DeThiLuyenTapView(string? searchKeyword = null, int? targetExamId = null) : this()
+        {
+            Loaded += (s, e) =>
+            {
+                if (DataContext is DeThiLuyenTapViewModel vm)
+                {
+                    if (!string.IsNullOrWhiteSpace(searchKeyword))
+                    {
+                        vm.SearchExamKeyword = searchKeyword.Trim();
+                    }
+                    if (targetExamId.HasValue && targetExamId.Value > 0)
+                    {
+                        var target = vm.DanhSachDeThiHienCo.FirstOrDefault(d => d.MaBaiTapDeThi == targetExamId.Value);
+                        if (target != null)
+                        {
+                            vm.SelectedExam = target;
+                        }
+                    }
+                }
+            };
+        }
+
         private void DeThiLuyenTapView_Loaded(object sender, RoutedEventArgs e)
         {
             AttachViewModelEvents();
