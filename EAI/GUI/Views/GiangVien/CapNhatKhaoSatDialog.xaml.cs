@@ -20,6 +20,50 @@ namespace GUI.Views.GiangVien
         private List<BaiKhaoSatDTO> _allSurveys = new();
         private bool _isInternalSwitching = false;
 
+        private string _initialTenBai = "";
+        private string _initialMoTa = "";
+        private string _initialThoiGian = "";
+        private bool _initialDangHoatDong = false;
+        private List<int> _initialQuestionIds = new();
+        private ComboBoxItem? _currentBoDeItem = null;
+
+        private void NumberOnly_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            e.Handled = !int.TryParse(e.Text, out _);
+        }
+
+        private void CapNhatSnapshotBoDe()
+        {
+            _initialTenBai = txtTenBaiKhaoSat?.Text?.Trim() ?? "";
+            _initialMoTa = txtMoTa?.Text?.Trim() ?? "";
+            _initialThoiGian = txtThoiGianPhut?.Text?.Trim() ?? "";
+            _initialDangHoatDong = chkDangHoatDong?.IsChecked == true;
+            _initialQuestionIds = _currentQuestions.Select(q => q.MaCauHoi).ToList();
+        }
+
+        private bool CoThayDoiChuaLuu()
+        {
+            if (string.Compare(_initialTenBai, txtTenBaiKhaoSat?.Text?.Trim() ?? "", StringComparison.Ordinal) != 0)
+                return true;
+            if (string.Compare(_initialMoTa, txtMoTa?.Text?.Trim() ?? "", StringComparison.Ordinal) != 0)
+                return true;
+            if (string.Compare(_initialThoiGian, txtThoiGianPhut?.Text?.Trim() ?? "", StringComparison.Ordinal) != 0)
+                return true;
+            if (_initialDangHoatDong != (chkDangHoatDong?.IsChecked == true))
+                return true;
+
+            var currentIds = _currentQuestions.Select(q => q.MaCauHoi).ToList();
+            if (_initialQuestionIds.Count != currentIds.Count)
+                return true;
+            for (int i = 0; i < currentIds.Count; i++)
+            {
+                if (_initialQuestionIds[i] != currentIds[i])
+                    return true;
+            }
+
+            return false;
+        }
+
         public CapNhatKhaoSatDialog() : this(1)
         {
         }
@@ -137,6 +181,8 @@ namespace GUI.Views.GiangVien
 
                 CapNhatThongKeVaPhanBo();
                 ApDungBoLocHienThi();
+                CapNhatSnapshotBoDe();
+                _currentBoDeItem = cboChonBoDe.SelectedItem as ComboBoxItem;
             }
             finally
             {
@@ -148,8 +194,26 @@ namespace GUI.Views.GiangVien
         {
             if (_isInternalSwitching || !IsLoaded) return;
 
+            if (CoThayDoiChuaLuu())
+            {
+                bool confirm = Common.ThongBaoDialog.XacNhan(
+                    "Bộ đề hiện tại có các thay đổi chưa được lưu.\n\nBạn có muốn chuyển sang bộ đề khác và hủy bỏ các thay đổi này không?",
+                    "Cảnh báo thay đổi chưa lưu",
+                    confirmText: "Bỏ thay đổi",
+                    cancelText: "Ở lại");
+
+                if (!confirm)
+                {
+                    _isInternalSwitching = true;
+                    cboChonBoDe.SelectedItem = _currentBoDeItem;
+                    _isInternalSwitching = false;
+                    return;
+                }
+            }
+
             if (cboChonBoDe.SelectedItem is ComboBoxItem item && item.Tag != null)
             {
+                _currentBoDeItem = item;
                 int newId = Convert.ToInt32(item.Tag);
                 ChuyenDoiBoDe(newId);
             }
@@ -361,6 +425,13 @@ namespace GUI.Views.GiangVien
         {
             if (_currentQuestions.Count == 0) return;
 
+            bool confirm = Common.ThongBaoDialog.XacNhan(
+                "Bạn có chắc chắn muốn bỏ chọn toàn bộ câu hỏi trong bộ đề này không?\n\nDanh sách câu hỏi của bộ đề sẽ trở về trạng thái trống.",
+                "Xác nhận bỏ chọn tất cả",
+                confirmText: "Bỏ chọn tất cả",
+                cancelText: "Hủy bỏ");
+            if (!confirm) return;
+
             foreach (var q in _currentQuestions)
             {
                 q.IsInCurrentSurvey = false;
@@ -388,6 +459,13 @@ namespace GUI.Views.GiangVien
             try
             {
                 string capDo = (cboCapDoSurvey.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "B1";
+
+                bool confirm = Common.ThongBaoDialog.XacNhan(
+                    $"Hệ thống sẽ thay thế các câu hỏi hiện tại bằng 20 câu hỏi đa kỹ năng tự động chuẩn CEFR ({capDo}).\n\nBạn có muốn tiếp tục không?",
+                    "Xác nhận tự động chọn",
+                    confirmText: "Tự động chọn",
+                    cancelText: "Hủy bỏ");
+                if (!confirm) return;
 
                 // Lấy danh sách câu hỏi đề xuất từ ngân hàng câu hỏi
                 var autoQuestions = KhaoSatBUS.Instance.LayDanhSachCauHoiTheoTrinhDo(capDo);
@@ -458,13 +536,47 @@ namespace GUI.Views.GiangVien
             if (string.IsNullOrEmpty(tenBai))
             {
                 Common.ThongBaoDialog.CanhBao("Tên bài khảo sát không được để trống.", "Thiếu thông tin");
+                txtTenBaiKhaoSat.Focus();
+                return;
+            }
+
+            if (tenBai.Length > 200)
+            {
+                Common.ThongBaoDialog.CanhBao("Tên bài khảo sát không được vượt quá 200 ký tự.", "Quá độ dài");
+                txtTenBaiKhaoSat.Focus();
+                return;
+            }
+
+            if (!int.TryParse(txtThoiGianPhut.Text.Trim(), out int thoiGian) || thoiGian < 5 || thoiGian > 180)
+            {
+                Common.ThongBaoDialog.CanhBao("Thời gian làm bài khảo sát phải là số nguyên từ 5 đến 180 phút.", "Thời gian không hợp lệ");
+                txtThoiGianPhut.Focus();
                 return;
             }
 
             if (_currentQuestions.Count == 0)
             {
-                Common.ThongBaoDialog.CanhBao("Bài khảo sát phải có ít nhất 1 câu hỏi.", "Thiếu câu hỏi");
+                Common.ThongBaoDialog.CanhBao("Bài khảo sát phải có ít nhất 1 câu hỏi để học viên làm bài.", "Thiếu câu hỏi");
                 return;
+            }
+
+            if (_currentQuestions.Count != 20)
+            {
+                bool tiepTuc = Common.ThongBaoDialog.XacNhan(
+                    $"Bộ đề hiện tại có {_currentQuestions.Count} câu hỏi (chuẩn khuyến nghị phân loại CEFR là 20 câu).\n\nBạn có chắc chắn muốn lưu cấu hình này không?",
+                    "Cảnh báo số lượng câu hỏi",
+                    confirmText: "Vẫn lưu",
+                    cancelText: "Xem lại");
+                if (!tiepTuc) return;
+            }
+            else
+            {
+                bool xacNhan = Common.ThongBaoDialog.XacNhan(
+                    $"Bạn có chắc chắn muốn lưu các cập nhật cho bộ đề khảo sát \"{tenBai}\" không?",
+                    "Xác nhận lưu bộ đề",
+                    confirmText: "Lưu bộ đề",
+                    cancelText: "Hủy bỏ");
+                if (!xacNhan) return;
             }
 
             string moTa = txtMoTa.Text.Trim();
@@ -484,6 +596,7 @@ namespace GUI.Views.GiangVien
 
             if (okQuestions)
             {
+                CapNhatSnapshotBoDe();
                 Common.ThongBaoDialog.ThanhCong(
                     $"🎉 Đã lưu bộ đề khảo sát thành công gồm {questionIds.Count} câu hỏi theo đúng thứ tự thiết lập!",
                     "Cập nhật thành công");
@@ -498,6 +611,16 @@ namespace GUI.Views.GiangVien
 
         private void BtnDong_Click(object sender, RoutedEventArgs e)
         {
+            if (CoThayDoiChuaLuu())
+            {
+                bool confirm = Common.ThongBaoDialog.XacNhan(
+                    "Bộ đề khảo sát hiện tại có các thay đổi chưa được lưu.\n\nBạn có chắc chắn muốn đóng mà không lưu không?",
+                    "Xác nhận thoát",
+                    confirmText: "Đóng cửa sổ",
+                    cancelText: "Ở lại");
+                if (!confirm) return;
+            }
+
             DialogResult = false;
             Close();
         }

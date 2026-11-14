@@ -668,7 +668,7 @@
                     </Border>
 
                     <!-- Lessons / Materials Items from Database -->
-                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Padding="0,0,12,0" CanContentScroll="False">
                         <StackPanel>
                             <!-- Empty State Notice -->
                             <TextBlock x:Name="txtEmptyNotice" Text="Chưa có bài học nào trong chủ đề này." 
@@ -807,22 +807,44 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Preview Header -->
-                    <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="16,12">
+                    <!-- Preview Header: Bộ lọc Cấp độ & Kỹ năng (thay thế cho tên file trùng lặp) + Nút Tải về -->
+                    <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="14,10">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
-                                <TextBlock x:Name="txtPreviewDocTitle" Text="IELTS_Reading_Cam18_Test01.pdf" FontWeight="Bold" FontSize="13.5" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
-                                <TextBlock x:Name="txtPreviewDocMeta" Text="Định dạng: Adobe PDF • Dung lượng: 1.8 MB • Cập nhật: Hôm nay 10:30" FontSize="11" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                            <!-- Bộ lọc Trình độ & Kỹ năng (giống Ảnh 2 & Ảnh 3) -->
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                                <!-- Bộ lọc Cấp độ trình độ (A1 - C1) -->
+                                <ComboBox x:Name="cboFilterTrinhDo" Width="195" Height="34" Margin="0,0,10,0"
+                                          SelectionChanged="CboFilterTrinhDo_SelectionChanged"
+                                          ToolTip="Lọc danh sách bài học theo khung trình độ chuẩn (A1 - C1)">
+                                    <ComboBoxItem Content="Tất cả cấp độ (A1 - C1)" Tag="All" IsSelected="True"/>
+                                    <ComboBoxItem Content="A1 — Beginner" Tag="A1"/>
+                                    <ComboBoxItem Content="A2 — Elementary" Tag="A2"/>
+                                    <ComboBoxItem Content="B1 — Intermediate" Tag="B1"/>
+                                    <ComboBoxItem Content="B2 — Upper-Intermediate" Tag="B2"/>
+                                    <ComboBoxItem Content="C1 — Advanced" Tag="C1"/>
+                                </ComboBox>
+
+                                <!-- Bộ lọc Kỹ năng (Ngữ pháp, Từ vựng, Đọc, Nghe...) -->
+                                <ComboBox x:Name="cboFilterKyNang" Width="160" Height="34"
+                                          SelectionChanged="CboFilterKyNang_SelectionChanged"
+                                          ToolTip="Lọc danh sách bài học theo kỹ năng">
+                                    <ComboBoxItem Content="Tất cả kỹ năng" Tag="All" IsSelected="True"/>
+                                    <ComboBoxItem Content="Ngữ pháp" Tag="NguPhap"/>
+                                    <ComboBoxItem Content="Từ vựng" Tag="TuVung"/>
+                                    <ComboBoxItem Content="Đọc hiểu" Tag="Doc"/>
+                                    <ComboBoxItem Content="Nghe hiểu" Tag="Nghe"/>
+                                    <ComboBoxItem Content="Viết luận" Tag="Viet"/>
+                                </ComboBox>
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                 <Button Background="#EFF6FF" BorderBrush="#3B82F6" Foreground="#1D4ED8" BorderThickness="1.5" 
-                                        FontSize="11.5" FontWeight="SemiBold" Padding="10,6" Margin="0,0,8,0" Cursor="Hand" Click="BtnDownloadCurrent_Click" ToolTip="Tải xuống tệp học liệu về máy">
+                                        FontSize="11.5" FontWeight="SemiBold" Padding="12,6" Height="34" Cursor="Hand" Click="BtnDownloadCurrent_Click" ToolTip="Tải xuống tệp học liệu về máy">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
                                             <Border x:Name="btnB" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7" Padding="{TemplateBinding Padding}">
@@ -835,45 +857,6 @@
                                                 <Trigger Property="IsMouseOver" Value="True">
                                                     <Setter TargetName="btnB" Property="Background" Value="#DBEAFE"/>
                                                     <Setter TargetName="btnB" Property="BorderBrush" Value="#2563EB"/>
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                </Button>
-
-                                <Button Background="#F1F5F9" BorderBrush="#CBD5E1" Foreground="#334155" BorderThickness="1.5" 
-                                        FontSize="11.5" FontWeight="SemiBold" Padding="10,6" Margin="0,0,8,0" Cursor="Hand" Click="BtnOpenFileExternal_Click" ToolTip="Mở trực tiếp bằng phần mềm mặc định (Word, Adobe Reader, v.v.)">
-                                    <Button.Template>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border x:Name="btnExt" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7" Padding="{TemplateBinding Padding}">
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <local:LucideIcon Kind="ExternalLink" Size="13" Foreground="#334155" Margin="0,0,5,0"/>
-                                                    <TextBlock Text="Mở tệp"/>
-                                                </StackPanel>
-                                            </Border>
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="btnExt" Property="Background" Value="#E2E8F0"/>
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                </Button>
-
-                                <Button Background="#FAF5FF" BorderBrush="#A855F7" Foreground="#7E22CE" BorderThickness="1.5" 
-                                        FontSize="11.5" FontWeight="SemiBold" Padding="10,6" Cursor="Hand" Click="BtnPrintCurrent_Click" ToolTip="In đề thi / học liệu">
-                                    <Button.Template>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border x:Name="btnB2" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7" Padding="{TemplateBinding Padding}">
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <local:LucideIcon Kind="Printer" Size="13" Foreground="#7E22CE" Margin="0,0,5,0"/>
-                                                    <TextBlock Text="In ấn"/>
-                                                </StackPanel>
-                                            </Border>
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="btnB2" Property="Background" Value="#EDE9FE"/>
-                                                    <Setter TargetName="btnB2" Property="BorderBrush" Value="#9333EA"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
@@ -969,6 +952,24 @@
                                                             <local:LucideIcon x:Name="icoPlayAudio" Kind="Play" Size="13" Foreground="White" Margin="0,0,5,0"/>
                                                             <TextBlock x:Name="txtPlayAudio" Text="Phát Audio" FontSize="11.5" FontWeight="Bold" Foreground="White"/>
                                                         </StackPanel>
+                                                    </Button>
+
+                                                    <!-- Nút nhỏ tải tệp Audio của bài học -->
+                                                    <Button x:Name="btnDownloadAudio" Click="BtnDownloadAudio_Click" Background="White" BorderBrush="#CBD5E1" BorderThickness="1" 
+                                                            Width="32" Height="32" Padding="0" Cursor="Hand" Margin="8,0,0,0" ToolTip="Tải xuống tệp âm thanh bài nghe (.mp3)">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="bdDl" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
+                                                                    <local:LucideIcon Kind="Download" Size="14" Foreground="#15803D" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bdDl" Property="Background" Value="#DCFCE7"/>
+                                                                        <Setter TargetName="bdDl" Property="BorderBrush" Value="#86EFAC"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
                                                     </Button>
                                                 </StackPanel>
                                             </Grid>
@@ -1146,37 +1147,6 @@
                                     <TextBlock x:Name="txtPreviewStatusPill" Text="Đã xuất bản" FontSize="11.5" FontWeight="SemiBold" Foreground="#15803D"/>
                                 </Border>
                             </StackPanel>
-
-                            <!-- Quick Action Button -->
-                            <Button Grid.Column="1" Background="#059669" Foreground="White" 
-                                    FontWeight="Bold" FontSize="12" Padding="14,8" BorderThickness="0" Cursor="Hand" Click="BtnAddToExam_Click"
-                                    ToolTip="Tạo đề thi thử tự động từ bài học này">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Grid>
-                                            <Border CornerRadius="8" Background="{TemplateBinding Background}">
-                                                <Border.Effect>
-                                                    <DropShadowEffect BlurRadius="6" ShadowDepth="1.5" Opacity="0.25" Color="#059669"/>
-                                                </Border.Effect>
-                                            </Border>
-                                            <Border x:Name="btnBd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <local:LucideIcon Kind="Plus" Size="14" Foreground="White" Margin="0,0,6,0"/>
-                                                    <TextBlock Text="Đưa vào Đề thi thử" FontWeight="Bold"/>
-                                                </StackPanel>
-                                            </Border>
-                                        </Grid>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="btnBd" Property="Background" Value="#047857"/>
-                                            </Trigger>
-                                            <Trigger Property="IsPressed" Value="True">
-                                                <Setter TargetName="btnBd" Property="Background" Value="#065F46"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
                         </Grid>
                     </Border>
                 </Grid>

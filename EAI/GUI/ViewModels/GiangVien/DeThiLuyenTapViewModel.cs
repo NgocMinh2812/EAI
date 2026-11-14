@@ -823,8 +823,46 @@ namespace GUI.ViewModels.GiangVien
         }
 
         // =========================================================================
-        // ACTIONS
+        // ACTIONS & SNAPSHOT TRACKING
         // =========================================================================
+        private string _snapshotDeThi = string.Empty;
+
+        private string TaoChuoiSnapshotDeThi()
+        {
+            if (CurrentDeThi == null) return string.Empty;
+            var sb = new System.Text.StringBuilder();
+            sb.Append(CurrentDeThi.MaBaiTapDeThi).Append('|')
+              .Append(CurrentDeThi.TenBaiTapDeThi?.Trim()).Append('|')
+              .Append(CurrentDeThi.LoaiHinh).Append('|')
+              .Append(CurrentDeThi.ThoiGianLamBaiPhut).Append('|')
+              .Append(CurrentDeThi.DiemDat).Append('|')
+              .Append(CurrentDeThi.SoLuotLamToiDa).Append('|')
+              .Append(CurrentDeThi.MaCapDo).Append('|')
+              .Append(CurrentDeThi.MoTa?.Trim()).Append('|')
+              .Append(CurrentDeThi.DuongDanAudio?.Trim()).Append('|')
+              .Append(CurrentDeThi.XaoTronCauHoi).Append('|')
+              .Append(CurrentDeThi.ChoXemDapAn).Append('|')
+              .Append(CurrentDeThi.ChoXemLoiGiai).Append('|')
+              .Append(SelectedCauTrucDeThi?.MaCauTruc ?? 0).Append('|')
+              .Append(TongSoCauDaChon).Append('|');
+            foreach (var q in _selectedQuestionsMaster.Values.OrderBy(x => x.ThuTu))
+            {
+                sb.Append(q.CauHoi.MaCauHoi).Append(':').Append(q.Diem).Append(';');
+            }
+            return sb.ToString();
+        }
+
+        private void CapNhatSnapshotDeThi()
+        {
+            _snapshotDeThi = TaoChuoiSnapshotDeThi();
+        }
+
+        public bool CoThayDoiChuaLuu()
+        {
+            if (CurrentDeThi == null || IsDanhSachMode) return false;
+            return !string.Equals(_snapshotDeThi, TaoChuoiSnapshotDeThi(), StringComparison.Ordinal);
+        }
+
         private void KhoiTaoDeThiMoi()
         {
             _selectedQuestionsMaster.Clear();
@@ -860,6 +898,7 @@ namespace GUI.ViewModels.GiangVien
 
             SelectedCauTrucDeThi = DanhSachCauTrucDeThi.FirstOrDefault(x => x.MaCauTruc == 0);
             ThongBaoLoi = string.Empty;
+            CapNhatSnapshotDeThi();
         }
 
         private void NapDanhSachCauTrucDeThi()
@@ -1127,9 +1166,19 @@ namespace GUI.ViewModels.GiangVien
 
         private void ThucHienThemDeThiMoi()
         {
+            if (CoThayDoiChuaLuu())
+            {
+                bool boQua = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                    "Đề thi hiện tại có các thay đổi chưa được lưu.\n\nBạn có muốn bỏ qua các thay đổi này và tạo đề mới không?",
+                    "Thay đổi chưa lưu",
+                    confirmText: "Bỏ qua thay đổi",
+                    cancelText: "Ở lại");
+                if (!boQua) return;
+            }
             KhoiTaoDeThiMoi();
             IsDanhSachMode = false;
             NapCauHoiTheoBoLoc();
+            CapNhatSnapshotDeThi();
         }
 
         private void ThucHienChonSuaDeThi(BaiTapDeThiDTO? deThi)
@@ -1169,6 +1218,7 @@ namespace GUI.ViewModels.GiangVien
             }
 
             NapCauHoiTheoBoLoc();
+            CapNhatSnapshotDeThi();
         }
 
         private void ThucHienXemTruocDeThi(BaiTapDeThiDTO? deThi)
@@ -1191,6 +1241,14 @@ namespace GUI.ViewModels.GiangVien
         private void ThucHienXuatBanDeThi(BaiTapDeThiDTO? deThi)
         {
             if (deThi == null) return;
+
+            bool xacNhan = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                $"Bạn có chắc chắn muốn xuất bản đề thi \"{deThi.TenBaiTapDeThi}\" không?\n\nSau khi xuất bản, đề thi sẽ công khai ngay lập tức cho học viên vào thi.",
+                "Xác nhận xuất bản đề thi",
+                confirmText: "Xuất bản ngay",
+                cancelText: "Hủy bỏ");
+            if (!xacNhan) return;
+
             if (BaiTapDeThiBUS.Instance.XuatBanDeThi(deThi.MaBaiTapDeThi, out string err))
             {
                 deThi.DaPhatHanh = true;
@@ -1207,6 +1265,14 @@ namespace GUI.ViewModels.GiangVien
         private void ThucHienDongDeThi(BaiTapDeThiDTO? deThi)
         {
             if (deThi == null) return;
+
+            bool xacNhan = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                $"Bạn có chắc chắn muốn đóng đề thi \"{deThi.TenBaiTapDeThi}\" không?\n\nSau khi đóng, học viên sẽ không thể vào làm đề thi này nữa.",
+                "Xác nhận đóng đề thi",
+                confirmText: "Đóng đề thi",
+                cancelText: "Hủy bỏ");
+            if (!xacNhan) return;
+
             if (BaiTapDeThiBUS.Instance.DongDeThi(deThi.MaBaiTapDeThi, out string err))
             {
                 deThi.DaPhatHanh = false;
@@ -1223,6 +1289,14 @@ namespace GUI.ViewModels.GiangVien
         private void ThucHienNhanBanDeThi(BaiTapDeThiDTO? deThi)
         {
             if (deThi == null) return;
+
+            bool xacNhan = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                $"Bạn có muốn nhân bản đề thi \"{deThi.TenBaiTapDeThi}\" thành một bản sao mới không?\n\nBản sao mới sẽ ở trạng thái Bản nháp để bạn chỉnh sửa tùy ý.",
+                "Xác nhận nhân bản đề thi",
+                confirmText: "Nhân bản",
+                cancelText: "Hủy bỏ");
+            if (!xacNhan) return;
+
             int newId = BaiTapDeThiBUS.Instance.NhanBanDeThi(deThi.MaBaiTapDeThi, out string err);
             if (newId > 0)
             {
@@ -1276,6 +1350,15 @@ namespace GUI.ViewModels.GiangVien
 
         private void ThucHienQuayLaiDanhSach()
         {
+            if (CoThayDoiChuaLuu())
+            {
+                bool boQua = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                    "Đề thi hiện tại có các thay đổi chưa được lưu.\n\nBạn có muốn bỏ qua các thay đổi này và quay lại danh sách không?",
+                    "Thay đổi chưa lưu",
+                    confirmText: "Bỏ qua thay đổi",
+                    cancelText: "Ở lại soạn tiếp");
+                if (!boQua) return;
+            }
             StopAudio();
             IsDanhSachMode = true;
             TaiDuLieuDeThi();
@@ -1296,6 +1379,15 @@ namespace GUI.ViewModels.GiangVien
 
         private void ThucHienXoaAudioDeThi()
         {
+            if (string.IsNullOrWhiteSpace(CurrentDeThi.DuongDanAudio)) return;
+
+            bool xacNhan = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                "Bạn có chắc chắn muốn gỡ tệp âm thanh Audio khỏi đề thi này không?",
+                "Xác nhận gỡ Audio",
+                confirmText: "Gỡ Audio",
+                cancelText: "Giữ lại");
+            if (!xacNhan) return;
+
             StopAudio();
             CurrentDeThi.DuongDanAudio = null;
         }
@@ -1378,21 +1470,90 @@ namespace GUI.ViewModels.GiangVien
                 return;
             }
 
-            if (CurrentDeThi.LoaiHinh == "ThiThu" && CurrentDeThi.ThoiGianLamBaiPhut <= 0)
+            if (CurrentDeThi.TenBaiTapDeThi.Trim().Length > 200)
             {
-                ThongBaoLoi = "Đề thi thử (Mock Test) bắt buộc thời gian làm bài phải > 0 phút.";
+                ThongBaoLoi = "Tên đề thi không được vượt quá 200 ký tự.";
                 return;
             }
 
+            if (CurrentDeThi.MoTa?.Trim().Length > 1000)
+            {
+                ThongBaoLoi = "Mô tả đề thi không được vượt quá 1000 ký tự.";
+                return;
+            }
+
+            // Kiểm tra trùng tên đề thi
+            if (DanhSachDeThiHienCo.Any(d => d.MaBaiTapDeThi != CurrentDeThi.MaBaiTapDeThi && string.Equals(d.TenBaiTapDeThi?.Trim(), CurrentDeThi.TenBaiTapDeThi.Trim(), StringComparison.OrdinalIgnoreCase)))
+            {
+                bool xacNhanTrung = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                    $"Đã tồn tại đề thi mang tên \"{CurrentDeThi.TenBaiTapDeThi.Trim()}\" trong hệ thống.\n\nBạn có chắc chắn muốn tiếp tục lưu đề thi với tên này không?",
+                    "Trùng tên đề thi",
+                    confirmText: "Vẫn lưu",
+                    cancelText: "Đổi tên khác");
+                if (!xacNhanTrung) return;
+            }
+
+            // Ràng buộc thời gian làm bài
+            if (CurrentDeThi.LoaiHinh == "ThiThu")
+            {
+                if (CurrentDeThi.ThoiGianLamBaiPhut <= 0 || CurrentDeThi.ThoiGianLamBaiPhut > 360)
+                {
+                    ThongBaoLoi = "Đề thi thử (Mock Test) bắt buộc thời gian làm bài phải từ 1 đến 360 phút.";
+                    return;
+                }
+            }
+            else
+            {
+                if (CurrentDeThi.ThoiGianLamBaiPhut < 0 || CurrentDeThi.ThoiGianLamBaiPhut > 360)
+                {
+                    ThongBaoLoi = "Thời gian làm bài không hợp lệ (nhập 0 nếu không giới hạn, hoặc từ 1 đến 360 phút).";
+                    return;
+                }
+            }
+
+            // Ràng buộc số lượng câu hỏi
             if (TongSoCauDaChon == 0)
             {
                 ThongBaoLoi = "Vui lòng chọn ít nhất 1 câu hỏi từ ngân hàng đưa vào đề thi.";
                 return;
             }
 
+            if (TongSoCauDaChon > 200)
+            {
+                ThongBaoLoi = "Số lượng câu hỏi trong một đề thi không được vượt quá 200 câu.";
+                return;
+            }
+
+            // Ràng buộc điểm số
+            if (TongDiemDeThi <= 0)
+            {
+                ThongBaoLoi = "Tổng điểm của đề thi phải lớn hơn 0.";
+                return;
+            }
+
+            if (CurrentDeThi.DiemDat < 0)
+            {
+                ThongBaoLoi = "Điểm đạt không được là số âm.";
+                return;
+            }
+
             if (CurrentDeThi.DiemDat > TongDiemDeThi)
             {
-                ThongBaoLoi = "Điểm đạt yêu cầu không được vượt quá tổng điểm bài thi.";
+                ThongBaoLoi = $"Điểm đạt yêu cầu ({CurrentDeThi.DiemDat} điểm) không được vượt quá tổng điểm bài thi ({TongDiemDeThi} điểm).";
+                return;
+            }
+
+            // Ràng buộc số lượt làm tối đa
+            if (CurrentDeThi.SoLuotLamToiDa < 0 || CurrentDeThi.SoLuotLamToiDa > 100)
+            {
+                ThongBaoLoi = "Số lượt làm tối đa không hợp lệ (nhập 0 nếu không giới hạn, hoặc từ 1 đến 100 lượt).";
+                return;
+            }
+
+            // Ràng buộc điểm từng câu
+            if (_selectedQuestionsMaster.Values.Any(x => x.Diem <= 0))
+            {
+                ThongBaoLoi = "Tất cả các câu hỏi được chọn phải có số điểm lớn hơn 0.";
                 return;
             }
 
@@ -1422,6 +1583,26 @@ namespace GUI.ViewModels.GiangVien
                         if (!tiepTuc) return;
                     }
                 }
+            }
+
+            // Hỏi xác nhận trước khi Xuất bản hoặc Chuyển về Bản nháp
+            if (xuatBan)
+            {
+                bool xacNhanXuatBan = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                    $"Bạn có chắc chắn muốn LƯU & XUẤT BẢN đề thi \"{CurrentDeThi.TenBaiTapDeThi}\"?\n\n• Số câu hỏi: {TongSoCauDaChon} câu\n• Tổng điểm: {TongDiemDeThi} điểm (Điểm đạt: {CurrentDeThi.DiemDat})\n• Thời gian: {(CurrentDeThi.ThoiGianLamBaiPhut > 0 ? $"{CurrentDeThi.ThoiGianLamBaiPhut} phút" : "Không giới hạn")}\n\nĐề thi sẽ được công khai ngay lập tức cho học viên vào thi.",
+                    "Xác nhận xuất bản đề thi",
+                    confirmText: "Xuất bản ngay",
+                    cancelText: "Quay lại kiểm tra");
+                if (!xacNhanXuatBan) return;
+            }
+            else if (CurrentDeThi.DaPhatHanh)
+            {
+                bool chuyenVeNhap = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                    $"Đề thi này hiện đang ở trạng thái 'Đã xuất bản'. Việc lưu thành 'Bản nháp' sẽ tạm ẩn đề thi khỏi danh sách thi của học viên.\n\nBạn có chắc chắn muốn chuyển đề thi về Bản nháp không?",
+                    "Xác nhận chuyển về Bản nháp",
+                    confirmText: "Chuyển về Bản nháp",
+                    cancelText: "Hủy bỏ");
+                if (!chuyenVeNhap) return;
             }
 
             ThongBaoLoi = string.Empty;
@@ -1461,6 +1642,7 @@ namespace GUI.ViewModels.GiangVien
                 GUI.Views.Common.ThongBaoDialog.ThanhCong(msg, "Thành công");
                 IsDanhSachMode = true;
                 TaiDuLieuDeThi();
+                CapNhatSnapshotDeThi();
             }
             else
             {

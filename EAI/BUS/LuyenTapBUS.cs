@@ -151,6 +151,16 @@ namespace BUS
                 userId, thoiGianGiay, tongSoCau, soCauDung, tyLeChinhXac, chiTiet);
         }
 
+        public int KhoiTaoLuotLuyenTap(int maNguoiDung, string tieuDe, int tongSoCau)
+        {
+            return LuyenTapDAL.Instance.KhoiTaoLuotLuyenTap(maNguoiDung, tieuDe, tongSoCau);
+        }
+
+        public bool HuyLuotLuyenTap(int maLuotLamBai)
+        {
+            return LuyenTapDAL.Instance.HuyLuotLuyenTap(maLuotLamBai);
+        }
+
         public int LuuKetQuaPhienLuyenTap(
             int userId,
             string tieuDe,
@@ -158,7 +168,8 @@ namespace BUS
             int thoiLuongGiay,
             List<CauHoiKhaoSatDTO> danhSachCauHoi,
             Dictionary<int, int> userAnswers,
-            Dictionary<int, string> userTextAnswers)
+            Dictionary<int, string> userTextAnswers,
+            int maLuotLamBaiHienTai = 0)
         {
             if (userId <= 0)
                 userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
@@ -181,7 +192,7 @@ namespace BUS
             decimal tyLe = tongSoCau > 0 ? (decimal)soCauDung * 100m / tongSoCau : 0m;
 
             return LuyenTapDAL.Instance.LuuKetQuaPhienLuyenTap(
-                userId, tieuDe, thoiLuongGiay, tongSoCau, soCauDung, tyLe, chiTiet);
+                userId, tieuDe, thoiLuongGiay, tongSoCau, soCauDung, tyLe, chiTiet, maLuotLamBaiHienTai);
         }
 
         /// <summary>

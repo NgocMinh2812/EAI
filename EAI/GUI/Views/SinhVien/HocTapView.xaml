@@ -193,6 +193,8 @@
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Height" Value="34"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ScrollViewer.CanContentScroll" Value="False"/>
+            <Setter Property="VirtualizingPanel.ScrollUnit" Value="Pixel"/>
             <Setter Property="ItemContainerStyle" Value="{StaticResource ModernComboBoxItem}"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -231,7 +233,7 @@
                                         <Border.Effect>
                                             <DropShadowEffect BlurRadius="14" ShadowDepth="4" Opacity="0.12" Color="Black"/>
                                         </Border.Effect>
-                                        <ScrollViewer SnapsToDevicePixels="True" VerticalScrollBarVisibility="Auto">
+                                        <ScrollViewer SnapsToDevicePixels="True" VerticalScrollBarVisibility="Auto" CanContentScroll="False">
                                             <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
                                         </ScrollViewer>
                                     </Border>

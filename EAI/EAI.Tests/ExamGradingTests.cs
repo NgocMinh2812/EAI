@@ -27,7 +27,7 @@ namespace EAI.Tests
 
             // Act
             var result = BaiTapDeThiBUS.Instance.ChamVaLuuKetQuaThi(
-                maDeThi: 0,
+                maDeThi: -1,
                 hinhThucLam: "KiemThu",
                 thoiDiemBatDau: DateTime.Now,
                 thoiGianGiay: 120,
@@ -61,7 +61,7 @@ namespace EAI.Tests
             var userTextAnswers = new Dictionary<int, string> { { 102, "Sustainable." } };
 
             var result = BaiTapDeThiBUS.Instance.ChamVaLuuKetQuaThi(
-                maDeThi: 0,
+                maDeThi: -1,
                 hinhThucLam: "KiemThu",
                 thoiDiemBatDau: DateTime.Now,
                 thoiGianGiay: 30,
@@ -94,7 +94,7 @@ namespace EAI.Tests
             var userAnswers = new Dictionary<int, int> { { 103, 202 } };
 
             var result = BaiTapDeThiBUS.Instance.ChamVaLuuKetQuaThi(
-                maDeThi: 0,
+                maDeThi: -1,
                 hinhThucLam: "KiemThu",
                 thoiDiemBatDau: DateTime.Now,
                 thoiGianGiay: 30,

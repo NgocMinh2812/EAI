@@ -31,6 +31,9 @@ namespace GUI.ViewModels.GiangVien
         private bool _hienThongBaoLuuNho;
         private System.Windows.Threading.DispatcherTimer? _luuTimer;
         private CauHoiKhaoSatDTO? _selectedCauHoiInList;
+        private string _snapshotCauHoi = string.Empty;
+        private bool _isChangingSelectedQuestion;
+        private bool _isChangingSelectedBo;
 
         // Bộ lọc bộ câu hỏi
         private string _tuKhoaTimKiemBo = string.Empty;
@@ -59,6 +62,17 @@ namespace GUI.ViewModels.GiangVien
             get => _selectedBoCauHoi;
             set
             {
+                if (_isChangingSelectedBo || IsLoadingQuestions) return;
+                if (Equals(_selectedBoCauHoi, value)) return;
+
+                if (_selectedBoCauHoi != null && value != null && !XacNhanBoQuaThayDoiChuaLuu())
+                {
+                    _isChangingSelectedBo = true;
+                    OnPropertyChanged(nameof(SelectedBoCauHoi));
+                    _isChangingSelectedBo = false;
+                    return;
+                }
+
                 if (SetProperty(ref _selectedBoCauHoi, value))
                 {
                     OnPropertyChanged(nameof(TieuDeBoHienTai));
@@ -106,6 +120,17 @@ namespace GUI.ViewModels.GiangVien
             get => _selectedCauHoiInList;
             set
             {
+                if (_isChangingSelectedQuestion || IsLoadingQuestions) return;
+                if (Equals(_selectedCauHoiInList, value)) return;
+
+                if (_selectedCauHoiInList != null && value != null && !XacNhanBoQuaThayDoiChuaLuu())
+                {
+                    _isChangingSelectedQuestion = true;
+                    OnPropertyChanged(nameof(SelectedCauHoiInList));
+                    _isChangingSelectedQuestion = false;
+                    return;
+                }
+
                 if (SetProperty(ref _selectedCauHoiInList, value))
                 {
                     if (value != null)
@@ -230,6 +255,7 @@ namespace GUI.ViewModels.GiangVien
         public ICommand XoaDapAnCommand { get; }
         public ICommand ChonDapAnDungCommand { get; }
         public ICommand ChonAudioCommand { get; }
+        public ICommand XoaAudioCommand { get; }
         public ICommand TogglePlayAudioCommand { get; }
         public ICommand LuuCauHoiCommand { get; }
         public ICommand ThemCauHoiMoiCommand { get; }
@@ -247,6 +273,7 @@ namespace GUI.ViewModels.GiangVien
             XoaDapAnCommand = new RelayCommand(p => ThucHienXoaDapAn(p as LuaChonDapAnDTO));
             ChonDapAnDungCommand = new RelayCommand(p => ThucHienChonDapAnDung(p as LuaChonDapAnDTO));
             ChonAudioCommand = new RelayCommand(_ => ThucHienChonAudio());
+            XoaAudioCommand = new RelayCommand(_ => ThucHienXoaAudio());
             TogglePlayAudioCommand = new RelayCommand(_ => ThucHienToggleAudio());
             LuuCauHoiCommand = new RelayCommand(_ => ThucHienLuuCauHoi());
             ThemCauHoiMoiCommand = new RelayCommand(_ => KhoiTaoCauHoiMoi());
@@ -404,7 +431,7 @@ namespace GUI.ViewModels.GiangVien
                 }
                 else
                 {
-                    KhoiTaoCauHoiMoi();
+                    KhoiTaoCauHoiMoi(boQuaXacNhan: true);
                 }
             }
             catch (Exception ex)
@@ -417,9 +444,81 @@ namespace GUI.ViewModels.GiangVien
             }
         }
 
+        private string TaoChuoiSnapshot()
+        {
+            if (CurrentCauHoi == null) return string.Empty;
+            var sb = new System.Text.StringBuilder();
+            sb.Append(CurrentCauHoi.MaCauHoi).Append('|')
+              .Append(CurrentCauHoi.NoiDungCauHoi?.Trim() ?? string.Empty).Append('|')
+              .Append(CurrentCauHoi.KyNang ?? string.Empty).Append('|')
+              .Append(CurrentCauHoi.DoKho ?? string.Empty).Append('|')
+              .Append(CurrentCauHoi.MaTrinhDo ?? string.Empty).Append('|')
+              .Append(CurrentCauHoi.LoaiCauHoi ?? string.Empty).Append('|')
+              .Append(CurrentCauHoi.DoanVanDoc?.Trim() ?? string.Empty).Append('|')
+              .Append(CurrentCauHoi.AudioPath?.Trim() ?? string.Empty).Append('|')
+              .Append(CurrentCauHoi.GiaiThichDapAn?.Trim() ?? string.Empty).Append('|')
+              .Append(CurrentCauHoi.TepTinNguon?.Trim() ?? string.Empty).Append('|')
+              .Append(CurrentCauHoi.DoanVanDanChung?.Trim() ?? string.Empty).Append('|');
+            foreach (var d in DanhSachDapAn)
+            {
+                sb.Append(d.KyHieuLuaChon ?? string.Empty).Append(':')
+                  .Append(d.NoiDungLuaChon?.Trim() ?? string.Empty).Append(':')
+                  .Append(d.LaDapAnDung).Append(';');
+            }
+            return sb.ToString();
+        }
+
+        private void CapNhatSnapshot()
+        {
+            _snapshotCauHoi = TaoChuoiSnapshot();
+        }
+
+        public void DongBoSnapshotHienTai()
+        {
+            CapNhatSnapshot();
+        }
+
+        public bool CoThayDoiChuaLuu()
+        {
+            if (IsLoadingQuestions) return false;
+            if (CurrentCauHoi == null) return false;
+            if (string.IsNullOrEmpty(_snapshotCauHoi)) return false;
+            if (CurrentCauHoi.MaCauHoi <= 0 && string.IsNullOrWhiteSpace(CurrentCauHoi.NoiDungCauHoi)) return false;
+            return !string.Equals(_snapshotCauHoi, TaoChuoiSnapshot(), StringComparison.Ordinal);
+        }
+
+        private bool XacNhanBoQuaThayDoiChuaLuu()
+        {
+            if (IsLoadingQuestions) return true;
+            if (!CoThayDoiChuaLuu()) return true;
+            return GUI.Views.Common.ThongBaoDialog.XacNhan(
+                "Câu hỏi hiện tại có các thay đổi chưa được lưu vào hệ thống.\n\nBạn có muốn bỏ qua các thay đổi này không?",
+                "Thay đổi chưa lưu",
+                confirmText: "Bỏ qua thay đổi",
+                cancelText: "Ở lại lưu");
+        }
+
+        private static void NormalizeQuestion(CauHoiKhaoSatDTO? ch)
+        {
+            if (ch == null) return;
+            string kn = ch.KyNang?.Trim() ?? "";
+            if (kn.Equals("Reading", StringComparison.OrdinalIgnoreCase)) ch.KyNang = "Doc";
+            else if (kn.Equals("Listening", StringComparison.OrdinalIgnoreCase)) ch.KyNang = "Nghe";
+            else if (kn.Equals("Grammar", StringComparison.OrdinalIgnoreCase)) ch.KyNang = "NguPhap";
+            else if (kn.StartsWith("Vocab", StringComparison.OrdinalIgnoreCase)) ch.KyNang = "TuVung";
+            else if (kn.Equals("Writing", StringComparison.OrdinalIgnoreCase)) ch.KyNang = "Viet";
+            else if (kn.Equals("Speaking", StringComparison.OrdinalIgnoreCase)) ch.KyNang = "Noi";
+
+            string dk = ch.DoKho?.Trim() ?? "";
+            if (dk.Equals("Easy", StringComparison.OrdinalIgnoreCase)) ch.DoKho = "De";
+            else if (dk.Equals("Medium", StringComparison.OrdinalIgnoreCase)) ch.DoKho = "TrungBinh";
+            else if (dk.Equals("Hard", StringComparison.OrdinalIgnoreCase)) ch.DoKho = "Kho";
+        }
+
         public void ChonCauHoiDeSua(CauHoiKhaoSatDTO? ch)
         {
             if (ch == null) return;
+            NormalizeQuestion(ch);
             if (_selectedCauHoiInList != ch)
             {
                 _selectedCauHoiInList = ch;
@@ -427,6 +526,7 @@ namespace GUI.ViewModels.GiangVien
             }
             CurrentCauHoi = ch;
             NapDapAnChoCauHoiHienTai();
+            CapNhatSnapshot();
         }
 
         private void OnCurrentCauHoiPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -566,8 +666,10 @@ namespace GUI.ViewModels.GiangVien
             }).ToList();
         }
 
-        public void KhoiTaoCauHoiMoi()
+        public void KhoiTaoCauHoiMoi(bool boQuaXacNhan = false)
         {
+            if (!boQuaXacNhan && !XacNhanBoQuaThayDoiChuaLuu()) return;
+
             _selectedCauHoiInList = null;
             OnPropertyChanged(nameof(SelectedCauHoiInList));
 
@@ -588,12 +690,16 @@ namespace GUI.ViewModels.GiangVien
 
             CurrentCauHoi = newCh;
             NapDapAnChoCauHoiHienTai();
+            CapNhatSnapshot();
         }
 
         private void ThucHienLamMoi()
         {
+            if (!XacNhanBoQuaThayDoiChuaLuu()) return;
+
             NapDanhMuc();
             NapDanhSachBoCauHoi();
+            CapNhatSnapshot();
             ThongBaoLuuNho = "✓ Đã làm mới dữ liệu!";
             HienThongBaoLuuNho = true;
             _luuTimer?.Stop();
@@ -604,6 +710,22 @@ namespace GUI.ViewModels.GiangVien
 
         private void ThucHienThemDapAn()
         {
+            if (CurrentCauHoi.IsDangDungSai)
+            {
+                ThongBaoLoi = "Dạng câu hỏi Đúng/Sai chỉ có tối đa 2 lựa chọn (Đúng và Sai).";
+                return;
+            }
+            if (CurrentCauHoi.IsDangTrueFalseNotGiven)
+            {
+                ThongBaoLoi = "Dạng câu hỏi True/False/Not Given chỉ có tối đa 3 lựa chọn.";
+                return;
+            }
+            if (DanhSachDapAn.Count >= 10)
+            {
+                ThongBaoLoi = "Số lượng phương án trả lời tối đa là 10 (từ A đến J).";
+                return;
+            }
+
             char nextChar = (char)('A' + DanhSachDapAn.Count);
             if (nextChar <= 'Z')
             {
@@ -614,24 +736,41 @@ namespace GUI.ViewModels.GiangVien
                     LaDapAnDung = false
                 });
                 DongBoDapAnVaoCurrentCauHoi();
+                ThongBaoLoi = string.Empty;
             }
         }
 
         private void ThucHienXoaDapAn(LuaChonDapAnDTO? item)
         {
-            if (item != null && DanhSachDapAn.Count > (CurrentCauHoi.IsDangDungSai ? 2 : 1))
+            if (item == null) return;
+
+            if (CurrentCauHoi.IsDangDungSai)
             {
-                DanhSachDapAn.Remove(item);
-                for (int i = 0; i < DanhSachDapAn.Count; i++)
-                {
-                    DanhSachDapAn[i].KyHieuLuaChon = ((char)('A' + i)).ToString();
-                }
-                if (!DanhSachDapAn.Any(x => x.LaDapAnDung) && DanhSachDapAn.Count > 0)
-                {
-                    DanhSachDapAn[0].LaDapAnDung = true;
-                }
-                DongBoDapAnVaoCurrentCauHoi();
+                ThongBaoLoi = "Không thể xóa phương án của dạng câu hỏi Đúng/Sai (cố định 2 phương án).";
+                return;
             }
+            if (CurrentCauHoi.IsDangTrueFalseNotGiven)
+            {
+                ThongBaoLoi = "Không thể xóa phương án của dạng câu hỏi True/False/Not Given (cố định 3 phương án).";
+                return;
+            }
+            if (DanhSachDapAn.Count <= 2)
+            {
+                ThongBaoLoi = "Câu hỏi trắc nghiệm phải có tối thiểu 2 phương án trả lời.";
+                return;
+            }
+
+            DanhSachDapAn.Remove(item);
+            for (int i = 0; i < DanhSachDapAn.Count; i++)
+            {
+                DanhSachDapAn[i].KyHieuLuaChon = ((char)('A' + i)).ToString();
+            }
+            if (!DanhSachDapAn.Any(x => x.LaDapAnDung) && DanhSachDapAn.Count > 0)
+            {
+                DanhSachDapAn[0].LaDapAnDung = true;
+            }
+            DongBoDapAnVaoCurrentCauHoi();
+            ThongBaoLoi = string.Empty;
         }
 
         private void ThucHienChonDapAnDung(LuaChonDapAnDTO? selected)
@@ -713,6 +852,26 @@ namespace GUI.ViewModels.GiangVien
             }
         }
 
+        private void ThucHienXoaAudio()
+        {
+            if (string.IsNullOrWhiteSpace(CurrentCauHoi?.AudioPath)) return;
+
+            bool confirm = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                "Bạn có chắc chắn muốn gỡ tệp âm thanh Audio khỏi câu hỏi này không?",
+                "Xác nhận gỡ Audio",
+                confirmText: "Gỡ Audio",
+                cancelText: "Giữ lại");
+
+            if (confirm)
+            {
+                DungAudio();
+                ResetAudioTimeline();
+                CurrentCauHoi.AudioPath = string.Empty;
+                OnPropertyChanged(nameof(CurrentCauHoi));
+                ThongBaoThanhCong = "Đã gỡ tệp âm thanh khỏi câu hỏi.";
+            }
+        }
+
         private void ThucHienToggleAudio()
         {
             if (string.IsNullOrWhiteSpace(CurrentCauHoi?.AudioPath)) return;
@@ -774,12 +933,69 @@ namespace GUI.ViewModels.GiangVien
                 return;
             }
 
+            if (CurrentCauHoi.NoiDungCauHoi.Trim().Length > 4000)
+            {
+                ThongBaoLoi = "Nội dung câu hỏi không được vượt quá 4000 ký tự.";
+                ThongBaoThanhCong = string.Empty;
+                return;
+            }
+
+            if (CurrentCauHoi.GiaiThichDapAn?.Trim().Length > 3000)
+            {
+                ThongBaoLoi = "Lời giải thích đáp án không được vượt quá 3000 ký tự.";
+                ThongBaoThanhCong = string.Empty;
+                return;
+            }
+
+            if (CurrentCauHoi.DoanVanDoc?.Trim().Length > 10000)
+            {
+                ThongBaoLoi = "Đoạn văn đọc hiểu / Lời thoại audio không được vượt quá 10,000 ký tự.";
+                ThongBaoThanhCong = string.Empty;
+                return;
+            }
+
+            // Kiểm tra Kỹ năng Nghe: nếu chưa có Audio và chưa có Transcript -> Nhắc nhở xác nhận
+            if (CurrentCauHoi.KyNang == "Nghe")
+            {
+                bool hasAudio = !string.IsNullOrWhiteSpace(CurrentCauHoi.AudioPath);
+                bool hasTranscript = !string.IsNullOrWhiteSpace(CurrentCauHoi.DoanVanDoc);
+                if (!hasAudio && !hasTranscript)
+                {
+                    bool xacNhanNghe = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                        "Câu hỏi thuộc kỹ năng Nghe nhưng chưa có Tệp âm thanh Audio đính kèm hoặc Lời thoại kịch bản (Transcript).\n\nBạn có muốn tiếp tục lưu câu hỏi này không?",
+                        "Thiếu tệp Audio / Lời thoại",
+                        confirmText: "Vẫn lưu",
+                        cancelText: "Quay lại bổ sung");
+                    if (!xacNhanNghe) return;
+                }
+            }
+
+            // Kiểm tra Kỹ năng Đọc hiểu: nếu chưa có Đoạn văn đọc hiểu
+            if (CurrentCauHoi.KyNang == "Doc")
+            {
+                if (string.IsNullOrWhiteSpace(CurrentCauHoi.DoanVanDoc) && CurrentCauHoi.NoiDungCauHoi.Length < 100)
+                {
+                    bool xacNhanDoc = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                        "Câu hỏi thuộc kỹ năng Đọc hiểu nhưng chưa có Đoạn văn đọc hiểu (Reading Passage).\n\nBạn có muốn tiếp tục lưu câu hỏi này không?",
+                        "Thiếu đoạn văn đọc hiểu",
+                        confirmText: "Vẫn lưu",
+                        cancelText: "Quay lại bổ sung");
+                    if (!xacNhanDoc) return;
+                }
+            }
+
             // Kiểm tra tính hợp lệ và chuẩn hóa theo từng loại câu hỏi
             if (CurrentCauHoi.IsDangNhapVanBan)
             {
                 if (!DanhSachDapAn.Any() || string.IsNullOrWhiteSpace(DanhSachDapAn[0].NoiDungLuaChon))
                 {
                     ThongBaoLoi = "Vui lòng nhập đáp án chính xác (từ hoặc câu chuẩn) cho dạng câu hỏi này.";
+                    ThongBaoThanhCong = string.Empty;
+                    return;
+                }
+                if (DanhSachDapAn[0].NoiDungLuaChon.Trim().Length > 1000)
+                {
+                    ThongBaoLoi = "Đáp án chuẩn không được vượt quá 1000 ký tự.";
                     ThongBaoThanhCong = string.Empty;
                     return;
                 }
@@ -800,6 +1016,10 @@ namespace GUI.ViewModels.GiangVien
                             LaDapAnDung = true
                         });
                     }
+                    else
+                    {
+                        DanhSachDapAn[0].NoiDungLuaChon = "Tiêu chí chấm: Task Response, Coherence & Cohesion, Lexical Resource, Grammatical Range.";
+                    }
                 }
                 DanhSachDapAn[0].LaDapAnDung = true;
                 DanhSachDapAn[0].KyHieuLuaChon = "RUB";
@@ -814,10 +1034,24 @@ namespace GUI.ViewModels.GiangVien
                     return;
                 }
 
+                if (CurrentCauHoi.IsDangDungSai && DanhSachDapAn.Count != 2)
+                {
+                    ThongBaoLoi = "Câu hỏi Đúng/Sai bắt buộc phải có đúng 2 lựa chọn (Đúng và Sai).";
+                    ThongBaoThanhCong = string.Empty;
+                    return;
+                }
+
+                if (CurrentCauHoi.IsDangTrueFalseNotGiven && DanhSachDapAn.Count != 3)
+                {
+                    ThongBaoLoi = "Câu hỏi True/False/Not Given bắt buộc phải có đúng 3 lựa chọn.";
+                    ThongBaoThanhCong = string.Empty;
+                    return;
+                }
+
                 int soDapAnDung = DanhSachDapAn.Count(x => x.LaDapAnDung);
                 if (soDapAnDung != 1)
                 {
-                    ThongBaoLoi = "Bắt buộc phải chọn đúng duy nhất 1 phương án là đáp án đúng.";
+                    ThongBaoLoi = "Bắt buộc phải chọn đúng duy nhất 1 phương án là đáp án đúng (nhấp chọn nút tròn trước phương án đúng).";
                     ThongBaoThanhCong = string.Empty;
                     return;
                 }
@@ -828,6 +1062,28 @@ namespace GUI.ViewModels.GiangVien
                     ThongBaoThanhCong = string.Empty;
                     return;
                 }
+
+                // Kiểm tra trùng lặp nội dung phương án
+                var duplicate = DanhSachDapAn
+                    .GroupBy(x => x.NoiDungLuaChon?.Trim(), StringComparer.OrdinalIgnoreCase)
+                    .FirstOrDefault(g => g.Count() > 1 && !string.IsNullOrWhiteSpace(g.Key));
+                if (duplicate != null)
+                {
+                    ThongBaoLoi = $"Các phương án trả lời không được trùng lặp nội dung (phát hiện phương án \"{duplicate.Key}\" bị trùng lặp).";
+                    ThongBaoThanhCong = string.Empty;
+                    return;
+                }
+            }
+
+            // Hỏi xác nhận cập nhật câu hỏi đã tồn tại
+            if (CurrentCauHoi.MaCauHoi > 0)
+            {
+                bool xacNhanLuu = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                    $"Bạn có chắc chắn muốn lưu cập nhật cho câu hỏi #{CurrentCauHoi.ThuTuCauHoi} (Mã #{CurrentCauHoi.MaCauHoi})?\n\nThay đổi sẽ được áp dụng ngay trên các bài tập và đề thi đang liên kết câu hỏi này.",
+                    "Xác nhận cập nhật câu hỏi",
+                    confirmText: "Lưu thay đổi",
+                    cancelText: "Hủy");
+                if (!xacNhanLuu) return;
             }
 
             ThongBaoLoi = string.Empty;
@@ -861,6 +1117,7 @@ namespace GUI.ViewModels.GiangVien
 
                 NapDanhSachBoCauHoi(savedId);
                 SelectedCauHoiInList = DanhSachCauHoi.FirstOrDefault(x => x.MaCauHoi == savedId);
+                CapNhatSnapshot();
             }
             else
             {
@@ -873,7 +1130,28 @@ namespace GUI.ViewModels.GiangVien
 
         private void ThucHienTaoBoMoi()
         {
-            var tenBo = $"Bộ câu hỏi mới {DateTime.Now:dd/MM/yyyy HH:mm}";
+            string? tenBo = GUI.Views.Common.ThongBaoDialog.NhapLieu(
+                "Nhập tên cho bộ câu hỏi mới:", 
+                "Tạo bộ câu hỏi mới", 
+                defaultText: $"Bộ câu hỏi ôn tập {DateTime.Now:dd/MM/yyyy HH:mm}", 
+                confirmText: "Tạo bộ", 
+                cancelText: "Hủy bỏ");
+
+            if (string.IsNullOrWhiteSpace(tenBo)) return;
+            tenBo = tenBo.Trim();
+
+            if (tenBo.Length > 200)
+            {
+                GUI.Views.Common.ThongBaoDialog.CanhBao("Tên bộ câu hỏi không được vượt quá 200 ký tự.", "Tên quá dài");
+                return;
+            }
+
+            if (DanhSachBoCauHoi.Any(b => string.Equals(b.TenBoCauHoi?.Trim(), tenBo, StringComparison.OrdinalIgnoreCase)))
+            {
+                GUI.Views.Common.ThongBaoDialog.CanhBao($"Bộ câu hỏi với tên \"{tenBo}\" đã tồn tại. Vui lòng chọn tên khác.", "Trùng tên bộ câu hỏi");
+                return;
+            }
+
             var bo = new BoCauHoiDTO
             {
                 TenBoCauHoi = tenBo,
@@ -925,12 +1203,27 @@ namespace GUI.ViewModels.GiangVien
                 confirmText: "Lưu tên", 
                 cancelText: "Hủy bỏ");
 
-            if (!string.IsNullOrWhiteSpace(tenMoi) && tenMoi.Trim() != bo.TenBoCauHoi)
+            if (string.IsNullOrWhiteSpace(tenMoi)) return;
+            tenMoi = tenMoi.Trim();
+
+            if (tenMoi.Length > 200)
             {
-                bool ok = BoCauHoiBUS.Instance.DoiTenBoCauHoi(bo.MaBoCauHoi, tenMoi.Trim(), out string err);
+                GUI.Views.Common.ThongBaoDialog.CanhBao("Tên bộ câu hỏi không được vượt quá 200 ký tự.", "Tên quá dài");
+                return;
+            }
+
+            if (DanhSachBoCauHoi.Any(b => b.MaBoCauHoi != bo.MaBoCauHoi && string.Equals(b.TenBoCauHoi?.Trim(), tenMoi, StringComparison.OrdinalIgnoreCase)))
+            {
+                GUI.Views.Common.ThongBaoDialog.CanhBao($"Bộ câu hỏi với tên \"{tenMoi}\" đã tồn tại. Vui lòng chọn tên khác.", "Trùng tên bộ câu hỏi");
+                return;
+            }
+
+            if (tenMoi != bo.TenBoCauHoi)
+            {
+                bool ok = BoCauHoiBUS.Instance.DoiTenBoCauHoi(bo.MaBoCauHoi, tenMoi, out string err);
                 if (ok)
                 {
-                    bo.TenBoCauHoi = tenMoi.Trim();
+                    bo.TenBoCauHoi = tenMoi;
                     OnPropertyChanged(nameof(SelectedBoCauHoi));
                     OnPropertyChanged(nameof(TieuDeBoHienTai));
                     NapDanhSachBoCauHoi();
@@ -1003,7 +1296,7 @@ namespace GUI.ViewModels.GiangVien
 
             if (ch.MaCauHoi < 0)
             {
-                KhoiTaoCauHoiMoi();
+                KhoiTaoCauHoiMoi(boQuaXacNhan: true);
                 return;
             }
 
@@ -1019,7 +1312,7 @@ namespace GUI.ViewModels.GiangVien
                     GUI.Views.Common.ThongBaoDialog.ThanhCong("Đã xóa câu hỏi khỏi toàn bộ hệ thống thành công!", "Xóa thành công");
                     NapDanhSachCauHoi();
                     NapDanhSachBoCauHoi();
-                    KhoiTaoCauHoiMoi();
+                    KhoiTaoCauHoiMoi(boQuaXacNhan: true);
                 }
                 else
                 {

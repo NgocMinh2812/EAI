@@ -134,21 +134,14 @@ namespace GUI.Services
 
         private void PlayLocalSpeechSynthesizer(string word)
         {
-            Task.Run(() =>
+            try
             {
-                try
-                {
-                    using var synth = new SpeechSynthesizer();
-                    synth.SelectVoiceByHints(VoiceGender.Female, VoiceAge.Adult);
-                    synth.Rate = -1;
-                    synth.Volume = 100;
-                    synth.Speak(word);
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[AIPronunciation] Lỗi SpeechSynthesizer: {ex.Message}");
-                }
-            });
+                AudioPlaybackCoordinator.Instance.SpeakAsync(word, speed: 0.8, volume: 100);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[AIPronunciation] Lỗi SpeechSynthesizer: {ex.Message}");
+            }
         }
     }
 }

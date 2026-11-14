@@ -22,6 +22,7 @@ namespace GUI.Views.GiangVien
         {
             if (DataContext is NganHangCauHoiViewModel vm)
             {
+                vm.DongBoSnapshotHienTai();
                 if (vm.DanhSachBoCauHoi.Count == 0)
                 {
                     vm.NapDanhMuc();

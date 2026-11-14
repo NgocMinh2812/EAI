@@ -684,6 +684,7 @@
                                         <ComboBoxItem Content="B1" Tag="B1"/>
                                         <ComboBoxItem Content="B2" Tag="B2"/>
                                         <ComboBoxItem Content="C1" Tag="C1"/>
+                                        <ComboBoxItem Content="C2" Tag="C2"/>
                                     </ComboBox>
                                 </StackPanel>
 
@@ -696,10 +697,10 @@
                                         <ComboBoxItem Content="True / False / Not Given" Tag="TrueFalseNotGiven"/>
                                         <ComboBoxItem Content="Điền khuyết (Fill in the Blank)" Tag="DienKhuyet"/>
                                         <ComboBoxItem Content="Trả lời ngắn (Short Answer)" Tag="TraLoiNgan"/>
-                                        <ComboBoxItem Content="Nối cặp (Matching)" Tag="NoiCap"/>
-                                        <ComboBoxItem Content="Sắp xếp thứ tự (Ordering)" Tag="SapXep"/>
                                         <ComboBoxItem Content="Sửa lỗi sai (Error Correction)" Tag="SuaLoiSai"/>
                                         <ComboBoxItem Content="Viết lại câu (Transformation)" Tag="VietLaiCau"/>
+                                        <ComboBoxItem Content="Nối cặp (Matching)" Tag="NoiCap"/>
+                                        <ComboBoxItem Content="Sắp xếp câu (Ordering)" Tag="SapXep"/>
                                         <ComboBoxItem Content="Tự luận / Viết bài (Essay/Writing)" Tag="TuLuan"/>
                                     </ComboBox>
                                 </StackPanel>
@@ -709,6 +710,7 @@
                             <TextBlock Text="Nội dung câu hỏi (*):" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
                             <TextBox Text="{Binding CurrentCauHoi.NoiDungCauHoi, UpdateSourceTrigger=PropertyChanged}"
                                      TextWrapping="Wrap" AcceptsReturn="True" Height="70" VerticalScrollBarVisibility="Auto"
+                                     MaxLength="4000"
                                      Padding="10,8" FontSize="12.5" BorderBrush="{StaticResource BorderLight}" Margin="0,0,0,12">
                                 <TextBox.Resources>
                                     <Style TargetType="{x:Type Border}">
@@ -732,18 +734,33 @@
                                             <TextBlock Text="Đính kèm Audio (Câu hỏi Nghe hiểu):" FontSize="11.5" FontWeight="Bold" Foreground="#15803D" VerticalAlignment="Center"/>
                                         </StackPanel>
 
-                                        <Button Grid.Column="1" Command="{Binding ChonAudioCommand}" Background="White" BorderBrush="#86EFAC" BorderThickness="1" Padding="10,4" Cursor="Hand" ToolTip="Tải tệp âm thanh lên">
-                                            <Button.Template>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <local:LucideIcon Kind="Upload" Size="12" Foreground="#15803D" Margin="0,0,4,0"/>
-                                                            <TextBlock Text="Đổi file Audio" FontSize="11" FontWeight="SemiBold" Foreground="#15803D"/>
-                                                        </StackPanel>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Button.Template>
-                                        </Button>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <Button Command="{Binding ChonAudioCommand}" Background="White" BorderBrush="#86EFAC" BorderThickness="1" Padding="10,4" Cursor="Hand" ToolTip="Tải tệp âm thanh lên">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <local:LucideIcon Kind="Upload" Size="12" Foreground="#15803D" Margin="0,0,4,0"/>
+                                                                <TextBlock Text="Đổi file Audio" FontSize="11" FontWeight="SemiBold" Foreground="#15803D"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+
+                                            <Button Command="{Binding XoaAudioCommand}" Background="#FEE2E2" BorderBrush="#FCA5A5" BorderThickness="1" Padding="8,4" Cursor="Hand" ToolTip="Gỡ tệp âm thanh" Margin="6,0,0,0">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <local:LucideIcon Kind="Trash2" Size="12" Foreground="#DC2626" Margin="0,0,4,0"/>
+                                                                <TextBlock Text="Gỡ Audio" FontSize="11" FontWeight="SemiBold" Foreground="#DC2626"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+                                        </StackPanel>
                                     </Grid>
 
                                     <!-- Thanh tiến trình Audio nhỏ gọn (Compact Seekable Audio Timeline) -->
@@ -820,6 +837,7 @@
                                     </StackPanel>
                                     <TextBox Text="{Binding CurrentCauHoi.DoanVanDoc, UpdateSourceTrigger=PropertyChanged}"
                                              TextWrapping="Wrap" AcceptsReturn="True" Height="70" VerticalScrollBarVisibility="Auto"
+                                             MaxLength="10000"
                                              FontSize="11.5" Padding="8,6" Background="White" BorderBrush="#CBD5E1">
                                         <TextBox.Resources>
                                             <Style TargetType="{x:Type Border}">
@@ -876,6 +894,7 @@
                                                     </Border>
 
                                                     <TextBox Grid.Column="2" Text="{Binding NoiDungLuaChon, UpdateSourceTrigger=PropertyChanged}"
+                                                             MaxLength="1000"
                                                              FontSize="12" Padding="6,4" VerticalAlignment="Center" BorderBrush="#CBD5E1">
                                                         <TextBox.Resources>
                                                             <Style TargetType="{x:Type Border}">
@@ -904,6 +923,7 @@
                                         <TextBlock Text="Đáp án chính xác &amp; Các biến thể được chấp nhận (*):" FontWeight="Bold" FontSize="12" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
                                     </StackPanel>
                                     <TextBox Text="{Binding DanhSachDapAn[0].NoiDungLuaChon, UpdateSourceTrigger=PropertyChanged}"
+                                             MaxLength="1000"
                                              FontSize="12.5" Padding="8,6" Background="White" BorderBrush="#CBD5E1">
                                         <TextBox.Resources>
                                             <Style TargetType="{x:Type Border}">
@@ -926,6 +946,7 @@
                                     </StackPanel>
                                     <TextBox Text="{Binding DanhSachDapAn[0].NoiDungLuaChon, UpdateSourceTrigger=PropertyChanged}"
                                              TextWrapping="Wrap" AcceptsReturn="True" Height="75" VerticalScrollBarVisibility="Auto"
+                                             MaxLength="2000"
                                              FontSize="12" Padding="8,6" Background="White" BorderBrush="#CBD5E1">
                                         <TextBox.Resources>
                                             <Style TargetType="{x:Type Border}">
@@ -942,6 +963,7 @@
                             <TextBlock Text="Lời giải thích chi tiết &amp; dẫn chứng:" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,4"/>
                             <TextBox Text="{Binding CurrentCauHoi.GiaiThichDapAn, UpdateSourceTrigger=PropertyChanged}"
                                      TextWrapping="Wrap" AcceptsReturn="True" Height="60" VerticalScrollBarVisibility="Auto"
+                                     MaxLength="3000"
                                      Padding="8,6" FontSize="12" BorderBrush="{StaticResource BorderLight}" Margin="0,0,0,12">
                                 <TextBox.Resources>
                                     <Style TargetType="{x:Type Border}">
@@ -990,6 +1012,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="File nguồn:" FontSize="11" Foreground="#64748B" VerticalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Text="{Binding CurrentCauHoi.TepTinNguon, UpdateSourceTrigger=PropertyChanged}"
+                                                 MaxLength="255"
                                                  FontSize="11.5" Padding="6,3" BorderBrush="#CBD5E1" Background="#FFFFFF">
                                             <TextBox.Resources>
                                                 <Style TargetType="{x:Type Border}"><Setter Property="CornerRadius" Value="4"/></Style>
@@ -1001,6 +1024,7 @@
                                     <TextBlock Text="Đoạn văn trích dẫn từ bài học / tài liệu:" FontSize="11" Foreground="#64748B" Margin="0,4,0,2"/>
                                     <TextBox Text="{Binding CurrentCauHoi.DoanVanDanChung, UpdateSourceTrigger=PropertyChanged}"
                                              TextWrapping="Wrap" AcceptsReturn="True" Height="48" VerticalScrollBarVisibility="Auto"
+                                             MaxLength="3000"
                                              FontSize="11" Padding="6,4" BorderBrush="#CBD5E1" Background="#FFFFFF">
                                         <TextBox.Resources>
                                             <Style TargetType="{x:Type Border}"><Setter Property="CornerRadius" Value="4"/></Style>

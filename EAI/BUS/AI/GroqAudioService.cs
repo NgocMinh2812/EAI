@@ -91,7 +91,7 @@ namespace BUS.AI
             // BƯỚC 1: KIỂM TRA CACHE TRONG DATABASE (Không gọi AI nếu audio không đổi)
             if (!forceRefresh && !string.IsNullOrEmpty(audioHash))
             {
-                var cached = AudioTranscriptDAL.Instance.LayTheoAudioHash(audioHash);
+                var cached = AudioTranscriptDAL.Instance.LayTheoAudioHash(audioHash, laGiangVien: true);
                 if (cached != null && cached.HasTranscript)
                 {
                     System.Diagnostics.Debug.WriteLine($"[GroqAudioService.STT] Tái sử dụng Transcript đã lưu (Hash: {audioHash[..8]}). Không gọi Groq API.");
@@ -99,7 +99,7 @@ namespace BUS.AI
                 }
 
                 // Nếu kiểm tra theo đường dẫn audio
-                var cachedByPath = AudioTranscriptDAL.Instance.LayTheoDuongDanAudio(audioFilePath);
+                var cachedByPath = AudioTranscriptDAL.Instance.LayTheoDuongDanAudio(audioFilePath, laGiangVien: true);
                 if (cachedByPath != null && cachedByPath.HasTranscript)
                 {
                     System.Diagnostics.Debug.WriteLine($"[GroqAudioService.STT] Tái sử dụng Transcript theo đường dẫn {audioFilePath}. Không gọi Groq API.");
@@ -264,7 +264,7 @@ namespace BUS.AI
             // BƯỚC 1: KIỂM TRA CACHE TRONG DATABASE
             if (!forceRefresh)
             {
-                var cached = AudioTranscriptDAL.Instance.LayTheoAudioHash(scriptHash);
+                var cached = AudioTranscriptDAL.Instance.LayTheoAudioHash(scriptHash, laGiangVien: true);
                 if (cached != null && !string.IsNullOrEmpty(cached.AudioPath) && File.Exists(cached.AudioPath))
                 {
                     System.Diagnostics.Debug.WriteLine($"[GroqAudioService.TTS] Tái sử dụng Audio đã tạo từ Cache (Hash: {scriptHash[..8]}). Không gọi Groq API.");

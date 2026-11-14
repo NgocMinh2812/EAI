@@ -14,6 +14,7 @@ namespace GUI.Views.GiangVien
     {
         private readonly DashboardBUS _dashboardBUS = new DashboardBUS();
         private readonly TuVungBUS _tuVungBUS = TuVungBUS.Instance;
+        private readonly DanhMucBUS _danhMucBUS = new DanhMucBUS();
         private DashboardKpiDTO? _lastKpi;
         private DispatcherTimer? _liveFeedTimer;
         private DateTime _lastAudioClick = DateTime.MinValue;
@@ -30,6 +31,7 @@ namespace GUI.Views.GiangVien
         {
             await LoadRealKpisAsync(_filterIndex);
             LoadTuVungHomNay();
+            LoadTaiNguyenHocLieu();
 
             // Khởi tạo timer làm mới số liệu tự động (30 giây)
             if (_liveFeedTimer == null)
@@ -120,11 +122,6 @@ namespace GUI.Views.GiangVien
                     icVuaNopBai.ItemsSource = kpi.DanhSachHoatDong;
                 }
 
-                // Thống kê nhóm học theo trình độ thực tế từ CSDL
-                txtNhomA1Count.Text = kpi.NhomA1Count.ToString();
-                txtNhomB1Count.Text = kpi.NhomB1Count.ToString();
-                txtNhomB2Count.Text = kpi.NhomB2Count.ToString();
-                txtNhomC1Count.Text = kpi.NhomC1Count.ToString();
 
                 // Bài học 1 từ CSDL
                 if (kpi.BaiHoc1 != null)
@@ -205,24 +202,57 @@ namespace GUI.Views.GiangVien
             LoadTuVungHomNay();
         }
 
-        private void BtnTaiNguyenGrammar_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void LoadTaiNguyenHocLieu()
         {
-            this.NavigationService?.Navigate(new NoiDungHocTapView(kyNang: "Ngữ pháp"));
+            try
+            {
+                var allChuDe = _danhMucBUS.LayDanhSachChuDe();
+                var rootChuDes = allChuDe.Where(c => c.MaChuDeCha == null && c.TrangThaiHoatDong).Take(4).ToList();
+
+                string[] palette = { "#22C55E", "#3B82F6", "#F97316", "#A855F7", "#0EA5E9" };
+                var converter = new System.Windows.Media.BrushConverter();
+                var items = new System.Collections.Generic.List<TaiNguyenItemDTO>();
+
+                for (int i = 0; i < rootChuDes.Count; i++)
+                {
+                    var cd = rootChuDes[i];
+                    int count = cd.SoLuongBaiHoc;
+                    count += allChuDe.Where(x => x.MaChuDeCha == cd.MaChuDe).Sum(x => x.SoLuongBaiHoc);
+
+                    string colorCode = palette[i % palette.Length];
+                    var brush = (System.Windows.Media.Brush)converter.ConvertFromString(colorCode)!;
+                    string hienThi = count > 0 ? $"{cd.TenChuDe} — {count} bài học" : cd.TenChuDe;
+
+                    items.Add(new TaiNguyenItemDTO
+                    {
+                        MaChuDe = cd.MaChuDe,
+                        TenChuDe = cd.TenChuDe,
+                        TenHienThi = hienThi,
+                        BadgeColor = colorCode,
+                        BadgeBrush = brush,
+                        ToolTip = $"Xem nội dung bài giảng & tài nguyên: {cd.TenChuDe}"
+                    });
+                }
+
+                icTaiNguyenHocLieu.ItemsSource = items;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TongQuanView] Lỗi tải tài nguyên học liệu: {ex.Message}");
+            }
         }
 
-        private void BtnTaiNguyenIelts_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void ItemTaiNguyen_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            this.NavigationService?.Navigate(new DeThiLuyenTapView(searchKeyword: "IELTS"));
+            if (sender is FrameworkElement fe && fe.DataContext is TaiNguyenItemDTO item)
+            {
+                this.NavigationService?.Navigate(new NoiDungHocTapView(searchKeyword: null, kyNang: null, targetLessonId: null, maChuDe: item.MaChuDe));
+            }
         }
 
-        private void BtnTaiNguyenToeic_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void BtnQuanLyTaiNguyen_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            this.NavigationService?.Navigate(new DeThiLuyenTapView(searchKeyword: "TOEIC"));
-        }
-
-        private void BtnTaiNguyenIpa_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            this.NavigationService?.Navigate(new NoiDungHocTapView(kyNang: "Phát âm"));
+            this.NavigationService?.Navigate(new DanhMucView());
         }
 
         private void TxtSearchNoiDung_GotFocus(object sender, RoutedEventArgs e)
@@ -323,19 +353,6 @@ namespace GUI.Views.GiangVien
             }
         }
 
-        private void BtnNhomHoc_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            if (sender is FrameworkElement fe && fe.Tag is string trinhDo && !string.IsNullOrWhiteSpace(trinhDo))
-            {
-                // Điều hướng sang Khảo sát đầu vào đã chọn sẵn cấp độ nhóm học tương ứng (A1, B1, B2, C1)
-                this.NavigationService?.Navigate(new KhaoSatDauVaoView(filterLevel: trinhDo));
-            }
-            else
-            {
-                this.NavigationService?.Navigate(new KhaoSatDauVaoView());
-            }
-        }
-
         private void TxtKpiChoDuyet_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             this.NavigationService?.Navigate(new AISinhDeView());
@@ -365,5 +382,15 @@ namespace GUI.Views.GiangVien
         {
             this.NavigationService?.Navigate(new GiamSatHeThongView());
         }
+    }
+
+    public class TaiNguyenItemDTO
+    {
+        public int MaChuDe { get; set; }
+        public string TenChuDe { get; set; } = string.Empty;
+        public string TenHienThi { get; set; } = string.Empty;
+        public string BadgeColor { get; set; } = "#22C55E";
+        public System.Windows.Media.Brush? BadgeBrush { get; set; }
+        public string ToolTip { get; set; } = "Xem bài học";
     }
 }

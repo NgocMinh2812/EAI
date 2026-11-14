@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using BUS.AI.Factory;
 using BUS.AI.Models;
 using BUS.AI.Providers;
 using DTO;
@@ -26,9 +27,11 @@ namespace BUS.AI
 
         private AIServiceManager()
         {
-            RegisterProvider(new GeminiProvider());
-            RegisterProvider(new GroqProvider());
-            RegisterProvider(new XkioProvider());
+            var factory = AIProviderFactory.Instance;
+            RegisterProvider(factory.CreateProvider(AIProviderType.Gemini));
+            RegisterProvider(factory.CreateProvider(AIProviderType.Groq));
+            RegisterProvider(factory.CreateProvider(AIProviderType.Xkio));
+            RegisterProvider(factory.CreateProvider(AIProviderType.Ollama));
 
             SyncActiveConfigFromStorage();
         }

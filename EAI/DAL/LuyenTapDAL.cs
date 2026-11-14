@@ -228,6 +228,83 @@ namespace DAL
             return LuuKetQuaPhienLuyenTap(maNguoiDung, "Phiên luyện tập tự do", thoiGianGiay, tongSoCau, soCauDung, tyLeChinhXac, chiTiet);
         }
 
+        /// <summary>
+        /// Khởi tạo lượt luyện tập ở trạng thái DangLam ngay khi học viên bắt đầu
+        /// </summary>
+        public int KhoiTaoLuotLuyenTap(int maNguoiDung, string tieuDePhien, int tongSoCau)
+        {
+            if (maNguoiDung <= 0) return 0;
+            string safeTitle = string.IsNullOrWhiteSpace(tieuDePhien) ? "Phiên luyện tập tự do" : tieuDePhien.Trim();
+
+            try
+            {
+                using var conn = SqlDataProvider.Instance.GetConnection();
+                conn.Open();
+
+                int maBaiTapLuyenTap = 4;
+                string checkSql = "SELECT TOP 1 MaBaiTapDeThi FROM BaiTapDeThi WHERE LoaiHinh = N'LuyenTap' AND TenBaiTapDeThi = @TenDe";
+                using (var cmdCheck = new SqlCommand(checkSql, conn))
+                {
+                    cmdCheck.Parameters.AddWithValue("@TenDe", safeTitle);
+                    object? res = cmdCheck.ExecuteScalar();
+                    if (res != null && res != DBNull.Value)
+                    {
+                        maBaiTapLuyenTap = Convert.ToInt32(res);
+                    }
+                    else
+                    {
+                        string insertDeSql = @"
+                            INSERT INTO BaiTapDeThi (TenBaiTapDeThi, LoaiHinh, DaPhatHanh, TrangThai, TongSoCau, NgayTao)
+                            VALUES (@TenDe, N'LuyenTap', 1, N'DaXuatBan', @TongSo, SYSDATETIME());
+                            SELECT CAST(SCOPE_IDENTITY() AS INT);";
+                        using var cmdInsertDe = new SqlCommand(insertDeSql, conn);
+                        cmdInsertDe.Parameters.AddWithValue("@TenDe", safeTitle);
+                        cmdInsertDe.Parameters.AddWithValue("@TongSo", tongSoCau);
+                        maBaiTapLuyenTap = (int)cmdInsertDe.ExecuteScalar();
+                    }
+                }
+
+                string queryLuot = @"
+                    INSERT INTO LuotLamBai (
+                        MaNguoiDung, MaBaiTapDeThi, HinhThucLam, ThoiDiemBatDau, ThoiDiemNopBai, 
+                        ThoiGianLamGiay, TongSoCau, SoCauDung, SoCauSai, DiemSo, TrangThai)
+                    VALUES (
+                        @MaND, @MaDe, N'LuyenTap', SYSDATETIME(), NULL, 
+                        0, @TongSo, 0, 0, 0, N'DangLam');
+                    SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+                using var cmdLuot = new SqlCommand(queryLuot, conn);
+                cmdLuot.Parameters.AddWithValue("@MaND", maNguoiDung);
+                cmdLuot.Parameters.AddWithValue("@MaDe", maBaiTapLuyenTap);
+                cmdLuot.Parameters.AddWithValue("@TongSo", tongSoCau);
+                return (int)cmdLuot.ExecuteScalar();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LuyenTapDAL.KhoiTaoLuotLuyenTap] {ex.Message}");
+                return 0;
+            }
+        }
+
+        public bool HuyLuotLuyenTap(int maLuotLamBai)
+        {
+            if (maLuotLamBai <= 0) return false;
+            try
+            {
+                string sql = @"
+                    UPDATE LuotLamBai 
+                    SET TrangThai = N'DaHuy', ThoiDiemNopBai = SYSDATETIME() 
+                    WHERE MaLuotLamBai = @MaLuot AND TrangThai = N'DangLam';";
+                int affected = SqlDataProvider.Instance.ExecuteNonQuery(sql, new[] { new SqlParameter("@MaLuot", maLuotLamBai) });
+                return affected > 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LuyenTapDAL.HuyLuotLuyenTap] {ex.Message}");
+                return false;
+            }
+        }
+
         public int LuuKetQuaPhienLuyenTap(
             int maNguoiDung,
             string tieuDePhien,
@@ -235,7 +312,8 @@ namespace DAL
             int tongSoCau,
             int soCauDung,
             decimal tyLeChinhXac,
-            List<(int MaCauHoi, int? MaLuaChon, string? CauTraLoiVanBan, bool DungSai)> chiTiet)
+            List<(int MaCauHoi, int? MaLuaChon, string? CauTraLoiVanBan, bool DungSai)> chiTiet,
+            int maLuotLamBaiHienTai = 0)
         {
             if (maNguoiDung <= 0) return 0;
             int soCauSai = tongSoCau - soCauDung;
@@ -247,46 +325,73 @@ namespace DAL
 
             try
             {
-                int maBaiTapLuyenTap = 4;
-                string checkSql = "SELECT TOP 1 MaBaiTapDeThi FROM BaiTapDeThi WHERE LoaiHinh = N'LuyenTap' AND TenBaiTapDeThi = @TenDe";
-                using var cmdCheck = new SqlCommand(checkSql, conn, trans);
-                cmdCheck.Parameters.AddWithValue("@TenDe", safeTitle);
-                object? res = cmdCheck.ExecuteScalar();
-                if (res != null && res != DBNull.Value)
+                int maLuotLamBai;
+
+                if (maLuotLamBaiHienTai > 0)
                 {
-                    maBaiTapLuyenTap = Convert.ToInt32(res);
+                    string updateSql = @"
+                        UPDATE LuotLamBai
+                        SET ThoiDiemNopBai = SYSDATETIME(),
+                            ThoiGianLamGiay = @ThoiGian,
+                            TongSoCau = @TongSo,
+                            SoCauDung = @SoDung,
+                            SoCauSai = @SoSai,
+                            DiemSo = @Diem,
+                            TrangThai = N'DaNop'
+                        WHERE MaLuotLamBai = @MaLuot;";
+                    using var cmdUpdate = new SqlCommand(updateSql, conn, trans);
+                    cmdUpdate.Parameters.AddWithValue("@MaLuot", maLuotLamBaiHienTai);
+                    cmdUpdate.Parameters.AddWithValue("@ThoiGian", thoiGianGiay);
+                    cmdUpdate.Parameters.AddWithValue("@TongSo", tongSoCau);
+                    cmdUpdate.Parameters.AddWithValue("@SoDung", soCauDung);
+                    cmdUpdate.Parameters.AddWithValue("@SoSai", soCauSai);
+                    cmdUpdate.Parameters.AddWithValue("@Diem", Math.Round(tyLeChinhXac / 10m, 2));
+                    cmdUpdate.ExecuteNonQuery();
+                    maLuotLamBai = maLuotLamBaiHienTai;
                 }
                 else
                 {
-                    string insertDeSql = @"
-                        INSERT INTO BaiTapDeThi (TenBaiTapDeThi, LoaiHinh, DaPhatHanh, TrangThai, TongSoCau, NgayTao)
-                        VALUES (@TenDe, N'LuyenTap', 1, N'DaXuatBan', @TongSo, SYSDATETIME());
+                    int maBaiTapLuyenTap = 4;
+                    string checkSql = "SELECT TOP 1 MaBaiTapDeThi FROM BaiTapDeThi WHERE LoaiHinh = N'LuyenTap' AND TenBaiTapDeThi = @TenDe";
+                    using var cmdCheck = new SqlCommand(checkSql, conn, trans);
+                    cmdCheck.Parameters.AddWithValue("@TenDe", safeTitle);
+                    object? res = cmdCheck.ExecuteScalar();
+                    if (res != null && res != DBNull.Value)
+                    {
+                        maBaiTapLuyenTap = Convert.ToInt32(res);
+                    }
+                    else
+                    {
+                        string insertDeSql = @"
+                            INSERT INTO BaiTapDeThi (TenBaiTapDeThi, LoaiHinh, DaPhatHanh, TrangThai, TongSoCau, NgayTao)
+                            VALUES (@TenDe, N'LuyenTap', 1, N'DaXuatBan', @TongSo, SYSDATETIME());
+                            SELECT CAST(SCOPE_IDENTITY() AS INT);";
+                        using var cmdInsertDe = new SqlCommand(insertDeSql, conn, trans);
+                        cmdInsertDe.Parameters.AddWithValue("@TenDe", safeTitle);
+                        cmdInsertDe.Parameters.AddWithValue("@TongSo", tongSoCau);
+                        maBaiTapLuyenTap = (int)cmdInsertDe.ExecuteScalar();
+                    }
+
+                    string queryLuot = @"
+                        INSERT INTO LuotLamBai (
+                            MaNguoiDung, MaBaiTapDeThi, HinhThucLam, ThoiDiemBatDau, ThoiDiemNopBai, 
+                            ThoiGianLamGiay, TongSoCau, SoCauDung, SoCauSai, DiemSo, TrangThai)
+                        VALUES (
+                            @MaND, @MaDe, N'LuyenTap', DATEADD(SECOND, -@ThoiGian, SYSDATETIME()), SYSDATETIME(), 
+                            @ThoiGian, @TongSo, @SoDung, @SoSai, @Diem, N'DaNop');
                         SELECT CAST(SCOPE_IDENTITY() AS INT);";
-                    using var cmdInsertDe = new SqlCommand(insertDeSql, conn, trans);
-                    cmdInsertDe.Parameters.AddWithValue("@TenDe", safeTitle);
-                    cmdInsertDe.Parameters.AddWithValue("@TongSo", tongSoCau);
-                    maBaiTapLuyenTap = (int)cmdInsertDe.ExecuteScalar();
+
+                    using var cmdLuot = new SqlCommand(queryLuot, conn, trans);
+                    cmdLuot.Parameters.AddWithValue("@MaND", maNguoiDung);
+                    cmdLuot.Parameters.AddWithValue("@MaDe", maBaiTapLuyenTap);
+                    cmdLuot.Parameters.AddWithValue("@ThoiGian", thoiGianGiay);
+                    cmdLuot.Parameters.AddWithValue("@TongSo", tongSoCau);
+                    cmdLuot.Parameters.AddWithValue("@SoDung", soCauDung);
+                    cmdLuot.Parameters.AddWithValue("@SoSai", soCauSai);
+                    cmdLuot.Parameters.AddWithValue("@Diem", Math.Round(tyLeChinhXac / 10m, 2));
+
+                    maLuotLamBai = (int)cmdLuot.ExecuteScalar();
                 }
-
-                string queryLuot = @"
-                    INSERT INTO LuotLamBai (
-                        MaNguoiDung, MaBaiTapDeThi, HinhThucLam, ThoiDiemBatDau, ThoiDiemNopBai, 
-                        ThoiGianLamGiay, TongSoCau, SoCauDung, SoCauSai, DiemSo, TrangThai)
-                    VALUES (
-                        @MaND, @MaDe, N'LuyenTap', DATEADD(SECOND, -@ThoiGian, SYSDATETIME()), SYSDATETIME(), 
-                        @ThoiGian, @TongSo, @SoDung, @SoSai, @Diem, N'DaNop');
-                    SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
-                using var cmdLuot = new SqlCommand(queryLuot, conn, trans);
-                cmdLuot.Parameters.AddWithValue("@MaND", maNguoiDung);
-                cmdLuot.Parameters.AddWithValue("@MaDe", maBaiTapLuyenTap);
-                cmdLuot.Parameters.AddWithValue("@ThoiGian", thoiGianGiay);
-                cmdLuot.Parameters.AddWithValue("@TongSo", tongSoCau);
-                cmdLuot.Parameters.AddWithValue("@SoDung", soCauDung);
-                cmdLuot.Parameters.AddWithValue("@SoSai", soCauSai);
-                cmdLuot.Parameters.AddWithValue("@Diem", Math.Round(tyLeChinhXac / 10m, 2));
-
-                int maLuotLamBai = (int)cmdLuot.ExecuteScalar();
 
                 string queryChiTiet = @"
                     IF EXISTS (SELECT 1 FROM CauHoi WHERE MaCauHoi = @MaCauHoi)

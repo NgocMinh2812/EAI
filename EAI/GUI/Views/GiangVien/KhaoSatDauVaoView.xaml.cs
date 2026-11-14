@@ -13,6 +13,10 @@ namespace GUI.Views.GiangVien
     public partial class KhaoSatDauVaoView : Page
     {
         private List<BaiKhaoSatDTO> _dsBaiKhaoSat = new();
+        private List<SinhVienKhaoSatResultDTO> _allStudents = new();
+        private int _currentStudentPage = 1;
+        private const int StudentPageSize = 10;
+        private int _totalStudentPages = 1;
 
         public KhaoSatDauVaoView()
         {
@@ -59,6 +63,11 @@ namespace GUI.Views.GiangVien
                 _dsBaiKhaoSat = KhaoSatBUS.Instance.LayDanhSachTatCaBaiKhaoSat();
                 icSurveySets.ItemsSource = null;
                 icSurveySets.ItemsSource = _dsBaiKhaoSat;
+
+                if (txtKpiTotalSets != null)
+                {
+                    txtKpiTotalSets.Text = $"{_dsBaiKhaoSat.Count} Bộ (A1 - C2 & TH)";
+                }
             }
             catch (Exception ex)
             {
@@ -159,26 +168,25 @@ namespace GUI.Views.GiangVien
             }
         }
 
-        public void TaiDanhSachSinhVienKhaoSat()
+        public void TaiDanhSachSinhVienKhaoSat(bool resetPage = false)
         {
             try
             {
                 string tuKhoa = txtSearchStudent?.Text?.Trim() ?? "";
                 string trinhDo = (cboFilterLevel?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "TatCa";
 
-                var list = KhaoSatBUS.Instance.LayDanhSachSinhVienKhaoSat(tuKhoa, trinhDo);
-                dgSinhVienKhaoSat.ItemsSource = list;
-                txtTotalStudentsCount.Text = $"{list.Count} lượt nộp";
+                _allStudents = KhaoSatBUS.Instance.LayDanhSachSinhVienKhaoSat(tuKhoa, trinhDo) ?? new List<SinhVienKhaoSatResultDTO>();
+                CapNhatPhanTrangSinhVien(resetPage);
 
                 // Tính toán KPI
-                txtKpiTotalAttempts.Text = $"{list.Count} lượt nộp";
-                if (list.Count > 0)
+                txtKpiTotalAttempts.Text = $"{_allStudents.Count} lượt nộp";
+                if (_allStudents.Count > 0)
                 {
-                    decimal avgScore = list.Average(s => s.DiemDatDuoc);
+                    decimal avgScore = _allStudents.Average(s => s.DiemDatDuoc);
                     txtKpiAvgScore.Text = $"{avgScore.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)} / 10";
 
-                    int passCount = list.Count(s => s.DiemDatDuoc >= 5.0m);
-                    double passRate = (double)passCount * 100.0 / list.Count;
+                    int passCount = _allStudents.Count(s => s.DiemDatDuoc >= 5.0m);
+                    double passRate = (double)passCount * 100.0 / _allStudents.Count;
                     txtKpiPassRate.Text = $"{passRate:0}%";
                 }
                 else
@@ -190,6 +198,67 @@ namespace GUI.Views.GiangVien
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[TaiDanhSachSinhVienKhaoSat] {ex.Message}");
+            }
+        }
+
+        private void CapNhatPhanTrangSinhVien(bool resetPage = false)
+        {
+            if (resetPage) _currentStudentPage = 1;
+
+            int totalCount = _allStudents.Count;
+            _totalStudentPages = Math.Max(1, (int)Math.Ceiling((double)totalCount / StudentPageSize));
+
+            if (_currentStudentPage > _totalStudentPages) _currentStudentPage = _totalStudentPages;
+            if (_currentStudentPage < 1) _currentStudentPage = 1;
+
+            var pagedItems = _allStudents.Skip((_currentStudentPage - 1) * StudentPageSize).Take(StudentPageSize).ToList();
+            dgSinhVienKhaoSat.ItemsSource = pagedItems;
+            txtTotalStudentsCount.Text = $"{totalCount} lượt nộp";
+
+            if (pnlEmptyStudents != null)
+            {
+                pnlEmptyStudents.Visibility = totalCount == 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+            if (dgSinhVienKhaoSat != null)
+            {
+                dgSinhVienKhaoSat.Visibility = totalCount == 0 ? Visibility.Collapsed : Visibility.Visible;
+            }
+            if (pnlStudentPagination != null)
+            {
+                pnlStudentPagination.Visibility = totalCount > 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            int fromIndex = totalCount == 0 ? 0 : (_currentStudentPage - 1) * StudentPageSize + 1;
+            int toIndex = Math.Min(totalCount, _currentStudentPage * StudentPageSize);
+
+            if (txtStudentCounter != null)
+                txtStudentCounter.Text = $"Hiển thị {fromIndex} - {toIndex} / {totalCount} lượt nộp";
+
+            if (txtStudentPageInfo != null)
+                txtStudentPageInfo.Text = $"Trang {_currentStudentPage} / {_totalStudentPages}";
+
+            if (btnPrevStudentPage != null)
+                btnPrevStudentPage.IsEnabled = _currentStudentPage > 1;
+
+            if (btnNextStudentPage != null)
+                btnNextStudentPage.IsEnabled = _currentStudentPage < _totalStudentPages;
+        }
+
+        private void BtnPrevStudentPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentStudentPage > 1)
+            {
+                _currentStudentPage--;
+                CapNhatPhanTrangSinhVien();
+            }
+        }
+
+        private void BtnNextStudentPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentStudentPage < _totalStudentPages)
+            {
+                _currentStudentPage++;
+                CapNhatPhanTrangSinhVien();
             }
         }
 
@@ -221,6 +290,12 @@ namespace GUI.Views.GiangVien
             if (sender is Button btn && btn.DataContext is BaiKhaoSatDTO survey)
             {
                 var questions = KhaoSatBUS.Instance.LayDanhSachCauHoiTheoBaiKhaoSat(survey.MaBaiKhaoSat);
+                if (questions == null || questions.Count == 0)
+                {
+                    ThongBaoDialog.CanhBao($"Bộ đề \"{survey.TenBaiKhaoSat}\" hiện chưa có câu hỏi nào để xem trước. Vui lòng bấm 'Chỉnh sửa' để thêm câu hỏi.", "Thông báo");
+                    return;
+                }
+
                 var fakeDeThi = new BaiTapDeThiDTO
                 {
                     TenBaiTapDeThi = survey.TenBaiKhaoSat,
@@ -257,20 +332,20 @@ namespace GUI.Views.GiangVien
                     ? Visibility.Visible
                     : Visibility.Collapsed;
             }
-            TaiDanhSachSinhVienKhaoSat();
+            TaiDanhSachSinhVienKhaoSat(resetPage: true);
         }
 
         private void CboFilterLevel_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (IsLoaded)
             {
-                TaiDanhSachSinhVienKhaoSat();
+                TaiDanhSachSinhVienKhaoSat(resetPage: true);
             }
         }
 
         private void BtnRefreshStudents_Click(object sender, RoutedEventArgs e)
         {
-            TaiDanhSachSinhVienKhaoSat();
+            TaiDanhSachSinhVienKhaoSat(resetPage: true);
         }
 
         private void BtnXemChiTietKhaoSat_Click(object sender, RoutedEventArgs e)

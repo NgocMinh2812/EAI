@@ -15,6 +15,8 @@ GO
 
 -- 0. XÓA DỮ LIỆU CŨ THEO ĐÚNG THỨ TỰ RÀNG BUỘC KHÓA NGOẠI (FOREIGN KEYS)
 -- ===================================================================
+IF OBJECT_ID('AIAssistantMessage', 'U') IS NOT NULL DELETE FROM AIAssistantMessage;
+IF OBJECT_ID('AIAssistantConversation', 'U') IS NOT NULL DELETE FROM AIAssistantConversation;
 IF OBJECT_ID('KetQuaLamBaiBoCauHoi', 'U') IS NOT NULL DELETE FROM KetQuaLamBaiBoCauHoi;
 IF OBJECT_ID('BoCauHoi_CauHoi', 'U') IS NOT NULL DELETE FROM BoCauHoi_CauHoi;
 IF OBJECT_ID('BoCauHoi', 'U') IS NOT NULL DELETE FROM BoCauHoi;
@@ -61,6 +63,8 @@ IF OBJECT_ID('CauHinhQuyDoiKhaoSat', 'U') IS NOT NULL DELETE FROM CauHinhQuyDoiK
 GO
 
 -- Reset giá trị tự tăng IDENTITY về 0 để các bản ghi mẫu nhận đúng ID từ 1 trở đi
+IF OBJECT_ID('AIAssistantMessage', 'U') IS NOT NULL DBCC CHECKIDENT ('AIAssistantMessage', RESEED, 0) WITH NO_INFOMSGS;
+IF OBJECT_ID('AIAssistantConversation', 'U') IS NOT NULL DBCC CHECKIDENT ('AIAssistantConversation', RESEED, 0) WITH NO_INFOMSGS;
 IF OBJECT_ID('KetQuaLamBaiBoCauHoi', 'U') IS NOT NULL DBCC CHECKIDENT ('KetQuaLamBaiBoCauHoi', RESEED, 0) WITH NO_INFOMSGS;
 IF OBJECT_ID('BoCauHoi', 'U') IS NOT NULL DBCC CHECKIDENT ('BoCauHoi', RESEED, 0) WITH NO_INFOMSGS;
 IF OBJECT_ID('NoiDungHocTapAIBaiHoc', 'U') IS NOT NULL DBCC CHECKIDENT ('NoiDungHocTapAIBaiHoc', RESEED, 0) WITH NO_INFOMSGS;
@@ -143,7 +147,9 @@ VALUES
 (@idHV, N'nam.vu', N'123456', N'nam.vu@company.vn', N'Vũ Hoàng Nam', N'0901234565', 1, 0, DATEADD(day, -15, SYSDATETIME()), DATEADD(day, -9, SYSDATETIME())),
 (@idHV, N'mai.dang', N'123456', N'mai.dang@gmail.com', N'Đặng Thị Mai', N'0901234566', 0, 0, DATEADD(day, -40, SYSDATETIME()), NULL),
 (@idHV, N'chau.ngo', N'123456', N'chau.ngo@student.edu.vn', N'Ngô Bảo Châu', N'0901234567', 1, 0, DATEADD(day, -10, SYSDATETIME()), DATEADD(day, -15, SYSDATETIME())),
-(@idHV, N'bao.do', N'123456', N'bao.do@gmail.com', N'Đỗ Quốc Bảo', N'0901234568', 1, 0, DATEADD(day, -5, SYSDATETIME()), DATEADD(day, -22, SYSDATETIME()));
+(@idHV, N'bao.do', N'123456', N'bao.do@gmail.com', N'Đỗ Quốc Bảo', N'0901234568', 1, 0, DATEADD(day, -5, SYSDATETIME()), DATEADD(day, -22, SYSDATETIME())),
+(@idHV, N'quy.huynh', N'123456', N'quy.huynh@gmail.com', N'Huỳnh Hồ Trương Quý', N'0901234569', 1, 0, DATEADD(day, -12, SYSDATETIME()), DATEADD(day, -1, SYSDATETIME())),
+(@idHV, N'nha.nguyen', N'123456', N'nha.nguyen@gmail.com', N'Nguyễn Ngọc Minh Nhã', N'0901234570', 1, 0, DATEADD(day, -15, SYSDATETIME()), SYSDATETIME());
 GO
 
 -- ===================================================================
@@ -193,6 +199,14 @@ FROM NguoiDung nd WHERE nd.TenDangNhap = N'chau.ngo';
 INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, TrinhDoDauVao, DiemDanhGiaDauVao, SoPhutHocTichLuy, GhiChuCaNhan)
 SELECT nd.MaNguoiDung, 800.0, N'TOEIC', N'B2', N'B1', 7.0, 390, N'Học thêm từ vựng chuyên ngành'
 FROM NguoiDung nd WHERE nd.TenDangNhap = N'bao.do';
+
+INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, TrinhDoDauVao, DiemDanhGiaDauVao, SoPhutHocTichLuy, GhiChuCaNhan)
+SELECT nd.MaNguoiDung, 850.0, N'TOEIC', N'C1', N'B2', 8.0, 520, N'Luyện thi TOEIC nâng cao'
+FROM NguoiDung nd WHERE nd.TenDangNhap = N'quy.huynh';
+
+INSERT INTO HoSoHocTap(MaNguoiDung, DiemMucTieu, KhungNangLucMucTieu, TrinhDoMucTieu, TrinhDoDauVao, DiemDanhGiaDauVao, SoPhutHocTichLuy, GhiChuCaNhan)
+SELECT nd.MaNguoiDung, 9.0, N'THPTQG', N'C1', N'B2', 8.5, 610, N'Ôn thi THPT Quốc Gia môn Tiếng Anh'
+FROM NguoiDung nd WHERE nd.TenDangNhap = N'nha.nguyen';
 GO
 
 -- ===================================================================
@@ -434,7 +448,7 @@ GO
 
 PRINT N'===================================================================';
 PRINT N'NẠP THÀNH CÔNG DANH MỤC HỆ THỐNG & CẤU TRÚC ĐỀ THI (02_danhmuc_cautruc)!';
-PRINT N' - 3 VaiTro, 5 TrinhDo, 5 CauHinhQuyDoiKhaoSat, 13 NguoiDung, 26 ChuDe';
+PRINT N' - 3 VaiTro, 5 TrinhDo, 5 CauHinhQuyDoiKhaoSat, 15 NguoiDung, 26 ChuDe';
 PRINT N' - 15 CauTrucDeThi (IELTS, TOEIC, VSTEP, Cambridge, THPTQG) & 58 ChiTietCauTruc';
 PRINT N'===================================================================';
 GO

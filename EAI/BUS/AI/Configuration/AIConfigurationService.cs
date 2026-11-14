@@ -37,6 +37,7 @@ namespace BUS.AI.Configuration
             _baseUrls[AIProviderType.Xkio] = "https://api.xkiro.com/v1";
             _baseUrls[AIProviderType.Groq] = "https://api.groq.com/openai/v1";
             _baseUrls[AIProviderType.Gemini] = "https://generativelanguage.googleapis.com/v1beta";
+            _baseUrls[AIProviderType.Ollama] = "http://localhost:11434";
 
             ReloadConfiguration();
             LoadActiveModelConfig();
@@ -160,13 +161,44 @@ namespace BUS.AI.Configuration
                     }
                 }
 
+                // Dự phòng: nếu apiminh.json chưa cấu hình key nào, nạp từ .NET User Secrets / Biến môi trường
+                if (_apiKeys.Count == 0)
+                {
+                    NapApiKeyDuPhong();
+                }
+
                 IsLoaded = _apiKeys.Count > 0;
             }
             catch (Exception ex)
             {
                 IsLoaded = false;
                 System.Diagnostics.Debug.WriteLine($"[AIConfigurationService] Lỗi khi nạp {ConfigFileName}: {ex.Message}");
+                NapApiKeyDuPhong();
             }
+        }
+
+        private void NapApiKeyDuPhong()
+        {
+            try
+            {
+                var cfg = AIConfigHelper.Configuration;
+                string? geminiKey = cfg["Gemini:ApiKey"] ?? cfg["GEMINI_API_KEY"] ?? cfg["GOOGLE_API_KEY"]
+                                 ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY")
+                                 ?? Environment.GetEnvironmentVariable("GOOGLE_API_KEY");
+                if (!string.IsNullOrWhiteSpace(geminiKey)) _apiKeys[AIProviderType.Gemini] = geminiKey.Trim();
+
+                string? groqKey = cfg["Groq:ApiKey"] ?? cfg["GROQ_API_KEY"]
+                                 ?? Environment.GetEnvironmentVariable("GROQ_API_KEY");
+                if (!string.IsNullOrWhiteSpace(groqKey)) _apiKeys[AIProviderType.Groq] = groqKey.Trim();
+
+                string? xkioKey = cfg["Xkio:ApiKey"] ?? cfg["xKiro:ApiKey"] ?? cfg["XKIO_API_KEY"]
+                                 ?? Environment.GetEnvironmentVariable("XKIO_API_KEY")
+                                 ?? Environment.GetEnvironmentVariable("XKIRO_API_KEY");
+                if (!string.IsNullOrWhiteSpace(xkioKey)) _apiKeys[AIProviderType.Xkio] = xkioKey.Trim();
+
+                if (_apiKeys.Count > 0) IsLoaded = true;
+            }
+            catch { }
         }
 
         private AIProviderType? ParseProviderType(string name)
@@ -189,18 +221,54 @@ namespace BUS.AI.Configuration
                 name.Equals("xKiroAIGateway", StringComparison.OrdinalIgnoreCase))
                 return AIProviderType.Xkio;
 
+            if (name.Equals("Ollama", StringComparison.OrdinalIgnoreCase) ||
+                name.Equals("Local", StringComparison.OrdinalIgnoreCase) ||
+                name.Equals("LocalAI", StringComparison.OrdinalIgnoreCase) ||
+                name.Equals("Offline", StringComparison.OrdinalIgnoreCase))
+                return AIProviderType.Ollama;
+
             return null;
         }
 
         /// <summary>
-        /// Lấy API Key thực tế của Provider từ apiminh.json
+        /// Lấy API Key thực tế của Provider từ apiminh.json (hoặc User Secrets dự phòng)
         /// </summary>
         public string GetApiKey(AIProviderType provider)
         {
+            if (provider == AIProviderType.Ollama)
+            {
+                return "localhost"; // Ollama không yêu cầu API Key
+            }
+
             if (_apiKeys.TryGetValue(provider, out var key) && !string.IsNullOrWhiteSpace(key))
             {
                 return key.Trim();
             }
+
+            try
+            {
+                var cfg = AIConfigHelper.Configuration;
+                string? envKey = provider switch
+                {
+                    AIProviderType.Gemini => cfg["Gemini:ApiKey"] ?? cfg["GEMINI_API_KEY"] ?? cfg["GOOGLE_API_KEY"]
+                                             ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY")
+                                             ?? Environment.GetEnvironmentVariable("GOOGLE_API_KEY"),
+                    AIProviderType.Groq => cfg["Groq:ApiKey"] ?? cfg["GROQ_API_KEY"]
+                                           ?? Environment.GetEnvironmentVariable("GROQ_API_KEY"),
+                    AIProviderType.Xkio => cfg["Xkio:ApiKey"] ?? cfg["xKiro:ApiKey"] ?? cfg["XKIO_API_KEY"]
+                                           ?? Environment.GetEnvironmentVariable("XKIO_API_KEY")
+                                           ?? Environment.GetEnvironmentVariable("XKIRO_API_KEY"),
+                    _ => null
+                };
+
+                if (!string.IsNullOrWhiteSpace(envKey))
+                {
+                    _apiKeys[provider] = envKey.Trim();
+                    return envKey.Trim();
+                }
+            }
+            catch { }
+
             return string.Empty;
         }
 
@@ -210,6 +278,11 @@ namespace BUS.AI.Configuration
         /// </summary>
         public string GetMaskedApiKey(AIProviderType provider)
         {
+            if (provider == AIProviderType.Ollama)
+            {
+                return "Không cần API Key (Localhost)";
+            }
+
             string key = GetApiKey(provider);
             if (string.IsNullOrWhiteSpace(key)) return "Chưa cấu hình";
             if (key.Length <= 8) return "••••••••";
@@ -221,6 +294,7 @@ namespace BUS.AI.Configuration
         /// </summary>
         public bool IsProviderConfigured(AIProviderType provider)
         {
+            if (provider == AIProviderType.Ollama) return true;
             return !string.IsNullOrWhiteSpace(GetApiKey(provider));
         }
 
@@ -238,6 +312,7 @@ namespace BUS.AI.Configuration
             {
                 AIProviderType.Xkio => "https://api.xkiro.com/v1",
                 AIProviderType.Groq => "https://api.groq.com/openai/v1",
+                AIProviderType.Ollama => "http://localhost:11434",
                 _ => "https://generativelanguage.googleapis.com/v1beta"
             };
         }
@@ -272,6 +347,15 @@ namespace BUS.AI.Configuration
                     new() { Id = "nvidia/nemotron-3-ultra", DisplayName = "NVIDIA Nemotron 3 Ultra", ProviderType = AIProviderType.Xkio, ProviderName = "xKiro AI Gateway", OwnedBy = "NVIDIA", AccessTier = "free" },
                     new() { Id = "mistralai/ministral-8b", DisplayName = "Mistral Ministral 8B", ProviderType = AIProviderType.Xkio, ProviderName = "xKiro AI Gateway", OwnedBy = "Mistral", AccessTier = "free" }
                 },
+                AIProviderType.Ollama => new List<AIModelInfo>
+                {
+                    new() { Id = "llama3.2:latest", DisplayName = "Llama 3.2 (Meta - Khuyên dùng Offline)", ProviderType = AIProviderType.Ollama, ProviderName = "Ollama (Offline/Local LLM)", OwnedBy = "Meta", AccessTier = "offline", DefaultModel = true },
+                    new() { Id = "qwen2.5:latest", DisplayName = "Qwen 2.5 (Alibaba - Đa ngôn ngữ Offline)", ProviderType = AIProviderType.Ollama, ProviderName = "Ollama (Offline/Local LLM)", OwnedBy = "Alibaba", AccessTier = "offline" },
+                    new() { Id = "mistral:latest", DisplayName = "Mistral 7B (Mistral AI - Lập luận Offline)", ProviderType = AIProviderType.Ollama, ProviderName = "Ollama (Offline/Local LLM)", OwnedBy = "Mistral", AccessTier = "offline" },
+                    new() { Id = "phi3:latest", DisplayName = "Phi-3 Mini (Microsoft - Siêu nhẹ Offline)", ProviderType = AIProviderType.Ollama, ProviderName = "Ollama (Offline/Local LLM)", OwnedBy = "Microsoft", AccessTier = "offline" },
+                    new() { Id = "deepseek-r1:latest", DisplayName = "DeepSeek R1 (DeepSeek - Suy luận Toán/Code Offline)", ProviderType = AIProviderType.Ollama, ProviderName = "Ollama (Offline/Local LLM)", OwnedBy = "DeepSeek", AccessTier = "offline" },
+                    new() { Id = "gemma2:latest", DisplayName = "Gemma 2 (Google - Tối ưu CPU Offline)", ProviderType = AIProviderType.Ollama, ProviderName = "Ollama (Offline/Local LLM)", OwnedBy = "Google", AccessTier = "offline" }
+                },
                 _ => new List<AIModelInfo>()
             };
         }
@@ -286,6 +370,7 @@ namespace BUS.AI.Configuration
                 AIProviderType.Gemini => "gemini-2.0-flash",
                 AIProviderType.Groq => "llama-3.3-70b-versatile",
                 AIProviderType.Xkio => "qwen/qwen3.5-flash:free",
+                AIProviderType.Ollama => "llama3.2:latest",
                 _ => "gemini-2.0-flash"
             };
         }
@@ -392,7 +477,7 @@ namespace BUS.AI.Configuration
         /// </summary>
         public bool CheckAdminPermission()
         {
-            return SessionHelper.IsGiangVien;
+            return SessionHelper.IsGiangVien || SessionHelper.IsAdmin;
         }
         #endregion
 

@@ -33,16 +33,18 @@ namespace DTO
         public string TenBaiTap { get => TenBaiTapDeThi; set => TenBaiTapDeThi = value; }
         public DateTime ThoiGianKetThuc => ThoiDiemNopBai ?? ThoiDiemBatDau;
         public string TyLeChinhXacText => TyLeChinhXac;
-        public string DiemHienThi => $"{DiemSo:0.0} / {TongDiem:0.0}";
-        public string ThoiGianHienThi => $"{ThoiGianLamGiay / 60:D2}:{ThoiGianLamGiay % 60:D2}";
-        public string TyLeChinhXac => TongSoCau > 0 ? $"{(SoCauDung * 100.0 / TongSoCau):0}%" : "0%";
+        public string DiemHienThi => TrangThai == "DangLam" ? "-- / --" : (TrangThai == "DaHuy" ? "Đã hủy" : $"{DiemSo:0.0} / {TongDiem:0.0}");
+        public string ThoiGianHienThi => TrangThai == "DangLam" ? "Đang tính giờ..." : $"{ThoiGianLamGiay / 60:D2}:{ThoiGianLamGiay % 60:D2}";
+        public string TyLeChinhXac => TrangThai == "DangLam" ? "Đang làm..." : (TrangThai == "DaHuy" ? "--" : (TongSoCau > 0 ? $"{(SoCauDung * 100.0 / TongSoCau):0}%" : "0%"));
         public bool LaDatYeuCau => DiemSo >= DiemDat;
-        public string TrangThaiKetQuaText => LaDatYeuCau ? "ĐẠT (PASS)" : "CHƯA ĐẠT";
-        public string TrangThaiKetQuaBg => LaDatYeuCau ? "#DCFCE7" : "#FEE2E2";
-        public string TrangThaiKetQuaFg => LaDatYeuCau ? "#166534" : "#991B1B";
-        public string NgayNopFormatted => ThoiDiemNopBai.HasValue ? ThoiDiemNopBai.Value.ToString("dd/MM/yyyy HH:mm") : ThoiDiemBatDau.ToString("dd/MM/yyyy HH:mm");
+        public string TrangThaiKetQuaText => TrangThai == "DangLam" ? "ĐANG LÀM BÀI" : (TrangThai == "DaHuy" ? "ĐÃ HỦY BÀI" : (LaDatYeuCau ? "ĐẠT (PASS)" : "CHƯA ĐẠT"));
+        public string TrangThaiKetQuaBg => TrangThai == "DangLam" ? "#FEF3C7" : (TrangThai == "DaHuy" ? "#FEE2E2" : (LaDatYeuCau ? "#DCFCE7" : "#FEE2E2"));
+        public string TrangThaiKetQuaFg => TrangThai == "DangLam" ? "#B45309" : (TrangThai == "DaHuy" ? "#991B1B" : (LaDatYeuCau ? "#166534" : "#991B1B"));
+        public string NgayNopFormatted => TrangThai == "DangLam" ? $"Bắt đầu: {ThoiDiemBatDau:dd/MM/yyyy HH:mm}" : (ThoiDiemNopBai.HasValue ? ThoiDiemNopBai.Value.ToString("dd/MM/yyyy HH:mm") : ThoiDiemBatDau.ToString("dd/MM/yyyy HH:mm"));
 
-        public string DanhGiaTongQuan => DiemSo >= 8.0m ? "Xuất sắc! Đạt chuẩn band mong muốn."
+        public string DanhGiaTongQuan => TrangThai == "DangLam" ? "Học viên đang trong thời gian làm bài kiểm tra."
+                                       : TrangThai == "DaHuy" ? "Lượt làm bài đã bị hủy giữa chừng do học viên thoát phòng thi."
+                                       : DiemSo >= 8.0m ? "Xuất sắc! Đạt chuẩn band mong muốn."
                                        : DiemSo >= 6.5m ? "Tốt! Đạt ngưỡng điểm mục tiêu."
                                        : DiemSo >= DiemDat ? "Đạt yêu cầu! Tiếp tục duy trì phong độ."
                                        : "Chưa đạt ngưỡng điểm yêu cầu, hãy ôn tập lại các câu sai.";
@@ -52,13 +54,13 @@ namespace DTO
         public string HinhThucFg => HinhThucLam == "ThiThu" ? "#1D4ED8" : "#7E22CE";
 
         public double ThoiGianLamPhutHienThi => Math.Round(ThoiGianLamGiay / 60.0, 1);
-        public string SoCauDungTrenTong => $"{SoCauDung}/{TongSoCau}";
+        public string SoCauDungTrenTong => TrangThai == "DangLam" ? $"--/{TongSoCau}" : $"{SoCauDung}/{TongSoCau}";
         
         public string TrangThaiHienThi => TrangThai == "DaNop" ? "Đã nộp bài" : (TrangThai == "HetGio" ? "Hết giờ" : (TrangThai == "DaHuy" ? "Đã hủy" : "Đang làm"));
         public string TrangThaiBg => TrangThai == "DaNop" ? "#DCFCE7" : (TrangThai == "HetGio" || TrangThai == "DaHuy" ? "#FEE2E2" : "#FEF3C7");
         public string TrangThaiFg => TrangThai == "DaNop" ? "#15803D" : (TrangThai == "HetGio" || TrangThai == "DaHuy" ? "#B91C1C" : "#B45309");
 
-        public string ScoreColor => DiemSo >= 8.0m ? "#10B981" : (DiemSo >= 6.5m ? "#2563EB" : (DiemSo >= 5.0m ? "#D97706" : "#DC2626"));
+        public string ScoreColor => TrangThai == "DangLam" || TrangThai == "DaHuy" ? "#64748B" : (DiemSo >= 8.0m ? "#10B981" : (DiemSo >= 6.5m ? "#2563EB" : (DiemSo >= 5.0m ? "#D97706" : "#DC2626")));
         public string ThoiDiemBatDauHienThi => ThoiDiemBatDau.ToString("dd/MM/yyyy HH:mm");
 
         public string Initials

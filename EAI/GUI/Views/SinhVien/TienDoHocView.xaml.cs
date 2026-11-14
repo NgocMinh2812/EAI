@@ -15,6 +15,7 @@ namespace GUI.Views
 {
     public partial class TienDoHocView : Page
     {
+        private bool _isInitialized = false;
         private string _currentFilter = "TatCa";
         private TongKetTienDoDTO? _currentTongKet;
         private List<DiemThiTheoThoiGianDTO> _currentLichSu = new();
@@ -23,6 +24,7 @@ namespace GUI.Views
         public TienDoHocView()
         {
             InitializeComponent();
+            _isInitialized = true;
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
@@ -32,6 +34,8 @@ namespace GUI.Views
 
         private void Filter_Checked(object sender, RoutedEventArgs e)
         {
+            if (!_isInitialized) return;
+
             if (rbFilterTuan == null || rbFilterThang == null || rbFilterTatCa == null)
                 return;
 
@@ -52,9 +56,23 @@ namespace GUI.Views
 
         private void LoadData()
         {
+            if (!_isInitialized) return;
+
             try
             {
-                int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
+                int userId = SessionHelper.CurrentMaNguoiDung;
+                if (userId <= 0)
+                {
+                    _currentTongKet = new TongKetTienDoDTO();
+                    _currentLichSu = new List<DiemThiTheoThoiGianDTO>();
+                    _currentGioHoc = new List<GioHocTheoNgayDTO>();
+                    HienThiKpi();
+                    CapNhatBieuDoDiemSo();
+                    CapNhatBieuDoTyLe();
+                    CapNhatBieuDoThoiGianHoc();
+                    HienThiBangLichSu();
+                    return;
+                }
 
                 // 1. Lấy dữ liệu từ BUS
                 _currentTongKet = TienDoHocBUS.Instance.LayTongKetTienDo(userId, _currentFilter);
@@ -84,7 +102,7 @@ namespace GUI.Views
 
         private void HienThiKpi()
         {
-            if (_currentTongKet == null) return;
+            if (_currentTongKet == null || txtTongGioHoc == null || txtTongBaiThi == null || txtDiemTB == null || txtPhanTramMucTieu == null) return;
 
             // Card 1: Tổng thời gian học
             txtTongGioHoc.Text = _currentTongKet.TongGioHocText;
@@ -127,6 +145,8 @@ namespace GUI.Views
 
         private void CapNhatBieuDoDiemSo()
         {
+            if (chartDiemSo == null || pnlEmptyLineChart == null) return;
+
             if (_currentLichSu.Count == 0)
             {
                 chartDiemSo.Visibility = Visibility.Hidden;
@@ -158,6 +178,8 @@ namespace GUI.Views
 
         private void CapNhatBieuDoTyLe()
         {
+            if (chartTyLe == null || pnlEmptyPieChart == null || txtSoBaiDat == null || txtSoBaiChuaDat == null) return;
+
             if (_currentTongKet == null || _currentTongKet.TongSoBaiThi == 0)
             {
                 chartTyLe.Visibility = Visibility.Hidden;
@@ -203,6 +225,8 @@ namespace GUI.Views
 
         private void CapNhatBieuDoThoiGianHoc()
         {
+            if (chartThoiGian == null || axisXThoiGian == null || txtTongPhutGiaiDoan == null) return;
+
             var values = new ChartValues<int>(_currentGioHoc.Select(x => x.SoPhutHoc));
 
             var colSeries = new ColumnSeries
@@ -225,6 +249,7 @@ namespace GUI.Views
 
         private void HienThiBangLichSu()
         {
+            if (icLichSuThi == null || txtTongSoLanLam == null || pnlEmptyState == null) return;
             icLichSuThi.ItemsSource = _currentLichSu;
             txtTongSoLanLam.Text = $"Tổng cộng: {_currentLichSu.Count} lượt làm";
 

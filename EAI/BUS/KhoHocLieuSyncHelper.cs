@@ -734,18 +734,31 @@ namespace BUS
                 string meta = $"Chủ đề: {bh.TenChuDe} | Trình độ: {bh.MaTrinhDo} | Thời lượng: {bh.ThoiGianUocTinhPhut} phút";
                 sb.Append($@"<w:p><w:pPr><w:jc w:val=""center""/><w:spacing w:after=""360""/></w:pPr><w:r><w:rPr><w:i/><w:sz w:val=""20""/><w:color w:val=""64748B""/></w:rPr><w:t>{System.Security.SecurityElement.Escape(meta)}</w:t></w:r></w:p>");
 
-                if (!string.IsNullOrWhiteSpace(bh.TomTat))
+                string cleanTomTat = ChuyenDoiHtmlSangVanBan(bh.TomTat);
+                if (!string.IsNullOrWhiteSpace(cleanTomTat))
                 {
                     sb.Append($@"<w:p><w:pPr><w:spacing w:after=""160""/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val=""24""/><w:color w:val=""1E293B""/></w:rPr><w:t>TÓM TẮT BÀI HỌC</w:t></w:r></w:p>");
-                    sb.Append($@"<w:p><w:pPr><w:spacing w:after=""300""/></w:pPr><w:r><w:rPr><w:sz w:val=""22""/><w:color w:val=""334155""/></w:rPr><w:t>{System.Security.SecurityElement.Escape(bh.TomTat)}</w:t></w:r></w:p>");
+                    sb.Append($@"<w:p><w:pPr><w:spacing w:after=""300""/></w:pPr><w:r><w:rPr><w:sz w:val=""22""/><w:color w:val=""334155""/></w:rPr><w:t>{System.Security.SecurityElement.Escape(cleanTomTat)}</w:t></w:r></w:p>");
                 }
 
                 sb.Append($@"<w:p><w:pPr><w:spacing w:after=""160""/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val=""24""/><w:color w:val=""1E293B""/></w:rPr><w:t>NỘI DUNG GIÁO TRÌNH</w:t></w:r></w:p>");
-                var lines = (bh.NoiDung ?? "").Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+                string cleanNoiDung = ChuyenDoiHtmlSangVanBan(bh.NoiDung);
+                var lines = cleanNoiDung.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
                 foreach (var line in lines)
                 {
-                    string esc = System.Security.SecurityElement.Escape(line);
-                    sb.Append($@"<w:p><w:pPr><w:spacing w:after=""120""/></w:pPr><w:r><w:rPr><w:sz w:val=""22""/></w:rPr><w:t xml:space=""preserve"">{esc}</w:t></w:r></w:p>");
+                    string trimmed = line.Trim();
+                    if (string.IsNullOrWhiteSpace(trimmed)) continue;
+
+                    bool isHeading = trimmed.StartsWith("■") || trimmed.StartsWith("Phần ") || trimmed.StartsWith("Chương ");
+                    string esc = System.Security.SecurityElement.Escape(trimmed);
+                    if (isHeading)
+                    {
+                        sb.Append($@"<w:p><w:pPr><w:spacing w:before=""200"" w:after=""100""/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val=""26""/><w:color w:val=""0F4C3A""/></w:rPr><w:t xml:space=""preserve"">{esc}</w:t></w:r></w:p>");
+                    }
+                    else
+                    {
+                        sb.Append($@"<w:p><w:pPr><w:spacing w:after=""120""/></w:pPr><w:r><w:rPr><w:sz w:val=""22""/><w:color w:val=""1E293B""/></w:rPr><w:t xml:space=""preserve"">{esc}</w:t></w:r></w:p>");
+                    }
                 }
 
                 if (bh.DanhSachCauHoi != null && bh.DanhSachCauHoi.Count > 0)
@@ -789,8 +802,13 @@ namespace BUS
         .meta { text-align: center; color: #64748b; font-size: 14px; margin-bottom: 24px; }
         .summary-box { background: #f8fafc; border-left: 4px solid #10b981; padding: 14px 18px; border-radius: 6px; margin-bottom: 24px; font-style: italic; }
         .section-title { font-size: 18px; font-weight: bold; color: #0f172a; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
-        .content { white-space: pre-wrap; font-size: 15px; }
-        .question-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+        .content { line-height: 1.8; font-size: 15px; margin-bottom: 24px; color: #1e293b; }
+        .html-content { white-space: normal; }
+        .html-content h1, .html-content h2, .html-content h3 { color: #0f4c3a; margin-top: 22px; margin-bottom: 10px; font-weight: 700; }
+        .html-content p { margin-bottom: 12px; }
+        .html-content .lead { font-size: 15.5px; color: #334155; font-weight: 500; }
+        .html-content .reading-sample { background: #f8fafc; border: 1px solid #e2e8f0; padding: 18px; border-radius: 6px; margin: 16px 0; font-family: inherit; }
+        .question-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 12px; page-break-inside: avoid; }
         .choice { padding: 6px 10px; margin: 4px 0; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
         .choice.correct { border-color: #10b981; background: #ecfdf5; font-weight: bold; color: #047857; }
         .explanation { color: #1d4ed8; font-size: 13.5px; margin-top: 8px; font-style: italic; }
@@ -802,13 +820,31 @@ namespace BUS
             sb.Append("<h1>" + System.Net.WebUtility.HtmlEncode(bh.TieuDe ?? "Học liệu") + "</h1>");
             sb.Append($"<div class=\"meta\">Chủ đề: {System.Net.WebUtility.HtmlEncode(bh.TenChuDe)} | Trình độ: {bh.MaTrinhDo} | Thời lượng: {bh.ThoiGianUocTinhPhut} phút | Định dạng: {bh.DinhDangTep}</div>");
 
-            if (!string.IsNullOrWhiteSpace(bh.TomTat))
+            string cleanTomTat = ChuyenDoiHtmlSangVanBan(bh.TomTat);
+            if (!string.IsNullOrWhiteSpace(cleanTomTat))
             {
-                sb.Append("<div class=\"summary-box\">" + System.Net.WebUtility.HtmlEncode(bh.TomTat) + "</div>");
+                sb.Append("<div class=\"summary-box\">" + System.Net.WebUtility.HtmlEncode(cleanTomTat) + "</div>");
             }
 
             sb.Append("<div class=\"section-title\">NỘI DUNG GIÁO TRÌNH LÝ THUYẾT</div>");
-            sb.Append("<div class=\"content\">" + System.Net.WebUtility.HtmlEncode(bh.NoiDung) + "</div>");
+
+            bool isHtml = !string.IsNullOrWhiteSpace(bh.NoiDung) && (
+                bh.NoiDung.Contains("<h") ||
+                bh.NoiDung.Contains("<div") ||
+                bh.NoiDung.Contains("<p") ||
+                bh.NoiDung.Contains("<br") ||
+                bh.NoiDung.Contains("<ul") ||
+                bh.NoiDung.Contains("<ol"));
+
+            if (isHtml)
+            {
+                sb.Append("<div class=\"content html-content\">" + bh.NoiDung + "</div>");
+            }
+            else
+            {
+                string safeBody = System.Net.WebUtility.HtmlEncode(bh.NoiDung ?? "").Replace("\r\n", "\n").Replace("\n", "<br/>");
+                sb.Append("<div class=\"content plain-content\" style=\"white-space: pre-wrap;\">" + safeBody + "</div>");
+            }
 
             if (bh.DanhSachCauHoi != null && bh.DanhSachCauHoi.Count > 0)
             {
@@ -836,6 +872,116 @@ namespace BUS
 
             sb.Append("</body></html>");
             File.WriteAllText(filePath, sb.ToString(), System.Text.Encoding.UTF8);
+        }
+
+        /// <summary>
+        /// Tạo tệp PDF thực thụ (%PDF-1.4) từ dữ liệu bài học bằng cách chuyển đổi qua Headless Browser hoặc cấu trúc PDF chuẩn
+        /// </summary>
+        public static bool TaoTepPdfTuBaiHoc(string filePath, BaiHocDTO bh)
+        {
+            if (File.Exists(filePath))
+            {
+                try { File.Delete(filePath); } catch { }
+            }
+
+            string tempDir = Path.Combine(Path.GetTempPath(), "EAI_PdfExport");
+            if (!Directory.Exists(tempDir))
+            {
+                try { Directory.CreateDirectory(tempDir); } catch { }
+            }
+            string tempHtml = Path.Combine(tempDir, $"export_{Guid.NewGuid():N}.html");
+
+            try
+            {
+                TaoTepHtmlInAn(tempHtml, bh);
+
+                string[] browserCandidates = new[]
+                {
+                    @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+                    @"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+                    @"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                    @"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+                };
+
+                string? browserExe = browserCandidates.FirstOrDefault(File.Exists);
+
+                if (!string.IsNullOrEmpty(browserExe))
+                {
+                    var psi = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = browserExe,
+                        Arguments = $"--headless --disable-gpu --no-pdf-header-footer --print-to-pdf=\"{filePath}\" \"{tempHtml}\"",
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    };
+
+                    using var proc = System.Diagnostics.Process.Start(psi);
+                    if (proc != null)
+                    {
+                        bool exited = proc.WaitForExit(15000);
+                        if (exited && File.Exists(filePath) && new FileInfo(filePath).Length > 200)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                TaoTepPdfCoBan(filePath, bh);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TaoTepPdfTuBaiHoc] Lỗi: {ex.Message}");
+                try
+                {
+                    TaoTepPdfCoBan(filePath, bh);
+                    return true;
+                }
+                catch { return false; }
+            }
+            finally
+            {
+                try { if (File.Exists(tempHtml)) File.Delete(tempHtml); } catch { }
+            }
+        }
+
+        private static void TaoTepPdfCoBan(string filePath, BaiHocDTO bh)
+        {
+            string cleanTitle = ChuyenDoiHtmlSangVanBan(bh.TieuDe ?? "Hoc Lieu");
+            string cleanBody = ChuyenDoiHtmlSangVanBan(bh.NoiDung ?? "");
+
+            var sb = new System.Text.StringBuilder();
+            sb.Append("%PDF-1.4\n");
+            sb.Append("%\xE2\xE3\xCF\xD3\n");
+
+            sb.Append("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+            sb.Append("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
+            sb.Append("3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n");
+
+            string streamContent = $"BT /F1 16 Tf 50 780 Td ({EscapePdfText(cleanTitle)}) Tj ET\n";
+            var lines = cleanBody.Split('\n').Take(35);
+            int y = 740;
+            foreach (var l in lines)
+            {
+                string t = l.Trim();
+                if (string.IsNullOrWhiteSpace(t)) { y -= 10; continue; }
+                if (t.Length > 80) t = t.Substring(0, 77) + "...";
+                streamContent += $"BT /F1 11 Tf 50 {y} Td ({EscapePdfText(t)}) Tj ET\n";
+                y -= 16;
+                if (y < 60) break;
+            }
+
+            sb.Append($"4 0 obj\n<< /Length {streamContent.Length} >>\nstream\n{streamContent}endstream\nendobj\n");
+            sb.Append("5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n");
+            sb.Append("xref\n0 6\n0000000000 65535 f \n");
+            sb.Append("trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n500\n%%EOF\n");
+
+            File.WriteAllText(filePath, sb.ToString(), System.Text.Encoding.Latin1);
+        }
+
+        private static string EscapePdfText(string text)
+        {
+            return text.Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)");
         }
     }
 }

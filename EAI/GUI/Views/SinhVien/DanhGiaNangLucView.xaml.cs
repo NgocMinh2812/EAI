@@ -20,8 +20,10 @@ namespace GUI.Views
         private DispatcherTimer? _timer;
         private int _secondsRemaining = 900; // 15 phút
         private KetQuaKhaoSatDTO? _currentResult;
+        private bool _isSubmitting = false;
 
         public bool IsFirstTime { get; set; } = false;
+        public bool IsSurveyInProgress => pnlLamKhaoSat != null && pnlLamKhaoSat.Visibility == Visibility.Visible && _timer != null && _timer.IsEnabled;
 
         public DanhGiaNangLucView() : this(false, false)
         {
@@ -31,13 +33,17 @@ namespace GUI.Views
         {
             InitializeComponent();
             IsFirstTime = isFirstTime;
+            this.Unloaded += (s, e) =>
+            {
+                _timer?.Stop();
+            };
 
             if (isFirstTime)
             {
                 MainWindow.Instance?.HideSidebar();
             }
 
-            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
+            int userId = SessionHelper.CurrentMaNguoiDung;
 
             if (isFirstTime || forceNewSurvey)
             {
@@ -293,8 +299,29 @@ namespace GUI.Views
             }
         }
 
+        public bool RequestExitSurvey()
+        {
+            if (!IsSurveyInProgress) return true;
+
+            bool confirm = Common.ThongBaoDialog.XacNhan(
+                Window.GetWindow(this),
+                "Bạn đang làm bài khảo sát năng lực. Nếu rời khỏi trang lúc này, tiến trình làm bài sẽ bị hủy. Bạn có chắc chắn muốn rời đi?",
+                "Cảnh báo hủy khảo sát",
+                confirmText: "Rời khỏi",
+                cancelText: "Tiếp tục làm");
+
+            if (confirm)
+            {
+                _timer?.Stop();
+                return true;
+            }
+            return false;
+        }
+
         private void BtnSubmit_Click(object? sender, RoutedEventArgs? e)
         {
+            if (_isSubmitting) return;
+
             SaveCurrentSelection();
 
             if (sender != null && _userAnswers[_currentIndex] < 0)
@@ -303,20 +330,35 @@ namespace GUI.Views
                 return;
             }
 
+            _isSubmitting = true;
+            if (btnSubmit != null) btnSubmit.IsEnabled = false;
             _timer?.Stop();
 
-            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
-
-            // Đánh giá thích ứng & lưu kết quả qua BUS
-            var ketQua = KhaoSatBUS.Instance.DanhGiaThichUng(_selectedLevel, _questions, userId);
-
-            // Đánh dấu người dùng đã hoàn thành khảo sát
-            if (SessionHelper.CurrentUser != null)
+            try
             {
-                SessionHelper.CurrentUser.LaLanDauDangNhap = false;
-            }
+                int userId = SessionHelper.CurrentMaNguoiDung;
+                if (userId <= 0)
+                {
+                    Common.ThongBaoDialog.Loi("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", "Hết phiên");
+                    return;
+                }
 
-            HienThiKetQuaVaDeXuat(ketQua);
+                // Đánh giá thích ứng & lưu kết quả qua BUS
+                var ketQua = KhaoSatBUS.Instance.DanhGiaThichUng(_selectedLevel, _questions, userId);
+
+                // Đánh dấu người dùng đã hoàn thành khảo sát
+                if (SessionHelper.CurrentUser != null)
+                {
+                    SessionHelper.CurrentUser.LaLanDauDangNhap = false;
+                }
+
+                HienThiKetQuaVaDeXuat(ketQua);
+            }
+            finally
+            {
+                _isSubmitting = false;
+                if (btnSubmit != null) btnSubmit.IsEnabled = true;
+            }
         }
 
         // =========================================================================

@@ -46,6 +46,12 @@ namespace BUS
                 return false;
             }
 
+            if (bo.TenBoCauHoi.Trim().Length > 200)
+            {
+                errorMessage = "Tên bộ câu hỏi không được vượt quá 200 ký tự.";
+                return false;
+            }
+
             if (dsCauHoi == null || dsCauHoi.Count == 0)
             {
                 errorMessage = "Bộ câu hỏi cần có ít nhất một câu hỏi được chọn.";
@@ -62,6 +68,13 @@ namespace BUS
                 errorMessage = "Tên bộ câu hỏi không được để trống.";
                 return false;
             }
+
+            if (tenMoi.Trim().Length > 200)
+            {
+                errorMessage = "Tên bộ câu hỏi không được vượt quá 200 ký tự.";
+                return false;
+            }
+
             return BoCauHoiDAL.Instance.DoiTenBoCauHoi(maBo, tenMoi.Trim(), out errorMessage);
         }
 
@@ -115,14 +128,7 @@ namespace BUS
                 NguoiTao = nguoiTaoId
             };
 
-            var dsCauHoi = maCauHois.Select(id => new CauHoiKhaoSatDTO { MaCauHoi = id }).ToList();
-            bool ok = BoCauHoiDAL.Instance.LuuBoCauHoi(bo, dsCauHoi, nguoiTaoId, out errorMessage);
-            if (ok)
-            {
-                maBoMoi = bo.MaBoCauHoi;
-                return true;
-            }
-            return false;
+            return BoCauHoiDAL.Instance.TaoBoCauHoiTuDanhSachMaCauHoi(bo, maCauHois, nguoiTaoId, out maBoMoi, out errorMessage);
         }
 
         /// <summary>

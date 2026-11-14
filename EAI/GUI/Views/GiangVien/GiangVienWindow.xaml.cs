@@ -73,6 +73,9 @@ namespace GUI.Views.GiangVien
                 return new[] { new System.Windows.Controls.Primitives.CustomPopupPlacement(new Point(x, y), System.Windows.Controls.Primitives.PopupPrimaryAxis.Horizontal) };
             };
 
+            // Đăng ký sự kiện đóng sidebar Trợ lý AI
+            aiAssistantSidebar.CloseRequested += DongAIAssistantSidebar;
+
             // Mở mặc định trang Tổng quan sử dụng page cache để bảo toàn tiến trình
             AdminMainFrame.Navigate(GetOrCreatePage<TongQuanView>());
             Closed += (s, e) => _pageCache.Clear();
@@ -310,6 +313,9 @@ namespace GUI.Views.GiangVien
             {
                 txtBreadcrumb.Text = "Trợ lý AI";
             }
+
+            // Đồng bộ ngữ cảnh trang đang xem cho Trợ lý AI
+            aiAssistantSidebar?.UpdateCurrentPage(e.Content?.GetType().Name);
         }
 
         private void SetActiveButton(Button btn)
@@ -407,11 +413,38 @@ namespace GUI.Views.GiangVien
                 AdminMainFrame.Navigate(GetOrCreatePage<GiamSatHeThongView>());
         }
 
+        private bool _isAssistantOpen = false;
+
+        public void ToggleAIAssistantSidebar()
+        {
+            if (_isAssistantOpen)
+            {
+                DongAIAssistantSidebar();
+            }
+            else
+            {
+                MoAIAssistantSidebar();
+            }
+        }
+
+        public void MoAIAssistantSidebar()
+        {
+            _isAssistantOpen = true;
+            aiAssistantSidebar.Visibility = Visibility.Visible;
+            colRightAssistant.Width = new GridLength(680);
+            aiAssistantSidebar.UpdateCurrentPage(AdminMainFrame.Content?.GetType().Name);
+        }
+
+        public void DongAIAssistantSidebar()
+        {
+            _isAssistantOpen = false;
+            colRightAssistant.Width = new GridLength(0);
+            aiAssistantSidebar.Visibility = Visibility.Collapsed;
+        }
+
         private void TopNavTroLyAI_Click(object sender, RoutedEventArgs e)
         {
-            ResetNavButtons();
-            txtBreadcrumb.Text = "Trợ lý AI";
-            AdminMainFrame.Navigate(GetOrCreatePage<TroLyAIView>());
+            ToggleAIAssistantSidebar();
         }
 
         private void AdminMainFrame_Navigating(object sender, NavigatingCancelEventArgs e)

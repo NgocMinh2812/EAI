@@ -66,6 +66,20 @@ namespace GUI.Views
 
         private void InitMediaPlayer()
         {
+            AudioPlaybackCoordinator.Instance.RegisterActiveMediaPlayer(() =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (_isPlayingAudio)
+                    {
+                        try { _mediaPlayer.Pause(); } catch { }
+                        CapNhatAudioPlayState(false);
+                        _isPlayingAudio = false;
+                        _audioTimer?.Stop();
+                    }
+                });
+            });
+
             _mediaPlayer.MediaOpened += (s, e) =>
             {
                 if (_mediaPlayer.NaturalDuration.HasTimeSpan && _mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds > 0)
@@ -1272,7 +1286,8 @@ namespace GUI.Views
         {
             if (quiz == null || _currentBaiHoc == null) return;
 
-            int currentUserId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
+            int currentUserId = SessionHelper.CurrentMaNguoiDung;
+            if (currentUserId <= 0) return;
             string contentHash = NoiDungHocTapAIService.TinhContentHash(_currentBaiHoc);
 
             // Kiểm tra xem sinh viên này đã có lịch sử làm bài tập cho bộ này chưa
@@ -1631,6 +1646,7 @@ namespace GUI.Views
             _isPlayingAudio = !_isPlayingAudio;
             if (_isPlayingAudio)
             {
+                AudioPlaybackCoordinator.Instance.NotifyMediaPlayerStarting();
                 try
                 {
                     _mediaPlayer.Play();
@@ -1655,6 +1671,7 @@ namespace GUI.Views
         {
             _isPlayingAudio = false;
             _audioTimer?.Stop();
+            AudioPlaybackCoordinator.Instance.StopAllSpeech();
             try
             {
                 _mediaPlayer.Stop();
@@ -1747,30 +1764,25 @@ namespace GUI.Views
             if (_currentBaiHoc == null) return;
             try
             {
-                // Phát giọng đọc tiếng Anh
-                System.Threading.Tasks.Task.Run(() =>
-                {
-                    try
-                    {
-                        var type = Type.GetType("System.Speech.Synthesis.SpeechSynthesizer, System.Speech");
-                        if (type != null)
-                        {
-                            dynamic synth = Activator.CreateInstance(type)!;
-                            synth.Volume = (int)((sldAudioVolume?.Value ?? 0.8) * 100);
-                            synth.Rate = (int)((_currentSpeed - 1.0) * 3);
-                            string textToRead = !string.IsNullOrWhiteSpace(_currentBaiHoc.TomTat) 
-                                ? _currentBaiHoc.TomTat 
-                                : _currentBaiHoc.TieuDe;
-                            synth.Speak(textToRead);
-                        }
-                    }
-                    catch { }
-                });
+                string textToRead = !string.IsNullOrWhiteSpace(_currentBaiHoc.TomTat) 
+                    ? _currentBaiHoc.TomTat 
+                    : _currentBaiHoc.TieuDe;
 
                 if (txtAudioStatus != null) txtAudioStatus.Text = "🤖 AI Audio Tutor đang đọc tóm tắt bài học...";
                 CapNhatAudioPlayState(true);
                 _isPlayingAudio = true;
                 _audioTimer?.Start();
+
+                AudioPlaybackCoordinator.Instance.SpeakAsync(textToRead, _currentSpeed, (int)((sldAudioVolume?.Value ?? 0.8) * 100), () =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        if (txtAudioStatus != null) txtAudioStatus.Text = "Bộ phát âm thanh bài học (Audio Tutor • MediaPlayer)";
+                        CapNhatAudioPlayState(false);
+                        _isPlayingAudio = false;
+                        _audioTimer?.Stop();
+                    });
+                });
             }
             catch (Exception ex)
             {
@@ -1856,7 +1868,8 @@ namespace GUI.Views
                 return;
             }
 
-            int currentUserId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
+            int currentUserId = SessionHelper.CurrentMaNguoiDung;
+            if (currentUserId <= 0) return;
             int timeSpent = Math.Max(15, _studySeconds);
 
             bool ok = BaiHocQuizBUS.Instance.NopBaiTapSinhVien(
@@ -1963,11 +1976,7 @@ namespace GUI.Views
 
             try
             {
-                _currentTranscript = _audioTranscriptDAL.LayAudioChinhCuaBaiHoc(maBaiHoc);
-                if (_currentTranscript == null && !string.IsNullOrWhiteSpace(rawAudio))
-                {
-                    _currentTranscript = _audioTranscriptDAL.LayTheoDuongDanAudio(rawAudio);
-                }
+                _currentTranscript = BaiHocBUS.LayAudioTranscriptChoBaiHoc(maBaiHoc, rawAudio);
             }
             catch { }
 
@@ -2119,21 +2128,7 @@ namespace GUI.Views
         private void PhatAmTu(string text)
         {
             if (string.IsNullOrWhiteSpace(text)) return;
-            Task.Run(() =>
-            {
-                try
-                {
-                    var type = Type.GetType("System.Speech.Synthesis.SpeechSynthesizer, System.Speech");
-                    if (type != null)
-                    {
-                        dynamic synth = Activator.CreateInstance(type)!;
-                        synth.Volume = 100;
-                        synth.Rate = 0;
-                        synth.Speak(text);
-                    }
-                }
-                catch { }
-            });
+            AudioPlaybackCoordinator.Instance.SpeakAsync(text, speed: 1.0, volume: 100);
         }
 
         private void MoHopThoaiLuyenNoi(string text)

@@ -1,4 +1,4 @@
-<Page x:Class="GUI.Views.GiangVien.DeThiLuyenTapView"
+﻿<Page x:Class="GUI.Views.GiangVien.DeThiLuyenTapView"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="clr-namespace:GUI"
@@ -280,7 +280,7 @@
                                         <Setter.Value>
                                             <ControlTemplate TargetType="ListViewItem">
                                                 <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="14">
-                                                    <ContentPresenter/>
+                                                    <ContentPresenter HorizontalAlignment="Stretch"/>
                                                 </Border>
                                             </ControlTemplate>
                                         </Setter.Value>
@@ -289,7 +289,7 @@
                             </ListView.ItemContainerStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid>
+                                    <Grid HorizontalAlignment="Stretch">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
@@ -297,7 +297,7 @@
                                         </Grid.ColumnDefinitions>
 
                                         <!-- Cột 1: Icon & Badge Trạng thái -->
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Width="125" Margin="0,0,14,0">
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Width="115" Margin="0,0,14,0">
                                             <Border Background="{Binding TrangThaiBadgeBg}" CornerRadius="6" Padding="8,4" HorizontalAlignment="Center" Margin="0,0,0,6">
                                                 <TextBlock Text="{Binding TrangThaiHienThi}" FontSize="10.5" FontWeight="Bold" Foreground="{Binding TrangThaiBadgeFg}"/>
                                             </Border>
@@ -306,16 +306,26 @@
 
                                         <!-- Cột 2: Nội dung Đề thi -->
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                                <TextBlock Text="{Binding TenBaiTapDeThi}" FontWeight="Bold" FontSize="14.5" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
-                                                <Border Background="#EFF6FF" CornerRadius="4" Padding="6,2" Margin="10,0,0,0">
-                                                    <TextBlock Text="{Binding LevelTag, FallbackValue='Chuẩn B2'}" FontSize="10.5" FontWeight="Bold" Foreground="#1D4ED8"/>
-                                                </Border>
-                                                <Border Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="8,0,0,0"
-                                                        Visibility="{Binding HasBlueprint, Converter={StaticResource BoolToVisConverter}}">
-                                                    <TextBlock Text="{Binding TenCauTrucDeThi, StringFormat='📐 {0}'}" FontSize="10.5" FontWeight="SemiBold" Foreground="#15803D"/>
-                                                </Border>
-                                            </StackPanel>
+                                            <!-- Tiêu đề & Badges phân loại: Sử dụng Grid để tiêu đề co giãn chuẩn xác, tự động xuống dòng tối đa 2 dòng hoặc Ellipsis, không bao giờ tràn lề hay đè vào nút thao tác -->
+                                            <Grid Margin="0,0,0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{Binding TenBaiTapDeThi}" FontWeight="Bold" FontSize="14.5" 
+                                                           Foreground="{StaticResource TextDark}" 
+                                                           TextWrapping="Wrap" MaxHeight="42" TextTrimming="CharacterEllipsis"
+                                                           ToolTip="{Binding TenBaiTapDeThi}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Border Background="#EFF6FF" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                                                        <TextBlock Text="{Binding LevelTag, FallbackValue='Chuẩn B2'}" FontSize="10.5" FontWeight="Bold" Foreground="#1D4ED8"/>
+                                                    </Border>
+                                                    <Border Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="4" Padding="6,2"
+                                                            Visibility="{Binding HasBlueprint, Converter={StaticResource BoolToVisConverter}}">
+                                                        <TextBlock Text="{Binding TenCauTrucDeThi, StringFormat='📐 {0}'}" FontSize="10.5" FontWeight="SemiBold" Foreground="#15803D"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </Grid>
 
                                             <!-- Metadata tóm tắt -->
                                             <WrapPanel Orientation="Horizontal" Margin="0,2,0,4">
@@ -327,83 +337,89 @@
                                                 <TextBlock Text="{Binding NgayTaoFormatted, StringFormat='📅 Tạo: {0}'}" FontSize="12" Foreground="{StaticResource TextGray}"/>
                                             </WrapPanel>
 
-                                            <TextBlock Text="{Binding MoTa}" FontSize="12" Foreground="#64748B" TextTrimming="CharacterEllipsis" MaxHeight="34"/>
+                                            <TextBlock Text="{Binding MoTa}" FontSize="12" Foreground="#64748B" TextTrimming="CharacterEllipsis" MaxHeight="34" ToolTip="{Binding MoTa}"/>
                                         </StackPanel>
 
-                                        <!-- Cột 3: Nút Thao tác -->
-                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
-                                            <!-- Chỉnh sửa -->
-                                            <Button ToolTip="Chỉnh sửa đề thi" Command="{Binding DataContext.ChonSuaDeThiCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" Style="{StaticResource ActionIconBtn}" Margin="0,0,6,0">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <local:LucideIcon Kind="Edit3" Size="13" Foreground="#0F172A" Margin="0,0,4,0"/>
-                                                    <TextBlock Text="Sửa" FontSize="11.5" FontWeight="SemiBold"/>
-                                                </StackPanel>
-                                            </Button>
+                                        <!-- Cột 3: Nút Thao tác (Chia 2 hàng gọn gàng, giảm 260px bề ngang, các nút luôn hiển thị đầy đủ và không bao giờ che text) -->
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="16,0,0,0">
+                                            <!-- Hàng 1: Thao tác chỉnh sửa, xem trước, xuất bản / đóng đề -->
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,6">
+                                                <!-- Chỉnh sửa -->
+                                                <Button ToolTip="Chỉnh sửa đề thi" Command="{Binding DataContext.ChonSuaDeThiCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" Style="{StaticResource ActionIconBtn}" Margin="0,0,6,0">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <local:LucideIcon Kind="Edit3" Size="13" Foreground="#0F172A" Margin="0,0,4,0"/>
+                                                        <TextBlock Text="Sửa" FontSize="11.5" FontWeight="SemiBold"/>
+                                                    </StackPanel>
+                                                </Button>
 
-                                            <!-- Xem trước -->
-                                            <Button ToolTip="Xem trước nội dung đề" Command="{Binding DataContext.XemTruocDeThiCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" Style="{StaticResource ActionIconBtn}" Margin="0,0,6,0">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <local:LucideIcon Kind="Eye" Size="13" Foreground="#0F172A" Margin="0,0,4,0"/>
-                                                    <TextBlock Text="Xem trước" FontSize="11.5"/>
-                                                </StackPanel>
-                                            </Button>
+                                                <!-- Xem trước -->
+                                                <Button ToolTip="Xem trước nội dung đề" Command="{Binding DataContext.XemTruocDeThiCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" Style="{StaticResource ActionIconBtn}" Margin="0,0,6,0">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <local:LucideIcon Kind="Eye" Size="13" Foreground="#0F172A" Margin="0,0,4,0"/>
+                                                        <TextBlock Text="Xem trước" FontSize="11.5"/>
+                                                    </StackPanel>
+                                                </Button>
 
-                                            <!-- Xuất bản (nếu chưa xuất bản) -->
-                                            <Button ToolTip="Xuất bản cho học viên làm bài" 
-                                                    Command="{Binding DataContext.XuatBanDeThiCommand, RelativeSource={RelativeSource AncestorType=Page}}" 
-                                                    CommandParameter="{Binding}" 
-                                                    Visibility="{Binding IsDraft, Converter={StaticResource BoolToVisConverter}}"
-                                                    Background="#DCFCE7" Foreground="#15803D" BorderThickness="0" Padding="8,6" Cursor="Hand" Margin="0,0,6,0">
-                                                <Button.Template>
-                                                    <ControlTemplate TargetType="Button">
-                                                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                                            <StackPanel Orientation="Horizontal">
-                                                                <local:LucideIcon Kind="Send" Size="13" Foreground="#15803D" Margin="0,0,4,0"/>
-                                                                <TextBlock Text="Xuất bản" FontSize="11.5" FontWeight="Bold"/>
-                                                            </StackPanel>
-                                                        </Border>
-                                                    </ControlTemplate>
-                                                </Button.Template>
-                                            </Button>
+                                                <!-- Xuất bản (nếu chưa xuất bản) -->
+                                                <Button ToolTip="Xuất bản cho học viên làm bài" 
+                                                        Command="{Binding DataContext.XuatBanDeThiCommand, RelativeSource={RelativeSource AncestorType=Page}}" 
+                                                        CommandParameter="{Binding}" 
+                                                        Visibility="{Binding IsDraft, Converter={StaticResource BoolToVisConverter}}"
+                                                        Background="#DCFCE7" Foreground="#15803D" BorderThickness="0" Padding="8,6" Cursor="Hand">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                             <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <local:LucideIcon Kind="Send" Size="13" Foreground="#15803D" Margin="0,0,4,0"/>
+                                                                    <TextBlock Text="Xuất bản" FontSize="11.5" FontWeight="Bold"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
 
-                                            <!-- Đóng đề (nếu đã xuất bản) -->
-                                            <Button ToolTip="Đóng đề thi (ngừng cho làm)" 
-                                                    Command="{Binding DataContext.DongDeThiCommand, RelativeSource={RelativeSource AncestorType=Page}}" 
-                                                    CommandParameter="{Binding}" 
-                                                    Visibility="{Binding IsPublished, Converter={StaticResource BoolToVisConverter}}"
-                                                    Background="#F1F5F9" Foreground="#64748B" BorderThickness="0" Padding="8,6" Cursor="Hand" Margin="0,0,6,0">
-                                                <Button.Template>
-                                                    <ControlTemplate TargetType="Button">
-                                                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                                            <StackPanel Orientation="Horizontal">
-                                                                <local:LucideIcon Kind="Pause" Size="13" Foreground="#64748B" Margin="0,0,4,0"/>
-                                                                <TextBlock Text="Đóng đề" FontSize="11.5"/>
-                                                            </StackPanel>
-                                                        </Border>
-                                                    </ControlTemplate>
-                                                </Button.Template>
-                                            </Button>
+                                                <!-- Đóng đề (nếu đã xuất bản) -->
+                                                <Button ToolTip="Đóng đề thi (ngừng cho làm)" 
+                                                        Command="{Binding DataContext.DongDeThiCommand, RelativeSource={RelativeSource AncestorType=Page}}" 
+                                                        CommandParameter="{Binding}" 
+                                                        Visibility="{Binding IsPublished, Converter={StaticResource BoolToVisConverter}}"
+                                                        Background="#F1F5F9" Foreground="#64748B" BorderThickness="0" Padding="8,6" Cursor="Hand">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <local:LucideIcon Kind="Pause" Size="13" Foreground="#64748B" Margin="0,0,4,0"/>
+                                                                    <TextBlock Text="Đóng đề" FontSize="11.5"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </StackPanel>
 
-                                            <!-- Nhân bản -->
-                                            <Button ToolTip="Nhân bản đề thi" Command="{Binding DataContext.NhanBanDeThiCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" Style="{StaticResource ActionIconBtn}" Margin="0,0,6,0">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <local:LucideIcon Kind="Copy" Size="13" Foreground="#0F172A" Margin="0,0,4,0"/>
-                                                    <TextBlock Text="Nhân bản" FontSize="11.5"/>
-                                                </StackPanel>
-                                            </Button>
+                                            <!-- Hàng 2: Nhân bản, Lượt thi, Xóa -->
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <!-- Nhân bản -->
+                                                <Button ToolTip="Nhân bản đề thi thành bản nháp mới" Command="{Binding DataContext.NhanBanDeThiCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" Style="{StaticResource ActionIconBtn}" Margin="0,0,6,0">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <local:LucideIcon Kind="Copy" Size="13" Foreground="#0F172A" Margin="0,0,4,0"/>
+                                                        <TextBlock Text="Nhân bản" FontSize="11.5"/>
+                                                    </StackPanel>
+                                                </Button>
 
-                                            <!-- Xem lịch sử thi -->
-                                            <Button ToolTip="Xem danh sách bài nộp của học viên" Command="{Binding DataContext.XemLichSuDeThiCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" Style="{StaticResource ActionIconBtn}" Margin="0,0,6,0">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <local:LucideIcon Kind="Users" Size="13" Foreground="#1D4ED8" Margin="0,0,4,0"/>
-                                                    <TextBlock Text="{Binding SoLuotDaThi, StringFormat='Lượt thi ({0})'}" FontSize="11.5" Foreground="#1D4ED8"/>
-                                                </StackPanel>
-                                            </Button>
+                                                <!-- Xem lịch sử thi -->
+                                                <Button ToolTip="Xem danh sách bài nộp của học viên" Command="{Binding DataContext.XemLichSuDeThiCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" Style="{StaticResource ActionIconBtn}" Margin="0,0,6,0">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <local:LucideIcon Kind="Users" Size="13" Foreground="#1D4ED8" Margin="0,0,4,0"/>
+                                                        <TextBlock Text="{Binding SoLuotDaThi, StringFormat='Lượt thi ({0})'}" FontSize="11.5" Foreground="#1D4ED8"/>
+                                                    </StackPanel>
+                                                </Button>
 
-                                            <!-- Xóa -->
-                                            <Button ToolTip="Xóa đề thi" Command="{Binding DataContext.XoaDeThiCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" Style="{StaticResource ActionIconBtn}">
-                                                <local:LucideIcon Kind="Trash2" Size="13" Foreground="#DC2626"/>
-                                            </Button>
+                                                <!-- Xóa -->
+                                                <Button ToolTip="Xóa đề thi" Command="{Binding DataContext.XoaDeThiCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" Style="{StaticResource ActionIconBtn}">
+                                                    <local:LucideIcon Kind="Trash2" Size="13" Foreground="#DC2626"/>
+                                                </Button>
+                                            </StackPanel>
                                         </StackPanel>
                                     </Grid>
                                 </DataTemplate>
@@ -587,7 +603,7 @@
 
                                 <TextBlock Text="Tên đề thi (*)" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
                                 <Grid Margin="0,0,0,12">
-                                    <TextBox Text="{Binding CurrentDeThi.TenBaiTapDeThi, UpdateSourceTrigger=PropertyChanged}" 
+                                    <TextBox Text="{Binding CurrentDeThi.TenBaiTapDeThi, UpdateSourceTrigger=PropertyChanged}" MaxLength="200" 
                                              Padding="12,8" VerticalContentAlignment="Center" Height="38" FontSize="13"
                                              BorderBrush="{StaticResource BorderLight}">
                                         <TextBox.Resources>
@@ -604,7 +620,7 @@
 
                                 <TextBlock Text="Mô tả / Hướng dẫn làm bài" FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
                                 <Grid Margin="0,0,0,12">
-                                    <TextBox Text="{Binding CurrentDeThi.MoTa, UpdateSourceTrigger=PropertyChanged}" 
+                                    <TextBox Text="{Binding CurrentDeThi.MoTa, UpdateSourceTrigger=PropertyChanged}" MaxLength="1000" 
                                              Padding="10,8" Height="68" TextWrapping="Wrap" AcceptsReturn="True" FontSize="12.5"
                                              BorderBrush="{StaticResource BorderLight}">
                                         <TextBox.Resources>
@@ -637,7 +653,7 @@
 
                                     <StackPanel Grid.Column="2">
                                         <TextBlock Text="Thời gian làm (phút, 0=vô hạn)" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                        <TextBox Text="{Binding CurrentDeThi.ThoiGianLamBaiPhut, UpdateSourceTrigger=PropertyChanged}" 
+                                        <TextBox Text="{Binding CurrentDeThi.ThoiGianLamBaiPhut, UpdateSourceTrigger=PropertyChanged}" PreviewTextInput="NumberOnly_PreviewTextInput" MaxLength="4" 
                                                  Padding="10,6" VerticalContentAlignment="Center" Height="36" FontSize="12.5"
                                                  BorderBrush="{StaticResource BorderLight}">
                                             <TextBox.Resources>
@@ -659,7 +675,7 @@
 
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Text="Điểm đạt (Pass)" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                        <TextBox Text="{Binding CurrentDeThi.DiemDat, UpdateSourceTrigger=PropertyChanged}" 
+                                        <TextBox Text="{Binding CurrentDeThi.DiemDat, UpdateSourceTrigger=PropertyChanged}" PreviewTextInput="DecimalOnly_PreviewTextInput" MaxLength="5" 
                                                  Padding="10,6" VerticalContentAlignment="Center" Height="36" FontSize="12.5"
                                                  BorderBrush="{StaticResource BorderLight}">
                                             <TextBox.Resources>
@@ -694,7 +710,7 @@
 
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Text="Số lượt làm tối đa (0=vô hạn)" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                        <TextBox Text="{Binding CurrentDeThi.SoLuotLamToiDa, UpdateSourceTrigger=PropertyChanged}" 
+                                        <TextBox Text="{Binding CurrentDeThi.SoLuotLamToiDa, UpdateSourceTrigger=PropertyChanged}" PreviewTextInput="NumberOnly_PreviewTextInput" MaxLength="3" 
                                                  Padding="10,6" VerticalContentAlignment="Center" Height="36" FontSize="12.5"
                                                  BorderBrush="{StaticResource BorderLight}">
                                             <TextBox.Resources>

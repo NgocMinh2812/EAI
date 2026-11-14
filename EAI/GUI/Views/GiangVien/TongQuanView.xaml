@@ -62,16 +62,16 @@
     </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
-        <Grid MaxWidth="1300">
+        <Grid MaxWidth="1360">
             <Grid.ColumnDefinitions>
                 <!-- Column 1: Từ vựng & Tài nguyên -->
-                <ColumnDefinition Width="310"/>
-                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="295"/>
+                <ColumnDefinition Width="18"/>
                 <!-- Column 2: Nội dung & Đề thi -->
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="18"/>
                 <!-- Column 3: Thống kê & Thao tác nhanh -->
-                <ColumnDefinition Width="320"/>
+                <ColumnDefinition Width="340"/>
             </Grid.ColumnDefinitions>
 
             <!-- ================= CỘT 1: TỪ VỰNG & TÀI NGUYÊN ================= -->
@@ -129,8 +129,8 @@
                                 Cursor="Hand" MouseLeftButtonUp="BtnXemTatCaTuVung_Click" ToolTip="Nhấp vào để ôn tập Flashcard ngay">
                             <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <StackPanel HorizontalAlignment="Center">
-                                    <TextBlock Text="📚" FontSize="34" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="Thẻ ghi nhớ thông minh • Bấm để ôn tập ngay" FontSize="11" Foreground="#15803D" FontWeight="SemiBold" Margin="0,3,0,0"/>
+                                    <TextBlock Text="🌱" FontSize="36" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Cây tri thức tăng trưởng • Ôn tập Flashcard" FontSize="10.5" Foreground="#15803D" FontWeight="Medium" Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -154,71 +154,31 @@
                 <!-- Card: Tài nguyên Học liệu -->
                 <Border Style="{StaticResource AdminCardStyle}">
                     <StackPanel>
-                        <TextBlock Text="Tài nguyên Học liệu" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}" Margin="0,0,0,14"/>
+                        <Grid Margin="0,0,0,14">
+                            <TextBlock Text="Tài nguyên Học liệu" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Quản lý" HorizontalAlignment="Right" FontSize="11.5" Foreground="{StaticResource AdminDarkGreen}" FontWeight="SemiBold" Cursor="Hand" MouseLeftButtonUp="BtnQuanLyTaiNguyen_Click" ToolTip="Mở danh mục quản lý học liệu"/>
+                        </Grid>
 
-                        <!-- Item 1: Grammar A1-B1 -->
-                        <Border Margin="0,0,0,12" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="BtnTaiNguyenGrammar_Click" ToolTip="Xem chuyên đề Ngữ pháp">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Background="#22C55E" Width="14" Height="14" CornerRadius="3" Margin="0,2,10,0" VerticalAlignment="Top"/>
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="Ngữ pháp tiếng Anh cơ bản — A1 đến B1" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                                <TextBlock Grid.Column="2" Text="🔖" Foreground="{StaticResource TextGray}" FontSize="12" Margin="6,0,0,0"/>
-                            </Grid>
-                        </Border>
-
-                        <!-- Item 2: IELTS 2024 -->
-                        <Border Margin="0,0,0,12" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="BtnTaiNguyenIelts_Click" ToolTip="Xem đề thi IELTS 2024">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Background="#3B82F6" Width="14" Height="14" CornerRadius="3" Margin="0,2,10,0" VerticalAlignment="Top"/>
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="Bộ đề IELTS 2024 — Academic &amp; General" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                                <TextBlock Grid.Column="2" Text="🔖" Foreground="{StaticResource TextGray}" FontSize="12" Margin="6,0,0,0"/>
-                            </Grid>
-                        </Border>
-
-                        <!-- Item 3: TOEIC 1000 -->
-                        <Border Margin="0,0,0,12" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="BtnTaiNguyenToeic_Click" ToolTip="Xem từ vựng TOEIC">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Background="#F97316" Width="14" Height="14" CornerRadius="3" Margin="0,2,10,0" VerticalAlignment="Top"/>
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="1000 từ vựng TOEIC thông dụng nhất" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                                <TextBlock Grid.Column="2" Text="🔖" Foreground="{StaticResource TextGray}" FontSize="12" Margin="6,0,0,0"/>
-                            </Grid>
-                        </Border>
-
-                        <!-- Item 4: IPA Pronunciation -->
-                        <Border Background="Transparent" Cursor="Hand" MouseLeftButtonUp="BtnTaiNguyenIpa_Click" ToolTip="Xem bảng phiên âm quốc tế IPA">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Background="#A855F7" Width="14" Height="14" CornerRadius="3" Margin="0,2,10,0" VerticalAlignment="Top"/>
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="Phát âm IPA — Bảng ký hiệu và ví dụ âm" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                                <TextBlock Grid.Column="2" Text="🔖" Foreground="{StaticResource TextGray}" FontSize="12" Margin="6,0,0,0"/>
-                            </Grid>
-                        </Border>
+                        <ItemsControl x:Name="icTaiNguyenHocLieu">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0,0,0,12" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="ItemTaiNguyen_Click" ToolTip="{Binding ToolTip}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Background="{Binding BadgeBrush}" Width="14" Height="14" CornerRadius="3" Margin="0,2,10,0" VerticalAlignment="Top"/>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="{Binding TenHienThi}" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2" Text="🔖" Foreground="{StaticResource TextGray}" FontSize="12" Margin="6,0,0,0"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </Border>
 
@@ -325,7 +285,9 @@
                         </Grid>
 
                         <!-- Title -->
-                        <TextBlock x:Name="txtTieuDeBaiHoc1" Text="Thì Hiện Tại Hoàn Thành — Cấu trúc &amp; Cách dùng" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
+                        <TextBlock x:Name="txtTieuDeBaiHoc1" Text="Thì Hiện Tại Hoàn Thành — Cấu trúc &amp; Cách dùng" 
+                                   FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}" 
+                                   TextWrapping="Wrap" LineHeight="20" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Margin="0,0,0,6"/>
                         <!-- Subtitle -->
                         <TextBlock x:Name="txtTomTatBaiHoc1" Text="Bài học trình bày chi tiết cấu trúc thì hiện tại hoàn thành, các trạng từ đi kèm (already, yet, ever, never, just) và cách phân biệt với thì quá khứ đơn trong tiếng Anh." 
                                    FontSize="12.5" Foreground="{StaticResource TextGray}" TextWrapping="Wrap" Margin="0,0,0,14" LineHeight="18"/>
@@ -366,7 +328,9 @@
                                     <TextBlock x:Name="txtMaCodeDeThi" Text="DE-001" HorizontalAlignment="Right" FontSize="11" Foreground="{StaticResource TextGray}"/>
                                 </Grid>
 
-                                <TextBlock x:Name="txtTieuDeDeThi" Text="IELTS Mock Test #1 — Academic Reading &amp; Listening" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
+                                <TextBlock x:Name="txtTieuDeDeThi" Text="IELTS Mock Test #1 — Academic Reading &amp; Listening" 
+                                           FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}" 
+                                           TextWrapping="Wrap" LineHeight="20" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Margin="0,0,0,6"/>
                                 <TextBlock x:Name="txtMoTaDeThi" Text="Đề thi thử IELTS Academic dạng đầy đủ, gồm 4 phần Reading (40 câu) và Listening (40 câu). Tự động chấm điểm và phân tích điểm yếu sau khi nộp bài." 
                                            FontSize="12.5" Foreground="{StaticResource TextGray}" TextWrapping="Wrap" Margin="0,0,0,14" LineHeight="18"/>
 
@@ -406,7 +370,9 @@
                             <TextBlock x:Name="txtMaCodeBaiHoc2" Text="BH-006" HorizontalAlignment="Right" FontSize="11" Foreground="{StaticResource TextGray}"/>
                         </Grid>
 
-                        <TextBlock x:Name="txtTieuDeBaiHoc2" Text="Từ vựng Kinh tế — Business English cho người đi làm" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
+                        <TextBlock x:Name="txtTieuDeBaiHoc2" Text="Từ vựng Kinh tế — Business English cho người đi làm" 
+                                   FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}" 
+                                   TextWrapping="Wrap" LineHeight="20" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Margin="0,0,0,6"/>
                         <TextBlock x:Name="txtTomTatBaiHoc2" Text="Tổng hợp 120 từ vựng kinh tế thường gặp trong môi trường công sở, hội thảo và email công việc. Kèm flashcard ôn tập và câu ví dụ thực tế." 
                                    FontSize="12.5" Foreground="{StaticResource TextGray}" TextWrapping="Wrap" Margin="0,0,0,14" LineHeight="18"/>
 
@@ -532,14 +498,14 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Background="{Binding AvatarBg}" Width="30" Height="30" CornerRadius="15" Margin="0,0,8,0">
+                                            <Border Grid.Column="0" Background="{Binding AvatarBg}" Width="30" Height="30" CornerRadius="15" Margin="0,0,8,0" VerticalAlignment="Top">
                                                 <TextBlock Text="{Binding AvatarInitials}" FontSize="11" FontWeight="Bold" Foreground="{Binding AvatarFg}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding HoTen}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding TieuDe}" FontSize="10.5" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis"/>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,6,0">
+                                                <TextBlock Text="{Binding HoTen}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextDark}" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding TieuDe}" FontSize="10.5" Foreground="{StaticResource TextGray}" TextWrapping="Wrap" LineHeight="15" ToolTip="{Binding TieuDe}" Margin="0,1,0,0"/>
                                             </StackPanel>
-                                            <Border Grid.Column="2" Background="{Binding TrangThaiBg}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Margin="6,0,0,0">
+                                            <Border Grid.Column="2" Background="{Binding TrangThaiBg}" CornerRadius="4" Padding="6,2" VerticalAlignment="Top" Margin="4,2,0,0">
                                                 <TextBlock Text="{Binding TrangThai}" FontSize="10" FontWeight="SemiBold" Foreground="{Binding TrangThaiFg}"/>
                                             </Border>
                                         </Grid>
@@ -550,64 +516,6 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Card: Nhóm học -->
-                <Border Style="{StaticResource AdminCardStyle}">
-                    <StackPanel>
-                        <TextBlock Text="Nhóm học" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}" Margin="0,0,0,12"/>
-
-                        <!-- Group A1 -->
-                        <Border Margin="0,0,0,10" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="BtnNhomHoc_Click" Tag="A1" ToolTip="Xem học viên nhóm A1">
-                            <Grid>
-                                <StackPanel Orientation="Horizontal">
-                                    <Border Background="#DCFCE7" Width="26" Height="26" CornerRadius="6" Margin="0,0,8,0">
-                                        <local:LucideIcon Kind="Users" Size="12" Foreground="#15803D" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                    <TextBlock Text="Nhóm A1 — Cơ bản" FontSize="12" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                                <TextBlock x:Name="txtNhomA1Count" Text="0" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                            </Grid>
-                        </Border>
-
-                        <!-- Group B1 -->
-                        <Border Margin="0,0,0,10" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="BtnNhomHoc_Click" Tag="B1" ToolTip="Xem học viên nhóm B1">
-                            <Grid>
-                                <StackPanel Orientation="Horizontal">
-                                    <Border Background="#FEF3C7" Width="26" Height="26" CornerRadius="6" Margin="0,0,8,0">
-                                        <local:LucideIcon Kind="Users" Size="12" Foreground="#B45309" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                    <TextBlock Text="Nhóm B1 — Trung cấp" FontSize="12" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                                <TextBlock x:Name="txtNhomB1Count" Text="0" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                            </Grid>
-                        </Border>
-
-                        <!-- Group B2 -->
-                        <Border Margin="0,0,0,10" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="BtnNhomHoc_Click" Tag="B2" ToolTip="Xem học viên nhóm B2">
-                            <Grid>
-                                <StackPanel Orientation="Horizontal">
-                                    <Border Background="#F3E8FF" Width="26" Height="26" CornerRadius="6" Margin="0,0,8,0">
-                                        <local:LucideIcon Kind="Users" Size="12" Foreground="#7E22CE" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                    <TextBlock Text="Nhóm B2 — Trên trung cấp" FontSize="12" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                                <TextBlock x:Name="txtNhomB2Count" Text="0" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                            </Grid>
-                        </Border>
-
-                        <!-- Group C1 -->
-                        <Border Background="Transparent" Cursor="Hand" MouseLeftButtonUp="BtnNhomHoc_Click" Tag="C1" ToolTip="Xem học viên nhóm C1">
-                            <Grid>
-                                <StackPanel Orientation="Horizontal">
-                                    <Border Background="#FFE4E6" Width="26" Height="26" CornerRadius="6" Margin="0,0,8,0">
-                                        <local:LucideIcon Kind="Users" Size="12" Foreground="#BE123C" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                    <TextBlock Text="Nhóm C1 — Nâng cao" FontSize="12" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                                <TextBlock x:Name="txtNhomC1Count" Text="0" FontWeight="Bold" FontSize="12.5" Foreground="{StaticResource TextDark}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                            </Grid>
-                        </Border>
-                    </StackPanel>
-                </Border>
 
                 <!-- Card: Thao tác nhanh -->
                 <Border Style="{StaticResource AdminCardStyle}">

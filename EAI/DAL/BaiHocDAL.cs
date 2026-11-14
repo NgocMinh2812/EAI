@@ -197,7 +197,11 @@ namespace DAL
                 BEGIN
                     INSERT INTO HoSoHocTap (MaNguoiDung, SoPhutHocTichLuy, NgayCapNhat)
                     VALUES (@MaND, @SoPhut, SYSDATETIME());
-                END";
+                END;
+
+                -- Ghi nhận vết học tập vào LichSuHocTap cho bài học
+                INSERT INTO LichSuHocTap (MaNguoiDung, LoaiHoatDong, SoPhutHoc, NgayGhiNhan)
+                VALUES (@MaND, N'BaiHoc', @SoPhut, SYSDATETIME());";
 
             SqlDataProvider.Instance.ExecuteNonQuery(query, new[] { 
                 new SqlParameter("@MaND", maNguoiDung),
@@ -326,7 +330,7 @@ namespace DAL
                     double diemKS = r["DiemKhaoSat"] == DBNull.Value ? 0 : Convert.ToDouble(r["DiemKhaoSat"]);
 
                     dto.DiemTrungBinh = diemThi > 0 ? diemThi : (diemKS > 0 ? diemKS : 0.0);
-                    dto.ChuoiHocLienTiep = dto.SoPhutHocTichLuy > 0 ? Math.Max(1, dto.SoPhutHocTichLuy / 30) : 0;
+                    dto.ChuoiHocLienTiep = TienDoHocDAL.Instance.TinhChuoiNgayHoc(maNguoiDung);
                 }
 
                 // 2. Tỷ lệ theo kỹ năng

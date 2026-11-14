@@ -372,8 +372,6 @@
                                             <ComboBoxItem Content="True / False / Not Given" Tag="TrueFalseNotGiven"/>
                                             <ComboBoxItem Content="Điền khuyết" Tag="DienKhuyet"/>
                                             <ComboBoxItem Content="Trả lời ngắn" Tag="TraLoiNgan"/>
-                                            <ComboBoxItem Content="Nối cặp" Tag="NoiCap"/>
-                                            <ComboBoxItem Content="Sắp xếp" Tag="SapXep"/>
                                             <ComboBoxItem Content="Sửa lỗi sai" Tag="SuaLoiSai"/>
                                             <ComboBoxItem Content="Viết lại câu" Tag="VietLaiCau"/>
                                             <ComboBoxItem Content="Viết tự luận" Tag="TuLuan"/>

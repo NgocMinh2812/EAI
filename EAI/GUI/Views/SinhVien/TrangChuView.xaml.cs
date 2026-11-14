@@ -184,6 +184,13 @@ namespace GUI.Views
                 this.NavigationService?.Navigate(new TroLyAIView());
         }
 
+        private void BtnThongBao_Click(object sender, RoutedEventArgs e)
+        {
+            Common.ThongBaoDialog.ThongTin(
+                "🔔 Bạn không có thông báo mới nào từ giảng viên hoặc hệ thống học tập EnglishAI.", 
+                "Thông báo học tập");
+        }
+
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
         {
             bool confirm = Common.ThongBaoDialog.XacNhan(

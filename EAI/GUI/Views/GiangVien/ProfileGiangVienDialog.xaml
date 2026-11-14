@@ -417,7 +417,7 @@
                         <!-- Số điện thoại -->
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Số điện thoại liên hệ" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
-                            <TextBox x:Name="txtSoDienThoai" Style="{StaticResource ModernTextBoxStyle}"/>
+                            <TextBox x:Name="txtSoDienThoai" Style="{StaticResource ModernTextBoxStyle}" MaxLength="12" PreviewTextInput="TxtSoDienThoai_PreviewTextInput"/>
                         </StackPanel>
 
                         <!-- Ngày sinh -->

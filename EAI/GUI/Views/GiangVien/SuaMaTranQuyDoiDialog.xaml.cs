@@ -12,6 +12,7 @@ namespace GUI.Views.GiangVien
     public partial class SuaMaTranQuyDoiDialog : Window
     {
         private ObservableCollection<CauHinhQuyDoiKhaoSatDTO> _matrixList = new();
+        private string _snapshotMatrix = "";
 
         public SuaMaTranQuyDoiDialog()
         {
@@ -29,10 +30,38 @@ namespace GUI.Views.GiangVien
             var list = KhaoSatBUS.Instance.LayMaTranQuyDoi();
             _matrixList = new ObservableCollection<CauHinhQuyDoiKhaoSatDTO>(list);
             dgMaTran.ItemsSource = _matrixList;
+            _snapshotMatrix = TaoChuoiSnapshot();
+        }
+
+        private string TaoChuoiSnapshot()
+        {
+            if (_matrixList == null) return "";
+            return string.Join("|", _matrixList.Select(m => $"{m.MaCapDo}_{m.TenHienThi}_{m.DiemPhanTramMin}_{m.DiemPhanTramMax}_{m.QuyDoiIelts}_{m.QuyDoiToeic}_{m.LoTrinhDeXuat}"));
+        }
+
+        private bool CoThayDoiChuaLuu()
+        {
+            dgMaTran?.CommitEdit();
+            return string.Compare(_snapshotMatrix, TaoChuoiSnapshot(), StringComparison.Ordinal) != 0;
+        }
+
+        private void NumberOnly_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            e.Handled = !int.TryParse(e.Text, out _);
         }
 
         private void BtnDong_Click(object sender, RoutedEventArgs e)
         {
+            if (CoThayDoiChuaLuu())
+            {
+                bool confirm = Common.ThongBaoDialog.XacNhan(
+                    "Ma trận quy đổi có các thay đổi chưa được lưu.\n\nBạn có chắc chắn muốn thoát mà không lưu không?",
+                    "Xác nhận thoát",
+                    confirmText: "Thoát không lưu",
+                    cancelText: "Ở lại");
+                if (!confirm) return;
+            }
+
             DialogResult = false;
             Close();
         }
@@ -45,6 +74,13 @@ namespace GUI.Views.GiangVien
 
         private void BtnKhoiPhucMacDinh_Click(object sender, RoutedEventArgs e)
         {
+            bool confirm = Common.ThongBaoDialog.XacNhan(
+                "Bạn có chắc chắn muốn khôi phục toàn bộ ma trận quy đổi về giá trị chuẩn CEFR mặc định không?\n\nCác giá trị điều chỉnh hiện tại trên bảng sẽ bị thay thế.",
+                "Xác nhận khôi phục mặc định",
+                confirmText: "Khôi phục",
+                cancelText: "Hủy bỏ");
+            if (!confirm) return;
+
             _matrixList.Clear();
             _matrixList.Add(new CauHinhQuyDoiKhaoSatDTO { MaCapDo = "A1", TenHienThi = "A1 (Mất gốc / Cơ bản)", DiemPhanTramMin = 0, DiemPhanTramMax = 39, QuyDoiIelts = "IELTS 3.0", QuyDoiToeic = "TOEIC 100 - 250", LoTrinhDeXuat = "Ngữ pháp nền tảng + 500 từ vựng cốt lõi", MauSac = "#DC2626", ThuTuSapXep = 1 });
             _matrixList.Add(new CauHinhQuyDoiKhaoSatDTO { MaCapDo = "A2", TenHienThi = "A2 (Sơ cấp)", DiemPhanTramMin = 40, DiemPhanTramMax = 59, QuyDoiIelts = "IELTS 3.5 - 4.5", QuyDoiToeic = "TOEIC 255 - 450", LoTrinhDeXuat = "Luyện phản xạ câu & Nghe hiểu đơn giản", MauSac = "#EA580C", ThuTuSapXep = 2 });
@@ -57,19 +93,50 @@ namespace GUI.Views.GiangVien
         {
             dgMaTran.CommitEdit();
 
-            // Validate logic: Min <= Max
+            // Validate logic: Min <= Max, Min >= 0, Max <= 100, TextNotEmpty
             foreach (var item in _matrixList)
             {
+                if (string.IsNullOrWhiteSpace(item.TenHienThi))
+                {
+                    Common.ThongBaoDialog.CanhBao($"Tên hiển thị của cấp độ {item.MaCapDo} không được để trống.", "Thiếu thông tin");
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(item.QuyDoiIelts) || string.IsNullOrWhiteSpace(item.QuyDoiToeic))
+                {
+                    Common.ThongBaoDialog.CanhBao($"Thông tin quy đổi IELTS / TOEIC của cấp độ {item.MaCapDo} không được để trống.", "Thiếu thông tin");
+                    return;
+                }
+
                 if (item.DiemPhanTramMin < 0 || item.DiemPhanTramMax > 100 || item.DiemPhanTramMin > item.DiemPhanTramMax)
                 {
-                    Common.ThongBaoDialog.CanhBao($"Khoảng điểm của cấp độ {item.MaCapDo} không hợp lệ (Phải từ 0% đến 100% và Min <= Max).", "Lỗi dữ liệu");
+                    Common.ThongBaoDialog.CanhBao($"Khoảng điểm của cấp độ {item.MaCapDo} không hợp lệ (Phải từ 0% đến 100% và Từ % <= Đến %).", "Lỗi dữ liệu");
                     return;
                 }
             }
 
+            // Kiểm tra tính liên tục / chồng lấn
+            var sortedList = _matrixList.OrderBy(m => m.ThuTuSapXep).ToList();
+            for (int i = 0; i < sortedList.Count - 1; i++)
+            {
+                if (sortedList[i].DiemPhanTramMax >= sortedList[i + 1].DiemPhanTramMax)
+                {
+                    Common.ThongBaoDialog.CanhBao($"Ngưỡng điểm tối đa của {sortedList[i].MaCapDo} ({sortedList[i].DiemPhanTramMax}%) không thể lớn hơn hoặc bằng {sortedList[i + 1].MaCapDo} ({sortedList[i + 1].DiemPhanTramMax}%).", "Xung đột khoảng điểm");
+                    return;
+                }
+            }
+
+            bool confirm = Common.ThongBaoDialog.XacNhan(
+                "Bạn có chắc chắn muốn lưu ma trận quy đổi trình độ mới vào cơ sở dữ liệu không?\n\nCác bài khảo sát sau này của sinh viên sẽ tự động đối chiếu theo thang điểm này.",
+                "Xác nhận lưu ma trận",
+                confirmText: "Lưu ma trận",
+                cancelText: "Hủy bỏ");
+            if (!confirm) return;
+
             bool thanhCong = KhaoSatBUS.Instance.LuuMaTranQuyDoi(_matrixList.ToList(), out string errorMessage);
             if (thanhCong)
             {
+                _snapshotMatrix = TaoChuoiSnapshot();
                 Common.ThongBaoDialog.ThanhCong("Đã lưu ma trận quy đổi trình độ vào CSDL SQL Server thành công!", "Thành công");
                 DialogResult = true;
                 Close();

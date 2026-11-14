@@ -10,12 +10,23 @@ namespace BUS
         private static TienDoHocBUS? _instance;
         public static TienDoHocBUS Instance => _instance ??= new TienDoHocBUS();
 
+        private int ResolveUserId(int? maNguoiDung)
+        {
+            // Anti-IDOR: Non-admin/non-lecturer is strictly bound to own account
+            if (SessionHelper.CurrentUser != null && !SessionHelper.IsGiangVien && !SessionHelper.IsAdmin)
+            {
+                return SessionHelper.CurrentMaNguoiDung;
+            }
+            return maNguoiDung ?? SessionHelper.CurrentMaNguoiDung;
+        }
+
         /// <summary>
         /// Lấy toàn bộ thông tin KPI và tiến độ mục tiêu của học viên đang đăng nhập
         /// </summary>
         public TongKetTienDoDTO LayTongKetTienDo(int? maNguoiDung = null, string filter = "TatCa")
         {
-            int userId = maNguoiDung ?? (SessionHelper.CurrentUser?.MaNguoiDung ?? 1);
+            int userId = ResolveUserId(maNguoiDung);
+            if (userId <= 0) return new TongKetTienDoDTO();
             return TienDoHocDAL.Instance.LayTongKetTienDo(userId, filter);
         }
 
@@ -24,7 +35,8 @@ namespace BUS
         /// </summary>
         public List<DiemThiTheoThoiGianDTO> LayLichSuDiemThi(int? maNguoiDung = null, string filter = "TatCa")
         {
-            int userId = maNguoiDung ?? (SessionHelper.CurrentUser?.MaNguoiDung ?? 1);
+            int userId = ResolveUserId(maNguoiDung);
+            if (userId <= 0) return new List<DiemThiTheoThoiGianDTO>();
             return TienDoHocDAL.Instance.LayLichSuDiemThi(userId, filter);
         }
 
@@ -33,7 +45,8 @@ namespace BUS
         /// </summary>
         public List<GioHocTheoNgayDTO> LayThongKeGioHoc(int? maNguoiDung = null, string filter = "TatCa")
         {
-            int userId = maNguoiDung ?? (SessionHelper.CurrentUser?.MaNguoiDung ?? 1);
+            int userId = ResolveUserId(maNguoiDung);
+            if (userId <= 0) return new List<GioHocTheoNgayDTO>();
             return TienDoHocDAL.Instance.LayThongKeGioHocTheoNgay(userId, filter);
         }
 

@@ -20,10 +20,13 @@ namespace DTO
         public int SoLanOnTap { get; set; }
         public int SoLanDung { get; set; }
         public DateTime? LanOnTapCuoi { get; set; }
+        public DateTime? NgayOnTapTiepTheo { get; set; }
 
         public string IpaFormatted => string.IsNullOrWhiteSpace(LoaiTu) ? PhienAmIPA : $"{PhienAmIPA} ({LoaiTu})";
         public string TopicBadge => $"{TenChuDe.ToUpper()} • {MaCapDo}";
-        public bool DaThuoc => SoLanDung >= 1;
+        public bool DaThuoc => SoLanDung >= 3;
+        public int LeitnerBox => Math.Clamp(SoLanDung + 1, 1, 5);
+        public bool IsDueForReview => NgayOnTapTiepTheo == null || NgayOnTapTiepTheo <= DateTime.Now;
 
         public string DaThuocBadgeText => DaThuoc ? "✓ Đã thuộc" : "Cần ôn tập";
         public string DaThuocBadgeBg => DaThuoc ? "#DCFCE7" : "#FEF3C7";

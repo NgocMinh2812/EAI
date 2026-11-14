@@ -15,7 +15,7 @@ namespace GUI.Views
 {
     public partial class BaiVietAIView : Page
     {
-        private int CurrentUserId => SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
+        private int CurrentUserId => SessionHelper.CurrentMaNguoiDung;
         private List<BaiVietDaChamDTO> _historyList = new();
 
         // Current Level State
@@ -495,6 +495,18 @@ Ultimately, harmonizing state-level infrastructure enhancement with widespread c
         {
             try
             {
+                if (CurrentUserId <= 0)
+                {
+                    _historyList = new();
+                    txtToggleHistoryLabel.Text = "Lịch sử bài chấm (0)";
+                    if (txtModalHistoryStats != null)
+                    {
+                        txtModalHistoryStats.Text = "Tổng cộng: 0 bài đã chấm";
+                    }
+                    RenderHistoryList();
+                    return;
+                }
+
                 _historyList = BaiVietAIBUS.Instance.LayLichSuBaiViet(CurrentUserId);
                 txtToggleHistoryLabel.Text = $"Lịch sử bài chấm ({_historyList.Count})";
                 if (txtModalHistoryStats != null)
@@ -856,6 +868,12 @@ Ultimately, harmonizing state-level infrastructure enhancement with widespread c
         #region AI Essay Grading Engine
         private async void BtnGradeEssay_Click(object sender, RoutedEventArgs e)
         {
+            if (CurrentUserId <= 0)
+            {
+                ThongBaoDialog.CanhBao("Phiên làm việc đã kết thúc hoặc chưa đăng nhập. Vui lòng đăng nhập lại để sử dụng chức năng này.", "Chưa đăng nhập");
+                return;
+            }
+
             string essay = txtEssayInput.Text.Trim();
             string topic = txtEssayTopic.Text.Trim();
 

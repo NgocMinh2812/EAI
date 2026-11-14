@@ -11,12 +11,29 @@ namespace BUS.AI.Models
         public string Model { get; set; } = string.Empty;
         public long LatencyMs { get; set; }
         public bool Success { get; set; }
-        public int StatusCode { get; set; }
+        public int StatusCode { get; set; } = 200;
         public string PromptPreview { get; set; } = string.Empty;
         public string? ErrorMessage { get; set; }
         public bool IsFallback { get; set; }
 
-        public string StatusBadgeText => Success ? $"POST {StatusCode} OK" : $"ERR {StatusCode}";
+        public string StatusBadgeText
+        {
+            get
+            {
+                if (Success)
+                {
+                    int code = StatusCode > 0 ? StatusCode : 200;
+                    return $"POST {code} OK";
+                }
+                else
+                {
+                    int code = StatusCode > 0 ? StatusCode : 500;
+                    return $"ERR {code}";
+                }
+            }
+        }
+        public string StatusBadgeBg => Success ? "#DCFCE7" : "#FEE2E2";
+        public string StatusBadgeFg => Success ? "#15803D" : "#DC2626";
         public string FormattedTime => Timestamp.ToString("HH:mm:ss");
     }
 }

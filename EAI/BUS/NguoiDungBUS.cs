@@ -115,6 +115,56 @@ namespace BUS
             return true;
         }
 
+        public static bool KiemTraDinhDangSoDienThoai(string? sdt, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+            if (string.IsNullOrWhiteSpace(sdt))
+            {
+                return true; // Số điện thoại là trường tùy chọn (optional)
+            }
+
+            string cleaned = sdt.Trim();
+
+            // 1. Kiểm tra ký tự: Chỉ cho phép chữ số (0-9) và dấu + ở vị trí đầu tiên
+            if (!Regex.IsMatch(cleaned, @"^(\+)?[0-9]+$"))
+            {
+                errorMessage = "Số điện thoại chỉ được chứa các chữ số (0-9), không được chứa chữ cái hay ký tự đặc biệt!";
+                return false;
+            }
+
+            // 2. Kiểm tra độ dài và đầu số
+            if (cleaned.StartsWith("+84"))
+            {
+                if (cleaned.Length < 11 || cleaned.Length > 12)
+                {
+                    errorMessage = "Số điện thoại định dạng quốc tế (+84) phải có 11 đến 12 ký tự (Ví dụ: +84912345678)!";
+                    return false;
+                }
+            }
+            else if (cleaned.StartsWith("0"))
+            {
+                if (cleaned.Length != 10)
+                {
+                    errorMessage = "Số điện thoại phải có đúng 10 chữ số (Ví dụ: 0912345678)!";
+                    return false;
+                }
+
+                char secondChar = cleaned[1];
+                if (secondChar != '3' && secondChar != '5' && secondChar != '7' && secondChar != '8' && secondChar != '9' && secondChar != '2')
+                {
+                    errorMessage = "Đầu số điện thoại không hợp lệ! Vui lòng nhập số hợp lệ tại Việt Nam (03x, 05x, 07x, 08x, 09x).";
+                    return false;
+                }
+            }
+            else
+            {
+                errorMessage = "Số điện thoại phải bắt đầu bằng số 0 hoặc mã quốc gia +84 (Ví dụ: 0912345678)!";
+                return false;
+            }
+
+            return true;
+        }
+
         public bool DangKy(string hoTen, string email, string password, string confirmPassword, out string errorMessage, out NguoiDungDTO? newUser)
         {
             newUser = null;
@@ -275,8 +325,20 @@ namespace BUS
             if (string.IsNullOrWhiteSpace(user.TenDangNhap) || user.TenDangNhap.Trim().Length < 3)
                 return (false, "Tên đăng nhập phải có ít nhất 3 ký tự.");
 
-            if (string.IsNullOrWhiteSpace(user.Email) || !Regex.IsMatch(user.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            if (user.TenDangNhap.Trim().Length > 50)
+                return (false, "Tên đăng nhập không được vượt quá 50 ký tự.");
+
+            if (!Regex.IsMatch(user.TenDangNhap.Trim(), @"^[a-zA-Z0-9_.]+$"))
+                return (false, "Tên đăng nhập chỉ được chứa chữ cái không dấu, chữ số, dấu gạch dưới (_) hoặc dấu chấm (.), không được chứa khoảng trắng hay ký tự đặc biệt.");
+
+            if (string.IsNullOrWhiteSpace(user.Email) || !Regex.IsMatch(user.Email, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"))
                 return (false, "Địa chỉ email không đúng định dạng hợp lệ.");
+
+            if (!string.IsNullOrWhiteSpace(user.SoDienThoai))
+            {
+                if (!KiemTraDinhDangSoDienThoai(user.SoDienThoai, out string sdtErr))
+                    return (false, sdtErr);
+            }
 
             if (_dal.ExistsUsernameOrEmail(user.TenDangNhap.Trim(), user.Email.Trim()))
                 return (false, "Tên đăng nhập hoặc email đã tồn tại trong hệ thống.");
@@ -303,8 +365,14 @@ namespace BUS
                 return (false, nameErr);
             user.HoTen = validName;
 
-            if (string.IsNullOrWhiteSpace(user.Email) || !Regex.IsMatch(user.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            if (string.IsNullOrWhiteSpace(user.Email) || !Regex.IsMatch(user.Email, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"))
                 return (false, "Địa chỉ email không đúng định dạng hợp lệ.");
+
+            if (!string.IsNullOrWhiteSpace(user.SoDienThoai))
+            {
+                if (!KiemTraDinhDangSoDienThoai(user.SoDienThoai, out string sdtErr))
+                    return (false, sdtErr);
+            }
 
             if (_dal.ExistsUsernameOrEmail(user.TenDangNhap.Trim(), user.Email.Trim(), user.MaNguoiDung))
                 return (false, "Email này đã được sử dụng bởi một tài khoản khác.");
@@ -405,9 +473,8 @@ namespace BUS
 
             if (!string.IsNullOrWhiteSpace(soDienThoai))
             {
-                string cleanPhone = soDienThoai.Trim();
-                if (!Regex.IsMatch(cleanPhone, @"^(0|\+84)[0-9]{9,10}$"))
-                    return (false, "Số điện thoại không hợp lệ (Ví dụ: 0912345678).");
+                if (!KiemTraDinhDangSoDienThoai(soDienThoai, out string sdtErr))
+                    return (false, sdtErr);
             }
 
             string? hashedNewPass = null;
@@ -450,6 +517,12 @@ namespace BUS
             string? duongDanAnh = null)
         {
             if (userId <= 0) return (false, "Mã tài khoản không hợp lệ.");
+
+            // Anti-IDOR Guard: Non-admin can only update their own profile
+            if (!SessionHelper.IsAdmin && userId != SessionHelper.CurrentMaNguoiDung)
+            {
+                return (false, "Bạn không có quyền chỉnh sửa thông tin hồ sơ của tài khoản khác.");
+            }
 
             if (!KiemTraDinhDangHoTen(hoTen, out string nameErr, out string validName))
                 return (false, nameErr);
@@ -499,6 +572,12 @@ namespace BUS
             string confirmPassword)
         {
             if (userId <= 0) return (false, "Mã tài khoản không hợp lệ.");
+
+            // Anti-IDOR Guard: Non-admin can only change their own password
+            if (!SessionHelper.IsAdmin && userId != SessionHelper.CurrentMaNguoiDung)
+            {
+                return (false, "Bạn không có quyền đổi mật khẩu của tài khoản khác.");
+            }
 
             if (string.IsNullOrWhiteSpace(currentPassword))
                 return (false, "Vui lòng nhập mật khẩu hiện tại.");

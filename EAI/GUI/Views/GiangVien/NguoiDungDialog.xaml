@@ -189,19 +189,21 @@
                     <StackPanel Grid.Row="0">
                         <!-- Họ và tên -->
                         <TextBlock Text="Họ và tên *" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
-                        <TextBox x:Name="txtHoTen" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,12"/>
+                        <TextBox x:Name="txtHoTen" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,12" MaxLength="100"/>
 
                         <!-- Tên đăng nhập -->
                         <TextBlock Text="Tên đăng nhập *" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
-                        <TextBox x:Name="txtTenDangNhap" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,12"/>
+                        <TextBox x:Name="txtTenDangNhap" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,12" MaxLength="50"
+                                 PreviewTextInput="TxtTenDangNhap_PreviewTextInput"/>
 
                         <!-- Email -->
                         <TextBlock Text="Địa chỉ Email *" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
-                        <TextBox x:Name="txtEmail" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,12"/>
+                        <TextBox x:Name="txtEmail" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,12" MaxLength="100"/>
 
                         <!-- Số điện thoại -->
                         <TextBlock Text="Số điện thoại" FontWeight="SemiBold" FontSize="12.5" Foreground="#064E3B" Margin="0,0,0,4"/>
-                        <TextBox x:Name="txtSoDienThoai" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,12"/>
+                        <TextBox x:Name="txtSoDienThoai" Style="{StaticResource ModernTextBoxStyle}" Margin="0,0,0,12" MaxLength="12"
+                                 PreviewTextInput="TxtSoDienThoai_PreviewTextInput"/>
 
                         <!-- Vai trò & Trình độ (2 cột song song) -->
                         <Grid Margin="0,0,0,14">

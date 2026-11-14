@@ -49,6 +49,9 @@ namespace GUI
             MainFrame.Navigated += MainFrame_Navigated;
             MainFrame.Navigating += MainFrame_Navigating;
 
+            // Đăng ký sự kiện đóng sidebar Trợ lý AI
+            aiAssistantSidebar.CloseRequested += DongAIAssistantSidebar;
+
             if (isFirstLogin)
             {
                 // Cơ chế kiểm soát Lần đầu đăng nhập: tự động ẩn Sidebar và điều hướng vào làm bài test đầu vào
@@ -116,6 +119,10 @@ namespace GUI
             {
                 return luyenTap.RequestExitPractice();
             }
+            if (MainFrame.Content is DanhGiaNangLucView khaoSat && khaoSat.IsSurveyInProgress)
+            {
+                return khaoSat.RequestExitSurvey();
+            }
             return true;
         }
 
@@ -132,6 +139,14 @@ namespace GUI
             else if (MainFrame.Content is LuyenTapView luyenTap && luyenTap.IsPracticeInProgress)
             {
                 if (!luyenTap.RequestExitPractice())
+                {
+                    e.Cancel = true;
+                    return;
+                }
+            }
+            else if (MainFrame.Content is DanhGiaNangLucView khaoSat && khaoSat.IsSurveyInProgress)
+            {
+                if (!khaoSat.RequestExitSurvey())
                 {
                     e.Cancel = true;
                     return;
@@ -195,6 +210,9 @@ namespace GUI
             {
                 SetActiveMenu("HoSo");
             }
+
+            // Đồng bộ trang hiện tại cho Trợ lý AI
+            aiAssistantSidebar?.UpdateCurrentPage(e.Content?.GetType().Name);
         }
 
         public void SetActiveMenu(string menuKey)
@@ -282,6 +300,35 @@ namespace GUI
             {
                 MainFrame.Navigate(GetOrCreatePage<TienDoHocView>());
             }
+        }
+
+        private bool _isAssistantOpen = false;
+
+        public void ToggleAIAssistantSidebar()
+        {
+            if (_isAssistantOpen)
+            {
+                DongAIAssistantSidebar();
+            }
+            else
+            {
+                MoAIAssistantSidebar();
+            }
+        }
+
+        public void MoAIAssistantSidebar()
+        {
+            _isAssistantOpen = true;
+            aiAssistantSidebar.Visibility = Visibility.Visible;
+            colRightAssistant.Width = new GridLength(680);
+            aiAssistantSidebar.UpdateCurrentPage(MainFrame.Content?.GetType().Name);
+        }
+
+        public void DongAIAssistantSidebar()
+        {
+            _isAssistantOpen = false;
+            colRightAssistant.Width = new GridLength(0);
+            aiAssistantSidebar.Visibility = Visibility.Collapsed;
         }
 
         private void NavAIChat_Click(object sender, RoutedEventArgs e)

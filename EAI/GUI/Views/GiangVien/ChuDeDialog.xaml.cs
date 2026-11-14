@@ -9,11 +9,13 @@ namespace GUI.Views.GiangVien
     {
         public ChuDeDTO ChuDeData { get; private set; }
         private readonly bool _isEditMode;
+        private readonly List<ChuDeDTO> _allChuDe;
 
         public ChuDeDialog(List<ChuDeDTO> danhSachChuDe, ChuDeDTO? existing = null, int? defaultParentId = null)
         {
             InitializeComponent();
             _isEditMode = existing != null;
+            _allChuDe = danhSachChuDe ?? new List<ChuDeDTO>();
 
             // Danh sách chủ đề cha
             var parentList = new List<ChuDeDTO>
@@ -26,10 +28,10 @@ namespace GUI.Views.GiangVien
             if (_isEditMode && existing != null)
             {
                 excludedIds.Add(existing.MaChuDe);
-                ThuThapCacChuDeConChau(existing.MaChuDe, danhSachChuDe, excludedIds);
+                ThuThapCacChuDeConChau(existing.MaChuDe, _allChuDe, excludedIds);
             }
 
-            foreach (var item in danhSachChuDe)
+            foreach (var item in _allChuDe)
             {
                 if (excludedIds.Contains(item.MaChuDe))
                     continue;
@@ -81,17 +83,29 @@ namespace GUI.Views.GiangVien
                 return;
             }
 
+            if (ten.Length > 150)
+            {
+                Views.Common.ThongBaoDialog.CanhBao(this, "Tên chủ đề không được vượt quá 150 ký tự.", "Tên quá dài");
+                txtTenChuDe.Focus();
+                return;
+            }
+
+            int? parentId = (cboChuDeCha.SelectedValue is int pid && pid > 0) ? pid : null;
+            bool isDuplicate = _allChuDe.Any(c =>
+                (!_isEditMode || c.MaChuDe != ChuDeData.MaChuDe) &&
+                c.MaChuDeCha == parentId &&
+                string.Equals(c.TenChuDe?.Trim(), ten, StringComparison.OrdinalIgnoreCase));
+
+            if (isDuplicate)
+            {
+                Views.Common.ThongBaoDialog.CanhBao(this, $"Đã có một chủ đề tên '{ten}' trong cùng thư mục này. Vui lòng đặt tên khác để tránh nhầm lẫn.", "Trùng tên chủ đề");
+                txtTenChuDe.Focus();
+                return;
+            }
+
             ChuDeData.TenChuDe = ten;
             ChuDeData.MoTa = string.IsNullOrWhiteSpace(txtMoTa.Text) ? null : txtMoTa.Text.Trim();
-
-            if (cboChuDeCha.SelectedValue is int parentId && parentId > 0)
-            {
-                ChuDeData.MaChuDeCha = parentId;
-            }
-            else
-            {
-                ChuDeData.MaChuDeCha = null;
-            }
+            ChuDeData.MaChuDeCha = parentId;
 
             DialogResult = true;
             Close();

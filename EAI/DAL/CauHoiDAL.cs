@@ -165,6 +165,21 @@ namespace DAL
         public int LuuLuotKhaoSat(int maNguoiDung, int maBaiKhaoSat, int tongSoCau, int soCauDung, decimal diem, string trinhDo)
         {
             string query = @"
+                -- Chống nộp lặp (Idempotency Guard trong 5 giây)
+                DECLARE @ExistingLuot INT = (
+                    SELECT TOP 1 MaLuotKhaoSat 
+                    FROM LuotKhaoSat 
+                    WHERE MaNguoiDung = @MaND 
+                      AND DATEDIFF(SECOND, ThoiDiemNopBai, SYSDATETIME()) < 5
+                    ORDER BY MaLuotKhaoSat DESC
+                );
+
+                IF @ExistingLuot IS NOT NULL
+                BEGIN
+                    SELECT @ExistingLuot;
+                    RETURN;
+                END;
+
                 DECLARE @MaBaiActual INT = (SELECT TOP 1 MaBaiKhaoSat FROM BaiKhaoSatDauVao WHERE MaBaiKhaoSat = @MaBai);
                 IF @MaBaiActual IS NULL
                 BEGIN
@@ -273,16 +288,17 @@ namespace DAL
             {
                 int maCauHoi = cauHoi.MaCauHoi;
 
-                // Ánh xạ Trình độ (A1 -> 1, A2 -> 2, B1 -> 3, B2 -> 4, C1 -> 5, C2 -> 6)
+                // Ánh xạ Trình độ (0: A1, 1: A2, 2: B1, 3: B2, 4: C1, 5: C2 chuẩn DB)
                 int? maTrinhDoId = cauHoi.MaTrinhDo switch
                 {
-                    "A1" => 1,
-                    "A2" => 2,
-                    "B1" => 3,
-                    "B2" => 4,
-                    "C1" => 5,
-                    "C2" => 6,
-                    _ => cauHoi.MaTrinhDoId ?? 3
+                    "A1" => 0,
+                    "A2" => 1,
+                    "B1" => 2,
+                    "B2" => 3,
+                    "C1" => 4,
+                    "C2" => 5,
+                    var s when s != null && (s.Contains("IELTS") || s.Contains("TOEIC")) => 3,
+                    _ => cauHoi.MaTrinhDoId ?? 2
                 };
                 cauHoi.MaTrinhDoId = maTrinhDoId;
 
@@ -317,7 +333,7 @@ namespace DAL
                     cmd.Parameters.AddWithValue("@GiaiThich", (object?)cauHoi.GiaiThichDapAn ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LoiGiai", (object?)cauHoi.GiaiThichDapAn ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@DaKiemDuyet", cauHoi.DaKiemDuyet);
-                    cmd.Parameters.AddWithValue("@NguoiTao", nguoiTaoId > 0 ? (object)nguoiTaoId : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@NguoiTao", nguoiTaoId >= 0 ? (object)nguoiTaoId : DBNull.Value);
                     cmd.Parameters.AddWithValue("@NguonTao", string.IsNullOrWhiteSpace(nguonTao) ? "ThuCong" : nguonTao);
                     cmd.Parameters.AddWithValue("@DoanVanDanChung", (object?)cauHoi.DoanVanDanChung ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LoaiNguon", string.IsNullOrWhiteSpace(cauHoi.LoaiNguon) ? "Extracted" : cauHoi.LoaiNguon);

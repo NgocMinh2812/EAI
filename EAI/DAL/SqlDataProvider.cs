@@ -358,6 +358,79 @@ namespace DAL
                     BEGIN
                         IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'SoCauHoiNhanDien' AND Object_ID = OBJECT_ID('TepTinNhapLieu'))
                             ALTER TABLE TepTinNhapLieu ADD SoCauHoiNhanDien INT NULL DEFAULT 0;
+                    END;
+
+                    -- HỒ SƠ HỌC TẬP - STREAK & LAST STUDY DATE
+                    IF EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'HoSoHocTap')
+                    BEGIN
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'ChuoiNgayHoc' AND Object_ID = OBJECT_ID('HoSoHocTap'))
+                            ALTER TABLE HoSoHocTap ADD ChuoiNgayHoc INT NOT NULL DEFAULT 0;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'NgayHocGanNhat' AND Object_ID = OBJECT_ID('HoSoHocTap'))
+                            ALTER TABLE HoSoHocTap ADD NgayHocGanNhat DATE NULL;
+                    END;
+
+                    -- AI ASSISTANT CONVERSATION & MESSAGE PERSISTENCE SCHEMA
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'AIAssistantConversation')
+                    BEGIN
+                        CREATE TABLE AIAssistantConversation (
+                            MaHoiThoai INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_AIAssistantConversation PRIMARY KEY,
+                            MaNguoiDung INT NOT NULL,
+                            TieuDe NVARCHAR(255) NOT NULL DEFAULT N'Cuộc hội thoại mới',
+                            NgayTao DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+                            NgayCapNhat DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+                            TrangThai NVARCHAR(30) NOT NULL DEFAULT N'Active',
+                            TongSoTinNhan INT NOT NULL DEFAULT 0,
+                            MoHinhUuTien NVARCHAR(100) NULL,
+                            PromptHeThongTuyChon NVARCHAR(MAX) NULL,
+                            CONSTRAINT FK_AIAssistantConversation_NguoiDung FOREIGN KEY (MaNguoiDung) REFERENCES NguoiDung(MaNguoiDung) ON DELETE CASCADE
+                        );
+
+                        CREATE NONCLUSTERED INDEX IX_AIAssistantConversation_MaNguoiDung_NgayCapNhat 
+                        ON AIAssistantConversation(MaNguoiDung, NgayCapNhat DESC);
+
+                        CREATE NONCLUSTERED INDEX IX_AIAssistantConversation_TieuDe 
+                        ON AIAssistantConversation(TieuDe);
+                    END
+                    ELSE
+                    BEGIN
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'TrangThai' AND Object_ID = OBJECT_ID('AIAssistantConversation'))
+                            ALTER TABLE AIAssistantConversation ADD TrangThai NVARCHAR(30) NOT NULL DEFAULT N'Active';
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'TongSoTinNhan' AND Object_ID = OBJECT_ID('AIAssistantConversation'))
+                            ALTER TABLE AIAssistantConversation ADD TongSoTinNhan INT NOT NULL DEFAULT 0;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'MoHinhUuTien' AND Object_ID = OBJECT_ID('AIAssistantConversation'))
+                            ALTER TABLE AIAssistantConversation ADD MoHinhUuTien NVARCHAR(100) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'PromptHeThongTuyChon' AND Object_ID = OBJECT_ID('AIAssistantConversation'))
+                            ALTER TABLE AIAssistantConversation ADD PromptHeThongTuyChon NVARCHAR(MAX) NULL;
+                    END;
+
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE Name = 'AIAssistantMessage')
+                    BEGIN
+                        CREATE TABLE AIAssistantMessage (
+                            MaTinNhan BIGINT IDENTITY(1,1) NOT NULL CONSTRAINT PK_AIAssistantMessage PRIMARY KEY,
+                            MaHoiThoai INT NOT NULL,
+                            VaiTro NVARCHAR(20) NOT NULL DEFAULT N'user',
+                            NoiDung NVARCHAR(MAX) NOT NULL DEFAULT N'',
+                            ThoiGianGui DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+                            ToolCallsJson NVARCHAR(MAX) NULL,
+                            ToolResultJson NVARCHAR(MAX) NULL,
+                            CardPayloadJson NVARCHAR(MAX) NULL,
+                            TrangThai NVARCHAR(30) NOT NULL DEFAULT N'Sent',
+                            CONSTRAINT FK_AIAssistantMessage_Conversation FOREIGN KEY (MaHoiThoai) REFERENCES AIAssistantConversation(MaHoiThoai) ON DELETE CASCADE
+                        );
+
+                        CREATE NONCLUSTERED INDEX IX_AIAssistantMessage_MaHoiThoai_ThoiGianGui 
+                        ON AIAssistantMessage(MaHoiThoai, ThoiGianGui ASC);
+                    END
+                    ELSE
+                    BEGIN
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'ToolCallsJson' AND Object_ID = OBJECT_ID('AIAssistantMessage'))
+                            ALTER TABLE AIAssistantMessage ADD ToolCallsJson NVARCHAR(MAX) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'ToolResultJson' AND Object_ID = OBJECT_ID('AIAssistantMessage'))
+                            ALTER TABLE AIAssistantMessage ADD ToolResultJson NVARCHAR(MAX) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'CardPayloadJson' AND Object_ID = OBJECT_ID('AIAssistantMessage'))
+                            ALTER TABLE AIAssistantMessage ADD CardPayloadJson NVARCHAR(MAX) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'TrangThai' AND Object_ID = OBJECT_ID('AIAssistantMessage'))
+                            ALTER TABLE AIAssistantMessage ADD TrangThai NVARCHAR(30) NOT NULL DEFAULT N'Sent';
                     END;";
                 ExecuteNonQuery(script);
             }

@@ -15,6 +15,9 @@ namespace GUI.Views.GiangVien
             InitializeComponent();
             _isEditMode = existingUser != null;
 
+            DataObject.AddPastingHandler(txtSoDienThoai, OnPhonePaste);
+            DataObject.AddPastingHandler(txtTenDangNhap, OnUsernamePaste);
+
             if (_isEditMode && existingUser != null)
             {
                 UserData = existingUser;
@@ -54,6 +57,58 @@ namespace GUI.Views.GiangVien
             }
         }
 
+        private void TxtSoDienThoai_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            if (sender is TextBox tb)
+            {
+                bool isPlusAtStart = e.Text == "+" && tb.SelectionStart == 0 && !tb.Text.Contains("+");
+                if (!char.IsDigit(e.Text, 0) && !isPlusAtStart)
+                {
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void TxtTenDangNhap_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            if (!System.Text.RegularExpressions.Regex.IsMatch(e.Text, @"^[a-zA-Z0-9_.]+$"))
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void OnPhonePaste(object sender, DataObjectPastingEventArgs e)
+        {
+            if (e.DataObject.GetDataPresent(DataFormats.Text))
+            {
+                string text = ((string)e.DataObject.GetData(DataFormats.Text)).Trim();
+                if (!System.Text.RegularExpressions.Regex.IsMatch(text, @"^(\+)?[0-9]+$"))
+                {
+                    e.CancelCommand();
+                }
+            }
+            else
+            {
+                e.CancelCommand();
+            }
+        }
+
+        private void OnUsernamePaste(object sender, DataObjectPastingEventArgs e)
+        {
+            if (e.DataObject.GetDataPresent(DataFormats.Text))
+            {
+                string text = ((string)e.DataObject.GetData(DataFormats.Text)).Trim();
+                if (!System.Text.RegularExpressions.Regex.IsMatch(text, @"^[a-zA-Z0-9_.]+$"))
+                {
+                    e.CancelCommand();
+                }
+            }
+            else
+            {
+                e.CancelCommand();
+            }
+        }
+
         private void BtnSave_Click(object sender, RoutedEventArgs e)
         {
             string hoTen = txtHoTen.Text.Trim();
@@ -61,27 +116,69 @@ namespace GUI.Views.GiangVien
             string email = txtEmail.Text.Trim();
             string sdt = txtSoDienThoai.Text.Trim();
 
+            // 1. Kiểm tra Họ và tên
             if (!NguoiDungBUS.KiemTraDinhDangHoTen(hoTen, out string nameErr, out string normalizedHoTen))
             {
                 Views.Common.ThongBaoDialog.CanhBao(this, nameErr, "Họ và tên không hợp lệ");
                 txtHoTen.Focus();
+                txtHoTen.SelectAll();
                 return;
             }
             hoTen = normalizedHoTen;
             txtHoTen.Text = normalizedHoTen;
 
-            if (!_isEditMode && (string.IsNullOrWhiteSpace(tenDangNhap) || tenDangNhap.Length < 3))
+            // 2. Kiểm tra Tên đăng nhập (khi tạo mới)
+            if (!_isEditMode)
             {
-                Views.Common.ThongBaoDialog.CanhBao(this, "Tên đăng nhập phải có ít nhất 3 ký tự.", "Tên đăng nhập không hợp lệ");
-                txtTenDangNhap.Focus();
+                if (string.IsNullOrWhiteSpace(tenDangNhap) || tenDangNhap.Length < 3)
+                {
+                    Views.Common.ThongBaoDialog.CanhBao(this, "Tên đăng nhập phải có ít nhất 3 ký tự.", "Tên đăng nhập không hợp lệ");
+                    txtTenDangNhap.Focus();
+                    txtTenDangNhap.SelectAll();
+                    return;
+                }
+                if (tenDangNhap.Length > 50)
+                {
+                    Views.Common.ThongBaoDialog.CanhBao(this, "Tên đăng nhập không được vượt quá 50 ký tự.", "Tên đăng nhập không hợp lệ");
+                    txtTenDangNhap.Focus();
+                    txtTenDangNhap.SelectAll();
+                    return;
+                }
+                if (!System.Text.RegularExpressions.Regex.IsMatch(tenDangNhap, @"^[a-zA-Z0-9_.]+$"))
+                {
+                    Views.Common.ThongBaoDialog.CanhBao(this, "Tên đăng nhập chỉ được chứa chữ cái không dấu, chữ số, dấu gạch dưới (_) hoặc dấu chấm (.), không được chứa khoảng trắng hay ký tự đặc biệt.", "Tên đăng nhập không hợp lệ");
+                    txtTenDangNhap.Focus();
+                    txtTenDangNhap.SelectAll();
+                    return;
+                }
+            }
+
+            // 3. Kiểm tra Địa chỉ Email
+            if (string.IsNullOrWhiteSpace(email) || !System.Text.RegularExpressions.Regex.IsMatch(email, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"))
+            {
+                Views.Common.ThongBaoDialog.CanhBao(this, "Vui lòng nhập địa chỉ email hợp lệ (ví dụ: user@domain.com).", "Email không hợp lệ");
+                txtEmail.Focus();
+                txtEmail.SelectAll();
+                return;
+            }
+            if (email.Length > 100)
+            {
+                Views.Common.ThongBaoDialog.CanhBao(this, "Địa chỉ email không được vượt quá 100 ký tự.", "Email không hợp lệ");
+                txtEmail.Focus();
+                txtEmail.SelectAll();
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
+            // 4. Kiểm tra Số điện thoại
+            if (!string.IsNullOrWhiteSpace(sdt))
             {
-                Views.Common.ThongBaoDialog.CanhBao(this, "Vui lòng nhập địa chỉ email hợp lệ (vd: user@domain.com).", "Email không hợp lệ");
-                txtEmail.Focus();
-                return;
+                if (!NguoiDungBUS.KiemTraDinhDangSoDienThoai(sdt, out string sdtErr))
+                {
+                    Views.Common.ThongBaoDialog.CanhBao(this, sdtErr, "Số điện thoại không hợp lệ");
+                    txtSoDienThoai.Focus();
+                    txtSoDienThoai.SelectAll();
+                    return;
+                }
             }
 
             UserData.HoTen = hoTen;

@@ -125,6 +125,9 @@ namespace DAL
             // 4. Tính toán tiến độ mục tiêu
             TinhTienDoMucTieu(result);
 
+            // 5. Tính chuỗi ngày học liên tục (Streak)
+            result.ChuoiNgayHoc = TinhChuoiNgayHoc(maNguoiDung);
+
             return result;
         }
 
@@ -172,6 +175,7 @@ namespace DAL
                     list.Add(new DiemThiTheoThoiGianDTO
                     {
                         MaLuotLamBai = Convert.ToInt32(r["MaLuotLamBai"]),
+                        MaNguoiDung = maNguoiDung,
                         MaBaiTapDeThi = Convert.ToInt32(r["MaBaiTapDeThi"]),
                         TenDeThi = r["TenDeThi"]?.ToString() ?? "Bài thi",
                         DiemSo = Convert.ToDecimal(r["DiemSo"]),
@@ -343,6 +347,101 @@ namespace DAL
                     result.MoTaTienDoMucTieu = "Chưa có bài thi để đo lường tiến độ mục tiêu";
                 }
             }
+        }
+
+        /// <summary>
+        /// Tính toán chuỗi ngày học liên tục (Streak) dựa trên lịch sử hoạt động thực tế
+        /// </summary>
+        public int TinhChuoiNgayHoc(int maNguoiDung)
+        {
+            if (maNguoiDung <= 0) return 0;
+
+            try
+            {
+                string query = @"
+                    SELECT DISTINCT CAST(NgayThucHien AS DATE) AS NgayHoc
+                    FROM (
+                        SELECT NgayGhiNhan AS NgayThucHien FROM LichSuHocTap WHERE MaNguoiDung = @MaND
+                        UNION ALL
+                        SELECT LanTruyCapCuoi AS NgayThucHien FROM TienDoBaiHoc WHERE MaNguoiDung = @MaND
+                        UNION ALL
+                        SELECT ThoiDiemNopBai AS NgayThucHien FROM LuotLamBai WHERE MaNguoiDung = @MaND AND TrangThai = 'DaNop'
+                        UNION ALL
+                        SELECT ThoiDiemBatDau AS NgayThucHien FROM LuotKhaoSat WHERE MaNguoiDung = @MaND
+                    ) AS AllStudy
+                    WHERE NgayThucHien IS NOT NULL
+                    ORDER BY NgayHoc DESC";
+
+                DataTable dt = SqlDataProvider.Instance.ExecuteQuery(query, new[] { new SqlParameter("@MaND", maNguoiDung) });
+                if (dt.Rows.Count == 0) return 0;
+
+                var dates = new List<DateTime>();
+                foreach (DataRow row in dt.Rows)
+                {
+                    if (row["NgayHoc"] != DBNull.Value)
+                    {
+                        dates.Add(Convert.ToDateTime(row["NgayHoc"]).Date);
+                    }
+                }
+
+                int streak = TinhStreakTuDanhSachNgay(dates, DateTime.Today);
+
+                // Đồng bộ cache vào HoSoHocTap nếu bảng đã hỗ trợ cột
+                try
+                {
+                    DateTime? mostRecent = dates.Count > 0 ? dates[0] : (DateTime?)null;
+                    string updateHoSo = @"
+                        IF EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'ChuoiNgayHoc' AND Object_ID = OBJECT_ID('HoSoHocTap'))
+                        BEGIN
+                            UPDATE HoSoHocTap
+                            SET ChuoiNgayHoc = @Streak,
+                                NgayHocGanNhat = @NgayGanNhat
+                            WHERE MaNguoiDung = @MaND;
+                        END";
+                    SqlDataProvider.Instance.ExecuteNonQuery(updateHoSo, new[]
+                    {
+                        new SqlParameter("@Streak", streak),
+                        new SqlParameter("@NgayGanNhat", (object?)mostRecent ?? DBNull.Value),
+                        new SqlParameter("@MaND", maNguoiDung)
+                    });
+                }
+                catch { }
+
+                return streak;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TienDoHocDAL.TinhChuoiNgayHoc] Lỗi: {ex.Message}");
+                return 0;
+            }
+        }
+
+        public static int TinhStreakTuDanhSachNgay(List<DateTime> distinctDatesDesc, DateTime today)
+        {
+            if (distinctDatesDesc == null || distinctDatesDesc.Count == 0) return 0;
+
+            DateTime mostRecent = distinctDatesDesc[0].Date;
+            // Nếu ngày học gần nhất trước ngày hôm qua (bỏ lỡ >= 1 ngày lịch), chuỗi đã bị đứt gãy
+            if (mostRecent < today.Date.AddDays(-1)) return 0;
+
+            int streak = 0;
+            // Nếu hôm nay đã học, đếm lùi từ hôm nay. Nếu hôm nay chưa học, đếm lùi từ hôm qua
+            DateTime expectedDate = (mostRecent == today.Date) ? today.Date : today.Date.AddDays(-1);
+
+            foreach (var d in distinctDatesDesc)
+            {
+                if (d.Date == expectedDate)
+                {
+                    streak++;
+                    expectedDate = expectedDate.AddDays(-1);
+                }
+                else if (d.Date < expectedDate)
+                {
+                    break; // Xuất hiện khoảng trống ngày nghỉ
+                }
+            }
+
+            return streak;
         }
     }
 }

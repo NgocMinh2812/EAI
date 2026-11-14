@@ -1,5 +1,6 @@
 using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using BUS;
 using DTO;
@@ -104,6 +105,18 @@ namespace GUI.Views.GiangVien
             Views.Common.ThongBaoDialog.ThanhCong(this, msg, "Cập nhật hồ sơ");
             this.DialogResult = true;
             this.Close();
+        }
+
+        private void TxtSoDienThoai_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            if (sender is TextBox tb)
+            {
+                bool isPlusAtStart = e.Text == "+" && tb.SelectionStart == 0 && !tb.Text.Contains("+");
+                if (!char.IsDigit(e.Text, 0) && !isPlusAtStart)
+                {
+                    e.Handled = true;
+                }
+            }
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

@@ -21,7 +21,8 @@ namespace DAL
                        ISNULL(fc.MaFlashcard, 0) AS MaFlashcard,
                        ISNULL(fc.SoLanOnTap, 0) AS SoLanOnTap,
                        ISNULL(fc.SoLanDung, 0) AS SoLanDung,
-                       fc.LanOnTapCuoi
+                       fc.LanOnTapCuoi,
+                       fc.NgayOnTapTiepTheo
                 FROM TuVung tv
                 LEFT JOIN TrinhDo td ON tv.MaTrinhDo = td.MaTrinhDo
                 LEFT JOIN ChuDe cd ON tv.MaChuDe = cd.MaChuDe
@@ -56,7 +57,8 @@ namespace DAL
                         TenChuDe = row["TenChuDe"]?.ToString() ?? "Từ vựng chung",
                         SoLanOnTap = Convert.ToInt32(row["SoLanOnTap"]),
                         SoLanDung = Convert.ToInt32(row["SoLanDung"]),
-                        LanOnTapCuoi = row["LanOnTapCuoi"] == DBNull.Value ? null : Convert.ToDateTime(row["LanOnTapCuoi"])
+                        LanOnTapCuoi = row["LanOnTapCuoi"] == DBNull.Value ? null : Convert.ToDateTime(row["LanOnTapCuoi"]),
+                        NgayOnTapTiepTheo = row["NgayOnTapTiepTheo"] == DBNull.Value ? null : Convert.ToDateTime(row["NgayOnTapTiepTheo"])
                     });
                 }
             }
@@ -78,13 +80,21 @@ namespace DAL
                     UPDATE Flashcard
                     SET SoLanOnTap = SoLanOnTap + 1,
                         SoLanDung = CASE WHEN @DaNho = 1 THEN SoLanDung + 1 ELSE 0 END,
-                        LanOnTapCuoi = SYSDATETIME()
+                        LanOnTapCuoi = SYSDATETIME(),
+                        NgayOnTapTiepTheo = CASE 
+                            WHEN @DaNho = 0 THEN DATEADD(day, 1, SYSDATETIME())
+                            WHEN SoLanDung + 1 = 1 THEN DATEADD(day, 1, SYSDATETIME())
+                            WHEN SoLanDung + 1 = 2 THEN DATEADD(day, 3, SYSDATETIME())
+                            WHEN SoLanDung + 1 = 3 THEN DATEADD(day, 7, SYSDATETIME())
+                            WHEN SoLanDung + 1 = 4 THEN DATEADD(day, 14, SYSDATETIME())
+                            ELSE DATEADD(day, 30, SYSDATETIME())
+                        END
                     WHERE MaNguoiDung = @MaND AND MaTuVung = @MaTV;
                 END
                 ELSE
                 BEGIN
-                    INSERT INTO Flashcard (MaNguoiDung, MaTuVung, SoLanOnTap, SoLanDung, LanOnTapCuoi)
-                    VALUES (@MaND, @MaTV, 1, CASE WHEN @DaNho = 1 THEN 1 ELSE 0 END, SYSDATETIME());
+                    INSERT INTO Flashcard (MaNguoiDung, MaTuVung, SoLanOnTap, SoLanDung, LanOnTapCuoi, NgayOnTapTiepTheo)
+                    VALUES (@MaND, @MaTV, 1, CASE WHEN @DaNho = 1 THEN 1 ELSE 0 END, SYSDATETIME(), DATEADD(day, 1, SYSDATETIME()));
                 END";
 
             SqlParameter[] parameters = new[]
@@ -179,7 +189,7 @@ namespace DAL
             return false;
         }
 
-        public FlashcardDTO? LayTuVungHomNay()
+        public FlashcardDTO? LayTuVungHomNay(int maNguoiDung = 0)
         {
             string query = @"
                 DECLARE @TotalWords INT;
@@ -196,11 +206,12 @@ namespace DAL
                                ISNULL(fc.SoLanOnTap, 0) AS SoLanOnTap,
                                ISNULL(fc.SoLanDung, 0) AS SoLanDung,
                                fc.LanOnTapCuoi,
+                               fc.NgayOnTapTiepTheo,
                                ROW_NUMBER() OVER (ORDER BY tv.MaTuVung ASC) - 1 AS RowNum
                         FROM TuVung tv
                         LEFT JOIN TrinhDo td ON tv.MaTrinhDo = td.MaTrinhDo
                         LEFT JOIN ChuDe cd ON tv.MaChuDe = cd.MaChuDe
-                        LEFT JOIN Flashcard fc ON tv.MaTuVung = fc.MaTuVung
+                        LEFT JOIN Flashcard fc ON tv.MaTuVung = fc.MaTuVung AND fc.MaNguoiDung = @MaND
                     )
                     SELECT * FROM OrderedTuVung WHERE RowNum = @DayOffset;
                 END
@@ -211,7 +222,7 @@ namespace DAL
 
             try
             {
-                DataTable dt = SqlDataProvider.Instance.ExecuteQuery(query);
+                DataTable dt = SqlDataProvider.Instance.ExecuteQuery(query, new[] { new SqlParameter("@MaND", maNguoiDung) });
                 if (dt.Rows.Count > 0)
                 {
                     DataRow row = dt.Rows[0];
@@ -230,7 +241,8 @@ namespace DAL
                         TenChuDe = row["TenChuDe"]?.ToString() ?? "Từ vựng chung",
                         SoLanOnTap = Convert.ToInt32(row["SoLanOnTap"]),
                         SoLanDung = Convert.ToInt32(row["SoLanDung"]),
-                        LanOnTapCuoi = row["LanOnTapCuoi"] == DBNull.Value ? null : Convert.ToDateTime(row["LanOnTapCuoi"])
+                        LanOnTapCuoi = row["LanOnTapCuoi"] == DBNull.Value ? null : Convert.ToDateTime(row["LanOnTapCuoi"]),
+                        NgayOnTapTiepTheo = row["NgayOnTapTiepTheo"] == DBNull.Value ? null : Convert.ToDateTime(row["NgayOnTapTiepTheo"])
                     };
                 }
             }

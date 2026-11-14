@@ -50,9 +50,30 @@ namespace GUI.Views.GiangVien
                 return;
             }
 
+            if (capDo.Length > 10)
+            {
+                txtErrorMessage.Text = "Mã cấp độ không được vượt quá 10 ký tự (ví dụ: A1, B2, C1).";
+                txtMaCapDo.Focus();
+                return;
+            }
+
+            if (!System.Text.RegularExpressions.Regex.IsMatch(capDo, @"^[A-Z0-9\-_]+$"))
+            {
+                txtErrorMessage.Text = "Mã cấp độ chỉ được chứa chữ cái, chữ số và dấu gạch nối (ví dụ: A1, B2, IELTS-6.5).";
+                txtMaCapDo.Focus();
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(ten))
             {
                 txtErrorMessage.Text = "Vui lòng nhập tên trình độ (ví dụ: Sơ cấp, Trung cấp).";
+                txtTenTrinhDo.Focus();
+                return;
+            }
+
+            if (ten.Length > 100)
+            {
+                txtErrorMessage.Text = "Tên trình độ không được vượt quá 100 ký tự.";
                 txtTenTrinhDo.Focus();
                 return;
             }

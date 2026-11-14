@@ -5,6 +5,11 @@
       xmlns:converters="clr-namespace:GUI.ViewModels.Common"
       Title="Giám sát hệ thống &amp; Quản trị AI"
       FontFamily="Segoe UI"
+      UseLayoutRounding="True"
+      SnapsToDevicePixels="True"
+      TextOptions.TextFormattingMode="Display"
+      TextOptions.TextRenderingMode="ClearType"
+      RenderOptions.ClearTypeHint="Enabled"
       Background="#F8FAFC">
 
     <Page.Resources>
@@ -21,8 +26,9 @@
 
         <SolidColorBrush x:Key="AdminDarkGreen" Color="#0F4C3A" />
         <SolidColorBrush x:Key="TextDark" Color="#0F172A" />
-        <SolidColorBrush x:Key="TextGray" Color="#64748B" />
-        <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0" />
+        <SolidColorBrush x:Key="TextGray" Color="#475569" />
+        <SolidColorBrush x:Key="TextMuted" Color="#64748B" />
+        <SolidColorBrush x:Key="BorderLight" Color="#CBD5E1" />
         <SolidColorBrush x:Key="CardBg" Color="#FFFFFF" />
 
         <Style x:Key="AdminCardStyle" TargetType="Border">
@@ -30,7 +36,7 @@
             <Setter Property="CornerRadius" Value="14"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderLight}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Padding" Value="18,16"/>
             <Setter Property="Margin" Value="0,0,0,16"/>
             <Setter Property="Effect">
                 <Setter.Value>
@@ -141,6 +147,64 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <!-- Nút Khởi động Ollama (Emerald) -->
+        <Style x:Key="OllamaStartButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#059669"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#047857"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#94A3B8"/>
+                    <Setter Property="Cursor" Value="Wait"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Nút Tắt Ollama (Crimson) -->
+        <Style x:Key="OllamaStopButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#DC2626"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#B91C1C"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#94A3B8"/>
+                    <Setter Property="Cursor" Value="Wait"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="25">
@@ -216,7 +280,7 @@
                                 <TextBlock Text="✓ Đang kích hoạt" FontSize="11" FontWeight="Bold" Foreground="#15803D"/>
                             </Border>
                         </StackPanel>
-                        <TextBlock Text="Toàn bộ phân hệ Gia sư Trợ lý AI (TroLyAIView) và Chấm Bài viết AI (BaiVietAIView) đã được kết nối sử dụng apiminh.json thông qua AIConfigurationService." 
+                        <TextBlock Text="Toàn bộ các phân hệ AI hệ thống: Gia sư Trợ lý AI, Chấm bài viết AI, Tạo câu hỏi bằng AI &amp; Bóc tách đề thi đều kết nối cấu hình tập trung qua AIConfigurationService." 
                                    FontSize="12" Foreground="#475569"/>
                     </StackPanel>
 
@@ -224,14 +288,20 @@
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="12,6" Margin="0,0,8,0">
                             <StackPanel>
-                                <TextBlock Text="Gia sư Trợ lý AI" FontSize="11" Foreground="{StaticResource TextGray}"/>
+                                <TextBlock Text="Trợ lý AI" FontSize="11" Foreground="{StaticResource TextGray}"/>
                                 <TextBlock Text="{Binding AiTutorUsageText}" FontSize="13" FontWeight="Bold" Foreground="#0F766E"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="12,6" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock Text="Bài viết AI" FontSize="11" Foreground="{StaticResource TextGray}"/>
+                                <TextBlock Text="{Binding AiWritingUsageText}" FontSize="13" FontWeight="Bold" Foreground="#2563EB"/>
                             </StackPanel>
                         </Border>
                         <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="12,6">
                             <StackPanel>
-                                <TextBlock Text="Chấm Bài viết AI" FontSize="11" Foreground="{StaticResource TextGray}"/>
-                                <TextBlock Text="{Binding AiWritingUsageText}" FontSize="13" FontWeight="Bold" Foreground="#2563EB"/>
+                                <TextBlock Text="Tạo câu hỏi AI" FontSize="11" Foreground="{StaticResource TextGray}"/>
+                                <TextBlock Text="{Binding AiQuestionGenUsageText}" FontSize="13" FontWeight="Bold" Foreground="#D97706"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -287,10 +357,10 @@
 
             <!-- SECTION 1: AI PROVIDERS CONNECTIVITY & API KEY STATUS -->
             <TextBlock Text="TÌNH TRẠNG KẾT NỐI VÀ API KEY CÁC NHÀ CUNG CẤP AI" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}" Margin="0,0,0,10"/>
-            <UniformGrid Columns="3" Margin="0,0,0,20">
+            <UniformGrid Columns="4" Margin="0,0,0,20">
 
                 <!-- 1. GOOGLE GEMINI CARD -->
-                <Border Style="{StaticResource AdminCardStyle}" Margin="0,0,8,0">
+                <Border Style="{StaticResource AdminCardStyle}" Margin="0,0,6,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -301,23 +371,27 @@
 
                         <!-- Header -->
                         <Grid Grid.Row="0" Margin="0,0,0,10">
-                            <StackPanel Orientation="Horizontal">
-                                <Border Background="#EEF2FF" CornerRadius="8" Width="36" Height="36" Margin="0,0,10,0">
-                                    <local:LucideIcon Kind="Sparkles" Size="18" Foreground="#4F46E5" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="Google Gemini" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}"/>
-                                    <TextBlock Text="Mô hình chính thức từ Google" FontSize="11.5" Foreground="{StaticResource TextGray}"/>
-                                </StackPanel>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Background="#EEF2FF" CornerRadius="8" Width="36" Height="36" Margin="0,0,8,0">
+                                <local:LucideIcon Kind="Sparkles" Size="18" Foreground="#4F46E5" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,6,0">
+                                <TextBlock Text="Google Gemini" FontWeight="Bold" FontSize="14.5" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="Mô hình từ Google" FontSize="11" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" ToolTip="Mô hình chính thức từ Google"/>
                             </StackPanel>
 
                             <!-- Health Badge -->
-                            <Border HorizontalAlignment="Right" VerticalAlignment="Center"
+                            <Border Grid.Column="2" VerticalAlignment="Top" Margin="0,2,0,0"
                                     Background="{Binding GeminiStatus.Health, Converter={StaticResource HealthBgConverter}}"
-                                    CornerRadius="6" Padding="8,3">
+                                    CornerRadius="6" Padding="7,3">
                                 <TextBlock Text="{Binding GeminiStatus.Health, Converter={StaticResource HealthTextConverter}}" 
                                            Foreground="{Binding GeminiStatus.Health, Converter={StaticResource HealthFgConverter}}" 
-                                           FontWeight="Bold" FontSize="11"/>
+                                           FontWeight="Bold" FontSize="10.5"/>
                             </Border>
                         </Grid>
 
@@ -330,14 +404,14 @@
                                                Foreground="{Binding GeminiStatus.IsConfigured, Converter={StaticResource ConfiguredFgConverter}}"
                                                FontSize="11" FontWeight="SemiBold"/>
                                 </Border>
-                                <TextBlock Text="{Binding GeminiMaskedKey, StringFormat='Key: {0}'}" FontSize="11" Foreground="#475569" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding GeminiMaskedKey, StringFormat='Key: {0}'}" FontSize="11" Foreground="#334155" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <TextBlock Text="{Binding GeminiStatus.Message}" FontSize="12" Foreground="{StaticResource TextDark}" TextWrapping="Wrap" Margin="0,4,0,2"/>
+                            <TextBlock Text="{Binding GeminiStatus.Message}" FontSize="12" Foreground="{StaticResource TextDark}" FontWeight="Medium" TextWrapping="Wrap" Margin="0,4,0,2"/>
                             <TextBlock Text="{Binding GeminiStatus.ActiveModel, StringFormat='Mô hình ưu tiên: {0}'}" FontSize="11.5" Foreground="{StaticResource TextGray}"/>
                         </StackPanel>
 
                         <!-- Action -->
-                        <Button Grid.Row="3" Style="{StaticResource SecondaryTestButtonStyle}" Command="{Binding TestGeminiCommand}">
+                        <Button Grid.Row="3" Style="{StaticResource SecondaryTestButtonStyle}" Command="{Binding TestGeminiCommand}" IsEnabled="{Binding CanTestConnection}">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <local:LucideIcon Kind="Activity" Size="12" Foreground="#334155" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="Kiểm tra kết nối Gemini" VerticalAlignment="Center"/>
@@ -347,7 +421,7 @@
                 </Border>
 
                 <!-- 2. GROQ CLOUD CARD -->
-                <Border Style="{StaticResource AdminCardStyle}" Margin="4,0,4,0">
+                <Border Style="{StaticResource AdminCardStyle}" Margin="3,0,3,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -358,23 +432,27 @@
 
                         <!-- Header -->
                         <Grid Grid.Row="0" Margin="0,0,0,10">
-                            <StackPanel Orientation="Horizontal">
-                                <Border Background="#FFF7ED" CornerRadius="8" Width="36" Height="36" Margin="0,0,10,0">
-                                    <local:LucideIcon Kind="Zap" Size="18" Foreground="#EA580C" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="Groq Cloud" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}"/>
-                                    <TextBlock Text="Inference siêu tốc (Llama &amp; Qwen)" FontSize="11.5" Foreground="{StaticResource TextGray}"/>
-                                </StackPanel>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Background="#FFF7ED" CornerRadius="8" Width="36" Height="36" Margin="0,0,8,0">
+                                <local:LucideIcon Kind="Zap" Size="18" Foreground="#EA580C" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,6,0">
+                                <TextBlock Text="Groq Cloud" FontWeight="Bold" FontSize="14.5" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="Inference siêu tốc" FontSize="11" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" ToolTip="Inference siêu tốc (Llama &amp; Qwen)"/>
                             </StackPanel>
 
                             <!-- Health Badge -->
-                            <Border HorizontalAlignment="Right" VerticalAlignment="Center"
+                            <Border Grid.Column="2" VerticalAlignment="Top" Margin="0,2,0,0"
                                     Background="{Binding GroqStatus.Health, Converter={StaticResource HealthBgConverter}}"
-                                    CornerRadius="6" Padding="8,3">
+                                    CornerRadius="6" Padding="7,3">
                                 <TextBlock Text="{Binding GroqStatus.Health, Converter={StaticResource HealthTextConverter}}" 
                                            Foreground="{Binding GroqStatus.Health, Converter={StaticResource HealthFgConverter}}" 
-                                           FontWeight="Bold" FontSize="11"/>
+                                           FontWeight="Bold" FontSize="10.5"/>
                             </Border>
                         </Grid>
 
@@ -387,14 +465,14 @@
                                                Foreground="{Binding GroqStatus.IsConfigured, Converter={StaticResource ConfiguredFgConverter}}"
                                                FontSize="11" FontWeight="SemiBold"/>
                                 </Border>
-                                <TextBlock Text="{Binding GroqMaskedKey, StringFormat='Key: {0}'}" FontSize="11" Foreground="#475569" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding GroqMaskedKey, StringFormat='Key: {0}'}" FontSize="11" Foreground="#334155" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <TextBlock Text="{Binding GroqStatus.Message}" FontSize="12" Foreground="{StaticResource TextDark}" TextWrapping="Wrap" Margin="0,4,0,2"/>
+                            <TextBlock Text="{Binding GroqStatus.Message}" FontSize="12" Foreground="{StaticResource TextDark}" FontWeight="Medium" TextWrapping="Wrap" Margin="0,4,0,2"/>
                             <TextBlock Text="{Binding GroqStatus.ActiveModel, StringFormat='Mô hình ưu tiên: {0}'}" FontSize="11.5" Foreground="{StaticResource TextGray}"/>
                         </StackPanel>
 
                         <!-- Action -->
-                        <Button Grid.Row="3" Style="{StaticResource SecondaryTestButtonStyle}" Command="{Binding TestGroqCommand}">
+                        <Button Grid.Row="3" Style="{StaticResource SecondaryTestButtonStyle}" Command="{Binding TestGroqCommand}" IsEnabled="{Binding CanTestConnection}">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <local:LucideIcon Kind="Activity" Size="12" Foreground="#334155" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="Kiểm tra kết nối Groq" VerticalAlignment="Center"/>
@@ -404,7 +482,7 @@
                 </Border>
 
                 <!-- 3. XKIO GATEWAY CARD -->
-                <Border Style="{StaticResource AdminCardStyle}" Margin="8,0,0,0">
+                <Border Style="{StaticResource AdminCardStyle}" Margin="3,0,3,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -415,23 +493,27 @@
 
                         <!-- Header -->
                         <Grid Grid.Row="0" Margin="0,0,0,10">
-                            <StackPanel Orientation="Horizontal">
-                                <Border Background="#F1F5F9" CornerRadius="8" Width="36" Height="36" Margin="0,0,10,0">
-                                    <local:LucideIcon Kind="Server" Size="18" Foreground="#0284C7" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="xKiro AI Gateway" FontWeight="Bold" FontSize="15" Foreground="{StaticResource TextDark}"/>
-                                    <TextBlock Text="Cổng AI Gateway (api.xkiro.com)" FontSize="11.5" Foreground="{StaticResource TextGray}"/>
-                                </StackPanel>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Background="#F1F5F9" CornerRadius="8" Width="36" Height="36" Margin="0,0,8,0">
+                                <local:LucideIcon Kind="Server" Size="18" Foreground="#0284C7" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,6,0">
+                                <TextBlock Text="xKiro AI Gateway" FontWeight="Bold" FontSize="14.5" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="Cổng AI Gateway" FontSize="11" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" ToolTip="Cổng AI Gateway (api.xkiro.com)"/>
                             </StackPanel>
 
                             <!-- Health Badge -->
-                            <Border HorizontalAlignment="Right" VerticalAlignment="Center"
+                            <Border Grid.Column="2" VerticalAlignment="Top" Margin="0,2,0,0"
                                     Background="{Binding XkioStatus.Health, Converter={StaticResource HealthBgConverter}}"
-                                    CornerRadius="6" Padding="8,3">
+                                    CornerRadius="6" Padding="7,3">
                                 <TextBlock Text="{Binding XkioStatus.Health, Converter={StaticResource HealthTextConverter}}" 
                                            Foreground="{Binding XkioStatus.Health, Converter={StaticResource HealthFgConverter}}" 
-                                           FontWeight="Bold" FontSize="11"/>
+                                           FontWeight="Bold" FontSize="10.5"/>
                             </Border>
                         </Grid>
 
@@ -444,19 +526,149 @@
                                                Foreground="{Binding XkioStatus.IsConfigured, Converter={StaticResource ConfiguredFgConverter}}"
                                                FontSize="11" FontWeight="SemiBold"/>
                                 </Border>
-                                <TextBlock Text="{Binding XkioMaskedKey, StringFormat='Key: {0}'}" FontSize="11" Foreground="#475569" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding XkioMaskedKey, StringFormat='Key: {0}'}" FontSize="11" Foreground="#334155" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <TextBlock Text="{Binding XkioStatus.Message}" FontSize="12" Foreground="{StaticResource TextDark}" TextWrapping="Wrap" Margin="0,4,0,2"/>
+                            <TextBlock Text="{Binding XkioStatus.Message}" FontSize="12" Foreground="{StaticResource TextDark}" FontWeight="Medium" TextWrapping="Wrap" Margin="0,4,0,2"/>
                             <TextBlock Text="{Binding XkioStatus.ActiveModel, StringFormat='Mô hình ưu tiên: {0}'}" FontSize="11.5" Foreground="{StaticResource TextGray}"/>
                         </StackPanel>
 
                         <!-- Action -->
-                        <Button Grid.Row="3" Style="{StaticResource SecondaryTestButtonStyle}" Command="{Binding TestXkioCommand}">
+                        <Button Grid.Row="3" Style="{StaticResource SecondaryTestButtonStyle}" Command="{Binding TestXkioCommand}" IsEnabled="{Binding CanTestConnection}">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <local:LucideIcon Kind="Activity" Size="12" Foreground="#334155" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="Kiểm tra kết nối xKiro" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
+                    </Grid>
+                </Border>
+
+                <!-- 4. OLLAMA LOCAL (OFFLINE) CARD -->
+                <Border Style="{StaticResource AdminCardStyle}" Margin="6,0,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Header -->
+                        <Grid Grid.Row="0" Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Background="#ECFDF5" CornerRadius="8" Width="36" Height="36" Margin="0,0,8,0">
+                                <local:LucideIcon Kind="Cpu" Size="18" Foreground="#059669" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,6,0">
+                                <TextBlock Text="Ollama Local" FontWeight="Bold" FontSize="14.5" Foreground="{StaticResource TextDark}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="Offline không cần mạng" FontSize="11" Foreground="{StaticResource TextGray}" TextTrimming="CharacterEllipsis" ToolTip="Offline 100% không cần mạng Internet"/>
+                            </StackPanel>
+
+                            <!-- Dynamic Operational Health Badge -->
+                            <Border Grid.Column="2" VerticalAlignment="Top" Margin="0,2,0,0"
+                                    Background="{Binding OllamaStatusBadgeBg}"
+                                    CornerRadius="6" Padding="7,3">
+                                <TextBlock Text="{Binding OllamaOperationalStatus}" 
+                                           Foreground="{Binding OllamaStatusBadgeFg}" 
+                                           FontWeight="Bold" FontSize="10.5"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- Config status & RAM Monitor -->
+                        <StackPanel Grid.Row="1" Margin="0,0,0,10">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <Border Background="#DCFCE7" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                                    <TextBlock Text="Localhost" Foreground="#15803D" FontSize="11" FontWeight="SemiBold"/>
+                                </Border>
+                                <TextBlock Text="{Binding OllamaBaseUrl, StringFormat='Cổng: {0}'}" FontSize="11" Foreground="#334155" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <!-- RAM Usage Indicator Strip -->
+                            <Border Background="#F1F5F9" CornerRadius="6" Padding="8,5" Margin="0,3,0,3">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <local:LucideIcon Kind="Activity" Size="12" Foreground="#334155" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Bộ nhớ RAM:" FontSize="11.5" Foreground="#334155" FontWeight="Medium" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="{Binding OllamaRamUsageText}" FontSize="11.5" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+
+                            <TextBlock Text="{Binding OllamaStatus.Message}" FontSize="12" Foreground="{StaticResource TextDark}" FontWeight="Medium" TextWrapping="Wrap" Margin="0,4,0,2"/>
+                            <TextBlock Text="{Binding OllamaStatus.ActiveModel, StringFormat='Mô hình ưu tiên: {0}'}" FontSize="11.5" Foreground="{StaticResource TextGray}"/>
+                        </StackPanel>
+
+                        <!-- Action Controls Area -->
+                        <StackPanel Grid.Row="3">
+                            <!-- When Ollama is STOPPED: Show Start Button -->
+                            <Grid Visibility="{Binding IsOllamaRunning, Converter={StaticResource InverseBoolToVisConverter}}">
+                                <Button Style="{StaticResource OllamaStartButtonStyle}" 
+                                        Command="{Binding StartOllamaCommand}" 
+                                        IsEnabled="{Binding CanControlOllama}"
+                                        ToolTip="Khởi chạy máy chủ Ollama chạy nền (ollama serve)">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <local:LucideIcon Kind="Play" Size="13" Foreground="White" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Bật máy chủ Ollama" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                            <!-- When Ollama is RUNNING: Show Stop Button and Free RAM Button -->
+                            <Grid Visibility="{Binding IsOllamaRunning, Converter={StaticResource BoolToVisConverter}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Nút Tắt máy chủ -->
+                                <Button Grid.Column="0" Style="{StaticResource OllamaStopButtonStyle}" 
+                                        Command="{Binding StopOllamaCommand}" 
+                                        IsEnabled="{Binding CanControlOllama}"
+                                        ToolTip="Dừng hoàn toàn tiến trình Ollama và giải phóng 100% RAM">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <local:LucideIcon Kind="Square" Size="12" Foreground="White" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Tắt máy chủ" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Nút Giải phóng RAM -->
+                                <Button Grid.Column="2" Style="{StaticResource SecondaryTestButtonStyle}" 
+                                        Command="{Binding ReleaseOllamaRamCommand}" 
+                                        IsEnabled="{Binding CanControlOllama}"
+                                        ToolTip="Hạ tải các mô hình AI đang chiếm RAM về 0 MB mà không cần tắt máy chủ">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <local:LucideIcon Kind="Trash2" Size="12" Foreground="#D97706" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Giải phóng RAM" Foreground="#B45309" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                            <!-- Nút Kiểm tra kết nối Ollama (luôn hiển thị ở dưới) -->
+                            <Button Style="{StaticResource SecondaryTestButtonStyle}" 
+                                    Command="{Binding TestOllamaCommand}" 
+                                    IsEnabled="{Binding CanTestConnection}"
+                                    Margin="0,6,0,0"
+                                    ToolTip="Gửi tín hiệu kiểm tra kết nối tới cổng http://localhost:11434">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <local:LucideIcon Kind="Activity" Size="12" Foreground="#334155" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Kiểm tra kết nối Ollama" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Progress indicator when Busy -->
+                            <ProgressBar IsIndeterminate="True" Height="2" Foreground="#059669" Background="Transparent" BorderThickness="0"
+                                         Visibility="{Binding IsOllamaBusy, Converter={StaticResource BoolToVisConverter}}" Margin="0,4,0,0"/>
+                        </StackPanel>
                     </Grid>
                 </Border>
             </UniformGrid>
@@ -473,8 +685,8 @@
                         
                         <!-- Catalog Status & Sync Button -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding CatalogStatusMessage}" FontSize="11.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <Button Style="{StaticResource SecondaryTestButtonStyle}" Command="{Binding ReloadCatalogCommand}" ToolTip="Tải lại danh sách mô hình trực tiếp từ API của nhà cung cấp">
+                            <TextBlock Text="{Binding CatalogStatusMessage}" FontSize="11.5" Foreground="#334155" FontWeight="Medium" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <Button Style="{StaticResource SecondaryTestButtonStyle}" Command="{Binding ReloadCatalogCommand}" IsEnabled="{Binding CanTestConnection}" ToolTip="Tải lại danh sách mô hình trực tiếp từ API của nhà cung cấp">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <local:LucideIcon Kind="RefreshCw" Size="12" Foreground="#334155" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="Đồng bộ danh mục" VerticalAlignment="Center"/>
@@ -537,7 +749,7 @@
                         <!-- Nhóm nút hành động cấu hình mô hình -->
                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Bottom">
                             <!-- Nút Test Connection -->
-                            <Button Style="{StaticResource SecondaryTestButtonStyle}" Command="{Binding TestCurrentModelCommand}" Height="38" Padding="12,0" Margin="0,0,8,0" ToolTip="Gửi request thực tế kiểm tra mô hình đang chọn">
+                            <Button Style="{StaticResource SecondaryTestButtonStyle}" Command="{Binding TestCurrentModelCommand}" IsEnabled="{Binding CanTestConnection}" Height="38" Padding="12,0" Margin="0,0,8,0" ToolTip="Gửi request thực tế kiểm tra mô hình đang chọn">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <local:LucideIcon Kind="Zap" Size="14" Foreground="#0284C7" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="Kiểm tra kết nối" FontWeight="SemiBold" VerticalAlignment="Center"/>
@@ -587,7 +799,7 @@
                     <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="12,10">
                         <StackPanel Orientation="Horizontal">
                             <local:LucideIcon Kind="CheckCircle" Size="14" Foreground="#15803D" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Mọi tác vụ AI trong hệ thống (Gia sư Trợ lý AI, Chấm bài viết AI, Tạo bài học, Tạo câu hỏi) sẽ tự động đồng bộ theo nhà cung cấp và mô hình đã chọn ở trên." FontSize="12" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Mọi tác vụ AI trong hệ thống (Gia sư Trợ lý AI, Chấm bài viết AI, Tạo bài học, Tạo câu hỏi) sẽ tự động đồng bộ theo nhà cung cấp và mô hình đã chọn ở trên." FontSize="12" Foreground="#334155" FontWeight="Medium" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -616,34 +828,48 @@
                                         </Grid.ColumnDefinitions>
 
                                         <!-- Badge Status -->
-                                        <Border Grid.Column="0" Background="#DCFCE7" CornerRadius="4" Padding="8,3" Margin="0,0,14,0" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding StatusBadgeText}" FontSize="11" FontWeight="Bold" Foreground="#15803D"/>
+                                        <Border Grid.Column="0" Background="{Binding StatusBadgeBg}" CornerRadius="4" Padding="8,3" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding StatusBadgeText}" FontSize="11" FontWeight="Bold" Foreground="{Binding StatusBadgeFg}"/>
                                         </Border>
 
                                         <!-- Detail -->
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                                                 <TextBlock Text="{Binding ActionName}" FontWeight="Bold" FontSize="13" Foreground="#0F172A" Margin="0,0,8,0"/>
-                                                <TextBlock Text="{Binding PromptPreview}" FontSize="12" Foreground="#64748B" TextTrimming="CharacterEllipsis"/>
+                                                <Border Background="#FEF3C7" CornerRadius="4" Padding="6,1" Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        Visibility="{Binding IsFallback, Converter={StaticResource BoolToVisConverter}}">
+                                                    <TextBlock Text="Dự phòng (Fallback)" FontSize="10.5" FontWeight="Bold" Foreground="#B45309"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding PromptPreview}" FontSize="12" Foreground="#475569" TextTrimming="CharacterEllipsis"/>
                                             </StackPanel>
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding Provider, StringFormat='Nhà cung cấp: {0}'}" FontSize="11.5" Foreground="#64748B" Margin="0,0,10,0"/>
+                                                <TextBlock Text="{Binding Provider, StringFormat='Nhà cung cấp: {0}'}" FontSize="11.5" Foreground="#475569" Margin="0,0,10,0"/>
                                                 <TextBlock Text="•" FontSize="11.5" Foreground="#CBD5E1" Margin="0,0,10,0"/>
-                                                <TextBlock Text="{Binding Model, StringFormat='Mô hình: {0}'}" FontSize="11.5" Foreground="#64748B" Margin="0,0,10,0"/>
+                                                <TextBlock Text="{Binding Model, StringFormat='Mô hình: {0}'}" FontSize="11.5" Foreground="#475569" Margin="0,0,10,0"/>
                                                 <TextBlock Text="•" FontSize="11.5" Foreground="#CBD5E1" Margin="0,0,10,0"/>
                                                 <TextBlock Text="{Binding LatencyMs, StringFormat='Độ trễ: {0}ms'}" FontSize="11.5" Foreground="#0284C7" FontWeight="SemiBold"/>
                                             </StackPanel>
+                                            <TextBlock Text="{Binding ErrorMessage}" FontSize="11" Foreground="#DC2626" Margin="0,3,0,0" TextWrapping="Wrap"
+                                                       Visibility="{Binding Success, Converter={StaticResource InverseBoolToVisConverter}}"/>
                                         </StackPanel>
 
                                         <!-- Time -->
-                                        <TextBlock Grid.Column="2" Text="{Binding FormattedTime}" FontSize="12" Foreground="#94A3B8" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding FormattedTime}" FontSize="12" Foreground="#64748B" Margin="0,0,10,0" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <Border Padding="30" Visibility="{Binding RequestLogs.Count, Converter={StaticResource BoolToVisConverter}}">
+                    <!-- Empty State placeholder when no request logs -->
+                    <Border Padding="36,28" Visibility="{Binding IsRequestLogsEmpty, Converter={StaticResource BoolToVisConverter}}">
+                        <StackPanel HorizontalAlignment="Center">
+                            <Border Background="#F1F5F9" CornerRadius="20" Width="40" Height="40" HorizontalAlignment="Center" Margin="0,0,0,10">
+                                <local:LucideIcon Kind="Activity" Size="20" Foreground="#94A3B8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Chưa có yêu cầu AI nào được ghi nhận trong phiên làm việc hiện tại" FontWeight="SemiBold" FontSize="13" Foreground="#334155" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                            <TextBlock Text="Các cuộc hội thoại Trợ lý AI, Chấm bài viết hoặc Sinh câu hỏi sẽ tự động hiển thị thời gian thực tại đây." FontSize="11.5" Foreground="#64748B" HorizontalAlignment="Center"/>
+                        </StackPanel>
                     </Border>
                 </StackPanel>
             </Border>

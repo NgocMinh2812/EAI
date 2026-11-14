@@ -65,68 +65,70 @@ namespace DAL
 
             try
             {
-                // Bước 1: Kiểm tra xem đã có bản ghi hoàn thành khớp Hash chưa
-                var daCo = LayNoiDungAI(maBaiHoc, contentHash);
-                if (daCo != null)
-                {
-                    return (AILeaseStatus.AlreadyCompleted, daCo);
-                }
+                const string atomicLeaseSql = @"
+                    SET NOCOUNT ON;
+                    BEGIN TRANSACTION;
 
-                // Bước 2: Kiểm tra trạng thái đang xử lý và thời gian xử lý
-                const string checkQuery = @"
-                    SELECT MaNoiDungAI, MaBaiHoc, ContentHash, TrangThai, KyNang, MucTieu,
-                           DuLieuKetQuaJson, MoHinhAI, ThongBaoLoi, ThoiDiemBatDauXuLy, NgayTao, NgayCapNhat,
-                           DATEDIFF(SECOND, ISNULL(ThoiDiemBatDauXuLy, SYSDATETIME()), SYSDATETIME()) AS SecondsSinceStart
-                    FROM NoiDungHocTapAIBaiHoc
-                    WHERE MaBaiHoc = @MaBaiHoc;";
+                    DECLARE @Status NVARCHAR(30);
+                    DECLARE @Hash NVARCHAR(64);
+                    DECLARE @SecsDiff INT;
 
-                DataTable dt = DatabaseHelper.ExecuteQuery(checkQuery, new[] { new SqlParameter("@MaBaiHoc", maBaiHoc) });
+                    SELECT @Status = TrangThai, 
+                           @Hash = ContentHash,
+                           @SecsDiff = DATEDIFF(SECOND, ISNULL(ThoiDiemBatDauXuLy, SYSDATETIME()), SYSDATETIME())
+                    FROM NoiDungHocTapAIBaiHoc WITH (UPDLOCK, HOLDLOCK)
+                    WHERE MaBaiHoc = @MaBaiHoc;
 
-                if (dt.Rows.Count > 0)
-                {
-                    var row = dt.Rows[0];
-                    string trangThai = row["TrangThai"]?.ToString() ?? "";
-                    int secondsSinceStart = row["SecondsSinceStart"] == DBNull.Value ? 999 : Convert.ToInt32(row["SecondsSinceStart"]);
-
-                    // Nếu một sinh viên khác đang gọi AI trong vòng 60 giây gần đây
-                    if (string.Equals(trangThai, "DangXuLy", StringComparison.OrdinalIgnoreCase) && secondsSinceStart < 60)
-                    {
-                        return (AILeaseStatus.CurrentlyProcessing, null);
-                    }
-
-                    // Quá hạn hoặc chưa xong hoặc Hash cũ -> Giành quyền xử lý (Update DangXuLy)
-                    const string updateLeaseSql = @"
+                    IF @Status IS NULL
+                    BEGIN
+                        INSERT INTO NoiDungHocTapAIBaiHoc (MaBaiHoc, ContentHash, TrangThai, ThoiDiemBatDauXuLy, NgayTao, NgayCapNhat)
+                        VALUES (@MaBaiHoc, @ContentHash, N'DangXuLy', SYSDATETIME(), SYSDATETIME(), SYSDATETIME());
+                        COMMIT TRANSACTION;
+                        SELECT 'LeaseAcquired' AS LeaseResult;
+                    END
+                    ELSE IF @Status = N'HoanThanh' AND @Hash = @ContentHash
+                    BEGIN
+                        COMMIT TRANSACTION;
+                        SELECT 'AlreadyCompleted' AS LeaseResult;
+                    END
+                    ELSE IF @Status = N'DangXuLy' AND @SecsDiff < 60
+                    BEGIN
+                        COMMIT TRANSACTION;
+                        SELECT 'CurrentlyProcessing' AS LeaseResult;
+                    END
+                    ELSE
+                    BEGIN
                         UPDATE NoiDungHocTapAIBaiHoc
                         SET TrangThai = N'DangXuLy',
                             ContentHash = @ContentHash,
                             ThoiDiemBatDauXuLy = SYSDATETIME(),
                             ThongBaoLoi = NULL,
                             NgayCapNhat = SYSDATETIME()
-                        WHERE MaBaiHoc = @MaBaiHoc;";
+                        WHERE MaBaiHoc = @MaBaiHoc;
+                        COMMIT TRANSACTION;
+                        SELECT 'LeaseAcquired' AS LeaseResult;
+                    END";
 
-                    DatabaseHelper.ExecuteNonQuery(updateLeaseSql, new[]
-                    {
-                        new SqlParameter("@MaBaiHoc", maBaiHoc),
-                        new SqlParameter("@ContentHash", contentHash)
-                    });
-
-                    return (AILeaseStatus.LeaseAcquired, null);
-                }
-                else
+                DataTable dt = DatabaseHelper.ExecuteQuery(atomicLeaseSql, new[]
                 {
-                    // Chưa có bản ghi nào -> INSERT DangXuLy
-                    const string insertLeaseSql = @"
-                        INSERT INTO NoiDungHocTapAIBaiHoc (MaBaiHoc, ContentHash, TrangThai, ThoiDiemBatDauXuLy, NgayTao, NgayCapNhat)
-                        VALUES (@MaBaiHoc, @ContentHash, N'DangXuLy', SYSDATETIME(), SYSDATETIME(), SYSDATETIME());";
+                    new SqlParameter("@MaBaiHoc", maBaiHoc),
+                    new SqlParameter("@ContentHash", contentHash)
+                });
 
-                    DatabaseHelper.ExecuteNonQuery(insertLeaseSql, new[]
+                if (dt.Rows.Count > 0)
+                {
+                    string result = dt.Rows[0]["LeaseResult"]?.ToString() ?? "";
+                    if (result == "AlreadyCompleted")
                     {
-                        new SqlParameter("@MaBaiHoc", maBaiHoc),
-                        new SqlParameter("@ContentHash", contentHash)
-                    });
-
-                    return (AILeaseStatus.LeaseAcquired, null);
+                        return (AILeaseStatus.AlreadyCompleted, LayNoiDungAI(maBaiHoc, contentHash));
+                    }
+                    if (result == "CurrentlyProcessing")
+                    {
+                        return (AILeaseStatus.CurrentlyProcessing, null);
+                    }
                 }
+
+                return (AILeaseStatus.LeaseAcquired, null);
             }
             catch (Exception ex)
             {

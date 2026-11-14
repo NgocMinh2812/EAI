@@ -36,7 +36,7 @@ namespace DTO
         public string MoTaTienDoMucTieu { get; set; } = string.Empty;
 
         // 3. Chuỗi học tập
-        public int ChuoiNgayHoc { get; set; } = 1;
+        public int ChuoiNgayHoc { get; set; } = 0;
 
         // Display Helpers
         public string TongGioHocText => TongSoPhutHoc >= 60 
@@ -68,6 +68,7 @@ namespace DTO
     public class DiemThiTheoThoiGianDTO
     {
         public int MaLuotLamBai { get; set; }
+        public int MaNguoiDung { get; set; }
         public int MaBaiTapDeThi { get; set; }
         public string TenDeThi { get; set; } = string.Empty;
         public decimal DiemSo { get; set; }

@@ -189,35 +189,91 @@ namespace GUI.Views.GiangVien
                 }
 
                 _allLessons = BaiHocBUS.LayDanhSachTuDatabase(topicId, search) ?? new List<BaiHocDTO>();
-
-                if (icLessonList != null)
-                {
-                        icLessonList.ItemsSource = _allLessons;
-                }
-
-                if (txtLessonCounter != null)
-                {
-                    txtLessonCounter.Text = $"{_allLessons.Count} bài học";
-                }
-
-                if (txtEmptyNotice != null)
-                {
-                    txtEmptyNotice.Visibility = _allLessons.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-                }
-
-                if (_allLessons.Count > 0)
-                {
-                    ShowLessonPreview(_allLessons[0]);
-                }
-                else
-                {
-                    ClearPreview();
-                }
+                ApplyLessonFilters();
             }
             catch (Exception ex)
             {
                 ThongBaoDialog.Loi(Window.GetWindow(this), $"Lỗi tải danh sách bài học:\n{ex.Message}", "Lỗi dữ liệu");
             }
+        }
+
+        private void CboFilterTrinhDo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isLoaded) return;
+            ApplyLessonFilters();
+        }
+
+        private void CboFilterKyNang_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isLoaded) return;
+            ApplyLessonFilters();
+        }
+
+        private void ApplyLessonFilters()
+        {
+            if (_allLessons == null) return;
+
+            string selectedTrinhDo = (cboFilterTrinhDo?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
+            string selectedKyNang = (cboFilterKyNang?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
+
+            var filtered = _allLessons.AsEnumerable();
+
+            // 1. Lọc theo trình độ (A1, A2, B1, B2, C1)
+            if (!string.IsNullOrEmpty(selectedTrinhDo) && !selectedTrinhDo.Equals("All", StringComparison.OrdinalIgnoreCase))
+            {
+                filtered = filtered.Where(b => 
+                    !string.IsNullOrEmpty(b.MaTrinhDo) && 
+                    b.MaTrinhDo.Equals(selectedTrinhDo, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // 2. Lọc theo kỹ năng (Ngữ pháp, Từ vựng, Đọc hiểu, Nghe hiểu, Viết luận)
+            if (!string.IsNullOrEmpty(selectedKyNang) && !selectedKyNang.Equals("All", StringComparison.OrdinalIgnoreCase))
+            {
+                filtered = filtered.Where(b => MatchKyNang(b.LoaiBaiHoc, selectedKyNang));
+            }
+
+            var listFiltered = filtered.ToList();
+
+            if (icLessonList != null)
+            {
+                icLessonList.ItemsSource = listFiltered;
+            }
+
+            if (txtLessonCounter != null)
+            {
+                txtLessonCounter.Text = $"{listFiltered.Count} bài học";
+            }
+
+            if (txtEmptyNotice != null)
+            {
+                txtEmptyNotice.Visibility = listFiltered.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            if (listFiltered.Count > 0)
+            {
+                var current = listFiltered.FirstOrDefault(b => _currentPreviewLesson != null && b.MaBaiHoc == _currentPreviewLesson.MaBaiHoc) ?? listFiltered[0];
+                ShowLessonPreview(current);
+            }
+            else
+            {
+                ClearPreview();
+            }
+        }
+
+        private static bool MatchKyNang(string? loaiBaiHoc, string filterTag)
+        {
+            if (string.IsNullOrEmpty(loaiBaiHoc)) return false;
+            string l = loaiBaiHoc.ToLowerInvariant();
+            return filterTag switch
+            {
+                "NguPhap" => l.Contains("nguphap") || l.Contains("ngữ pháp") || l.Contains("grammar"),
+                "TuVung" => l.Contains("tuvung") || l.Contains("từ vựng") || l.Contains("vocabulary") || l.Contains("vocab"),
+                "Doc" => l.Contains("doc") || l.Contains("đọc") || l.Contains("reading"),
+                "Nghe" => l.Contains("nghe") || l.Contains("listening") || l.Contains("audio"),
+                "Viet" => l.Contains("viet") || l.Contains("viết") || l.Contains("writing"),
+                "Noi" => l.Contains("noi") || l.Contains("nói") || l.Contains("speaking"),
+                _ => true
+            };
         }
 
         private void TvDanhMuc_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -247,15 +303,14 @@ namespace GUI.Views.GiangVien
         {
             DungAudio();
             _currentPreviewLesson = lesson;
-            if (txtPreviewDocTitle == null) return;
 
-            string fileName = !string.IsNullOrEmpty(lesson.TenTepVatLy) ? lesson.TenTepVatLy : (lesson.TieuDe ?? "Học liệu");
-            txtPreviewDocTitle.Text = fileName;
-            txtPreviewDocMeta.Text = $"Định dạng: {lesson.DinhDangTep} • Dung lượng: {lesson.DungLuongHienThi} • Chủ đề: {lesson.TenChuDe} • Trình độ: {lesson.MaTrinhDo}";
-            txtSimulationModule.Text = $"{lesson.TenLoaiHienThi?.ToUpper() ?? "HỌC LIỆU"} — TRÌNH ĐỘ {lesson.MaTrinhDo ?? "B1"}";
-            txtSimulationPassage.Text = "Xem trước nội dung tệp";
+            if (txtSimulationModule != null)
+                txtSimulationModule.Text = $"{lesson.TenLoaiHienThi?.ToUpper() ?? "HỌC LIỆU"} — TRÌNH ĐỘ {lesson.MaTrinhDo ?? "B1"}";
+            if (txtSimulationPassage != null)
+                txtSimulationPassage.Text = "Xem trước nội dung tệp";
 
-            txtPassageTitle.Text = lesson.TieuDe ?? "";
+            if (txtPassageTitle != null)
+                txtPassageTitle.Text = lesson.TieuDe ?? "";
 
             // KIỂM SOÁT AUDIO BÀI NGHE (LISTENING AUDIO PLAYER)
             bool isListening = lesson.IsKyNangNghe 
@@ -370,6 +425,22 @@ namespace GUI.Views.GiangVien
         {
             if (_currentPreviewLesson == null) return;
 
+            if (Views.Common.AICauHoiUIHelper.CoBanNhapTrongPhien(_currentPreviewLesson.MaBaiHoc))
+            {
+                bool confirm = ThongBaoDialog.XacNhan(
+                    Window.GetWindow(this),
+                    $"Tài liệu '{_currentPreviewLesson.TieuDe}' đã có bộ câu hỏi ôn tập trong phiên làm việc.\n\nBạn có chắc chắn muốn yêu cầu AI bóc tách và tạo lại bộ câu hỏi mới hoàn toàn không?",
+                    "Xác nhận tạo lại bộ câu hỏi AI",
+                    "Tạo lại mới",
+                    "Giữ câu hỏi cũ");
+                if (!confirm)
+                {
+                    var draft = Views.Common.AICauHoiUIHelper.LayBanNhapTrongPhien(_currentPreviewLesson.MaBaiHoc)!;
+                    Views.Common.AICauHoiUIHelper.MoModalDuyetBoCauHoi(Window.GetWindow(this), _currentPreviewLesson, draft, "AI_DanhMuc");
+                    return;
+                }
+            }
+
             if (pbAILoading != null) pbAILoading.Visibility = Visibility.Visible;
             if (btnReExtractAI != null) btnReExtractAI.IsEnabled = false;
             if (btnGenerateAIQuestions != null) btnGenerateAIQuestions.IsEnabled = false;
@@ -430,16 +501,13 @@ namespace GUI.Views.GiangVien
             DungAudio();
             _currentPreviewLesson = null;
             if (pnlAudioPlayerSection != null) pnlAudioPlayerSection.Visibility = Visibility.Collapsed;
-            if (txtPreviewDocTitle == null) return;
 
-            txtPreviewDocTitle.Text = "Chưa chọn bài học";
-            txtPreviewDocMeta.Text = "Vui lòng chọn bài học từ danh sách để xem trước";
-            txtSimulationModule.Text = "HỌC LIỆU";
+            if (txtSimulationModule != null) txtSimulationModule.Text = "HỌC LIỆU";
             if (pnlAIGeneratePrompt != null) pnlAIGeneratePrompt.Visibility = Visibility.Collapsed;
             if (pnlAIGeneratedStatusBox != null) pnlAIGeneratedStatusBox.Visibility = Visibility.Collapsed;
-            txtSimulationPassage.Text = "";
-            txtPassageTitle.Text = "Không có dữ liệu bài học";
-            txtPassageBody.Text = "Chủ đề này hiện chưa có bài học nào được tạo.";
+            if (txtSimulationPassage != null) txtSimulationPassage.Text = "";
+            if (txtPassageTitle != null) txtPassageTitle.Text = "Không có dữ liệu bài học";
+            if (txtPassageBody != null) txtPassageBody.Text = "Chủ đề này hiện chưa có bài học nào phù hợp với bộ lọc.";
 
             if (txtPreviewStatusPill != null) txtPreviewStatusPill.Text = "Chưa chọn";
         }
@@ -559,6 +627,57 @@ namespace GUI.Views.GiangVien
                 }
             }
             catch { }
+        }
+
+        private void BtnDownloadAudio_Click(object sender, RoutedEventArgs e)
+        {
+            string? audioFile = _currentAudioPath;
+            if (string.IsNullOrEmpty(audioFile) || !System.IO.File.Exists(audioFile))
+            {
+                if (_currentPreviewLesson != null)
+                {
+                    if (!string.IsNullOrEmpty(_currentPreviewLesson.AudioPath) && System.IO.File.Exists(_currentPreviewLesson.AudioPath))
+                        audioFile = _currentPreviewLesson.AudioPath;
+                    else if (!string.IsNullOrEmpty(_currentPreviewLesson.DuongDanAudio) && System.IO.File.Exists(_currentPreviewLesson.DuongDanAudio))
+                        audioFile = _currentPreviewLesson.DuongDanAudio;
+                    else
+                        audioFile = KhoHocLieuSyncHelper.TimTepVatLyChoBaiHoc(_currentPreviewLesson);
+                }
+            }
+
+            if (string.IsNullOrEmpty(audioFile) || !System.IO.File.Exists(audioFile))
+            {
+                ThongBaoDialog.CanhBao(Window.GetWindow(this), "Không tìm thấy tệp âm thanh của bài học này trên hệ thống.", "Chưa có file âm thanh");
+                return;
+            }
+
+            try
+            {
+                string ext = System.IO.Path.GetExtension(audioFile);
+                if (string.IsNullOrEmpty(ext)) ext = ".mp3";
+
+                string safeTitle = _currentPreviewLesson != null 
+                    ? KhoHocLieuSyncHelper.SanitizeFolderName(_currentPreviewLesson.TieuDe)
+                    : "Audio_BaiHoc";
+                string defaultName = $"{safeTitle}_Audio{ext}";
+
+                var sfd = new Microsoft.Win32.SaveFileDialog
+                {
+                    FileName = defaultName,
+                    Filter = $"Tệp âm thanh (*{ext})|*{ext}|Tất cả tệp (*.*)|*.*",
+                    Title = "Lưu tệp âm thanh bài nghe về máy tính"
+                };
+
+                if (sfd.ShowDialog() == true)
+                {
+                    System.IO.File.Copy(audioFile, sfd.FileName, true);
+                    ThongBaoDialog.ThanhCong(Window.GetWindow(this), $"Đã lưu tệp âm thanh về máy tính thành công:\n{sfd.FileName}", "Tải âm thanh hoàn tất");
+                }
+            }
+            catch (Exception ex)
+            {
+                ThongBaoDialog.Loi(Window.GetWindow(this), $"Lỗi khi tải tệp âm thanh:\n{ex.Message}", "Lỗi tải về");
+            }
         }
 
         private void SldAudioTimeline_PreviewMouseDown(object sender, MouseButtonEventArgs e)
@@ -800,36 +919,49 @@ namespace GUI.Views.GiangVien
             {
                 string? srcFile = KhoHocLieuSyncHelper.TimTepVatLyChoBaiHoc(_currentPreviewLesson);
 
-                string ext = !string.IsNullOrEmpty(srcFile) 
-                    ? System.IO.Path.GetExtension(srcFile)
-                    : ((_currentPreviewLesson.DinhDangTep == "PDF") ? ".pdf" : ".docx");
-                if (string.IsNullOrEmpty(ext)) ext = ".docx";
+                // Nếu là file Audio, bài học kỹ năng Nghe, hoặc định dạng PDF thì xuất tải về dưới dạng PDF
+                bool isAudioOrPdf = (_currentPreviewLesson.DinhDangTep == "AUDIO") ||
+                                    (_currentPreviewLesson.DinhDangTep == "PDF") ||
+                                    (_currentPreviewLesson.LoaiBaiHoc == "Nghe") ||
+                                    (_currentPreviewLesson.LoaiBaiHoc == "NgheHieu") ||
+                                    (!string.IsNullOrEmpty(srcFile) && (srcFile.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) || srcFile.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase)));
 
-                string defaultName = !string.IsNullOrEmpty(_currentPreviewLesson.TenTepVatLy)
-                    ? _currentPreviewLesson.TenTepVatLy
-                    : $"{KhoHocLieuSyncHelper.SanitizeFolderName(_currentPreviewLesson.TieuDe)}{ext}";
+                string ext = isAudioOrPdf ? ".pdf" : (!string.IsNullOrEmpty(srcFile) ? System.IO.Path.GetExtension(srcFile).ToLowerInvariant() : ".docx");
+                if (string.IsNullOrEmpty(ext)) ext = isAudioOrPdf ? ".pdf" : ".docx";
+
+                string safeTitle = KhoHocLieuSyncHelper.SanitizeFolderName(_currentPreviewLesson.TieuDe);
+                string defaultName = $"{safeTitle}{ext}";
 
                 var sfd = new Microsoft.Win32.SaveFileDialog
                 {
                     FileName = defaultName,
-                    Filter = $"Tệp tài liệu (*{ext})|*{ext}|Tất cả tệp (*.*)|*.*"
+                    Filter = ext.Equals(".pdf", StringComparison.OrdinalIgnoreCase)
+                        ? "Tệp PDF Document (*.pdf)|*.pdf|Tất cả tệp (*.*)|*.*"
+                        : "Tệp Word Document (*.docx)|*.docx|Tất cả tệp (*.*)|*.*"
                 };
 
                 if (sfd.ShowDialog() == true)
                 {
-                    if (!string.IsNullOrEmpty(srcFile) && System.IO.File.Exists(srcFile))
+                    if (ext.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
                     {
-                        System.IO.File.Copy(srcFile, sfd.FileName, true);
-                    }
-                    else
-                    {
-                        if (ext.Equals(".docx", StringComparison.OrdinalIgnoreCase))
+                        if (!string.IsNullOrEmpty(srcFile) && System.IO.File.Exists(srcFile) && srcFile.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
                         {
-                            KhoHocLieuSyncHelper.TaoTepDocxTuBaiHoc(sfd.FileName, _currentPreviewLesson);
+                            System.IO.File.Copy(srcFile, sfd.FileName, true);
                         }
                         else
                         {
-                            KhoHocLieuSyncHelper.TaoTepHtmlInAn(sfd.FileName, _currentPreviewLesson);
+                            KhoHocLieuSyncHelper.TaoTepPdfTuBaiHoc(sfd.FileName, _currentPreviewLesson);
+                        }
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(srcFile) && System.IO.File.Exists(srcFile) && srcFile.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+                        {
+                            System.IO.File.Copy(srcFile, sfd.FileName, true);
+                        }
+                        else
+                        {
+                            KhoHocLieuSyncHelper.TaoTepDocxTuBaiHoc(sfd.FileName, _currentPreviewLesson);
                         }
                     }
 
@@ -1013,6 +1145,15 @@ namespace GUI.Views.GiangVien
                 ThongBaoDialog.CanhBao(Window.GetWindow(this), "Vui lòng chọn một bài học cụ thể từ danh sách để đưa vào đề thi thử.", "Chưa chọn học liệu");
                 return;
             }
+
+            bool confirm = ThongBaoDialog.XacNhan(
+                Window.GetWindow(this),
+                $"Bạn có chắc chắn muốn tạo một Đề thi thử mới từ học liệu:\n'{_currentPreviewLesson.TieuDe}'?\n\nĐề thi mới sẽ được lưu vào danh sách đề thi luyện tập của hệ thống.",
+                "Xác nhận tạo Đề thi thử",
+                "Tạo đề thi",
+                "Hủy bỏ");
+
+            if (!confirm) return;
 
             string tenDeThi = $"Đề thi thử: {_currentPreviewLesson.TieuDe}";
             int? userId = SessionHelper.CurrentUser?.MaNguoiDung;

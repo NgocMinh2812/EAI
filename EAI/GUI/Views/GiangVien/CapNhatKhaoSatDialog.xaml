@@ -153,7 +153,7 @@
 
                                     <!-- Tiêu đề bài khảo sát -->
                                     <TextBlock Text="TIÊU ĐỀ BÀI KHẢO SÁT *" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,4"/>
-                                    <TextBox x:Name="txtTenBaiKhaoSat" Height="36" VerticalContentAlignment="Center" Padding="10,0" FontSize="12.5"
+                                    <TextBox x:Name="txtTenBaiKhaoSat" Height="36" VerticalContentAlignment="Center" Padding="10,0" FontSize="12.5" MaxLength="200"
                                              Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Margin="0,0,0,12">
                                         <TextBox.Resources>
                                             <Style TargetType="{x:Type Border}">
@@ -193,6 +193,7 @@
                                         <StackPanel Grid.Column="2">
                                             <TextBlock Text="THỜI GIAN (PHÚT)" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,4"/>
                                             <TextBox x:Name="txtThoiGianPhut" Text="30" Height="36" VerticalContentAlignment="Center" Padding="10,0" FontSize="12.5"
+                                                     PreviewTextInput="NumberOnly_PreviewTextInput" MaxLength="3"
                                                      Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
                                                 <TextBox.Resources>
                                                     <Style TargetType="{x:Type Border}">
@@ -205,7 +206,7 @@
 
                                     <!-- Mô tả chi tiết & Hướng dẫn -->
                                     <TextBlock Text="MÔ TẢ CHI TIẾT &amp; HƯỚNG DẪN KHẢO SÁT" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,4"/>
-                                    <TextBox x:Name="txtMoTa" Height="68" TextWrapping="Wrap" AcceptsReturn="True" Padding="8,6" FontSize="12"
+                                    <TextBox x:Name="txtMoTa" Height="68" TextWrapping="Wrap" AcceptsReturn="True" Padding="8,6" FontSize="12" MaxLength="1000"
                                              Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Margin="0,0,0,12">
                                         <TextBox.Resources>
                                             <Style TargetType="{x:Type Border}">

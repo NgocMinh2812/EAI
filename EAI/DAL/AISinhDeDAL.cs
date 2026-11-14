@@ -23,7 +23,7 @@ namespace DAL
 
             var parameters = new[]
             {
-                new SqlParameter("@NguoiYeuCau", nguoiYeuCau > 0 ? (object)nguoiYeuCau : 1),
+                new SqlParameter("@NguoiYeuCau", nguoiYeuCau >= 0 ? (object)nguoiYeuCau : 1),
                 new SqlParameter("@LoaiDauVao", string.IsNullOrWhiteSpace(loaiDauVao) ? "ChuDe" : loaiDauVao),
                 new SqlParameter("@NoiDung", (object?)noiDungDauVao ?? DBNull.Value),
                 new SqlParameter("@MaTrinhDo", (object?)maTrinhDo ?? DBNull.Value),
@@ -68,7 +68,9 @@ namespace DAL
                        y.NoiDungDauVao, y.MoHinhAI, y.LoaiDauVao, y.NgayTao
                 FROM CauHoiDoAISinh c
                 INNER JOIN YeuCauSinhDeAI y ON c.MaYeuCauSinhDe = y.MaYeuCauSinhDe
-                WHERE (@TrangThai IS NULL OR @TrangThai = 'TatCa' OR c.TrangThaiDuyet = @TrangThai)
+                WHERE (@TrangThai IS NULL OR @TrangThai = 'TatCa' 
+                      OR (@TrangThai = 'DangCho' AND c.TrangThaiDuyet IN ('DangCho', 'DaChinhSua'))
+                      OR c.TrangThaiDuyet = @TrangThai)
                   AND (@TuKhoa IS NULL OR @TuKhoa = '' OR c.NoiDungCauHoiSinhRa LIKE N'%' + @TuKhoa + N'%' OR y.NoiDungDauVao LIKE N'%' + @TuKhoa + N'%')
                 ORDER BY c.MaCauHoiAISinh DESC";
 
@@ -105,7 +107,17 @@ namespace DAL
         /// </summary>
         public int DemSoCauHoiChoDuyet()
         {
-            string sql = "SELECT COUNT(*) FROM CauHoiDoAISinh WHERE TrangThaiDuyet = N'DangCho'";
+            string sql = "SELECT COUNT(*) FROM CauHoiDoAISinh WHERE TrangThaiDuyet IN (N'DangCho', N'DaChinhSua')";
+            object? res = SqlDataProvider.Instance.ExecuteScalar(sql);
+            return res != null && res != DBNull.Value ? Convert.ToInt32(res) : 0;
+        }
+
+        /// <summary>
+        /// Đếm tổng số câu hỏi do AI tạo trong toàn hệ thống (mọi trạng thái)
+        /// </summary>
+        public int DemTongCauHoiDoAISinh()
+        {
+            string sql = "SELECT COUNT(*) FROM CauHoiDoAISinh";
             object? res = SqlDataProvider.Instance.ExecuteScalar(sql);
             return res != null && res != DBNull.Value ? Convert.ToInt32(res) : 0;
         }
@@ -164,13 +176,14 @@ namespace DAL
             {
                 int? maTrinhDoId = cauHoi.MaTrinhDo switch
                 {
-                    "A1" => 1,
-                    "A2" => 2,
-                    "B1" => 3,
-                    "B2" => 4,
-                    "C1" => 5,
-                    "C2" => 6,
-                    _ => cauHoi.MaTrinhDoId ?? 3
+                    "A1" => 0,
+                    "A2" => 1,
+                    "B1" => 2,
+                    "B2" => 3,
+                    "C1" => 4,
+                    "C2" => 5,
+                    var s when s != null && (s.Contains("IELTS") || s.Contains("TOEIC")) => 3,
+                    _ => cauHoi.MaTrinhDoId ?? 2
                 };
 
                 // 1. Thêm vào bảng CauHoi
@@ -194,7 +207,7 @@ namespace DAL
                     cmd.Parameters.AddWithValue("@AudioPath", (object?)cauHoi.AudioPath ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@GiaiThich", (object?)cauHoi.GiaiThichDapAn ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LoiGiai", (object?)cauHoi.GiaiThichDapAn ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@NguoiTao", nguoiDuyetId > 0 ? (object)nguoiDuyetId : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@NguoiTao", nguoiDuyetId >= 0 ? (object)nguoiDuyetId : DBNull.Value);
                     cmd.Parameters.AddWithValue("@NguonTao", string.IsNullOrWhiteSpace(nguonTao) ? "AI" : nguonTao);
 
                     maCauHoi = (int)cmd.ExecuteScalar();
@@ -230,7 +243,7 @@ namespace DAL
                 using (var cmdQueue = new SqlCommand(updateQueueSql, conn, trans))
                 {
                     cmdQueue.Parameters.AddWithValue("@MaCauHoi", maCauHoi);
-                    cmdQueue.Parameters.AddWithValue("@NguoiDuyet", nguoiDuyetId > 0 ? (object)nguoiDuyetId : DBNull.Value);
+                    cmdQueue.Parameters.AddWithValue("@NguoiDuyet", nguoiDuyetId >= 0 ? (object)nguoiDuyetId : DBNull.Value);
                     cmdQueue.Parameters.AddWithValue("@Id", maCauHoiAISinh);
                     cmdQueue.ExecuteNonQuery();
                 }
@@ -264,7 +277,7 @@ namespace DAL
 
                 var parameters = new[]
                 {
-                    new SqlParameter("@NguoiDuyet", nguoiDuyetId > 0 ? (object)nguoiDuyetId : DBNull.Value),
+                    new SqlParameter("@NguoiDuyet", nguoiDuyetId >= 0 ? (object)nguoiDuyetId : DBNull.Value),
                     new SqlParameter("@Id", maCauHoiAISinh)
                 };
 

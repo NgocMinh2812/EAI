@@ -116,19 +116,35 @@
                     <TextBlock Text="Báo cáo giám sát tiến độ thi thử, phổ điểm bài làm, phân tích kỹ năng và danh sách nộp bài của sinh viên" FontSize="12.5" Foreground="{StaticResource TextGray}"/>
                 </StackPanel>
 
-                <Button Grid.Column="1" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
-                        FontWeight="SemiBold" FontSize="12.5" Padding="16,9" Cursor="Hand" BorderThickness="0" Click="BtnXuatExcel_Click">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <local:LucideIcon Kind="Download" Size="14" Foreground="White" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Xuất Báo cáo Excel (.xlsx)" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
+                            FontWeight="SemiBold" FontSize="12.5" Padding="14,9" Margin="0,0,10,0" Cursor="Hand" BorderThickness="0" Click="BtnLamMoi_Click" ToolTip="Làm mới lại toàn bộ số liệu báo cáo">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <local:LucideIcon Kind="RefreshCw" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Làm mới" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <Button Background="{StaticResource AdminDarkGreen}" Foreground="White" 
+                            FontWeight="SemiBold" FontSize="12.5" Padding="16,9" Cursor="Hand" BorderThickness="0" Click="BtnXuatExcel_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <local:LucideIcon Kind="Download" Size="14" Foreground="White" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Xuất Báo cáo Excel (.xlsx)" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
             </Grid>
 
             <!-- ================= 2. FILTER TOOLBAR ================= -->
@@ -231,7 +247,8 @@
                                 <local:LucideIcon Kind="Search" Size="14" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <Grid Grid.Column="1">
                                     <TextBox x:Name="txtSearch" BorderThickness="0" Background="Transparent" FontSize="12.5" 
-                                             VerticalContentAlignment="Center" TextChanged="TxtSearch_TextChanged"/>
+                                             MaxLength="100" VerticalContentAlignment="Center" 
+                                             TextChanged="TxtSearch_TextChanged" KeyDown="TxtSearch_KeyDown"/>
                                     <TextBlock x:Name="txtSearchPlaceholder" Text="Tìm theo họ tên, tài khoản, bài thi..." 
                                                FontSize="12" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" 
                                                IsHitTestVisible="False" Margin="2,0,0,0"/>
@@ -435,7 +452,13 @@
                     <!-- Modern DataGrid Container -->
                     <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="10">
                         <Grid>
-                            <!-- Empty State khi chưa có dữ liệu nộp bài -->
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Grid Grid.Row="0">
+                                <!-- Empty State khi chưa có dữ liệu nộp bài -->
                             <StackPanel x:Name="pnlEmptySubmissions" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,45" Visibility="Collapsed">
                                 <TextBlock Text="📋" FontSize="36" HorizontalAlignment="Center" Margin="0,0,0,8"/>
                                 <TextBlock Text="Chưa có dữ liệu bài nộp trong khoảng thời gian này" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center"/>
@@ -446,6 +469,7 @@
                                       CanUserDeleteRows="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="None"
                                       Background="White" BorderThickness="0" MinHeight="220"
                                       SelectionMode="Single" SelectionUnit="FullRow"
+                                      MouseDoubleClick="DgDanhSachBaiNop_MouseDoubleClick"
                                       ColumnHeaderStyle="{StaticResource ModernDataGridHeaderStyle}"
                                       RowStyle="{StaticResource ModernDataGridRowStyle}"
                                       CellStyle="{StaticResource ModernDataGridCellStyle}">
@@ -471,7 +495,7 @@
                                     </DataGridTemplateColumn>
 
                                     <!-- Cột 3: Bài thi / Luyện tập -->
-                                    <DataGridTemplateColumn Header="BÀI THI / ĐỀ THI" Width="3*" MinWidth="220">
+                                    <DataGridTemplateColumn Header="BÀI THI / ĐỀ THI" Width="2.8*" MinWidth="200">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <TextBlock Text="{Binding TenBaiTapDeThi}" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextDark}" 
@@ -481,7 +505,7 @@
                                     </DataGridTemplateColumn>
 
                                     <!-- Cột 4: Hình thức -->
-                                    <DataGridTemplateColumn Header="HÌNH THỨC" Width="1.2*" MinWidth="95">
+                                    <DataGridTemplateColumn Header="HÌNH THỨC" Width="1.1*" MinWidth="90">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Border Background="{Binding HinhThucBg}" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left">
@@ -492,7 +516,7 @@
                                     </DataGridTemplateColumn>
 
                                     <!-- Cột 5: Bắt đầu lúc -->
-                                    <DataGridTemplateColumn Header="BẮT ĐẦU LÚC" Width="1.5*" MinWidth="135">
+                                    <DataGridTemplateColumn Header="BẮT ĐẦU LÚC" Width="1.4*" MinWidth="125">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -504,7 +528,7 @@
                                     </DataGridTemplateColumn>
 
                                     <!-- Cột 6: Thời gian làm bài -->
-                                    <DataGridTemplateColumn Header="THỜI GIAN" Width="1.1*" MinWidth="95">
+                                    <DataGridTemplateColumn Header="THỜI GIAN" Width="1.1*" MinWidth="90">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Border Background="#F1F5F9" CornerRadius="6" Padding="7,3" HorizontalAlignment="Left">
@@ -515,7 +539,7 @@
                                     </DataGridTemplateColumn>
 
                                     <!-- Cột 7: Số câu đúng -->
-                                    <DataGridTemplateColumn Header="KẾT QUẢ ĐÚNG" Width="1.2*" MinWidth="110">
+                                    <DataGridTemplateColumn Header="KẾT QUẢ ĐÚNG" Width="1.2*" MinWidth="105">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Border Background="#ECFDF5" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left">
@@ -526,7 +550,7 @@
                                     </DataGridTemplateColumn>
 
                                     <!-- Cột 8: Điểm số -->
-                                    <DataGridTemplateColumn Header="ĐIỂM SỐ" Width="1*" MinWidth="85">
+                                    <DataGridTemplateColumn Header="ĐIỂM SỐ" Width="1*" MinWidth="80">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <TextBlock Text="{Binding DiemSo, StringFormat='{}{0:0.0}'}" FontWeight="Bold" FontSize="13.5" Foreground="{Binding ScoreColor}" VerticalAlignment="Center"/>
@@ -535,7 +559,7 @@
                                     </DataGridTemplateColumn>
 
                                     <!-- Cột 9: Trạng thái -->
-                                    <DataGridTemplateColumn Header="TRẠNG THÁI" Width="1.2*" MinWidth="105">
+                                    <DataGridTemplateColumn Header="TRẠNG THÁI" Width="1.2*" MinWidth="100">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Border Background="{Binding TrangThaiBg}" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left">
@@ -544,10 +568,94 @@
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
+
+                                    <!-- Cột 10: Thao tác -->
+                                    <DataGridTemplateColumn Header="THAO TÁC" Width="1.1*" MinWidth="100">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Click="BtnXemChiTietBaiLam_Click" Tag="{Binding MaLuotLamBai}" 
+                                                        Background="#F1F5F9" Foreground="{StaticResource AdminDarkGreen}" 
+                                                        FontWeight="SemiBold" FontSize="11.5" Padding="8,4" Cursor="Hand" BorderThickness="0"
+                                                        ToolTip="Xem toàn bộ các câu hỏi và câu trả lời của sinh viên">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <local:LucideIcon Kind="Eye" Size="12" Foreground="{StaticResource AdminDarkGreen}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="Chi tiết" VerticalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </Grid>
-                    </Border>
+
+                        <!-- Table Footer: Pagination Controls (US-GV03 chuẩn hóa) -->
+                        <Border Grid.Row="1" x:Name="pnlSubPagination" Background="#FAFBFB" Padding="20,12" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" x:Name="txtSubCounter" Text="Hiển thị 1 - 10 / 18 lượt làm bài" FontSize="12.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
+
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <Button x:Name="btnPrevSubPage" Content="◀ Trước" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
+                                            Foreground="{StaticResource TextDark}" FontSize="12" FontWeight="SemiBold" Padding="14,6" Margin="0,0,8,0" Cursor="Hand" Click="BtnPrevSubPage_Click">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                                        BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bd" Property="Background" Value="#F1F5F9"/>
+                                                        <Setter TargetName="bd" Property="BorderBrush" Value="#94A3B8"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsEnabled" Value="False">
+                                                        <Setter TargetName="bd" Property="Opacity" Value="0.45"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                    
+                                    <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="12,5" Margin="0,0,8,0">
+                                        <TextBlock x:Name="txtSubPageInfo" Text="Trang 1 / 1" FontSize="12" FontWeight="Bold" Foreground="{StaticResource AdminDarkGreen}" VerticalAlignment="Center"/>
+                                    </Border>
+
+                                    <Button x:Name="btnNextSubPage" Content="Sau ▶" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
+                                            Foreground="{StaticResource TextDark}" FontSize="12" FontWeight="SemiBold" Padding="14,6" Cursor="Hand" Click="BtnNextSubPage_Click">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                                        BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bd" Property="Background" Value="#F1F5F9"/>
+                                                        <Setter TargetName="bd" Property="BorderBrush" Value="#94A3B8"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsEnabled" Value="False">
+                                                        <Setter TargetName="bd" Property="Opacity" Value="0.45"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
                 </StackPanel>
             </Border>
 

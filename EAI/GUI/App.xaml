@@ -1,4 +1,4 @@
-﻿<Application x:Class="GUI.App"
+<Application x:Class="GUI.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:GUI"
@@ -84,6 +84,8 @@
             <Setter Property="Height" Value="36"/>
             <Setter Property="MaxDropDownHeight" Value="240"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ScrollViewer.CanContentScroll" Value="False"/>
+            <Setter Property="VirtualizingPanel.ScrollUnit" Value="Pixel"/>
             <Setter Property="ItemContainerStyle" Value="{StaticResource UniversalComboBoxItem}"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -126,7 +128,7 @@
                                              CornerRadius="8"
                                              Padding="4"
                                              RenderOptions.ClearTypeHint="Enabled">
-                                         <ScrollViewer SnapsToDevicePixels="True" VerticalScrollBarVisibility="Auto">
+                                         <ScrollViewer SnapsToDevicePixels="True" VerticalScrollBarVisibility="Auto" CanContentScroll="False">
                                              <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
                                          </ScrollViewer>
                                      </Border>
@@ -136,6 +138,12 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <!-- Default Style for all ListBoxes: Cuộn mượt theo từng pixel thay vì nhảy cả card -->
+        <Style TargetType="{x:Type ListBox}">
+            <Setter Property="ScrollViewer.CanContentScroll" Value="False"/>
+            <Setter Property="VirtualizingPanel.ScrollUnit" Value="Pixel"/>
         </Style>
 
         <!-- ================= MODERN SLIM SCROLLBAR SYSTEM ================= -->

@@ -170,7 +170,7 @@
                         <DataGridTemplateColumn Header="TÊN HIỂN THỊ TRÌNH ĐỘ" Width="190">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBox Text="{Binding TenHienThi, UpdateSourceTrigger=PropertyChanged}" 
+                                    <TextBox Text="{Binding TenHienThi, UpdateSourceTrigger=PropertyChanged}" MaxLength="100"
                                              Height="32" VerticalContentAlignment="Center" Padding="8,0" FontSize="12"
                                              Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
                                         <TextBox.Resources>
@@ -195,6 +195,7 @@
                                             <!-- Min -->
                                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBox Text="{Binding DiemPhanTramMin, UpdateSourceTrigger=PropertyChanged}" 
+                                                         PreviewTextInput="NumberOnly_PreviewTextInput" MaxLength="3"
                                                          Width="38" Height="26" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
                                                          FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextDark}"
                                                          BorderThickness="1" BorderBrush="#CBD5E1" Background="White">
@@ -211,6 +212,7 @@
                                             <!-- Max -->
                                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBox Text="{Binding DiemPhanTramMax, UpdateSourceTrigger=PropertyChanged}" 
+                                                         PreviewTextInput="NumberOnly_PreviewTextInput" MaxLength="3"
                                                          Width="38" Height="26" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
                                                          FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextDark}"
                                                          BorderThickness="1" BorderBrush="#CBD5E1" Background="White">
@@ -230,7 +232,7 @@
                         <DataGridTemplateColumn Header="QUY ĐỔI IELTS" Width="135">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBox Text="{Binding QuyDoiIelts, UpdateSourceTrigger=PropertyChanged}" 
+                                    <TextBox Text="{Binding QuyDoiIelts, UpdateSourceTrigger=PropertyChanged}" MaxLength="50"
                                              Height="32" VerticalContentAlignment="Center" Padding="8,0" FontSize="12"
                                              Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
                                         <TextBox.Resources>
@@ -245,7 +247,7 @@
                         <DataGridTemplateColumn Header="QUY ĐỔI TOEIC" Width="135">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBox Text="{Binding QuyDoiToeic, UpdateSourceTrigger=PropertyChanged}" 
+                                    <TextBox Text="{Binding QuyDoiToeic, UpdateSourceTrigger=PropertyChanged}" MaxLength="50"
                                              Height="32" VerticalContentAlignment="Center" Padding="8,0" FontSize="12"
                                              Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
                                         <TextBox.Resources>
@@ -260,7 +262,7 @@
                         <DataGridTemplateColumn Header="LỘ TRÌNH ĐỀ XUẤT CHO HỌC VIÊN" Width="*">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBox Text="{Binding LoTrinhDeXuat, UpdateSourceTrigger=PropertyChanged}" 
+                                    <TextBox Text="{Binding LoTrinhDeXuat, UpdateSourceTrigger=PropertyChanged}" MaxLength="300"
                                              Height="32" VerticalContentAlignment="Center" Padding="8,0" FontSize="12"
                                              Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1">
                                         <TextBox.Resources>

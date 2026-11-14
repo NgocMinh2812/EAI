@@ -57,6 +57,118 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Nút tải file mẫu bo góc đẹp (10px) -->
+        <Style x:Key="DownloadTemplateBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#F1F5F9"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#94A3B8"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#E2E8F0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Nút Sửa trên thẻ câu hỏi chờ duyệt (Bo góc 8px) -->
+        <Style x:Key="CardBtnSuaStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderLight}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#F1F5F9"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#CBD5E1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Nút Từ chối trên thẻ câu hỏi chờ duyệt (Bo góc 8px) -->
+        <Style x:Key="CardBtnTuChoiStyle" TargetType="Button">
+            <Setter Property="Background" Value="#FEF2F2"/>
+            <Setter Property="Foreground" Value="#DC2626"/>
+            <Setter Property="BorderBrush" Value="#FECACA"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#FEE2E2"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#FCA5A5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Nút Phê duyệt trên thẻ câu hỏi chờ duyệt (Bo góc 8px) -->
+        <Style x:Key="CardBtnDuyetStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource AdminDarkGreen}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="16,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#047857"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Page.Resources>
 
     <Grid Margin="24,18,24,20">
@@ -102,7 +214,7 @@
         <!-- ================= VIEW 1: AI SINH ĐỀ (SPLIT-VIEW) ================= -->
         <Grid x:Name="pnlAISinhDe" Grid.Row="1" Visibility="Visible">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="385"/>
+                <ColumnDefinition Width="400"/>
                 <ColumnDefinition Width="18"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
@@ -163,14 +275,12 @@
                                 <TextBlock Text="DẠNG CÂU HỎI" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource TextGray}" Margin="0,0,0,6"/>
                                 <ComboBox x:Name="cboQuestionType" Height="36" SelectedIndex="0" Cursor="Hand"
                                           ScrollViewer.CanContentScroll="False" VirtualizingPanel.ScrollUnit="Pixel">
-                                    <ComboBoxItem Content="Tự động đa dạng theo kỹ năng" Tag=""/>
+                                    <ComboBoxItem Content="Tự động đa dạng" Tag="" ToolTip="Tự động đa dạng dạng câu hỏi theo kỹ năng"/>
                                     <ComboBoxItem Content="Trắc nghiệm (Multiple Choice)" Tag="TracNghiem"/>
                                     <ComboBoxItem Content="Đúng / Sai (True / False)" Tag="DungSai"/>
                                     <ComboBoxItem Content="True / False / Not Given" Tag="TrueFalseNotGiven"/>
                                     <ComboBoxItem Content="Điền từ khuyết (Fill-in-blank)" Tag="DienKhuyet"/>
                                     <ComboBoxItem Content="Trả lời ngắn (Short Answer)" Tag="TraLoiNgan"/>
-                                    <ComboBoxItem Content="Nối cặp (Matching)" Tag="NoiCap"/>
-                                    <ComboBoxItem Content="Sắp xếp (Sequencing)" Tag="SapXep"/>
                                     <ComboBoxItem Content="Sửa lỗi sai (Error Correction)" Tag="SuaLoiSai"/>
                                     <ComboBoxItem Content="Viết lại câu (Transformation)" Tag="VietLaiCau"/>
                                     <ComboBoxItem Content="Viết tự luận (Essay / Paragraph)" Tag="TuLuan"/>
@@ -309,14 +419,14 @@
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                <!-- Nút Phê duyệt tất cả -->
+                                <!-- Nút Phê duyệt tất cả (Bo góc 8px) -->
                                 <Button x:Name="btnApproveAll" Background="{StaticResource AdminDarkGreen}" Foreground="White" BorderThickness="0"
-                                        Padding="10,6" Margin="0,0,6,0" Cursor="Hand" Click="BtnApproveAll_Click" ToolTip="Phê duyệt toàn bộ các câu hỏi đang chờ vào Ngân hàng câu hỏi">
+                                        Padding="12,6" Margin="0,0,6,0" Cursor="Hand" Click="BtnApproveAll_Click" ToolTip="Phê duyệt toàn bộ các câu hỏi đang chờ vào Ngân hàng câu hỏi">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border x:Name="bdApproveAll" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <Border x:Name="bdApproveAll" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <local:LucideIcon Kind="Check" Size="13" Foreground="White" Margin="0,0,4,0"/>
+                                                    <local:LucideIcon Kind="Check" Size="13" Foreground="White" Margin="0,0,5,0"/>
                                                     <TextBlock Text="Duyệt tất cả" FontSize="11.5" FontWeight="SemiBold" Foreground="White"/>
                                                 </StackPanel>
                                             </Border>
@@ -329,14 +439,14 @@
                                     </Button.Template>
                                 </Button>
 
-                                <!-- Nút Từ chối tất cả -->
+                                <!-- Nút Từ chối tất cả (Bo góc 8px) -->
                                 <Button x:Name="btnRejectAll" Background="#FEE2E2" BorderThickness="0"
-                                        Padding="10,6" Margin="0,0,6,0" Cursor="Hand" Click="BtnRejectAll_Click" ToolTip="Từ chối và dọn sạch toàn bộ hàng đợi kiểm duyệt">
+                                        Padding="12,6" Margin="0,0,6,0" Cursor="Hand" Click="BtnRejectAll_Click" ToolTip="Từ chối và dọn sạch toàn bộ hàng đợi kiểm duyệt">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border x:Name="bdRejectAll" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <Border x:Name="bdRejectAll" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <local:LucideIcon Kind="X" Size="12" Foreground="#DC2626" Margin="0,0,4,0"/>
+                                                    <local:LucideIcon Kind="X" Size="12" Foreground="#DC2626" Margin="0,0,5,0"/>
                                                     <TextBlock Text="Từ chối tất cả" FontSize="11.5" FontWeight="SemiBold" Foreground="#DC2626"/>
                                                 </StackPanel>
                                             </Border>
@@ -349,10 +459,10 @@
                                     </Button.Template>
                                 </Button>
 
-                                <Button x:Name="btnRefreshQueue" Background="#F1F5F9" BorderThickness="0" Padding="8,6" Margin="0,0,8,0" Cursor="Hand" Click="BtnRefreshQueue_Click" ToolTip="Tải lại danh sách hàng đợi">
+                                <Button x:Name="btnRefreshQueue" Background="#F1F5F9" BorderThickness="0" Padding="10,6" Margin="0,0,8,0" Cursor="Hand" Click="BtnRefreshQueue_Click" ToolTip="Tải lại danh sách hàng đợi">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border x:Name="bdRfQ" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <Border x:Name="bdRfQ" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                     <local:LucideIcon x:Name="icoRfQueue" Kind="RefreshCw" Size="12" Foreground="{StaticResource TextDark}" Margin="0,0,4,0"
                                                                       RenderTransformOrigin="0.5,0.5" VerticalAlignment="Center">
@@ -384,7 +494,7 @@
                                         </ControlTemplate>
                                     </Button.Template>
                                 </Button>
-                                <Border Background="#FEF3C7" CornerRadius="6" Padding="8,5">
+                                <Border Background="#FEF3C7" CornerRadius="8" Padding="9,5">
                                     <TextBlock x:Name="txtPendingCount" Text="0 chờ duyệt" FontSize="11.5" FontWeight="SemiBold" Foreground="#B45309"/>
                                 </Border>
                             </StackPanel>
@@ -417,8 +527,8 @@
         <ScrollViewer x:Name="pnlNhapTep" Grid.Row="1" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Border Style="{StaticResource AdminCardStyle}">
                     <StackPanel>
-                        <TextBlock Text="Bóc tách dữ liệu đề thi tự động từ file mẫu chuẩn" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
-                        <TextBlock Text="Hỗ trợ các định dạng file Văn bản (.txt), Word (.docx), Excel (.xlsx) hoặc JSON chuẩn hóa theo cấu trúc của EnglishAI." FontSize="13" Foreground="{StaticResource TextGray}" Margin="0,0,0,20"/>
+                        <TextBlock Text="Đọc nội dung tệp bằng AI &amp; Bóc tách câu hỏi tự động" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,0,6"/>
+                        <TextBlock Text="AI tự động phân tích giáo trình, bài đọc, tài liệu ôn thi hoặc tệp mẫu (.docx, .txt, .pdf, .json - Tối đa 10MB) và trích xuất câu hỏi hoàn chỉnh kèm đáp án." FontSize="13" Foreground="{StaticResource TextGray}" Margin="0,0,0,20"/>
 
                         <!-- Drag and Drop Zone -->
                         <Border x:Name="dropZoneBorder" Background="#F8FAFC" BorderBrush="#94A3B8" BorderThickness="2" CornerRadius="12" Padding="30" Margin="0,0,0,20" 
@@ -427,49 +537,39 @@
                                 <Border Width="56" Height="56" CornerRadius="28" Background="#F1F5F9" Margin="0,0,0,10" HorizontalAlignment="Center">
                                     <local:LucideIcon Kind="FolderOpen" Size="28" Foreground="#0F766E" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                <TextBlock Text="Kéo thả file đề thi vào đây hoặc bấm để chọn tệp từ máy tính" FontWeight="SemiBold" FontSize="14" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                                <TextBlock Text="Hỗ trợ định dạng .txt, .docx, .xlsx, .json • Tự động nhận diện cấu trúc đề thi trắc nghiệm" FontSize="12" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Kéo thả file đề thi hoặc tài liệu vào đây hoặc bấm để chọn tệp từ máy tính" FontWeight="SemiBold" FontSize="14" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                <TextBlock Text="Hỗ trợ .docx, .txt, .pdf, .json (Tối đa 10MB) • Tự động nhận diện cấu trúc đề thi hoặc dùng AI biên soạn từ bài đọc" FontSize="12" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Border>
 
-                        <!-- Download Template Buttons -->
+                        <!-- Download Template Buttons (Bo góc 10px chuẩn hệ thống) -->
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                            <Button Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
-                                    FontWeight="Medium" Padding="14,8" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" Click="BtnDownloadTemplateTxt_Click">
+                            <Button Style="{StaticResource DownloadTemplateBtnStyle}" Click="BtnDownloadTemplateTxt_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <local:LucideIcon Kind="FileText" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Tải file Text mẫu (.txt)"/>
+                                    <local:LucideIcon Kind="FileText" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Tải file Text mẫu (.txt)" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
-                                    FontWeight="Medium" Padding="14,8" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" Click="BtnDownloadTemplateDocx_Click">
+                            <Button Style="{StaticResource DownloadTemplateBtnStyle}" Click="BtnDownloadTemplateDocx_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <local:LucideIcon Kind="Download" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Tải file Word mẫu (.docx)"/>
+                                    <local:LucideIcon Kind="Download" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Tải file Word mẫu (.docx)" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
-                                    FontWeight="Medium" Padding="14,8" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" Click="BtnDownloadTemplateExcel_Click">
+                            <Button Style="{StaticResource DownloadTemplateBtnStyle}" Margin="0" Click="BtnDownloadTemplateJson_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <local:LucideIcon Kind="Download" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Tải file Excel mẫu (.xlsx)"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Background="#F1F5F9" Foreground="{StaticResource TextDark}" 
-                                    FontWeight="Medium" Padding="14,8" BorderThickness="0" Cursor="Hand" Click="BtnDownloadTemplateJson_Click">
-                                <StackPanel Orientation="Horizontal">
-                                    <local:LucideIcon Kind="Download" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Tải file JSON mẫu (.json)"/>
+                                    <local:LucideIcon Kind="Download" Size="14" Foreground="{StaticResource TextDark}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Tải file JSON mẫu (.json)" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
 
                         <!-- Parsing Progress Indicator -->
-                        <Border x:Name="pnlParsingProgress" Background="#EFF6FF" BorderBrush="#93C5FD" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,0,16" Visibility="Collapsed">
+                        <Border x:Name="pnlParsingProgress" Background="#EFF6FF" BorderBrush="#93C5FD" BorderThickness="1" CornerRadius="10" Padding="14" Margin="0,0,0,16" Visibility="Collapsed">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                     <local:LucideIcon Kind="RefreshCw" Size="14" Foreground="#1D4ED8" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                    <TextBlock x:Name="txtParsingStatus" Text="Đang bóc tách dữ liệu câu hỏi từ tệp tin..." FontWeight="SemiBold" FontSize="12.5" Foreground="#1D4ED8"/>
+                                    <TextBlock x:Name="txtParsingStatus" Text="Đang đọc nội dung và dùng AI phân tích, bóc tách câu hỏi từ tệp tin..." FontWeight="SemiBold" FontSize="12.5" Foreground="#1D4ED8"/>
                                 </StackPanel>
                                 <ProgressBar IsIndeterminate="True" Height="4" Foreground="#2563EB" Background="#DBEAFE" BorderThickness="0"/>
                             </StackPanel>
@@ -477,57 +577,245 @@
 
                         <!-- Preview Container After Parsing -->
                         <StackPanel x:Name="pnlParseResult" Visibility="Collapsed">
-                            <TextBlock Text="Dữ liệu bóc tách được từ tệp tin:" FontWeight="Bold" FontSize="14" Foreground="{StaticResource TextDark}" Margin="0,0,0,10"/>
-                            <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,0,16">
+                            <!-- Header of preview with question summary & discard button -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <local:LucideIcon Kind="CheckCircle2" Size="18" Foreground="#15803D" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="txtParseSummary" Text="Đã nhận diện 0 câu hỏi từ tệp tin" FontWeight="Bold" FontSize="14.5" Foreground="#15803D" VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <Button Grid.Column="1" Background="#F1F5F9" Foreground="#64748B" BorderThickness="0" Padding="12,6" Cursor="Hand" Click="BtnHuyBocTach_Click" ToolTip="Dọn dẹp và xóa kết quả này">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bdQuickClear" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <local:LucideIcon Kind="Trash2" Size="13" Foreground="#64748B" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Xóa bảng này" FontSize="12" FontWeight="SemiBold" Foreground="#64748B"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdQuickClear" Property="Background" Value="#FEE2E2"/>
+                                                    <Setter Property="Foreground" Value="#DC2626"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
+
+                            <!-- Error Alert if any -->
+                            <Border x:Name="pnlParseErrors" Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,12" Visibility="Collapsed">
                                 <StackPanel>
-                                    <!-- Result Summary -->
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                        <local:LucideIcon Kind="CheckCircle2" Size="16" Foreground="#15803D" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                        <TextBlock x:Name="txtParseSummary" Text="Đã nhận diện 0 câu hỏi từ tệp tin" FontWeight="Bold" FontSize="13.5" Foreground="#15803D" VerticalAlignment="Center"/>
-                                    </StackPanel>
-
-                                    <!-- Error Alert if any -->
-                                    <Border x:Name="pnlParseErrors" Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,0,0,12" Visibility="Collapsed">
-                                        <StackPanel>
-                                            <TextBlock Text="Các dòng dữ liệu không hợp lệ:" FontWeight="Bold" FontSize="12" Foreground="#DC2626" Margin="0,0,0,4"/>
-                                            <TextBlock x:Name="txtParseErrorDetails" Text="" FontSize="11.5" Foreground="#991B1B" TextWrapping="Wrap"/>
-                                        </StackPanel>
-                                    </Border>
-
-                                    <!-- Preview Items DataGrid -->
-                                    <DataGrid x:Name="dgPreviewParsedQuestions" AutoGenerateColumns="False" CanUserAddRows="False" 
-                                              IsReadOnly="True" MaxHeight="280" GridLinesVisibility="Horizontal" HeadersVisibility="Column"
-                                              Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Margin="0,0,0,16">
-                                        <DataGrid.Columns>
-                                            <DataGridTextColumn Header="STT" Binding="{Binding ThuTuHienThi}" Width="50"/>
-                                            <DataGridTextColumn Header="Kỹ năng" Binding="{Binding KyNang}" Width="90"/>
-                                            <DataGridTextColumn Header="Trình độ" Binding="{Binding TrinhDo}" Width="75"/>
-                                            <DataGridTextColumn Header="Dạng câu hỏi" Binding="{Binding LoaiCauHoi}" Width="120"/>
-                                            <DataGridTextColumn Header="Nội dung câu hỏi" Binding="{Binding NoiDungCauHoi}" Width="*"/>
-                                            <DataGridTextColumn Header="Đáp án đúng" Binding="{Binding DapAnDungHienThi}" Width="110"/>
-                                        </DataGrid.Columns>
-                                    </DataGrid>
-
-                                    <!-- Save Actions -->
-                                    <StackPanel Orientation="Horizontal">
-                                        <Button x:Name="btnLuuVaoHangDoi" Background="#D97706" Foreground="White" 
-                                                FontWeight="SemiBold" FontSize="13" Padding="18,9" Cursor="Hand" BorderThickness="0" Margin="0,0,10,0" Click="BtnLuuVaoHangDoi_Click">
-                                            <StackPanel Orientation="Horizontal">
-                                                <local:LucideIcon Kind="Layers" Size="14" Foreground="White" Margin="0,0,6,0"/>
-                                                <TextBlock Text="Đưa vào Hàng đợi kiểm duyệt"/>
-                                            </StackPanel>
-                                        </Button>
-
-                                        <Button x:Name="btnLuuVaoNganHang" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
-                                                FontWeight="SemiBold" FontSize="13" Padding="18,9" Cursor="Hand" BorderThickness="0" Click="BtnLuuVaoNganHang_Click">
-                                            <StackPanel Orientation="Horizontal">
-                                                <local:LucideIcon Kind="Save" Size="14" Foreground="White" Margin="0,0,6,0"/>
-                                                <TextBlock Text="Lưu trực tiếp vào Ngân hàng câu hỏi"/>
-                                            </StackPanel>
-                                        </Button>
-                                    </StackPanel>
+                                    <TextBlock Text="Cảnh báo / Ghi chú định dạng:" FontWeight="Bold" FontSize="12" Foreground="#DC2626" Margin="0,0,0,4"/>
+                                    <TextBlock x:Name="txtParseErrorDetails" Text="" FontSize="11.5" Foreground="#991B1B" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Border>
+
+                            <!-- Modern DataGrid Card Container -->
+                            <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="12" ClipToBounds="True" Margin="0,0,0,16">
+                                <DataGrid x:Name="dgPreviewParsedQuestions" AutoGenerateColumns="False" CanUserAddRows="False" 
+                                          IsReadOnly="True" MaxHeight="380" GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                                          HorizontalGridLinesBrush="#F1F5F9" Background="White" BorderThickness="0"
+                                          ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                          RowHeight="NaN" AlternatingRowBackground="#FAFAFA">
+                                    <DataGrid.Resources>
+                                        <!-- Header Style -->
+                                        <Style TargetType="DataGridColumnHeader">
+                                            <Setter Property="Background" Value="#F8FAFC"/>
+                                            <Setter Property="Foreground" Value="#475569"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                            <Setter Property="Padding" Value="12,10"/>
+                                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                                            <Setter Property="Height" Value="40"/>
+                                        </Style>
+
+                                        <!-- Row Style -->
+                                        <Style TargetType="DataGridRow">
+                                            <Setter Property="Margin" Value="0,2"/>
+                                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                            <Setter Property="BorderBrush" Value="#F1F5F9"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#F0FDF4"/>
+                                                </Trigger>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Background" Value="#E0F2FE"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+
+                                        <!-- Cell Style -->
+                                        <Style TargetType="DataGridCell">
+                                            <Setter Property="Padding" Value="8,10"/>
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGrid.Resources>
+
+                                    <DataGrid.Columns>
+                                        <!-- STT -->
+                                        <DataGridTemplateColumn Header="STT" Width="55">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="#F1F5F9" CornerRadius="6" Padding="6,3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding ThuTuHienThi}" FontWeight="Bold" FontSize="11.5" Foreground="#64748B"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+
+                                        <!-- Kỹ năng -->
+                                        <DataGridTemplateColumn Header="Kỹ năng" Width="100">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="#EFF6FF" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding KyNangHienThi}" FontWeight="SemiBold" FontSize="11.5" Foreground="#1D4ED8"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+
+                                        <!-- Trình độ -->
+                                        <DataGridTemplateColumn Header="Trình độ" Width="85">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="#FEF3C7" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding TrinhDo}" FontWeight="Bold" FontSize="11.5" Foreground="#B45309"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+
+                                        <!-- Dạng câu hỏi -->
+                                        <DataGridTemplateColumn Header="Dạng câu hỏi" Width="125">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="#F3E8FF" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding LoaiCauHoiHienThi}" FontWeight="Medium" FontSize="11.5" Foreground="#6B21A8"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+
+                                        <!-- Nội dung câu hỏi -->
+                                        <DataGridTemplateColumn Header="Nội dung câu hỏi" Width="*">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding NoiDungCauHoi}" TextWrapping="Wrap" FontSize="12.5" Foreground="#0F172A" LineHeight="18" VerticalAlignment="Center" Margin="4,2"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+
+                                        <!-- Đáp án đúng -->
+                                        <DataGridTemplateColumn Header="Đáp án đúng" Width="200">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="#DCFCE7" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="6" Padding="8,4" VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <local:LucideIcon Kind="Check" Size="13" Foreground="#15803D" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="{Binding DapAnDungHienThi}" FontWeight="SemiBold" FontSize="11.5" Foreground="#15803D" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Border>
+
+                            <!-- Save Actions (Bo góc 10px chuẩn hệ thống) -->
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Button Grid.Column="0" x:Name="btnLuuVaoHangDoi" Background="#D97706" Foreground="White" 
+                                        FontWeight="SemiBold" FontSize="13" Padding="20,10" Cursor="Hand" BorderThickness="0" Margin="0,0,12,0" Click="BtnLuuVaoHangDoi_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bdLuuQueue" Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdLuuQueue" Property="Background" Value="#B45309"/>
+                                                </Trigger>
+                                                <Trigger Property="IsPressed" Value="True">
+                                                    <Setter TargetName="bdLuuQueue" Property="Background" Value="#92400E"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                    <StackPanel Orientation="Horizontal">
+                                        <local:LucideIcon Kind="Layers" Size="15" Foreground="White" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Đưa vào Hàng đợi kiểm duyệt" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Grid.Column="1" x:Name="btnLuuVaoNganHang" Background="{StaticResource AdminDarkGreen}" Foreground="White" 
+                                        FontWeight="SemiBold" FontSize="13" Padding="20,10" Cursor="Hand" BorderThickness="0" Margin="0,0,12,0" Click="BtnLuuVaoNganHang_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bdLuuBank" Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdLuuBank" Property="Background" Value="#0A382A"/>
+                                                </Trigger>
+                                                <Trigger Property="IsPressed" Value="True">
+                                                    <Setter TargetName="bdLuuBank" Property="Background" Value="#06251C"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                    <StackPanel Orientation="Horizontal">
+                                        <local:LucideIcon Kind="Save" Size="15" Foreground="White" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Lưu trực tiếp vào Ngân hàng câu hỏi" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Grid.Column="3" x:Name="btnHuyBocTach" Background="#F1F5F9" Foreground="#64748B" 
+                                        FontWeight="SemiBold" FontSize="13" Padding="18,10" Cursor="Hand" BorderThickness="0" Click="BtnHuyBocTach_Click"
+                                        ToolTip="Dọn dẹp và xóa toàn bộ kết quả bóc tách hiện tại">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bdHuy" Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdHuy" Property="Background" Value="#FEE2E2"/>
+                                                    <Setter Property="Foreground" Value="#DC2626"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                    <StackPanel Orientation="Horizontal">
+                                        <local:LucideIcon Kind="Trash2" Size="14" Foreground="#64748B" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Xóa kết quả này" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
                         </StackPanel>
                     </StackPanel>
                 </Border>

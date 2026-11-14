@@ -13,6 +13,7 @@ namespace BUS.AI.Models
         /// Trạng thái: "Healthy" (Hoạt động tốt), "Degraded" (Chập chờn), "Unavailable" (Không khả dụng), "Unverified" (Chưa xác minh)
         /// </summary>
         public string Health { get; set; } = "Unavailable";
+        public bool IsHealthy => string.Equals(Health, "Healthy", StringComparison.OrdinalIgnoreCase);
         
         public long LatencyMs { get; set; }
         public string Message { get; set; } = string.Empty;

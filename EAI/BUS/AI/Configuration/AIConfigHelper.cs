@@ -231,6 +231,19 @@ namespace BUS.AI.Configuration
             return (key.Trim(), url.Trim());
         }
 
+        public static (string BaseUrl, string DefaultModel) GetOllamaConfig()
+        {
+            string minhBaseUrl = AIConfigurationService.Instance.GetBaseUrl(Models.AIProviderType.Ollama);
+            var config = Configuration;
+            string url = !string.IsNullOrWhiteSpace(minhBaseUrl) && minhBaseUrl != "https://generativelanguage.googleapis.com/v1beta"
+                ? minhBaseUrl
+                : (config["Ollama:BaseUrl"] ?? config["OLLAMA_BASE_URL"] ?? Environment.GetEnvironmentVariable("OLLAMA_BASE_URL") ?? "http://localhost:11434");
+
+            string defaultModel = config["Ollama:DefaultModel"] ?? config["OLLAMA_DEFAULT_MODEL"] ?? Environment.GetEnvironmentVariable("OLLAMA_DEFAULT_MODEL") ?? "llama3.2:latest";
+
+            return (url.TrimEnd('/'), defaultModel.Trim());
+        }
+
         public static string BuildEndpoint(string baseUrl, string relativePath)
         {
             if (string.IsNullOrWhiteSpace(baseUrl)) baseUrl = "https://api.xkiro.com/v1";

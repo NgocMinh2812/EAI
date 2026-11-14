@@ -2,7 +2,7 @@
 chcp 65001 >nul
 cd /d "%~dp0"
 echo ===================================================================
-echo   Đang nạp toàn bộ CSDL TiengAnhAI (01 -> 05) vào .\SQLEXPRESS...
+echo   Đang nạp toàn bộ CSDL TiengAnhAI (01 -> 03) vào .\SQLEXPRESS...
 echo ===================================================================
 sqlcmd -S ".\SQLEXPRESS" -E -i "RunAll.sql"
 echo.
@@ -10,4 +10,3 @@ echo ===================================================================
 echo   Quá trình nạp CSDL đã hoàn tất!
 echo ===================================================================
 pause
-

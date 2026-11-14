@@ -25,9 +25,16 @@ namespace BUS.AI
         {
             if (baiHoc == null) return string.Empty;
 
+            string fileFingerprint = "";
+            if (!string.IsNullOrWhiteSpace(baiHoc.DuongDanTepVatLy) && File.Exists(baiHoc.DuongDanTepVatLy))
+            {
+                var fi = new FileInfo(baiHoc.DuongDanTepVatLy);
+                fileFingerprint = $"{fi.Length}_{fi.LastWriteTimeUtc.Ticks}";
+            }
+
             string raw = $"{baiHoc.TieuDe?.Trim()}|{baiHoc.LoaiBaiHoc?.Trim()}|{baiHoc.MaTrinhDo?.Trim()}|" +
                          $"{baiHoc.TomTat?.Trim()}|{baiHoc.NoiDung?.Trim()}|" +
-                         $"{baiHoc.AudioPath?.Trim()}|{baiHoc.DuongDanAudio?.Trim()}";
+                         $"{baiHoc.AudioPath?.Trim()}|{baiHoc.DuongDanTepVatLy?.Trim()}|{fileFingerprint}";
 
             using var sha256 = SHA256.Create();
             byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(raw));

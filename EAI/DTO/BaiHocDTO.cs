@@ -37,6 +37,16 @@ namespace DTO
                 @"^(?:(?:\([A-Da-d]\)|\[[A-Da-d]\]|[A-Da-d][\.\)\:\-])\s*)+",
                 ""
             ).Trim();
+
+            // Loại bỏ các hậu tố đánh dấu đáp án đúng/sai do AI hoặc tệp thô đính kèm ở cuối dòng
+            stripped = System.Text.RegularExpressions.Regex.Replace(
+                stripped,
+                @"\s*[\(\[]?\s*(?:Đúng|Đáp án đúng|Correct)\s*[\✓\✔]?\s*[\)\]]?\s*$",
+                "",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            ).Trim();
+            stripped = System.Text.RegularExpressions.Regex.Replace(stripped, @"[\✓\✔]\s*$", "").Trim();
+
             return string.IsNullOrEmpty(stripped) ? trimmed : stripped;
         }
     }

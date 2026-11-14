@@ -21,11 +21,22 @@ namespace BUS
         private readonly BaiVietAIDAL _dal = BaiVietAIDAL.Instance;
 
         #region History & Favorites
+        private int ResolveUserId(int maNguoiDung)
+        {
+            if (SessionHelper.CurrentUser != null && !SessionHelper.IsGiangVien && !SessionHelper.IsAdmin)
+            {
+                return SessionHelper.CurrentMaNguoiDung;
+            }
+            return maNguoiDung;
+        }
+
         public List<BaiVietDaChamDTO> LayLichSuBaiViet(int maNguoiDung)
         {
             try
             {
-                return _dal.LayLichSuBaiViet(maNguoiDung);
+                int uid = ResolveUserId(maNguoiDung);
+                if (uid <= 0) return new List<BaiVietDaChamDTO>();
+                return _dal.LayLichSuBaiViet(uid);
             }
             catch (Exception ex)
             {
@@ -38,7 +49,9 @@ namespace BUS
         {
             try
             {
-                return _dal.LuuKetQuaChamBai(maNguoiDung, deBai, baiVietGoc, jsonKetQua, trinhDo, soTuYeuCau);
+                int uid = ResolveUserId(maNguoiDung);
+                if (uid <= 0) return 0;
+                return _dal.LuuKetQuaChamBai(uid, deBai, baiVietGoc, jsonKetQua, trinhDo, soTuYeuCau);
             }
             catch (Exception ex)
             {
@@ -51,7 +64,9 @@ namespace BUS
         {
             try
             {
-                return _dal.XoaKetQuaBaiViet(maKetQua, maNguoiDung);
+                int uid = ResolveUserId(maNguoiDung);
+                if (uid <= 0) return false;
+                return _dal.XoaKetQuaBaiViet(maKetQua, uid);
             }
             catch
             {
@@ -63,7 +78,9 @@ namespace BUS
         {
             try
             {
-                return _dal.LuuDeBaiYeuThich(maNguoiDung, deBai);
+                int uid = ResolveUserId(maNguoiDung);
+                if (uid <= 0) return 0;
+                return _dal.LuuDeBaiYeuThich(uid, deBai);
             }
             catch (Exception ex)
             {
@@ -76,7 +93,9 @@ namespace BUS
         {
             try
             {
-                return _dal.LayDanhSachDeYeuThich(maNguoiDung);
+                int uid = ResolveUserId(maNguoiDung);
+                if (uid <= 0) return new List<DeBaiVietAIDTO>();
+                return _dal.LayDanhSachDeYeuThich(uid);
             }
             catch (Exception ex)
             {
@@ -89,7 +108,9 @@ namespace BUS
         {
             try
             {
-                return _dal.XoaDeYeuThich(maDe, maNguoiDung);
+                int uid = ResolveUserId(maNguoiDung);
+                if (uid <= 0) return false;
+                return _dal.XoaDeYeuThich(maDe, uid);
             }
             catch
             {

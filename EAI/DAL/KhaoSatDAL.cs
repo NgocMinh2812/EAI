@@ -462,6 +462,27 @@ namespace DAL
         }
 
         /// <summary>
+        /// Lấy mã người dùng sở hữu lượt khảo sát để kiểm tra quyền truy cập (Anti-IDOR)
+        /// </summary>
+        public int LayMaNguoiDungCuaLuotKhaoSat(int maLuotKhaoSat)
+        {
+            try
+            {
+                string sql = "SELECT MaNguoiDung FROM LuotKhaoSat WHERE MaLuotKhaoSat = @MaLuot";
+                object? val = SqlDataProvider.Instance.ExecuteScalar(sql, new[] { new SqlParameter("@MaLuot", maLuotKhaoSat) });
+                if (val != null && val != DBNull.Value && int.TryParse(val.ToString(), out int userId))
+                {
+                    return userId;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[KhaoSatDAL.LayMaNguoiDungCuaLuotKhaoSat] {ex.Message}");
+            }
+            return -1;
+        }
+
+        /// <summary>
         /// Lấy chi tiết các câu trả lời của học viên trong một lượt làm bài khảo sát
         /// </summary>
         public List<ChiTietTraLoiKhaoSatItemDTO> LayChiTietKhaoSatHocVien(int maLuotKhaoSat)

@@ -193,7 +193,7 @@ namespace GUI.Views.GiangVien
             var dlg = new XacNhanPheDuyetVaTaoBoDialog(list.Count, chuDeGoiY);
             if (Common.ModalHelper.ShowDialogWithDim(dlg, Window.GetWindow(this)) != true) return;
 
-            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
+            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
             var (success, fail, dsMaMoi, err) = AISinhDeBUS.Instance.PheDuyetTatCa(list);
             TaiDanhSachChoDuyet();
 
@@ -418,7 +418,8 @@ namespace GUI.Views.GiangVien
             headerLeft.Children.Add(levelBadge);
 
             // Nguồn và thời gian
-            string srcText = $"{q.ThoiGianTao:dd/MM HH:mm} • {q.MoHinhAI ?? "AI Generator"}";
+            string moHinhDisplay = !string.IsNullOrWhiteSpace(q.MoHinhAI) ? q.MoHinhAI : "AI Generator";
+            string srcText = $"{q.ThoiGianTao:dd/MM HH:mm} • {moHinhDisplay}";
             headerLeft.Children.Add(new TextBlock
             {
                 Text = srcText,
@@ -575,21 +576,14 @@ namespace GUI.Views.GiangVien
             // 3. Nút hành động: Sửa, Từ chối, Phê duyệt
             var actionStack = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
 
-            // Nút Sửa
+            // Nút Sửa (Bo góc 8px)
             var btnSua = new Button
             {
-                Background = Brushes.White,
-                BorderBrush = (Brush)FindResource("BorderLight"),
-                BorderThickness = new Thickness(1),
-                FontWeight = FontWeights.SemiBold,
-                FontSize = 12,
-                Padding = new Thickness(12, 6, 12, 6),
-                Margin = new Thickness(0, 0, 8, 0),
-                Cursor = Cursors.Hand
+                Style = (Style)FindResource("CardBtnSuaStyle")
             };
             var stackSua = new StackPanel { Orientation = Orientation.Horizontal };
-            stackSua.Children.Add(new LucideIcon { Kind = LucideIconKind.Pencil, Size = 12, Foreground = (Brush)FindResource("TextDark"), Margin = new Thickness(0, 0, 5, 0) });
-            stackSua.Children.Add(new TextBlock { Text = "Sửa" });
+            stackSua.Children.Add(new LucideIcon { Kind = LucideIconKind.Pencil, Size = 12, Foreground = (Brush)FindResource("TextDark"), Margin = new Thickness(0, 0, 5, 0), VerticalAlignment = VerticalAlignment.Center });
+            stackSua.Children.Add(new TextBlock { Text = "Sửa", VerticalAlignment = VerticalAlignment.Center });
             btnSua.Content = stackSua;
             btnSua.Click += (s, e) =>
             {
@@ -601,25 +595,23 @@ namespace GUI.Views.GiangVien
             };
             actionStack.Children.Add(btnSua);
 
-            // Nút Từ chối
+            // Nút Từ chối (Bo góc 8px)
             var btnTuChoi = new Button
             {
-                Background = new SolidColorBrush(Color.FromRgb(254, 242, 242)),
-                BorderBrush = new SolidColorBrush(Color.FromRgb(254, 202, 202)),
-                BorderThickness = new Thickness(1),
-                Foreground = new SolidColorBrush(Color.FromRgb(239, 68, 68)),
-                FontWeight = FontWeights.SemiBold,
-                FontSize = 12,
-                Padding = new Thickness(12, 6, 12, 6),
-                Margin = new Thickness(0, 0, 8, 0),
-                Cursor = Cursors.Hand
+                Style = (Style)FindResource("CardBtnTuChoiStyle")
             };
             var stackTuChoi = new StackPanel { Orientation = Orientation.Horizontal };
-            stackTuChoi.Children.Add(new LucideIcon { Kind = LucideIconKind.X, Size = 12, Foreground = new SolidColorBrush(Color.FromRgb(239, 68, 68)), Margin = new Thickness(0, 0, 5, 0) });
-            stackTuChoi.Children.Add(new TextBlock { Text = "Từ chối" });
+            stackTuChoi.Children.Add(new LucideIcon { Kind = LucideIconKind.X, Size = 12, Foreground = new SolidColorBrush(Color.FromRgb(220, 38, 38)), Margin = new Thickness(0, 0, 5, 0), VerticalAlignment = VerticalAlignment.Center });
+            stackTuChoi.Children.Add(new TextBlock { Text = "Từ chối", VerticalAlignment = VerticalAlignment.Center });
             btnTuChoi.Content = stackTuChoi;
             btnTuChoi.Click += (s, e) =>
             {
+                bool xacNhan = Common.ThongBaoDialog.XacNhanXoa(
+                    Window.GetWindow(this),
+                    "Bạn có chắc chắn muốn từ chối câu hỏi này khỏi hàng đợi kiểm duyệt không?",
+                    "Xác nhận từ chối");
+                if (!xacNhan) return;
+
                 bool thanhCong = AISinhDeBUS.Instance.TuChoiCauHoiAI(q.MaCauHoiAI, out string err);
                 if (thanhCong)
                 {
@@ -633,20 +625,14 @@ namespace GUI.Views.GiangVien
             };
             actionStack.Children.Add(btnTuChoi);
 
-            // Nút Phê duyệt
+            // Nút Phê duyệt (Bo góc 8px)
             var btnDuyet = new Button
             {
-                Background = (Brush)FindResource("AdminDarkGreen"),
-                Foreground = Brushes.White,
-                FontWeight = FontWeights.SemiBold,
-                FontSize = 12,
-                Padding = new Thickness(16, 6, 16, 6),
-                BorderThickness = new Thickness(0),
-                Cursor = Cursors.Hand
+                Style = (Style)FindResource("CardBtnDuyetStyle")
             };
             var stackDuyet = new StackPanel { Orientation = Orientation.Horizontal };
-            stackDuyet.Children.Add(new LucideIcon { Kind = LucideIconKind.Check, Size = 12, Foreground = Brushes.White, Margin = new Thickness(0, 0, 5, 0) });
-            stackDuyet.Children.Add(new TextBlock { Text = "Phê duyệt" });
+            stackDuyet.Children.Add(new LucideIcon { Kind = LucideIconKind.Check, Size = 12, Foreground = Brushes.White, Margin = new Thickness(0, 0, 5, 0), VerticalAlignment = VerticalAlignment.Center });
+            stackDuyet.Children.Add(new TextBlock { Text = "Phê duyệt", VerticalAlignment = VerticalAlignment.Center });
             btnDuyet.Content = stackDuyet;
             btnDuyet.Click += (s, e) =>
             {
@@ -657,7 +643,7 @@ namespace GUI.Views.GiangVien
                 bool thanhCong = AISinhDeBUS.Instance.PheDuyetCauHoiAI(q.MaCauHoiAI, out int maCauHoiMoi, out string err);
                 if (thanhCong)
                 {
-                    int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
+                    int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
                     TaiDanhSachChoDuyet();
 
                     if (dlg.HanhDong == HanhDongPheDuyet.TaoBoMoi && maCauHoiMoi > 0)
@@ -722,53 +708,17 @@ namespace GUI.Views.GiangVien
             return cardBorder;
         }
 
-        private static string DoanKyNangTuPrompt(string prompt)
+        private static string DoanKyNangTuPrompt(string prompt) => AISinhDeBUS.DoanKyNangTuPrompt(prompt);
+
+        private void SetFormEnabled(bool isEnabled)
         {
-            if (string.IsNullOrWhiteSpace(prompt)) return "NguPhap";
-            string p = prompt.ToLowerInvariant();
-
-            if (p.Contains("ngữ pháp") || p.Contains("ngu phap") || p.Contains("grammar") ||
-                p.Contains("thì ") || p.Contains("tense") || p.Contains("câu điều kiện") ||
-                p.Contains("lời khuyên") || p.Contains("advice") || p.Contains("modal") ||
-                p.Contains("mệnh đề") || p.Contains("bị động") || p.Contains("passive") ||
-                p.Contains("so sánh") || p.Contains("comparison") || p.Contains("preposition") || p.Contains("giới từ") ||
-                p.Contains("hoàn thành") || p.Contains("quá khứ") || p.Contains("tương lai") || p.Contains("hiện tại"))
-            {
-                return "NguPhap";
-            }
-
-            if (p.Contains("từ vựng") || p.Contains("tu vung") || p.Contains("vocabulary") || p.Contains("vocab") ||
-                p.Contains("từ đồng nghĩa") || p.Contains("antonym") || p.Contains("synonym") ||
-                p.Contains("chuyên ngành") || p.Contains("idiom") || p.Contains("phrasal verb") || p.Contains("collocation"))
-            {
-                return "TuVung";
-            }
-
-            if (p.Contains("nghe") || p.Contains("listening") || p.Contains("audio") ||
-                p.Contains("hội thoại") || p.Contains("dialogue") || p.Contains("conversation"))
-            {
-                return "Nghe";
-            }
-
-            if (p.Contains("viết lại") || p.Contains("sửa lỗi") || p.Contains("writing") ||
-                p.Contains("essay") || p.Contains("paragraph") || p.Contains("thư") || p.Contains("email"))
-            {
-                return "Viet";
-            }
-
-            if (p.Contains("nói") || p.Contains("speaking") || p.Contains("phát âm") ||
-                p.Contains("pronunciation") || p.Contains("trọng âm") || p.Contains("stress") || p.Contains("ipa"))
-            {
-                return "Noi";
-            }
-
-            if (p.Contains("đọc") || p.Contains("reading") || p.Contains("đoạn văn") ||
-                p.Contains("passage") || p.Contains("bài đọc"))
-            {
-                return "Doc";
-            }
-
-            return "NguPhap";
+            if (cboSkill != null) cboSkill.IsEnabled = isEnabled;
+            if (cboQuestionType != null) cboQuestionType.IsEnabled = isEnabled;
+            if (cboLevel != null) cboLevel.IsEnabled = isEnabled;
+            if (cboCount != null) cboCount.IsEnabled = isEnabled;
+            if (cboExistingLesson != null) cboExistingLesson.IsEnabled = isEnabled;
+            if (txtPrompt != null) txtPrompt.IsEnabled = isEnabled;
+            if (tabNhapTep != null) tabNhapTep.IsEnabled = isEnabled;
         }
 
         private async void BtnSinhCauHoi_Click(object sender, RoutedEventArgs e)
@@ -777,6 +727,14 @@ namespace GUI.Views.GiangVien
             if (string.IsNullOrEmpty(prompt))
             {
                 Common.ThongBaoDialog.CanhBao("Vui lòng nhập chủ đề hoặc yêu cầu tạo câu hỏi bằng AI.", "Thông báo");
+                txtPrompt.Focus();
+                return;
+            }
+
+            if (prompt.Length < 4)
+            {
+                Common.ThongBaoDialog.CanhBao("Chủ đề hoặc yêu cầu quá ngắn (tối thiểu 4 ký tự). Vui lòng nhập rõ chủ đề kiến thức bạn muốn AI tạo câu hỏi.", "Thông báo");
+                txtPrompt.Focus();
                 return;
             }
 
@@ -802,12 +760,13 @@ namespace GUI.Views.GiangVien
             _generationCts = new CancellationTokenSource();
             var ct = _generationCts.Token;
 
+            SetFormEnabled(false);
             btnSinhCauHoi.Visibility = Visibility.Collapsed;
             pnlGeneratingProgress.Visibility = Visibility.Visible;
             btnCancelGeneration.IsEnabled = true;
             txtGeneratingStatus.Text = $"Đang phân tích, gọi AI ({modelDisplay}) và lưu vào CSDL...";
 
-            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
+            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
 
             try
             {
@@ -844,6 +803,7 @@ namespace GUI.Views.GiangVien
             }
             finally
             {
+                SetFormEnabled(true);
                 pnlGeneratingProgress.Visibility = Visibility.Collapsed;
                 btnSinhCauHoi.Visibility = Visibility.Visible;
                 _generationCts?.Dispose();
@@ -869,8 +829,8 @@ namespace GUI.Views.GiangVien
         {
             var openFileDialog = new OpenFileDialog
             {
-                Title = "Chọn tệp đề thi / câu hỏi (.txt, .docx, .xlsx, .json)",
-                Filter = "Tất cả định dạng hỗ trợ (*.txt;*.docx;*.xlsx;*.json)|*.txt;*.docx;*.xlsx;*.json|Văn bản thuần Text (*.txt)|*.txt|Word Document (*.docx)|*.docx|Excel Spreadsheet (*.xlsx)|*.xlsx|JSON Data (*.json)|*.json"
+                Title = "Chọn tệp đề thi / giáo trình / tài liệu học tập (.docx, .txt, .pdf, .json)",
+                Filter = "Tất cả định dạng hỗ trợ (*.docx;*.txt;*.pdf;*.json)|*.docx;*.txt;*.pdf;*.json|Word Document (*.docx)|*.docx|Văn bản thuần Text (*.txt)|*.txt|PDF Document (*.pdf)|*.pdf|JSON Data (*.json)|*.json"
             };
 
             if (openFileDialog.ShowDialog() == true)
@@ -912,17 +872,25 @@ namespace GUI.Views.GiangVien
                 return;
             }
 
-            string ext = Path.GetExtension(filePath).ToLower();
-            if (ext != ".xlsx" && ext != ".docx" && ext != ".json" && ext != ".txt")
+            var fi = new FileInfo(filePath);
+            // Giới hạn dung lượng tối đa 10MB theo yêu cầu của hệ thống
+            if (fi.Length > AISinhDeBUS.MAX_FILE_SIZE_BYTES)
             {
-                Common.ThongBaoDialog.CanhBao("Hệ thống chỉ hỗ trợ các tệp có định dạng .txt, .docx, .xlsx hoặc .json.", "Định dạng không hỗ trợ");
+                Common.ThongBaoDialog.CanhBao("Dung lượng tệp vượt quá giới hạn cho phép (tối đa 10MB) để đảm bảo mô hình AI có thể đọc và phân tích toàn diện.", "Giới hạn dung lượng");
                 return;
             }
 
-            _currentLoadedFileName = Path.GetFileName(filePath);
+            string ext = fi.Extension.ToLowerInvariant();
+            if (ext != ".docx" && ext != ".json" && ext != ".txt" && ext != ".pdf")
+            {
+                Common.ThongBaoDialog.CanhBao("Hệ thống chỉ hỗ trợ các tệp có định dạng .docx, .txt, .pdf hoặc .json (tối đa 10MB).", "Định dạng không hỗ trợ");
+                return;
+            }
+
+            _currentLoadedFileName = fi.Name;
             pnlParsingProgress.Visibility = Visibility.Visible;
             pnlParseResult.Visibility = Visibility.Collapsed;
-            txtParsingStatus.Text = $"Đang đọc và phân tích cấu trúc dữ liệu từ tệp '{_currentLoadedFileName}'...";
+            txtParsingStatus.Text = $"Đang đọc nội dung và dùng AI phân tích, bóc tách câu hỏi từ tệp '{_currentLoadedFileName}'...";
 
             try
             {
@@ -932,13 +900,13 @@ namespace GUI.Views.GiangVien
                 pnlParsingProgress.Visibility = Visibility.Collapsed;
                 pnlParseResult.Visibility = Visibility.Visible;
 
-                txtParseSummary.Text = $"Đã nhận diện {result.DanhSachCauHoi.Count} câu hỏi từ tệp '{_currentLoadedFileName}' (Định dạng {result.DinhDangTep.ToUpper()})";
+                txtParseSummary.Text = $"Đã nhận diện {result.DanhSachCauHoi.Count} câu hỏi từ tệp '{_currentLoadedFileName}' (Định dạng {result.DinhDang.ToUpper()})";
 
                 if (result.DanhSachLoi != null && result.DanhSachLoi.Count > 0)
                 {
                     pnlParseErrors.Visibility = Visibility.Visible;
                     txtParseErrorDetails.Text = string.Join("\n", result.DanhSachLoi.Take(5)) +
-                        (result.DanhSachLoi.Count > 5 ? $"\n... và còn {result.DanhSachLoi.Count - 5} cảnh báo khác." : "");
+                        (result.DanhSachLoi.Count > 5 ? $"\n... và còn {result.DanhSachLoi.Count - 5} thông báo khác." : "");
                 }
                 else
                 {
@@ -953,19 +921,28 @@ namespace GUI.Views.GiangVien
                         q.DapAnDungIndex.Value >= 0 && q.DapAnDungIndex.Value < q.DanhSachLuaChon.Count)
                     {
                         char prefix = (char)('A' + q.DapAnDungIndex.Value);
-                        dapAnStr = $"{prefix}) {q.DanhSachLuaChon[q.DapAnDungIndex.Value]}";
+                        string rawOpt = q.DanhSachLuaChon[q.DapAnDungIndex.Value];
+                        string cleanOpt = CauHoiDTO.StripOptionPrefix(rawOpt);
+                        cleanOpt = System.Text.RegularExpressions.Regex.Replace(cleanOpt, @"\s*[\(\[]?\s*(?:Đúng|Đáp án đúng|Correct)\s*[\✓\✔]?\s*[\)\]]?\s*$", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase).Trim();
+                        cleanOpt = System.Text.RegularExpressions.Regex.Replace(cleanOpt, @"[\✓\✔]\s*$", "").Trim();
+                        dapAnStr = $"{prefix}) {cleanOpt}";
                     }
                     else if (!string.IsNullOrWhiteSpace(q.DapAnVanBan))
                     {
                         dapAnStr = q.DapAnVanBan;
                     }
 
+                    string normKyNang = BoCauHoiBUS.ChuankHoaKyNang(q.KyNang);
+                    string normLoai = CauHoiKhaoSatDTO.ChuanHoaLoaiCauHoi(q.LoaiCauHoi);
+
                     return new
                     {
                         ThuTuHienThi = idx + 1,
-                        KyNang = q.KyNang ?? "Doc",
-                        TrinhDo = q.TrinhDo ?? "B1",
-                        LoaiCauHoi = CauHoiKhaoSatDTO.ChuanHoaLoaiCauHoi(q.LoaiCauHoi),
+                        KyNang = normKyNang,
+                        KyNangHienThi = CauHoiKhaoSatDTO.LayTenKyNang(normKyNang),
+                        TrinhDo = string.IsNullOrWhiteSpace(q.TrinhDo) ? "B1" : q.TrinhDo.Trim().ToUpperInvariant(),
+                        LoaiCauHoi = normLoai,
+                        LoaiCauHoiHienThi = CauHoiKhaoSatDTO.LayTenLoaiCauHoi(normLoai),
                         NoiDungCauHoi = q.NoiDungCauHoi,
                         DapAnDungHienThi = dapAnStr
                     };
@@ -980,6 +957,22 @@ namespace GUI.Views.GiangVien
             }
         }
 
+        private void XoaKetQuaBocTach()
+        {
+            _currentParsedResult = null;
+            _currentLoadedFileName = null;
+            dgPreviewParsedQuestions.ItemsSource = null;
+            pnlParseResult.Visibility = Visibility.Collapsed;
+            pnlParseErrors.Visibility = Visibility.Collapsed;
+            txtParseErrorDetails.Text = string.Empty;
+        }
+
+        private void BtnHuyBocTach_Click(object sender, RoutedEventArgs e)
+        {
+            XoaKetQuaBocTach();
+            Common.ThongBaoDialog.ThongTin("Đã xóa và dọn sạch bảng kết quả bóc tách hiện tại.", "Dọn sạch bảng");
+        }
+
         private void BtnLuuVaoHangDoi_Click(object sender, RoutedEventArgs e)
         {
             if (_currentParsedResult == null || _currentParsedResult.DanhSachCauHoi.Count == 0)
@@ -988,7 +981,7 @@ namespace GUI.Views.GiangVien
                 return;
             }
 
-            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
+            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
             bool thanhCong = AISinhDeBUS.Instance.LuuCauHoiVaoHangDoiTuTep(
                 _currentParsedResult.DanhSachCauHoi,
                 _currentLoadedFileName,
@@ -999,9 +992,12 @@ namespace GUI.Views.GiangVien
 
             if (thanhCong)
             {
+                // Tự động xóa sạch bảng bóc tách sau khi đã chuyển thành công vào hàng đợi
+                XoaKetQuaBocTach();
                 TaiDanhSachChoDuyet();
+                TabAISinhDe_Click(this, new RoutedEventArgs());
                 Common.ThongBaoDialog.ThanhCong(
-                    $"Đã đưa thành công {soLuongLuu} câu hỏi vào Hàng đợi kiểm duyệt!\nBạn có thể sang tab 'Tạo câu hỏi bằng AI' để xem và phê duyệt từng câu.",
+                    $"Đã đưa thành công {soLuongLuu} câu hỏi vào Hàng đợi kiểm duyệt!\nBảng dữ liệu đã được dọn sạch và hệ thống đã chuyển sang màn hình Kiểm duyệt.",
                     "Lưu hàng đợi thành công");
             }
             else
@@ -1018,7 +1014,7 @@ namespace GUI.Views.GiangVien
                 return;
             }
 
-            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
+            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
             bool thanhCong = AISinhDeBUS.Instance.LuuCauHoiVaoNganHangTuTep(
                 _currentParsedResult.DanhSachCauHoi,
                 userId,
@@ -1028,8 +1024,10 @@ namespace GUI.Views.GiangVien
 
             if (thanhCong)
             {
+                // Tự động xóa sạch bảng bóc tách sau khi đã lưu trực tiếp vào ngân hàng
+                XoaKetQuaBocTach();
                 Common.ThongBaoDialog.ThanhCong(
-                    $"🎉 Đã lưu trực tiếp thành công {soLuongLuu} câu hỏi vào Ngân hàng câu hỏi chính thức của hệ thống (Nguồn: NhapFile)!",
+                    $"🎉 Đã lưu trực tiếp thành công {soLuongLuu} câu hỏi vào Ngân hàng câu hỏi chính thức của hệ thống (Nguồn: NhapFile)!\nBảng dữ liệu đã được dọn sạch.",
                     "Lưu Ngân hàng câu hỏi thành công");
             }
             else
@@ -1053,29 +1051,6 @@ namespace GUI.Views.GiangVien
                 {
                     AISinhDeBUS.Instance.TaoFileMauTxt(saveFileDialog.FileName);
                     Common.ThongBaoDialog.ThanhCong($"Đã lưu file mẫu Text thành công tại:\n{saveFileDialog.FileName}", "Tải mẫu thành công");
-                }
-                catch (Exception ex)
-                {
-                    Common.ThongBaoDialog.Loi($"Không thể lưu file mẫu: {ex.Message}", "Lỗi");
-                }
-            }
-        }
-
-        private void BtnDownloadTemplateExcel_Click(object sender, RoutedEventArgs e)
-        {
-            var saveFileDialog = new SaveFileDialog
-            {
-                Title = "Tải file Excel mẫu (.xlsx)",
-                Filter = "Excel Spreadsheet (*.xlsx)|*.xlsx",
-                FileName = "Mau_CauHoi_EnglishAI.xlsx"
-            };
-
-            if (saveFileDialog.ShowDialog() == true)
-            {
-                try
-                {
-                    AISinhDeBUS.Instance.XuatFileMauExcel(saveFileDialog.FileName);
-                    Common.ThongBaoDialog.ThanhCong($"Đã lưu file mẫu Excel thành công tại:\n{saveFileDialog.FileName}", "Tải mẫu thành công");
                 }
                 catch (Exception ex)
                 {

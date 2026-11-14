@@ -51,7 +51,7 @@ namespace GUI.Views
         private SpeechSynthesizer? _speechSynthesizer;
         private DispatcherTimer? _dotsTimer;
         private int _dotCount = 0;
-        private int CurrentUserId => SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
+        private int CurrentUserId => SessionHelper.CurrentMaNguoiDung;
         #endregion
 
         public TroLyAIView()
@@ -92,6 +92,12 @@ namespace GUI.Views
         {
             try
             {
+                if (CurrentUserId <= 0)
+                {
+                    _sessions.Clear();
+                    return;
+                }
+
                 var dbList = HoiThoaiAIBUS.Instance.LayDanhSachPhienHoiThoai(CurrentUserId);
                 _sessions.Clear();
 
@@ -140,6 +146,12 @@ namespace GUI.Views
 
         private void SeedInitialConversationsToDb()
         {
+            if (CurrentUserId <= 0)
+            {
+                InitSeedConversations();
+                return;
+            }
+
             try
             {
                 long p1 = HoiThoaiAIBUS.Instance.TaoPhienHoiThoai(CurrentUserId, "Phân biệt Thì HTHT & QKĐ", "Grammar");
@@ -544,7 +556,7 @@ namespace GUI.Views
             {
                 try
                 {
-                    if (session.DbId > 0)
+                    if (session.DbId > 0 && CurrentUserId > 0)
                     {
                         HoiThoaiAIBUS.Instance.XoaPhienHoiThoai(session.DbId, CurrentUserId);
                     }
@@ -580,13 +592,16 @@ namespace GUI.Views
         {
             string cat = _currentLearningMode == "All" ? "General" : _currentLearningMode;
             long newDbId = 0;
-            try
+            if (CurrentUserId > 0)
             {
-                newDbId = HoiThoaiAIBUS.Instance.TaoPhienHoiThoai(CurrentUserId, "Cuộc hội thoại mới", cat);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[TroLyAIView] Lỗi tạo phiên DB: {ex.Message}");
+                try
+                {
+                    newDbId = HoiThoaiAIBUS.Instance.TaoPhienHoiThoai(CurrentUserId, "Cuộc hội thoại mới", cat);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[TroLyAIView] Lỗi tạo phiên DB: {ex.Message}");
+                }
             }
 
             var newSession = new ChatSession
@@ -816,18 +831,21 @@ namespace GUI.Views
             // Lưu tin nhắn người dùng vào CSDL theo UserId
             try
             {
-                if (_currentSession.DbId == 0)
+                if (CurrentUserId > 0)
                 {
-                    _currentSession.DbId = HoiThoaiAIBUS.Instance.TaoPhienHoiThoai(CurrentUserId, _currentSession.Title, _currentSession.Category);
-                }
-                else
-                {
-                    HoiThoaiAIBUS.Instance.CapNhatTieuDePhien(_currentSession.DbId, _currentSession.Title);
-                }
+                    if (_currentSession.DbId == 0)
+                    {
+                        _currentSession.DbId = HoiThoaiAIBUS.Instance.TaoPhienHoiThoai(CurrentUserId, _currentSession.Title, _currentSession.Category);
+                    }
+                    else
+                    {
+                        HoiThoaiAIBUS.Instance.CapNhatTieuDePhien(_currentSession.DbId, _currentSession.Title);
+                    }
 
-                if (_currentSession.DbId > 0)
-                {
-                    HoiThoaiAIBUS.Instance.LuuTinNhan(_currentSession.DbId, "NguoiDung", userMsg);
+                    if (_currentSession.DbId > 0)
+                    {
+                        HoiThoaiAIBUS.Instance.LuuTinNhan(_currentSession.DbId, "NguoiDung", userMsg);
+                    }
                 }
             }
             catch (Exception dbEx)

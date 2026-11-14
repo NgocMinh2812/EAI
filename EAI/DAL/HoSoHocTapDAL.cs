@@ -118,6 +118,33 @@ namespace DAL
             return SqlDataProvider.Instance.ExecuteNonQuery(query, parameters) > 0;
         }
 
+        public bool CapNhatDiemDanhGiaDauVao(int maNguoiDung, decimal diemDanhGiaDauVao, string? ghiChu = null)
+        {
+            string query = @"
+                IF EXISTS (SELECT 1 FROM HoSoHocTap WHERE MaNguoiDung = @MaND)
+                BEGIN
+                    UPDATE HoSoHocTap
+                    SET DiemDanhGiaDauVao = @DiemDanhGia,
+                        GhiChuCaNhan = ISNULL(@GhiChu, GhiChuCaNhan),
+                        NgayCapNhat = SYSDATETIME()
+                    WHERE MaNguoiDung = @MaND;
+                END
+                ELSE
+                BEGIN
+                    INSERT INTO HoSoHocTap (MaNguoiDung, DiemDanhGiaDauVao, GhiChuCaNhan, SoPhutHocTichLuy, NgayCapNhat)
+                    VALUES (@MaND, @DiemDanhGia, @GhiChu, 0, SYSDATETIME());
+                END";
+
+            SqlParameter[] parameters = new[]
+            {
+                new SqlParameter("@MaND", maNguoiDung),
+                new SqlParameter("@DiemDanhGia", diemDanhGiaDauVao),
+                new SqlParameter("@GhiChu", (object?)ghiChu ?? DBNull.Value)
+            };
+
+            return SqlDataProvider.Instance.ExecuteNonQuery(query, parameters) > 0;
+        }
+
         public bool CapNhatHoSoHocTap(int maNguoiDung, string? trinhDoDauVao, string khungNangLuc, decimal? diemMucTieu, string? ghiChu = null)
         {
             string query = @"

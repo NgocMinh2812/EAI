@@ -11,24 +11,42 @@ namespace DAL
         private static AudioTranscriptDAL? _instance;
         public static AudioTranscriptDAL Instance => _instance ??= new AudioTranscriptDAL();
 
-        public List<AudioTranscriptDTO> LayTheoMaBaiHoc(int maBaiHoc)
+        /// <summary>
+        /// Delegate kiểm tra quyền giảng viên được gán từ tầng BUS. Mặc định false (Fail-safe Least Privilege).
+        /// </summary>
+        public static Func<bool>? RoleCheckGiangVien { get; set; }
+
+        private static bool KiemTraQuyenGiangVien(bool? laGiangVien)
+        {
+            if (laGiangVien.HasValue) return laGiangVien.Value;
+            return RoleCheckGiangVien?.Invoke() ?? false;
+        }
+
+        public List<AudioTranscriptDTO> LayTheoMaBaiHoc(int maBaiHoc, bool? laGiangVien = null)
         {
             var list = new List<AudioTranscriptDTO>();
+            bool isTeacher = KiemTraQuyenGiangVien(laGiangVien);
             try
             {
                 const string query = @"
-                    SELECT MaAudioTranscript, MaBaiHoc, AudioPath, LoaiAudio, TieuDeAudio, ScriptGoc, 
-                           TranscriptText, TranscriptSegmentsJson, Provider, MoHinhSTT, MoHinhTTS, 
+                    SELECT MaAudioTranscript, MaBaiHoc, AudioPath, LoaiAudio, TieuDeAudio,
+                           CASE WHEN ChoPhepSinhVienXem = 1 OR @LaGiangVien = 1 THEN ScriptGoc ELSE '' END AS ScriptGoc,
+                           CASE WHEN ChoPhepSinhVienXem = 1 OR @LaGiangVien = 1 THEN TranscriptText ELSE '' END AS TranscriptText,
+                           CASE WHEN ChoPhepSinhVienXem = 1 OR @LaGiangVien = 1 THEN TranscriptSegmentsJson ELSE NULL END AS TranscriptSegmentsJson,
+                           Provider, MoHinhSTT, MoHinhTTS,
                            VoiceName, AudioHash, TrangThaiDuyet, ChoPhepSinhVienXem, ThoiLuongGiay, 
                            DungLuongBytes, NguoiTao, NgayTao, NgayCapNhat
                     FROM BaiHocAudioTranscript
                     WHERE MaBaiHoc = @MaBaiHoc
                     ORDER BY CASE WHEN TrangThaiDuyet = N'DaDuyet' THEN 0 ELSE 1 END, NgayCapNhat DESC;";
 
-                DataTable dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@MaBaiHoc", maBaiHoc) });
+                DataTable dt = DatabaseHelper.ExecuteQuery(query, new[] { 
+                    new SqlParameter("@MaBaiHoc", maBaiHoc),
+                    new SqlParameter("@LaGiangVien", isTeacher ? 1 : 0)
+                });
                 foreach (DataRow r in dt.Rows)
                 {
-                    list.Add(MapRowToDTO(r));
+                    list.Add(MapRowToDTO(r, isTeacher));
                 }
             }
             catch (Exception ex)
@@ -38,30 +56,37 @@ namespace DAL
             return list;
         }
 
-        public AudioTranscriptDTO? LayAudioChinhCuaBaiHoc(int maBaiHoc)
+        public AudioTranscriptDTO? LayAudioChinhCuaBaiHoc(int maBaiHoc, bool? laGiangVien = null)
         {
-            var all = LayTheoMaBaiHoc(maBaiHoc);
+            var all = LayTheoMaBaiHoc(maBaiHoc, laGiangVien);
             return all.Count > 0 ? all[0] : null;
         }
 
-        public AudioTranscriptDTO? LayTheoAudioHash(string audioHash)
+        public AudioTranscriptDTO? LayTheoAudioHash(string audioHash, bool? laGiangVien = null)
         {
             if (string.IsNullOrWhiteSpace(audioHash)) return null;
+            bool isTeacher = KiemTraQuyenGiangVien(laGiangVien);
             try
             {
                 const string query = @"
-                    SELECT TOP 1 MaAudioTranscript, MaBaiHoc, AudioPath, LoaiAudio, TieuDeAudio, ScriptGoc, 
-                           TranscriptText, TranscriptSegmentsJson, Provider, MoHinhSTT, MoHinhTTS, 
+                    SELECT TOP 1 MaAudioTranscript, MaBaiHoc, AudioPath, LoaiAudio, TieuDeAudio,
+                           CASE WHEN ChoPhepSinhVienXem = 1 OR @LaGiangVien = 1 THEN ScriptGoc ELSE '' END AS ScriptGoc,
+                           CASE WHEN ChoPhepSinhVienXem = 1 OR @LaGiangVien = 1 THEN TranscriptText ELSE '' END AS TranscriptText,
+                           CASE WHEN ChoPhepSinhVienXem = 1 OR @LaGiangVien = 1 THEN TranscriptSegmentsJson ELSE NULL END AS TranscriptSegmentsJson,
+                           Provider, MoHinhSTT, MoHinhTTS,
                            VoiceName, AudioHash, TrangThaiDuyet, ChoPhepSinhVienXem, ThoiLuongGiay, 
                            DungLuongBytes, NguoiTao, NgayTao, NgayCapNhat
                     FROM BaiHocAudioTranscript
                     WHERE AudioHash = @AudioHash
                     ORDER BY CASE WHEN TrangThaiDuyet = N'DaDuyet' THEN 0 ELSE 1 END, NgayCapNhat DESC;";
 
-                DataTable dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@AudioHash", audioHash.Trim()) });
+                DataTable dt = DatabaseHelper.ExecuteQuery(query, new[] { 
+                    new SqlParameter("@AudioHash", audioHash.Trim()),
+                    new SqlParameter("@LaGiangVien", isTeacher ? 1 : 0)
+                });
                 if (dt.Rows.Count > 0)
                 {
-                    return MapRowToDTO(dt.Rows[0]);
+                    return MapRowToDTO(dt.Rows[0], isTeacher);
                 }
             }
             catch (Exception ex)
@@ -71,24 +96,31 @@ namespace DAL
             return null;
         }
 
-        public AudioTranscriptDTO? LayTheoDuongDanAudio(string audioPath)
+        public AudioTranscriptDTO? LayTheoDuongDanAudio(string audioPath, bool? laGiangVien = null)
         {
             if (string.IsNullOrWhiteSpace(audioPath)) return null;
+            bool isTeacher = KiemTraQuyenGiangVien(laGiangVien);
             try
             {
                 const string query = @"
-                    SELECT TOP 1 MaAudioTranscript, MaBaiHoc, AudioPath, LoaiAudio, TieuDeAudio, ScriptGoc, 
-                           TranscriptText, TranscriptSegmentsJson, Provider, MoHinhSTT, MoHinhTTS, 
+                    SELECT TOP 1 MaAudioTranscript, MaBaiHoc, AudioPath, LoaiAudio, TieuDeAudio,
+                           CASE WHEN ChoPhepSinhVienXem = 1 OR @LaGiangVien = 1 THEN ScriptGoc ELSE '' END AS ScriptGoc,
+                           CASE WHEN ChoPhepSinhVienXem = 1 OR @LaGiangVien = 1 THEN TranscriptText ELSE '' END AS TranscriptText,
+                           CASE WHEN ChoPhepSinhVienXem = 1 OR @LaGiangVien = 1 THEN TranscriptSegmentsJson ELSE NULL END AS TranscriptSegmentsJson,
+                           Provider, MoHinhSTT, MoHinhTTS,
                            VoiceName, AudioHash, TrangThaiDuyet, ChoPhepSinhVienXem, ThoiLuongGiay, 
                            DungLuongBytes, NguoiTao, NgayTao, NgayCapNhat
                     FROM BaiHocAudioTranscript
                     WHERE AudioPath = @AudioPath
                     ORDER BY CASE WHEN TrangThaiDuyet = N'DaDuyet' THEN 0 ELSE 1 END, NgayCapNhat DESC;";
 
-                DataTable dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@AudioPath", audioPath.Trim()) });
+                DataTable dt = DatabaseHelper.ExecuteQuery(query, new[] { 
+                    new SqlParameter("@AudioPath", audioPath.Trim()),
+                    new SqlParameter("@LaGiangVien", isTeacher ? 1 : 0)
+                });
                 if (dt.Rows.Count > 0)
                 {
-                    return MapRowToDTO(dt.Rows[0]);
+                    return MapRowToDTO(dt.Rows[0], isTeacher);
                 }
             }
             catch (Exception ex)
@@ -244,31 +276,47 @@ namespace DAL
             return pList.ToArray();
         }
 
-        private static AudioTranscriptDTO MapRowToDTO(DataRow r)
+        private static AudioTranscriptDTO MapRowToDTO(DataRow r) => MapRowToDTO(r, KiemTraQuyenGiangVien(null));
+
+        private static AudioTranscriptDTO MapRowToDTO(DataRow r, bool isTeacher)
         {
-            return new AudioTranscriptDTO
+            bool choPhepSinhVienXem = r["ChoPhepSinhVienXem"] != DBNull.Value && Convert.ToBoolean(r["ChoPhepSinhVienXem"]);
+            bool canView = isTeacher || choPhepSinhVienXem;
+
+            string? rawScript = r["ScriptGoc"] == DBNull.Value ? null : r["ScriptGoc"].ToString();
+            string? rawText = r["TranscriptText"] == DBNull.Value ? null : r["TranscriptText"].ToString();
+            string? rawSegments = r["TranscriptSegmentsJson"] == DBNull.Value ? null : r["TranscriptSegmentsJson"].ToString();
+
+            var dto = new AudioTranscriptDTO
             {
                 MaAudioTranscript = Convert.ToInt32(r["MaAudioTranscript"]),
                 MaBaiHoc = r["MaBaiHoc"] == DBNull.Value ? null : Convert.ToInt32(r["MaBaiHoc"]),
                 AudioPath = r["AudioPath"]?.ToString() ?? string.Empty,
                 LoaiAudio = r["LoaiAudio"]?.ToString() ?? "Uploaded",
                 TieuDeAudio = r["TieuDeAudio"] == DBNull.Value ? null : r["TieuDeAudio"].ToString(),
-                ScriptGoc = r["ScriptGoc"] == DBNull.Value ? null : r["ScriptGoc"].ToString(),
-                TranscriptText = r["TranscriptText"] == DBNull.Value ? null : r["TranscriptText"].ToString(),
-                TranscriptSegmentsJson = r["TranscriptSegmentsJson"] == DBNull.Value ? null : r["TranscriptSegmentsJson"].ToString(),
+                ScriptGoc = canView ? (rawScript ?? string.Empty) : string.Empty,
+                TranscriptText = canView ? (rawText ?? string.Empty) : string.Empty,
+                TranscriptSegmentsJson = canView ? rawSegments : null,
                 Provider = r["Provider"]?.ToString() ?? "Groq",
                 MoHinhSTT = r["MoHinhSTT"] == DBNull.Value ? null : r["MoHinhSTT"].ToString(),
                 MoHinhTTS = r["MoHinhTTS"] == DBNull.Value ? null : r["MoHinhTTS"].ToString(),
                 VoiceName = r["VoiceName"] == DBNull.Value ? null : r["VoiceName"].ToString(),
                 AudioHash = r["AudioHash"] == DBNull.Value ? null : r["AudioHash"].ToString(),
                 TrangThaiDuyet = r["TrangThaiDuyet"]?.ToString() ?? "ChoDuyet",
-                ChoPhepSinhVienXem = r["ChoPhepSinhVienXem"] != DBNull.Value && Convert.ToBoolean(r["ChoPhepSinhVienXem"]),
+                ChoPhepSinhVienXem = choPhepSinhVienXem,
                 ThoiLuongGiay = r["ThoiLuongGiay"] == DBNull.Value ? null : Convert.ToDouble(r["ThoiLuongGiay"]),
                 DungLuongBytes = r["DungLuongBytes"] == DBNull.Value ? null : Convert.ToInt64(r["DungLuongBytes"]),
                 NguoiTao = r["NguoiTao"] == DBNull.Value ? null : Convert.ToInt32(r["NguoiTao"]),
                 NgayTao = r["NgayTao"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(r["NgayTao"]),
                 NgayCapNhat = r["NgayCapNhat"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(r["NgayCapNhat"])
             };
+
+            if (!canView)
+            {
+                dto.Segments = new List<TranscriptSegmentItemDTO>();
+            }
+
+            return dto;
         }
     }
 }

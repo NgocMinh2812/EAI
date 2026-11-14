@@ -753,7 +753,208 @@ namespace DAL
         }
 
         /// <summary>
-        /// [Yêu cầu 3.5 & 3.6] Lưu kết quả thi của học viên bằng SqlTransaction an toàn
+        /// Khởi tạo lượt thi mới khi học viên bắt đầu vào làm bài (Trạng thái DangLam)
+        /// Giúp giảng viên theo dõi giám sát theo thời gian thực học viên đang làm bài
+        /// </summary>
+        public int KhoiTaoLuotLamBai(int maNguoiDung, int maDeThi, string hinhThucLam, int tongSoCau)
+        {
+            if (maNguoiDung <= 0) return 0;
+
+            try
+            {
+                using var conn = SqlDataProvider.Instance.GetConnection();
+                conn.Open();
+
+                string query = @"
+                    INSERT INTO LuotLamBai (
+                        MaNguoiDung, MaBaiTapDeThi, HinhThucLam, ThoiDiemBatDau, ThoiDiemNopBai, 
+                        ThoiGianLamGiay, TongSoCau, SoCauDung, SoCauSai, DiemSo, TrangThai)
+                    VALUES (
+                        @MaND, @MaDe, @HinhThuc, SYSDATETIME(), NULL, 
+                        0, @TongSo, 0, 0, 0, N'DangLam');
+                    SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+                using var cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@MaND", maNguoiDung);
+                cmd.Parameters.AddWithValue("@MaDe", maDeThi);
+                cmd.Parameters.AddWithValue("@HinhThuc", hinhThucLam);
+                cmd.Parameters.AddWithValue("@TongSo", tongSoCau);
+
+                object res = cmd.ExecuteScalar();
+                return res != null ? Convert.ToInt32(res) : 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BaiTapDeThiDAL.KhoiTaoLuotLamBai] {ex.Message}");
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Đánh dấu lượt làm bài bị hủy khi học viên thoát khỏi phòng thi giữa chừng
+        /// </summary>
+        public bool HuyLuotLamBai(int maLuotLamBai)
+        {
+            if (maLuotLamBai <= 0) return false;
+
+            try
+            {
+                string sql = @"
+                    UPDATE LuotLamBai 
+                    SET TrangThai = N'DaHuy', ThoiDiemNopBai = SYSDATETIME() 
+                    WHERE MaLuotLamBai = @MaLuot AND TrangThai = N'DangLam';";
+                int affected = SqlDataProvider.Instance.ExecuteNonQuery(sql, new[] { new SqlParameter("@MaLuot", maLuotLamBai) });
+                return affected > 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BaiTapDeThiDAL.HuyLuotLamBai] {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// [Feature 13] Tìm lượt thi đang làm dở (DangLam) của học viên cho một đề thi cụ thể
+        /// </summary>
+        public LuotLamBaiDTO? LayLuotLamBaiDangLam(int maNguoiDung, int maDeThi)
+        {
+            if (maNguoiDung <= 0 || maDeThi < 0) return null;
+
+            string query = @"
+                SELECT TOP 1 lb.MaLuotLamBai, lb.MaNguoiDung, lb.MaBaiTapDeThi, dt.TenBaiTapDeThi,
+                             lb.HinhThucLam, lb.ThoiDiemBatDau, lb.ThoiGianLamGiay, lb.TongSoCau,
+                             lb.TrangThai, dt.ThoiGianLamBaiPhut, dt.TongDiem, dt.DiemDat
+                FROM LuotLamBai lb
+                INNER JOIN BaiTapDeThi dt ON lb.MaBaiTapDeThi = dt.MaBaiTapDeThi
+                WHERE lb.MaNguoiDung = @MaND 
+                  AND lb.MaBaiTapDeThi = @MaDe 
+                  AND lb.TrangThai = N'DangLam'
+                ORDER BY lb.MaLuotLamBai DESC;";
+
+            try
+            {
+                DataTable dt = SqlDataProvider.Instance.ExecuteQuery(query, new[]
+                {
+                    new SqlParameter("@MaND", maNguoiDung),
+                    new SqlParameter("@MaDe", maDeThi)
+                });
+
+                if (dt.Rows.Count == 0) return null;
+                var row = dt.Rows[0];
+                return new LuotLamBaiDTO
+                {
+                    MaLuotLamBai = Convert.ToInt32(row["MaLuotLamBai"]),
+                    MaNguoiDung = Convert.ToInt32(row["MaNguoiDung"]),
+                    MaBaiTapDeThi = Convert.ToInt32(row["MaBaiTapDeThi"]),
+                    TenBaiTapDeThi = row["TenBaiTapDeThi"]?.ToString() ?? "",
+                    HinhThucLam = row["HinhThucLam"]?.ToString() ?? "ThiThu",
+                    ThoiDiemBatDau = Convert.ToDateTime(row["ThoiDiemBatDau"]),
+                    ThoiGianLamGiay = row["ThoiGianLamGiay"] != DBNull.Value ? Convert.ToInt32(row["ThoiGianLamGiay"]) : 0,
+                    TongSoCau = Convert.ToInt32(row["TongSoCau"]),
+                    TrangThai = row["TrangThai"]?.ToString() ?? "DangLam",
+                    TongDiem = row["TongDiem"] != DBNull.Value ? Convert.ToDecimal(row["TongDiem"]) : 10.0m,
+                    DiemDat = row["DiemDat"] != DBNull.Value ? Convert.ToDecimal(row["DiemDat"]) : 5.0m
+                };
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BaiTapDeThiDAL.LayLuotLamBaiDangLam] {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// [Feature 13] Tự động lưu đáp án tạm thời theo thời gian thực (Autosave UPSERT)
+        /// Bảo đảm tuân thủ ràng buộc UQ_ChiTietTraLoi(MaLuotLamBai, MaCauHoi)
+        /// </summary>
+        public bool LuuCauTraLoiTamThoi(int maLuotLamBai, int maCauHoi, int? maLuaChon, string? cauTraLoiVanBan, int? thoiGianLamGiay = null)
+        {
+            if (maLuotLamBai <= 0 || maCauHoi <= 0) return false;
+
+            string sql = @"
+                IF EXISTS (SELECT 1 FROM ChiTietTraLoi WHERE MaLuotLamBai = @MaLuot AND MaCauHoi = @MaCauHoi)
+                BEGIN
+                    UPDATE ChiTietTraLoi
+                    SET MaLuaChonDaChon = @MaLC,
+                        CauTraLoiVanBan = @VanBan,
+                        ThoiDiemTraLoi = SYSDATETIME()
+                    WHERE MaLuotLamBai = @MaLuot AND MaCauHoi = @MaCauHoi;
+                END
+                ELSE
+                BEGIN
+                    INSERT INTO ChiTietTraLoi (MaLuotLamBai, MaCauHoi, MaLuaChonDaChon, CauTraLoiVanBan, KetQuaDungSai, DiemSo, ThoiDiemTraLoi)
+                    VALUES (@MaLuot, @MaCauHoi, @MaLC, @VanBan, NULL, NULL, SYSDATETIME());
+                END
+
+                IF @ThoiGian IS NOT NULL
+                BEGIN
+                    UPDATE LuotLamBai 
+                    SET ThoiGianLamGiay = @ThoiGian 
+                    WHERE MaLuotLamBai = @MaLuot AND TrangThai = N'DangLam';
+                END";
+
+            try
+            {
+                int affected = SqlDataProvider.Instance.ExecuteNonQuery(sql, new[]
+                {
+                    new SqlParameter("@MaLuot", maLuotLamBai),
+                    new SqlParameter("@MaCauHoi", maCauHoi),
+                    new SqlParameter("@MaLC", (object?)maLuaChon ?? DBNull.Value),
+                    new SqlParameter("@VanBan", (object?)cauTraLoiVanBan ?? DBNull.Value),
+                    new SqlParameter("@ThoiGian", (object?)thoiGianLamGiay ?? DBNull.Value)
+                });
+                return affected > 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BaiTapDeThiDAL.LuuCauTraLoiTamThoi] {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// [Feature 13] Lấy danh sách các câu trả lời tạm thời của lượt làm bài dở dang để khôi phục (Resume)
+        /// </summary>
+        public List<ChiTietTraLoiDTO> LayChiTietTraLoiCuaLuot(int maLuotLamBai)
+        {
+            var list = new List<ChiTietTraLoiDTO>();
+            if (maLuotLamBai <= 0) return list;
+
+            string sql = @"
+                SELECT ct.MaChiTietTraLoi, ct.MaLuotLamBai, ct.MaCauHoi, ct.MaLuaChonDaChon, ct.CauTraLoiVanBan, ct.KetQuaDungSai, ct.DiemSo, ct.ThoiDiemTraLoi
+                FROM ChiTietTraLoi ct
+                WHERE ct.MaLuotLamBai = @MaLuot
+                ORDER BY ct.MaChiTietTraLoi ASC;";
+
+            try
+            {
+                DataTable dt = SqlDataProvider.Instance.ExecuteQuery(sql, new[] { new SqlParameter("@MaLuot", maLuotLamBai) });
+                foreach (DataRow r in dt.Rows)
+                {
+                    list.Add(new ChiTietTraLoiDTO
+                    {
+                        MaChiTietTraLoi = Convert.ToInt32(r["MaChiTietTraLoi"]),
+                        MaLuotLamBai = maLuotLamBai,
+                        MaCauHoi = Convert.ToInt32(r["MaCauHoi"]),
+                        MaLuaChonDaChon = r["MaLuaChonDaChon"] != DBNull.Value ? Convert.ToInt32(r["MaLuaChonDaChon"]) : null,
+                        CauTraLoiVanBan = r["CauTraLoiVanBan"]?.ToString(),
+                        KetQuaDungSai = r["KetQuaDungSai"] != DBNull.Value ? Convert.ToBoolean(r["KetQuaDungSai"]) : null,
+                        DiemSo = r["DiemSo"] != DBNull.Value ? Convert.ToDecimal(r["DiemSo"]) : 0m
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BaiTapDeThiDAL.LayChiTietTraLoiCuaLuot] {ex.Message}");
+            }
+            return list;
+        }
+
+        public List<ChiTietTraLoiDTO> LayDanhSachCauTraLoiTamThoi(int maLuotLamBai) => LayChiTietTraLoiCuaLuot(maLuotLamBai);
+
+        /// <summary>
+        /// [Yêu cầu 3.5 & 3.6] Lưu kết quả thi của học viên bằng SqlTransaction an toàn.
+        /// Hỗ trợ cập nhật lượt đang làm (DangLam -> DaNop) nếu có maLuotLamBaiHienTai.
         /// </summary>
         public int LuuKetQuaThi(
             int maNguoiDung, 
@@ -764,7 +965,8 @@ namespace DAL
             int tongSoCau, 
             int soCauDung, 
             decimal diemSo,
-            List<(int MaCauHoi, int? MaLuaChon, string? CauTraLoiVanBan, bool DungSai, decimal DiemCau)> chiTiet)
+            List<(int MaCauHoi, int? MaLuaChon, string? CauTraLoiVanBan, bool DungSai, decimal DiemCau)> chiTiet,
+            int maLuotLamBaiHienTai = 0)
         {
             int soCauSai = tongSoCau - soCauDung;
 
@@ -774,32 +976,75 @@ namespace DAL
 
             try
             {
-                string queryLuot = @"
-                    INSERT INTO LuotLamBai (
-                        MaNguoiDung, MaBaiTapDeThi, HinhThucLam, ThoiDiemBatDau, ThoiDiemNopBai, 
-                        ThoiGianLamGiay, TongSoCau, SoCauDung, SoCauSai, DiemSo, TrangThai)
-                    VALUES (
-                        @MaND, @MaDe, @HinhThuc, @BatDau, SYSDATETIME(), 
-                        @ThoiGian, @TongSo, @SoDung, @SoSai, @Diem, N'DaNop');
-                    SELECT CAST(SCOPE_IDENTITY() AS INT);";
+                int maLuotLamBai;
 
-                using var cmdLuot = new SqlCommand(queryLuot, conn, trans);
-                cmdLuot.Parameters.AddWithValue("@MaND", maNguoiDung);
-                cmdLuot.Parameters.AddWithValue("@MaDe", maDeThi);
-                cmdLuot.Parameters.AddWithValue("@HinhThuc", hinhThucLam);
-                cmdLuot.Parameters.AddWithValue("@BatDau", batDau);
-                cmdLuot.Parameters.AddWithValue("@ThoiGian", thoiGianGiay);
-                cmdLuot.Parameters.AddWithValue("@TongSo", tongSoCau);
-                cmdLuot.Parameters.AddWithValue("@SoDung", soCauDung);
-                cmdLuot.Parameters.AddWithValue("@SoSai", soCauSai);
-                cmdLuot.Parameters.AddWithValue("@Diem", diemSo);
+                if (maLuotLamBaiHienTai > 0)
+                {
+                    string updateSql = @"
+                        UPDATE LuotLamBai
+                        SET ThoiDiemNopBai = SYSDATETIME(),
+                            ThoiGianLamGiay = @ThoiGian,
+                            TongSoCau = @TongSo,
+                            SoCauDung = @SoDung,
+                            SoCauSai = @SoSai,
+                            DiemSo = @Diem,
+                            TrangThai = N'DaNop'
+                        WHERE MaLuotLamBai = @MaLuot;
+                        SELECT @MaLuot;";
 
-                int maLuotLamBai = (int)cmdLuot.ExecuteScalar();
+                    using var cmdUpdate = new SqlCommand(updateSql, conn, trans);
+                    cmdUpdate.Parameters.AddWithValue("@MaLuot", maLuotLamBaiHienTai);
+                    cmdUpdate.Parameters.AddWithValue("@ThoiGian", thoiGianGiay);
+                    cmdUpdate.Parameters.AddWithValue("@TongSo", tongSoCau);
+                    cmdUpdate.Parameters.AddWithValue("@SoDung", soCauDung);
+                    cmdUpdate.Parameters.AddWithValue("@SoSai", soCauSai);
+                    cmdUpdate.Parameters.AddWithValue("@Diem", diemSo);
 
-                // Lưu chi tiết từng câu trả lời
+                    cmdUpdate.ExecuteNonQuery();
+                    maLuotLamBai = maLuotLamBaiHienTai;
+                }
+                else
+                {
+                    string queryLuot = @"
+                        INSERT INTO LuotLamBai (
+                            MaNguoiDung, MaBaiTapDeThi, HinhThucLam, ThoiDiemBatDau, ThoiDiemNopBai, 
+                            ThoiGianLamGiay, TongSoCau, SoCauDung, SoCauSai, DiemSo, TrangThai)
+                        VALUES (
+                            @MaND, @MaDe, @HinhThuc, @BatDau, SYSDATETIME(), 
+                            @ThoiGian, @TongSo, @SoDung, @SoSai, @Diem, N'DaNop');
+                        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+                    using var cmdLuot = new SqlCommand(queryLuot, conn, trans);
+                    cmdLuot.Parameters.AddWithValue("@MaND", maNguoiDung);
+                    cmdLuot.Parameters.AddWithValue("@MaDe", maDeThi);
+                    cmdLuot.Parameters.AddWithValue("@HinhThuc", hinhThucLam);
+                    cmdLuot.Parameters.AddWithValue("@BatDau", batDau);
+                    cmdLuot.Parameters.AddWithValue("@ThoiGian", thoiGianGiay);
+                    cmdLuot.Parameters.AddWithValue("@TongSo", tongSoCau);
+                    cmdLuot.Parameters.AddWithValue("@SoDung", soCauDung);
+                    cmdLuot.Parameters.AddWithValue("@SoSai", soCauSai);
+                    cmdLuot.Parameters.AddWithValue("@Diem", diemSo);
+
+                    maLuotLamBai = (int)cmdLuot.ExecuteScalar();
+                }
+
+                // Lưu chi tiết từng câu trả lời (UPSERT để tránh vi phạm UQ_ChiTietTraLoi khi đã autosave trước đó)
                 string queryChiTiet = @"
-                    INSERT INTO ChiTietTraLoi (MaLuotLamBai, MaCauHoi, MaLuaChonDaChon, CauTraLoiVanBan, KetQuaDungSai, DiemSo, ThoiDiemTraLoi)
-                    VALUES (@MaLuot, @MaCauHoi, @MaLC, @VanBan, @DungSai, @DiemCau, SYSDATETIME());";
+                    IF EXISTS (SELECT 1 FROM ChiTietTraLoi WHERE MaLuotLamBai = @MaLuot AND MaCauHoi = @MaCauHoi)
+                    BEGIN
+                        UPDATE ChiTietTraLoi
+                        SET MaLuaChonDaChon = @MaLC,
+                            CauTraLoiVanBan = @VanBan,
+                            KetQuaDungSai = @DungSai,
+                            DiemSo = @DiemCau,
+                            ThoiDiemTraLoi = SYSDATETIME()
+                        WHERE MaLuotLamBai = @MaLuot AND MaCauHoi = @MaCauHoi;
+                    END
+                    ELSE
+                    BEGIN
+                        INSERT INTO ChiTietTraLoi (MaLuotLamBai, MaCauHoi, MaLuaChonDaChon, CauTraLoiVanBan, KetQuaDungSai, DiemSo, ThoiDiemTraLoi)
+                        VALUES (@MaLuot, @MaCauHoi, @MaLC, @VanBan, @DungSai, @DiemCau, SYSDATETIME());
+                    END";
 
                 foreach (var item in chiTiet)
                 {
@@ -843,13 +1088,14 @@ namespace DAL
         public LuotLamBaiDTO? LayChiTietKetQuaLamBai(int maLuotLamBai)
         {
             string queryLuot = @"
-                SELECT lb.MaLuotLamBai, lb.MaNguoiDung, lb.MaBaiTapDeThi, dt.TenBaiTapDeThi,
+                SELECT lb.MaLuotLamBai, lb.MaNguoiDung, nd.HoTen, nd.TenDangNhap, lb.MaBaiTapDeThi, dt.TenBaiTapDeThi,
                        lb.HinhThucLam, lb.ThoiDiemBatDau, lb.ThoiDiemNopBai, lb.ThoiGianLamGiay,
                        lb.TongSoCau, lb.SoCauDung, lb.SoCauSai, lb.DiemSo, lb.TrangThai,
                        ISNULL(dt.ChoXemDapAn, 1) AS ChoXemDapAn,
                        ISNULL(dt.ChoXemLoiGiai, 1) AS ChoXemLoiGiai,
                        dt.DiemDat, dt.TongDiem
                 FROM LuotLamBai lb
+                INNER JOIN NguoiDung nd ON lb.MaNguoiDung = nd.MaNguoiDung
                 LEFT JOIN BaiTapDeThi dt ON lb.MaBaiTapDeThi = dt.MaBaiTapDeThi
                 WHERE lb.MaLuotLamBai = @MaLuot";
 
@@ -861,6 +1107,8 @@ namespace DAL
             {
                 MaLuotLamBai = Convert.ToInt32(row["MaLuotLamBai"]),
                 MaNguoiDung = Convert.ToInt32(row["MaNguoiDung"]),
+                HoTenNguoiDung = row["HoTen"]?.ToString() ?? "",
+                TenDangNhap = row["TenDangNhap"]?.ToString() ?? "",
                 MaBaiTapDeThi = Convert.ToInt32(row["MaBaiTapDeThi"]),
                 TenBaiTapDeThi = row["TenBaiTapDeThi"]?.ToString() ?? "Bài thi",
                 HinhThucLam = row["HinhThucLam"]?.ToString() ?? "ThiThu",

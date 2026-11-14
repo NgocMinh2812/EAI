@@ -107,6 +107,27 @@ namespace GUI.ViewModels.GiangVien
                         return;
                     }
                 }
+                else if (value != null && !IsCreatingNewLesson && _selectedBaiHoc != null && _selectedBaiHoc.MaBaiHoc > 0 && value.MaBaiHoc != _selectedBaiHoc.MaBaiHoc)
+                {
+                    var original = DanhSachBaiHoc.FirstOrDefault(b => b.MaBaiHoc == _selectedBaiHoc.MaBaiHoc);
+                    if (original != null && CoThayDoiSoVoiGoc(original, _selectedBaiHoc))
+                    {
+                        bool xacNhan = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                            $"Bài học \"{_selectedBaiHoc.TieuDe}\" có các chỉnh sửa chưa được lưu.\nNếu chuyển sang bài học khác, các thay đổi chưa lưu sẽ bị hủy.\n\nBạn có chắc chắn muốn chuyển không?",
+                            "Xác nhận chuyển bài học",
+                            confirmText: "Tiếp tục chuyển",
+                            cancelText: "Ở lại lưu bài");
+
+                        if (!xacNhan)
+                        {
+                            System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                            {
+                                OnPropertyChanged(nameof(SelectedBaiHocInList));
+                            }));
+                            return;
+                        }
+                    }
+                }
 
                 if (SetProperty(ref _selectedBaiHocInList, value))
                 {
@@ -152,6 +173,7 @@ namespace GUI.ViewModels.GiangVien
                 OnPropertyChanged(nameof(HasAudioFile));
                 OnPropertyChanged(nameof(HasTieuDeBaiHoc));
                 OnPropertyChanged(nameof(CanTaoBangAI));
+                OnPropertyChanged(nameof(CoTheXoaBaiHoc));
                 NapAudioFileHienTai();
                 CommandManager.InvalidateRequerySuggested();
             }
@@ -311,6 +333,8 @@ namespace GUI.ViewModels.GiangVien
         public ICommand LuuBaiHocCommand { get; }
         public ICommand ToggleXuatBanCommand { get; }
         public ICommand ThemBaiHocMoiCommand { get; }
+        public ICommand XoaBaiHocHienTaiCommand { get; }
+        public bool CoTheXoaBaiHoc => SelectedBaiHoc != null && SelectedBaiHoc.MaBaiHoc > 0;
         private string? _noiDungBackupTruocKhiTaoAI;
         public bool CoNoiDungBackupTruocKhiTaoAI => !string.IsNullOrEmpty(_noiDungBackupTruocKhiTaoAI);
 
@@ -372,6 +396,7 @@ namespace GUI.ViewModels.GiangVien
             LuuBaiHocCommand = new RelayCommand(ThucHienLuuBaiHoc);
             ToggleXuatBanCommand = new RelayCommand(ThucHienToggleXuatBan);
             ThemBaiHocMoiCommand = new RelayCommand(ThucHienThemBaiHocMoi);
+            XoaBaiHocHienTaiCommand = new RelayCommand(ThucHienXoaBaiHocHienTai);
             LamMoiCommand = new RelayCommand(NapDuLieu);
 
             SinhNoiDungMauAICommand = new RelayCommand(ThucHienSinhNoiDungMauAI, () => CanTaoBangAI);
@@ -653,7 +678,16 @@ namespace GUI.ViewModels.GiangVien
 
                 if (!string.IsNullOrEmpty(SelectedKyNangFilter) && SelectedKyNangFilter != "All")
                 {
-                    ds = ds.Where(x => string.Equals(x.LoaiBaiHoc, SelectedKyNangFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+                    string target = SelectedKyNangFilter;
+                    if (target.Equals("Ngữ pháp", StringComparison.OrdinalIgnoreCase)) target = "NguPhap";
+                    else if (target.Equals("Từ vựng", StringComparison.OrdinalIgnoreCase)) target = "TuVung";
+                    else if (target.Equals("Đọc hiểu", StringComparison.OrdinalIgnoreCase)) target = "Doc";
+                    else if (target.Equals("Nghe hiểu", StringComparison.OrdinalIgnoreCase)) target = "Nghe";
+                    else if (target.Equals("Viết luận", StringComparison.OrdinalIgnoreCase)) target = "Viet";
+                    else if (target.Equals("Luyện nói", StringComparison.OrdinalIgnoreCase)) target = "Noi";
+
+                    ds = ds.Where(x => string.Equals(x.LoaiBaiHoc, target, StringComparison.OrdinalIgnoreCase)
+                                    || string.Equals(x.LoaiBaiHoc, SelectedKyNangFilter, StringComparison.OrdinalIgnoreCase)).ToList();
                 }
 
                 int currentId = SelectedBaiHoc?.MaBaiHoc ?? -1;
@@ -729,6 +763,19 @@ namespace GUI.ViewModels.GiangVien
             }
         }
 
+        private static bool CoThayDoiSoVoiGoc(BaiHocDTO original, BaiHocDTO current)
+        {
+            if (original.TieuDe?.Trim() != current.TieuDe?.Trim()) return true;
+            if (original.MaChuDe != current.MaChuDe) return true;
+            if (original.MaTrinhDo != current.MaTrinhDo) return true;
+            if (original.LoaiBaiHoc != current.LoaiBaiHoc) return true;
+            if (original.ThoiGianUocTinhPhut != current.ThoiGianUocTinhPhut) return true;
+            if (original.DuongDanAudio != current.DuongDanAudio) return true;
+            string c1 = (original.NoiDung ?? "").Trim();
+            string c2 = (current.NoiDung ?? "").Trim();
+            return c1 != c2;
+        }
+
         private void ThucHienThemBaiHocMoi()
         {
             if (IsAiBusy) return;
@@ -742,6 +789,20 @@ namespace GUI.ViewModels.GiangVien
                     cancelText: "Ở lại chỉnh sửa");
 
                 if (!xacNhan) return;
+            }
+            else if (!IsCreatingNewLesson && _selectedBaiHoc != null && _selectedBaiHoc.MaBaiHoc > 0)
+            {
+                var original = DanhSachBaiHoc.FirstOrDefault(b => b.MaBaiHoc == _selectedBaiHoc.MaBaiHoc);
+                if (original != null && CoThayDoiSoVoiGoc(original, _selectedBaiHoc))
+                {
+                    bool xacNhan = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                        $"Bài học \"{_selectedBaiHoc.TieuDe}\" có các chỉnh sửa chưa được lưu.\nNếu chuyển sang soạn bài mới, các thay đổi chưa lưu sẽ bị mất.\n\nBạn có chắc chắn muốn chuyển không?",
+                        "Xác nhận tạo bài mới",
+                        confirmText: "Tiếp tục tạo",
+                        cancelText: "Ở lại lưu");
+
+                    if (!xacNhan) return;
+                }
             }
 
             IsCreatingNewLesson = true;
@@ -762,6 +823,64 @@ namespace GUI.ViewModels.GiangVien
                 NoiDung = string.Empty
             };
             ThongBaoLoi = string.Empty;
+        }
+
+        private void ThucHienXoaBaiHocHienTai()
+        {
+            if (IsAiBusy) return;
+            if (SelectedBaiHoc == null || SelectedBaiHoc.MaBaiHoc <= 0)
+            {
+                if (IsCreatingNewLesson && CoDuLieuBaiHocMoiChuaLuu())
+                {
+                    bool xacNhan = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                        "Bạn có chắc chắn muốn hủy bản nháp bài học mới đang soạn thảo không?",
+                        "Xác nhận hủy bản nháp",
+                        confirmText: "Hủy bản nháp",
+                        cancelText: "Tiếp tục soạn");
+                    if (xacNhan)
+                    {
+                        ThucHienThemBaiHocMoi();
+                    }
+                }
+                return;
+            }
+
+            bool confirm = GUI.Views.Common.ThongBaoDialog.XacNhanXoa(
+                $"Bạn có chắc chắn muốn xóa vĩnh viễn bài học:\n'{SelectedBaiHoc.TieuDe}'?\n\nThao tác này sẽ gỡ bỏ học liệu khỏi hệ thống và cơ sở dữ liệu.",
+                "Xác nhận xóa bài học");
+
+            if (confirm)
+            {
+                try
+                {
+                    string? phyFile = KhoHocLieuSyncHelper.TimTepVatLyChoBaiHoc(SelectedBaiHoc);
+                    if (!string.IsNullOrEmpty(phyFile) && System.IO.File.Exists(phyFile))
+                    {
+                        System.IO.File.Delete(phyFile);
+                    }
+                }
+                catch { }
+
+                var (success, msg) = BaiHocBUS.XoaBaiHoc(SelectedBaiHoc.MaBaiHoc);
+                if (success)
+                {
+                    Views.Common.AICauHoiUIHelper.XoaBanNhapTrongPhien(SelectedBaiHoc.MaBaiHoc);
+                    GUI.Views.Common.ThongBaoDialog.ThanhCong(msg, "Đã xóa bài học");
+                    LocDanhSach();
+                    if (DanhSachBaiHoc.Count > 0)
+                    {
+                        SelectedBaiHocInList = DanhSachBaiHoc[0];
+                    }
+                    else
+                    {
+                        ThucHienThemBaiHocMoi();
+                    }
+                }
+                else
+                {
+                    GUI.Views.Common.ThongBaoDialog.CanhBao(msg, "Lỗi khi xóa bài học");
+                }
+            }
         }
 
         private void ThucHienChonAudio()
@@ -816,21 +935,26 @@ namespace GUI.ViewModels.GiangVien
 
         private void ThucHienXoaAudio()
         {
+            if (SelectedBaiHoc == null) return;
+
+            bool confirm = GUI.Views.Common.ThongBaoDialog.XacNhanXoa(
+                "Bạn có chắc chắn muốn gỡ tệp âm thanh hiện tại khỏi bài học này không?",
+                "Xác nhận gỡ tệp âm thanh");
+            if (!confirm) return;
+
             DungAudio();
-            if (SelectedBaiHoc != null)
+            SelectedBaiHoc.AudioPath = null;
+            SelectedBaiHoc.DuongDanAudio = null;
+
+            if (SelectedBaiHoc.MaBaiHoc > 0)
             {
-                SelectedBaiHoc.AudioPath = null;
-                SelectedBaiHoc.DuongDanAudio = null;
-
-                if (SelectedBaiHoc.MaBaiHoc > 0)
-                {
-                    BaiHocBUS.LuuBaiHoc(SelectedBaiHoc, out _);
-                }
-
-                OnPropertyChanged(nameof(SelectedBaiHoc));
-                OnPropertyChanged(nameof(HasAudioFile));
-                CommandManager.InvalidateRequerySuggested();
+                BaiHocBUS.LuuBaiHoc(SelectedBaiHoc, out _);
             }
+
+            OnPropertyChanged(nameof(SelectedBaiHoc));
+            OnPropertyChanged(nameof(HasAudioFile));
+            CommandManager.InvalidateRequerySuggested();
+            GUI.Views.Common.ThongBaoDialog.ThanhCong("Đã gỡ tệp âm thanh khỏi bài học.", "Gỡ Audio");
         }
 
         public Uri? ResolveAudioUri(string? audioPath)
@@ -1024,13 +1148,92 @@ namespace GUI.ViewModels.GiangVien
             if (string.IsNullOrWhiteSpace(SelectedBaiHoc.TieuDe))
             {
                 ThongBaoLoi = "Vui lòng nhập tiêu đề bài học.";
+                GUI.Views.Common.ThongBaoDialog.CanhBao("Vui lòng nhập tiêu đề bài học trước khi lưu.", "Thiếu thông tin");
                 return;
             }
 
-            if (SelectedBaiHoc.ThoiGianUocTinhPhut <= 0)
+            if (SelectedBaiHoc.TieuDe.Trim().Length > 200)
             {
-                ThongBaoLoi = "Thời lượng ước tính phải lớn hơn 0 phút.";
+                ThongBaoLoi = "Tiêu đề bài học không được vượt quá 200 ký tự.";
+                GUI.Views.Common.ThongBaoDialog.CanhBao("Tiêu đề bài học không được vượt quá 200 ký tự. Vui lòng rút gọn tiêu đề.", "Tiêu đề quá dài");
                 return;
+            }
+
+            if (SelectedBaiHoc.ThoiGianUocTinhPhut <= 0 || SelectedBaiHoc.ThoiGianUocTinhPhut > 600)
+            {
+                ThongBaoLoi = "Thời lượng ước tính phải từ 1 đến 600 phút.";
+                GUI.Views.Common.ThongBaoDialog.CanhBao("Thời lượng học ước tính phải từ 1 đến 600 phút (ví dụ: 15, 30, 45 phút).", "Thời lượng không hợp lệ");
+                return;
+            }
+
+            if (SelectedBaiHoc.MaChuDe <= 0)
+            {
+                ThongBaoLoi = "Vui lòng chọn chủ đề kiến thức cho bài học.";
+                GUI.Views.Common.ThongBaoDialog.CanhBao("Vui lòng chọn một chuyên đề kiến thức để phân loại bài học.", "Chưa chọn chủ đề");
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(SelectedBaiHoc.TomTat) && SelectedBaiHoc.TomTat.Trim().Length > 500)
+            {
+                ThongBaoLoi = "Tóm tắt bài học không được vượt quá 500 ký tự.";
+                GUI.Views.Common.ThongBaoDialog.CanhBao("Tóm tắt bài học không được vượt quá 500 ký tự. Vui lòng rút ngắn nội dung tóm tắt.", "Tóm tắt quá dài");
+                return;
+            }
+
+            // Kiểm tra trùng tiêu đề bài học trong cùng một chủ đề
+            var duplicate = DanhSachBaiHoc.FirstOrDefault(b =>
+                b.MaBaiHoc != SelectedBaiHoc.MaBaiHoc &&
+                b.MaChuDe == SelectedBaiHoc.MaChuDe &&
+                string.Equals(b.TieuDe?.Trim(), SelectedBaiHoc.TieuDe.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (duplicate != null)
+            {
+                bool confirmLuu = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                    $"Trong chủ đề này đã có bài học mang tiêu đề \"{SelectedBaiHoc.TieuDe.Trim()}\".\n\nBạn có chắc chắn muốn lưu bài học này với tiêu đề bị trùng không?",
+                    "Cảnh báo trùng tiêu đề bài học",
+                    confirmText: "Vẫn lưu",
+                    cancelText: "Đổi tiêu đề");
+                if (!confirmLuu) return;
+            }
+
+            // Kiểm tra ràng buộc âm thanh đối với kỹ năng nghe
+            if (BaiHocDTO.KiemTraKyNangNghe(SelectedBaiHoc.LoaiBaiHoc) && !HasAudioFile)
+            {
+                bool tiepTuc = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                    "Bài học này thuộc kỹ năng Luyện nghe (Listening) nhưng hiện tại chưa đính kèm tệp âm thanh (Audio).\n\nBạn có muốn tiếp tục lưu bài học này mà chưa có audio không? (Bạn có thể bổ sung audio sau)",
+                    "Yêu cầu tệp âm thanh",
+                    confirmText: "Vẫn lưu",
+                    cancelText: "Bổ sung Audio");
+                if (!tiepTuc) return;
+            }
+
+            // Kiểm tra nội dung giáo trình trống
+            bool coNoiDung = false;
+            if (!string.IsNullOrWhiteSpace(SelectedBaiHoc.NoiDung))
+            {
+                string plain = System.Text.RegularExpressions.Regex.Replace(SelectedBaiHoc.NoiDung, "<.*?>", string.Empty)
+                                                                   .Replace("&nbsp;", " ")
+                                                                   .Trim();
+                coNoiDung = !string.IsNullOrWhiteSpace(plain);
+            }
+            if (!coNoiDung)
+            {
+                bool xacNhanLuuRong = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                    "Nội dung giáo trình lý thuyết của bài học hiện đang để trống.\n\nBạn có chắc chắn muốn lưu bài học này không?",
+                    "Nội dung giáo trình trống",
+                    confirmText: "Lưu bản nháp trống",
+                    cancelText: "Tiếp tục soạn");
+                if (!xacNhanLuuRong) return;
+            }
+
+            // Nếu cập nhật bài học đã xuất bản, xác nhận với giảng viên
+            if (SelectedBaiHoc.MaBaiHoc > 0 && SelectedBaiHoc.DaXuatBan)
+            {
+                bool confirmCapNhat = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                    $"Bài học \"{SelectedBaiHoc.TieuDe}\" đang ở trạng thái đã xuất bản cho học viên.\n\nBạn có chắc chắn muốn lưu các nội dung thay đổi mới lên bài học công khai này không?",
+                    "Xác nhận cập nhật bài học đã xuất bản",
+                    confirmText: "Lưu thay đổi",
+                    cancelText: "Hủy bỏ");
+                if (!confirmCapNhat) return;
             }
 
             ThongBaoLoi = string.Empty;
@@ -1055,9 +1258,42 @@ namespace GUI.ViewModels.GiangVien
         {
             if (obj is BaiHocDTO bh)
             {
+                if (bh.DaXuatBan)
+                {
+                    bool xacNhan = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                        $"Bạn có chắc chắn muốn chuyển bài học \"{bh.TieuDe}\" về trạng thái Bản nháp không?\n\nLưu ý: Học viên sẽ tạm thời không thể nhìn thấy và truy cập bài học này trên hệ thống.",
+                        "Xác nhận hủy xuất bản bài học",
+                        confirmText: "Chuyển về Bản nháp",
+                        cancelText: "Hủy bỏ");
+
+                    if (!xacNhan) return;
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(bh.TieuDe))
+                    {
+                        GUI.Views.Common.ThongBaoDialog.CanhBao("Bài học chưa có tiêu đề hợp lệ nên không thể xuất bản.", "Không thể xuất bản");
+                        return;
+                    }
+
+                    bool xacNhan = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                        $"Bạn có chắc chắn muốn xuất bản bài học \"{bh.TieuDe}\" không?\n\nBài học sẽ được công khai ngay lập tức cho toàn bộ học viên.",
+                        "Xác nhận xuất bản bài học",
+                        confirmText: "Xuất bản ngay",
+                        cancelText: "Hủy bỏ");
+
+                    if (!xacNhan) return;
+                }
+
                 bh.DaXuatBan = !bh.DaXuatBan;
                 bool ok = BaiHocBUS.CapNhatTrangThaiXuatBan(bh.MaBaiHoc, bh.DaXuatBan);
-                if (!ok)
+                if (ok)
+                {
+                    GUI.Views.Common.ThongBaoDialog.ThanhCong(
+                        bh.DaXuatBan ? $"Đã xuất bản bài học \"{bh.TieuDe}\" thành công!" : $"Đã chuyển bài học \"{bh.TieuDe}\" về Bản nháp.",
+                        "Trạng thái xuất bản");
+                }
+                else
                 {
                     ThongBaoLoi = "Không thể cập nhật trạng thái vì bài học này không còn tồn tại trong hệ thống.";
                 }
@@ -1215,6 +1451,28 @@ namespace GUI.ViewModels.GiangVien
 
         private async void ThucHienSinhCauHoiAI()
         {
+            if (SelectedBaiHoc == null) return;
+            if (string.IsNullOrWhiteSpace(SelectedBaiHoc.TieuDe) && string.IsNullOrWhiteSpace(SelectedBaiHoc.NoiDung))
+            {
+                GUI.Views.Common.ThongBaoDialog.CanhBao("Vui lòng nhập tiêu đề hoặc soạn nội dung bài học trước khi tạo câu hỏi bằng AI.", "Thiếu thông tin");
+                return;
+            }
+
+            if (AiGeneratedQuestions != null && AiGeneratedQuestions.Count > 0)
+            {
+                bool xacNhan = GUI.Views.Common.ThongBaoDialog.XacNhan(
+                    $"Bài học đã có sẵn danh sách {AiGeneratedQuestions.Count} câu hỏi AI vừa tạo trong phiên.\n\nBạn có muốn yêu cầu AI tạo lại bộ câu hỏi mới hoàn toàn không?",
+                    "Xác nhận tạo lại câu hỏi AI",
+                    confirmText: "Tạo lại mới",
+                    cancelText: "Xem lại câu hỏi cũ");
+
+                if (!xacNhan)
+                {
+                    IsQuestionsModalOpen = true;
+                    return;
+                }
+            }
+
             await SinhCauHoiAIAsync();
         }
 

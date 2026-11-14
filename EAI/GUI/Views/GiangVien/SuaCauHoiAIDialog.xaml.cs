@@ -99,33 +99,55 @@ namespace GUI.Views.GiangVien
             string optCText = txtOptionC.Text.Trim();
             string optDText = txtOptionD.Text.Trim();
 
-            if (string.IsNullOrEmpty(optAText) || string.IsNullOrEmpty(optBText))
-            {
-                Common.ThongBaoDialog.CanhBao("Vui lòng nhập tối thiểu 2 lựa chọn đáp án (A và B).", "Thiếu thông tin");
-                return;
-            }
+            bool isTextAnswer = _item.LoaiCauHoi == "DienKhuyet" || _item.LoaiCauHoi == "TraLoiNgan" || 
+                                _item.LoaiCauHoi == "VietLaiCau" || _item.LoaiCauHoi == "TuLuan" ||
+                                (_item.DanhSachLuaChon != null && _item.DanhSachLuaChon.Any(l => l.KyHieuLuaChon == "ANS"));
 
-            bool hasCorrect = (rbOptionA.IsChecked == true) || (rbOptionB.IsChecked == true) ||
-                              (rbOptionC.IsChecked == true) || (rbOptionD.IsChecked == true);
-            if (!hasCorrect)
-            {
-                Common.ThongBaoDialog.CanhBao("Vui lòng chọn 1 đáp án đúng bằng nút chọn tròn bên trái.", "Chưa chọn đáp án đúng");
-                return;
-            }
+            List<LuaChonDapAnDTO> updatedOptions;
 
-            var updatedOptions = new List<LuaChonDapAnDTO>
+            if (isTextAnswer)
             {
-                new LuaChonDapAnDTO { KyHieuLuaChon = "A", NoiDungLuaChon = optAText, LaDapAnDung = rbOptionA.IsChecked == true },
-                new LuaChonDapAnDTO { KyHieuLuaChon = "B", NoiDungLuaChon = optBText, LaDapAnDung = rbOptionB.IsChecked == true }
-            };
+                if (string.IsNullOrEmpty(optAText))
+                {
+                    Common.ThongBaoDialog.CanhBao("Vui lòng nhập đáp án mẫu hoặc từ khóa chính xác vào ô đáp án A.", "Thiếu thông tin");
+                    return;
+                }
 
-            if (!string.IsNullOrEmpty(optCText))
-            {
-                updatedOptions.Add(new LuaChonDapAnDTO { KyHieuLuaChon = "C", NoiDungLuaChon = optCText, LaDapAnDung = rbOptionC.IsChecked == true });
+                updatedOptions = new List<LuaChonDapAnDTO>
+                {
+                    new LuaChonDapAnDTO { KyHieuLuaChon = "ANS", NoiDungLuaChon = optAText, LaDapAnDung = true }
+                };
             }
-            if (!string.IsNullOrEmpty(optDText))
+            else
             {
-                updatedOptions.Add(new LuaChonDapAnDTO { KyHieuLuaChon = "D", NoiDungLuaChon = optDText, LaDapAnDung = rbOptionD.IsChecked == true });
+                if (string.IsNullOrEmpty(optAText) || string.IsNullOrEmpty(optBText))
+                {
+                    Common.ThongBaoDialog.CanhBao("Vui lòng nhập tối thiểu 2 lựa chọn đáp án (A và B).", "Thiếu thông tin");
+                    return;
+                }
+
+                bool hasCorrect = (rbOptionA.IsChecked == true) || (rbOptionB.IsChecked == true) ||
+                                  (rbOptionC.IsChecked == true) || (rbOptionD.IsChecked == true);
+                if (!hasCorrect)
+                {
+                    Common.ThongBaoDialog.CanhBao("Vui lòng chọn 1 đáp án đúng bằng nút chọn tròn bên trái.", "Chưa chọn đáp án đúng");
+                    return;
+                }
+
+                updatedOptions = new List<LuaChonDapAnDTO>
+                {
+                    new LuaChonDapAnDTO { KyHieuLuaChon = "A", NoiDungLuaChon = optAText, LaDapAnDung = rbOptionA.IsChecked == true },
+                    new LuaChonDapAnDTO { KyHieuLuaChon = "B", NoiDungLuaChon = optBText, LaDapAnDung = rbOptionB.IsChecked == true }
+                };
+
+                if (!string.IsNullOrEmpty(optCText))
+                {
+                    updatedOptions.Add(new LuaChonDapAnDTO { KyHieuLuaChon = "C", NoiDungLuaChon = optCText, LaDapAnDung = rbOptionC.IsChecked == true });
+                }
+                if (!string.IsNullOrEmpty(optDText))
+                {
+                    updatedOptions.Add(new LuaChonDapAnDTO { KyHieuLuaChon = "D", NoiDungLuaChon = optDText, LaDapAnDung = rbOptionD.IsChecked == true });
+                }
             }
 
             var jsonOptions = new JsonSerializerOptions
@@ -144,7 +166,11 @@ namespace GUI.Views.GiangVien
                 doanVan,
                 giaiThich,
                 jsonLuaChon,
-                out string errorMessage
+                out string errorMessage,
+                kyNang: _item.KyNang,
+                trinhDo: _item.MaCapDo,
+                loaiCauHoi: _item.LoaiCauHoi,
+                doKho: _item.DoKho
             );
 
             if (thanhCong)

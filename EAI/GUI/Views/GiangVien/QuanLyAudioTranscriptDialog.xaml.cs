@@ -107,12 +107,12 @@ namespace GUI.Views.GiangVien
             if (_baiHoc.MaBaiHoc <= 0) return;
 
             // Kiểm tra trong DB theo mã bài học
-            _currentTranscriptDto = AudioTranscriptDAL.Instance.LayAudioChinhCuaBaiHoc(_baiHoc.MaBaiHoc);
+            _currentTranscriptDto = AudioTranscriptDAL.Instance.LayAudioChinhCuaBaiHoc(_baiHoc.MaBaiHoc, laGiangVien: true);
 
             // Hoặc kiểm tra theo AudioPath nếu chưa có
             if (_currentTranscriptDto == null && !string.IsNullOrEmpty(_baiHoc.AudioPath))
             {
-                _currentTranscriptDto = AudioTranscriptDAL.Instance.LayTheoDuongDanAudio(_baiHoc.AudioPath);
+                _currentTranscriptDto = AudioTranscriptDAL.Instance.LayTheoDuongDanAudio(_baiHoc.AudioPath, laGiangVien: true);
             }
 
             if (_currentTranscriptDto != null)

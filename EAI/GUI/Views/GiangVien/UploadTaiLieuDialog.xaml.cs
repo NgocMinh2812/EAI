@@ -265,37 +265,16 @@ namespace GUI.Views.GiangVien
                     _ => ExtractFromTxt(filePath)
                 };
 
-                // 1. Tiêu đề: Ưu tiên dòng tiêu đề thực tế từ tệp nếu có, nếu không lấy tên tệp
-                if (!string.IsNullOrWhiteSpace(title) && title.Length >= 5 && title.Length <= 120)
-                {
-                    txtTieuDe.Text = SanitizeText(title);
-                }
-                else
-                {
-                    txtTieuDe.Text = SanitizeText(Path.GetFileNameWithoutExtension(fileName)
-                        .Replace('_', ' ')
-                        .Replace('-', ' '));
-                }
+                // 1. Tiêu đề: Lấy tên tệp (bỏ phần mở rộng) làm tiêu đề bài học theo yêu cầu
+                txtTieuDe.Text = Path.GetFileNameWithoutExtension(fileName).Trim();
 
                 // 2. Nội dung: Đưa toàn bộ nội dung văn bản thực tế bóc tách được vào TextBox
                 txtNoiDung.Text = !string.IsNullOrWhiteSpace(content)
                     ? SanitizeText(content)
                     : "Không thể trích xuất văn bản từ tệp này (có thể tệp rỗng hoặc là hình ảnh scan).";
 
-                // 3. Tóm tắt: Tạo tóm tắt từ chính nội dung thực tế trong tệp thay vì câu mẫu
-                if (!string.IsNullOrWhiteSpace(summary))
-                {
-                    txtTomTat.Text = SanitizeText(summary);
-                }
-                else if (!string.IsNullOrWhiteSpace(content))
-                {
-                    string clean = SanitizeText(content);
-                    txtTomTat.Text = clean.Length > 180 ? clean.Substring(0, 177) + "..." : clean;
-                }
-                else
-                {
-                    txtTomTat.Text = $"Tài liệu {fileName}.";
-                }
+                // 3. Tóm tắt: Bỏ trống theo yêu cầu, người dùng cần thì sẽ tự nhập
+                txtTomTat.Text = string.Empty;
             }
             catch (Exception ex)
             {

@@ -767,7 +767,41 @@ CREATE TABLE TepTinNhapLieu (
 GO
 
 /* =========================================================
-   10. CHỈ MỤC (INDEX)
+   10. TRỢ LÝ HỘI THOẠI AI (AI ASSISTANT CONVERSATION & MESSAGE)
+   ========================================================= */
+
+CREATE TABLE AIAssistantConversation (
+    MaHoiThoai INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_AIAssistantConversation PRIMARY KEY,
+    MaNguoiDung INT NOT NULL,
+    TieuDe NVARCHAR(255) NOT NULL DEFAULT N'Cuộc hội thoại mới',
+    NgayTao DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    NgayCapNhat DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    TrangThai NVARCHAR(30) NOT NULL DEFAULT N'Active',
+    TongSoTinNhan INT NOT NULL DEFAULT 0,
+    MoHinhUuTien NVARCHAR(100) NULL,
+    PromptHeThongTuyChon NVARCHAR(MAX) NULL,
+    CONSTRAINT FK_AIAssistantConversation_NguoiDung
+        FOREIGN KEY (MaNguoiDung) REFERENCES NguoiDung(MaNguoiDung) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE AIAssistantMessage (
+    MaTinNhan BIGINT IDENTITY(1,1) NOT NULL CONSTRAINT PK_AIAssistantMessage PRIMARY KEY,
+    MaHoiThoai INT NOT NULL,
+    VaiTro NVARCHAR(20) NOT NULL DEFAULT N'user', -- user, assistant, system, tool
+    NoiDung NVARCHAR(MAX) NOT NULL DEFAULT N'',
+    ThoiGianGui DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    ToolCallsJson NVARCHAR(MAX) NULL,
+    ToolResultJson NVARCHAR(MAX) NULL,
+    CardPayloadJson NVARCHAR(MAX) NULL,
+    TrangThai NVARCHAR(30) NOT NULL DEFAULT N'Sent',
+    CONSTRAINT FK_AIAssistantMessage_Conversation
+        FOREIGN KEY (MaHoiThoai) REFERENCES AIAssistantConversation(MaHoiThoai) ON DELETE CASCADE
+);
+GO
+
+/* =========================================================
+   11. CHỈ MỤC (INDEX)
    ========================================================= */
 
 CREATE INDEX IX_NguoiDung_MaVaiTro ON NguoiDung(MaVaiTro);
@@ -785,10 +819,13 @@ CREATE NONCLUSTERED INDEX IX_BoCauHoi_BaiHoc ON BoCauHoi(MaBaiHoc, LoaiBoCauHoi,
 CREATE NONCLUSTERED INDEX IX_KetQuaLamBaiBoCauHoi_User_Lesson ON KetQuaLamBaiBoCauHoi(MaNguoiDung, MaBaiHoc, LoaiBoCauHoi, ContentHash);
 CREATE NONCLUSTERED INDEX IX_BaiHocAudioTranscript_MaBaiHoc ON BaiHocAudioTranscript (MaBaiHoc ASC, TrangThaiDuyet ASC);
 CREATE NONCLUSTERED INDEX IX_BaiHocAudioTranscript_AudioHash ON BaiHocAudioTranscript (AudioHash ASC);
+CREATE NONCLUSTERED INDEX IX_AIAssistantConversation_MaNguoiDung_NgayCapNhat ON AIAssistantConversation(MaNguoiDung, NgayCapNhat DESC);
+CREATE NONCLUSTERED INDEX IX_AIAssistantConversation_TieuDe ON AIAssistantConversation(TieuDe);
+CREATE NONCLUSTERED INDEX IX_AIAssistantMessage_MaHoiThoai_ThoiGianGui ON AIAssistantMessage(MaHoiThoai, ThoiGianGui ASC);
 GO
 
 /* =========================================================
-   11. VIEW TỔNG HỢP VÀ TƯƠNG THÍCH
+   12. VIEW TỔNG HỢP VÀ TƯƠNG THÍCH
    ========================================================= */
 
 CREATE VIEW vw_TongHopTienTrinhHocTap
@@ -852,11 +889,11 @@ FROM ChiTietTraLoi;
 GO
 
 /* =========================================================
-   12. DỮ LIỆU CƠ BẢN / DANH MỤC HỆ THỐNG BAN ĐẦU
+   13. DỮ LIỆU CƠ BẢN / DANH MỤC HỆ THỐNG BAN ĐẦU
    ========================================================= */
 
 
 PRINT N'===================================================================';
-PRINT N'TẠO HOÀN TẤT SCHEMA CƠ SỞ DỮ LIỆU TiengAnhAI (39 BẢNG, RÀNG BUỘC & VIEWS)!';
+PRINT N'TẠO HOÀN TẤT SCHEMA CƠ SỞ DỮ LIỆU TiengAnhAI (41 BẢNG, RÀNG BUỘC & VIEWS)!';
 PRINT N'===================================================================';
 GO

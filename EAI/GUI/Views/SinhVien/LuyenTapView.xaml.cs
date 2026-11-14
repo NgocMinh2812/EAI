@@ -7,6 +7,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using System.Windows.Input;
 using BUS;
+using DAL;
 using DTO;
 using GUI.Services;
 
@@ -188,6 +189,7 @@ namespace GUI.Views
         private DateTime _sessionStartTime;
         private DispatcherTimer? _sessionDurationTimer;
         private int _sessionElapsedSeconds = 0;
+        private int _currentMaLuotLuyenTap = 0;
         private bool _isInstantFeedbackMode = true;
         private string _currentSessionTitle = "Luyện tập tự do";
 
@@ -218,10 +220,39 @@ namespace GUI.Views
             // Nạp dữ liệu ban đầu
             LoadPracticePackages("All");
             UpdateLiveQuestionCount();
+            CapNhatStreakHocVien();
+            this.Loaded += (s, e) => CapNhatStreakHocVien();
+        }
+
+        public void CapNhatStreakHocVien()
+        {
+            try
+            {
+                int userId = SessionHelper.CurrentMaNguoiDung;
+                int streak = TienDoHocDAL.Instance.TinhChuoiNgayHoc(userId);
+                if (txtStreakText != null)
+                {
+                    txtStreakText.Text = $"Streak: {streak} ngày";
+                }
+            }
+            catch { }
         }
 
         private void InitAudioPlayer()
         {
+            AudioPlaybackCoordinator.Instance.RegisterActiveMediaPlayer(() =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    try { _practiceMediaPlayer.Stop(); } catch { }
+                    if (_currentPlayingAudioBtn != null)
+                    {
+                        _currentPlayingAudioBtn.Content = "▶ Nghe bài nói";
+                    }
+                    _currentPlayingQuestionId = -1;
+                });
+            });
+
             _practiceMediaPlayer.MediaEnded += (s, e) =>
             {
                 Dispatcher.Invoke(() =>
@@ -253,25 +284,7 @@ namespace GUI.Views
         private void SpeakText(string text, double speed = 1.0)
         {
             if (string.IsNullOrWhiteSpace(text)) return;
-
-            System.Threading.Tasks.Task.Run(() =>
-            {
-                try
-                {
-                    var type = Type.GetType("System.Speech.Synthesis.SpeechSynthesizer, System.Speech");
-                    if (type != null)
-                    {
-                        dynamic synth = Activator.CreateInstance(type)!;
-                        synth.Volume = 100;
-                        synth.Rate = (int)((speed - 1.0) * 4);
-                        synth.Speak(text);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[Speech] Lỗi phát âm: {ex.Message}");
-                }
-            });
+            AudioPlaybackCoordinator.Instance.SpeakAsync(text, speed);
         }
 
         // =========================================================================
@@ -302,6 +315,20 @@ namespace GUI.Views
         {
             _practiceMediaPlayer.Stop();
             _sessionDurationTimer?.Stop();
+
+            // Nếu người dùng hủy phiên luyện tập giữa chừng, đánh dấu DaHuy
+            if (_currentMaLuotLuyenTap > 0)
+            {
+                try
+                {
+                    LuyenTapBUS.Instance.HuyLuotLuyenTap(_currentMaLuotLuyenTap);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LuyenTapView] Lỗi hủy phiên: {ex.Message}");
+                }
+                _currentMaLuotLuyenTap = 0;
+            }
 
             pnlHubSession.Visibility = Visibility.Collapsed;
             pnlHubResult.Visibility = Visibility.Collapsed;
@@ -745,6 +772,25 @@ namespace GUI.Views
             _isInstantFeedbackMode = isInstant;
             _sessionStartTime = DateTime.Now;
             _sessionElapsedSeconds = 0;
+
+            // Khởi tạo lượt làm bài trạng thái 'DangLam' trong DB để giảng viên giám sát theo thời gian thực
+            try
+            {
+                int currentUserId = SessionHelper.CurrentMaNguoiDung;
+                if (currentUserId > 0)
+                {
+                    _currentMaLuotLuyenTap = LuyenTapBUS.Instance.KhoiTaoLuotLuyenTap(currentUserId, _currentSessionTitle, _sessionQuestions.Count);
+                }
+                else
+                {
+                    _currentMaLuotLuyenTap = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                _currentMaLuotLuyenTap = 0;
+                System.Diagnostics.Debug.WriteLine($"[LuyenTapView] Lỗi khởi tạo phiên luyện tập: {ex.Message}");
+            }
 
             // Khởi động đồng hồ thời gian làm bài (đếm xuôi)
             StartSessionTimer();
@@ -1246,6 +1292,7 @@ namespace GUI.Views
             {
                 try
                 {
+                    AudioPlaybackCoordinator.Instance.NotifyMediaPlayerStarting();
                     _practiceMediaPlayer.Stop();
                     _practiceMediaPlayer.Open(audioUri);
                     _practiceMediaPlayer.Play();
@@ -1319,7 +1366,7 @@ namespace GUI.Views
             int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
             string title = !string.IsNullOrWhiteSpace(_currentSessionTitle) ? _currentSessionTitle : "Luyện tập tự do";
 
-            // Lưu kết quả phiên luyện tập vào database (HinhThucLam = 'LuyenTap')
+            // Lưu kết quả phiên luyện tập vào database (HinhThucLam = 'LuyenTap', DangLam -> DaNop)
             try
             {
                 LuyenTapBUS.Instance.LuuKetQuaPhienLuyenTap(
@@ -1329,7 +1376,9 @@ namespace GUI.Views
                     timeSpent,
                     _sessionQuestions,
                     _sessionUserAnswers,
-                    _sessionUserTextAnswers);
+                    _sessionUserTextAnswers,
+                    _currentMaLuotLuyenTap);
+                _currentMaLuotLuyenTap = 0;
             }
             catch (Exception ex)
             {

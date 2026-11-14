@@ -9,6 +9,7 @@
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 <ApplicationIcon>Assets\app_icon.ico</ApplicationIcon>
     <UserSecretsId>eai-desktop-app-secrets</UserSecretsId>
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

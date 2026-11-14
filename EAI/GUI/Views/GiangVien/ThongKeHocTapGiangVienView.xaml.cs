@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Win32;
 using BUS;
@@ -14,6 +17,10 @@ namespace GUI.Views.GiangVien
     {
         private ThongKeHocTapFilterDTO _currentFilter = new();
         private BaoCaoThongKeHocTapDTO? _currentReport;
+        private List<LuotLamBaiDTO> _allSubmissions = new();
+        private int _currentSubPage = 1;
+        private const int SubPageSize = 10;
+        private int _totalSubPages = 1;
 
         public ThongKeHocTapGiangVienView()
         {
@@ -23,12 +30,15 @@ namespace GUI.Views.GiangVien
 
         private void ThongKeHocTapGiangVienView_Loaded(object sender, RoutedEventArgs e)
         {
-            // Mặc định chọn lọc 30 ngày qua
-            _currentFilter.TuNgay = DateTime.Today.AddDays(-30);
-            _currentFilter.DenNgay = DateTime.Today;
-
             NapDanhSachDeThi();
-            TaiBaoCaoThongKe();
+            // Mặc định chọn 7 ngày qua đồng bộ cả giao diện nút bấm và số liệu
+            BtnFilter7Ngay_Click(btnFilter7Ngay, null!);
+        }
+
+        private void BtnLamMoi_Click(object sender, RoutedEventArgs e)
+        {
+            NapDanhSachDeThi();
+            TaiBaoCaoThongKe(resetPage: true);
         }
 
         private void NapDanhSachDeThi()
@@ -51,7 +61,7 @@ namespace GUI.Views.GiangVien
             }
         }
 
-        public void TaiBaoCaoThongKe()
+        public void TaiBaoCaoThongKe(bool resetPage = false)
         {
             try
             {
@@ -78,19 +88,72 @@ namespace GUI.Views.GiangVien
                 // 5. Vẽ biểu đồ 4: Hoàn thành theo bài thi (Tính toán từ danh sách lượt làm bài)
                 VeBieuDoKyThi(report.DanhSachLuotLamBai);
 
-                // 6. Đổ danh sách lượt làm bài
-                bool coDuLieu = report.DanhSachLuotLamBai != null && report.DanhSachLuotLamBai.Count > 0;
-                dgDanhSachBaiNop.ItemsSource = report.DanhSachLuotLamBai;
-                dgDanhSachBaiNop.Visibility = coDuLieu ? Visibility.Visible : Visibility.Collapsed;
-                if (pnlEmptySubmissions != null)
-                {
-                    pnlEmptySubmissions.Visibility = coDuLieu ? Visibility.Collapsed : Visibility.Visible;
-                }
-                txtSubmissionsCount.Text = $"{report.DanhSachLuotLamBai?.Count ?? 0} lượt làm bài";
+                // 6. Đổ danh sách lượt làm bài có phân trang
+                _allSubmissions = report.DanhSachLuotLamBai ?? new List<LuotLamBaiDTO>();
+                CapNhatPhanTrangSubmissions(resetPage);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[TaiBaoCaoThongKe] {ex.Message}");
+            }
+        }
+
+        private void CapNhatPhanTrangSubmissions(bool resetPage = false)
+        {
+            if (resetPage) _currentSubPage = 1;
+
+            int totalCount = _allSubmissions.Count;
+            _totalSubPages = Math.Max(1, (int)Math.Ceiling((double)totalCount / SubPageSize));
+
+            if (_currentSubPage > _totalSubPages) _currentSubPage = _totalSubPages;
+            if (_currentSubPage < 1) _currentSubPage = 1;
+
+            var pagedItems = _allSubmissions.Skip((_currentSubPage - 1) * SubPageSize).Take(SubPageSize).ToList();
+            dgDanhSachBaiNop.ItemsSource = pagedItems;
+            txtSubmissionsCount.Text = $"{totalCount} lượt làm bài";
+
+            bool coDuLieu = totalCount > 0;
+            dgDanhSachBaiNop.Visibility = coDuLieu ? Visibility.Visible : Visibility.Collapsed;
+            if (pnlEmptySubmissions != null)
+            {
+                pnlEmptySubmissions.Visibility = coDuLieu ? Visibility.Collapsed : Visibility.Visible;
+            }
+            if (pnlSubPagination != null)
+            {
+                pnlSubPagination.Visibility = coDuLieu ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            int fromIndex = totalCount == 0 ? 0 : (_currentSubPage - 1) * SubPageSize + 1;
+            int toIndex = Math.Min(totalCount, _currentSubPage * SubPageSize);
+
+            if (txtSubCounter != null)
+                txtSubCounter.Text = $"Hiển thị {fromIndex} - {toIndex} / {totalCount} lượt làm bài";
+
+            if (txtSubPageInfo != null)
+                txtSubPageInfo.Text = $"Trang {_currentSubPage} / {_totalSubPages}";
+
+            if (btnPrevSubPage != null)
+                btnPrevSubPage.IsEnabled = _currentSubPage > 1;
+
+            if (btnNextSubPage != null)
+                btnNextSubPage.IsEnabled = _currentSubPage < _totalSubPages;
+        }
+
+        private void BtnPrevSubPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentSubPage > 1)
+            {
+                _currentSubPage--;
+                CapNhatPhanTrangSubmissions();
+            }
+        }
+
+        private void BtnNextSubPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentSubPage < _totalSubPages)
+            {
+                _currentSubPage++;
+                CapNhatPhanTrangSubmissions();
             }
         }
 
@@ -301,7 +364,7 @@ namespace GUI.Views.GiangVien
 
             _currentFilter.TuNgay = DateTime.Today;
             _currentFilter.DenNgay = DateTime.Today;
-            TaiBaoCaoThongKe();
+            CapNhatBoLocTuGiaoDien();
         }
 
         private void BtnFilter7Ngay_Click(object sender, RoutedEventArgs e)
@@ -312,7 +375,7 @@ namespace GUI.Views.GiangVien
 
             _currentFilter.TuNgay = DateTime.Today.AddDays(-7);
             _currentFilter.DenNgay = DateTime.Today;
-            TaiBaoCaoThongKe();
+            CapNhatBoLocTuGiaoDien();
         }
 
         private void BtnFilter30Ngay_Click(object sender, RoutedEventArgs e)
@@ -323,7 +386,7 @@ namespace GUI.Views.GiangVien
 
             _currentFilter.TuNgay = DateTime.Today.AddDays(-30);
             _currentFilter.DenNgay = DateTime.Today;
-            TaiBaoCaoThongKe();
+            CapNhatBoLocTuGiaoDien();
         }
 
         private void BtnFilterTatCa_Click(object sender, RoutedEventArgs e)
@@ -334,27 +397,40 @@ namespace GUI.Views.GiangVien
 
             _currentFilter.TuNgay = null;
             _currentFilter.DenNgay = null;
-            TaiBaoCaoThongKe();
+            CapNhatBoLocTuGiaoDien();
         }
 
         private void BtnApDungLoc_Click(object sender, RoutedEventArgs e)
         {
+            CapNhatBoLocTuGiaoDien();
+        }
+
+        private void CapNhatBoLocTuGiaoDien()
+        {
             // Lấy ID đề thi
-            if (cboDeThi.SelectedItem is ComboBoxItem itemDe && itemDe.Tag is int maDe)
+            if (cboDeThi?.SelectedItem is ComboBoxItem itemDe && itemDe.Tag is int maDe)
             {
                 _currentFilter.MaBaiTapDeThi = maDe > 0 ? maDe : null;
             }
 
             // Lấy hình thức
-            if (cboHinhThuc.SelectedItem is ComboBoxItem itemHt && itemHt.Tag is string ht)
+            if (cboHinhThuc?.SelectedItem is ComboBoxItem itemHt && itemHt.Tag is string ht)
             {
                 _currentFilter.HinhThucLam = ht;
             }
 
             // Lấy từ khóa
-            _currentFilter.TuKhoa = txtSearch.Text.Trim();
+            _currentFilter.TuKhoa = txtSearch?.Text?.Trim() ?? string.Empty;
 
-            TaiBaoCaoThongKe();
+            TaiBaoCaoThongKe(resetPage: true);
+        }
+
+        private void TxtSearch_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                CapNhatBoLocTuGiaoDien();
+            }
         }
 
         private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
@@ -364,6 +440,35 @@ namespace GUI.Views.GiangVien
                 txtSearchPlaceholder.Visibility = string.IsNullOrEmpty(txtSearch.Text)
                     ? Visibility.Visible
                     : Visibility.Collapsed;
+            }
+        }
+
+        private void BtnXemChiTietBaiLam_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is int maLuot && maLuot > 0)
+            {
+                MoDialogChiTietBaiLam(maLuot);
+            }
+        }
+
+        private void DgDanhSachBaiNop_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (dgDanhSachBaiNop.SelectedItem is LuotLamBaiDTO item && item.MaLuotLamBai > 0)
+            {
+                MoDialogChiTietBaiLam(item.MaLuotLamBai);
+            }
+        }
+
+        private void MoDialogChiTietBaiLam(int maLuotLamBai)
+        {
+            try
+            {
+                var dialog = new ChiTietBaiLamSinhVienDialog(maLuotLamBai);
+                Common.ModalHelper.ShowDialogWithDim(dialog, Window.GetWindow(this));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MoDialogChiTietBaiLam] {ex.Message}");
             }
         }
         #endregion
@@ -377,6 +482,16 @@ namespace GUI.Views.GiangVien
                 return;
             }
 
+            if (_currentReport.TongSoLuotLam == 0)
+            {
+                bool tiepTuc = Common.ThongBaoDialog.XacNhan(
+                    "Hiện tại danh sách không có dữ liệu lượt nộp bài nào theo bộ lọc đang chọn.\n\nBạn có chắc chắn muốn tiếp tục xuất tệp báo cáo tổng quan KPI không?",
+                    "Xác nhận xuất Excel",
+                    "Tiếp tục xuất",
+                    "Hủy bỏ");
+                if (!tiepTuc) return;
+            }
+
             var saveFileDialog = new SaveFileDialog
             {
                 Title = "Xuất Báo cáo Thống kê Học tập (.xlsx)",
@@ -386,16 +501,44 @@ namespace GUI.Views.GiangVien
 
             if (saveFileDialog.ShowDialog() == true)
             {
-                bool thanhCong = BaoCaoThongKeBUS.Instance.XuatBaoCaoExcel(_currentReport, saveFileDialog.FileName, out string errorMessage);
-                if (thanhCong)
+                try
                 {
-                    Common.ThongBaoDialog.ThanhCong(
-                        $"🎉 Đã xuất thành công Báo cáo thống kê học tập (gồm 2 Sheet: Tổng quan KPI và Danh sách bài nộp) tại:\n{saveFileDialog.FileName}", 
-                        "Xuất Excel thành công");
+                    bool thanhCong = BaoCaoThongKeBUS.Instance.XuatBaoCaoExcel(_currentReport, saveFileDialog.FileName, out string errorMessage);
+                    if (thanhCong)
+                    {
+                        bool openFile = Common.ThongBaoDialog.XacNhan(
+                            $"🎉 Đã xuất thành công Báo cáo thống kê học tập (gồm 2 Sheet: Tổng quan KPI và Danh sách bài nộp) tại:\n{saveFileDialog.FileName}\n\nBạn có muốn mở tệp Excel ngay bây giờ không?", 
+                            "Xuất Excel thành công",
+                            "Mở tệp",
+                            "Đóng");
+
+                        if (openFile)
+                        {
+                            try
+                            {
+                                Process.Start(new ProcessStartInfo(saveFileDialog.FileName) { UseShellExecute = true });
+                            }
+                            catch (Exception exOpen)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[Process.Start] {exOpen.Message}");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        string friendlyMsg = errorMessage.Contains("being used by another process") || errorMessage.Contains("process cannot access")
+                            ? "Tệp Excel đang được mở bởi ứng dụng khác (ví dụ: Microsoft Excel). Vui lòng đóng tệp trước khi xuất lại."
+                            : errorMessage;
+                        Common.ThongBaoDialog.Loi($"Không thể xuất tệp Excel: {friendlyMsg}", "Lỗi xuất báo cáo");
+                    }
                 }
-                else
+                catch (IOException ioEx)
                 {
-                    Common.ThongBaoDialog.Loi($"Không thể xuất tệp Excel: {errorMessage}", "Lỗi xuất báo cáo");
+                    Common.ThongBaoDialog.Loi($"Tệp Excel đang được mở hoặc bị khóa bởi ứng dụng khác:\n{ioEx.Message}", "Lỗi tập tin");
+                }
+                catch (Exception ex)
+                {
+                    Common.ThongBaoDialog.Loi($"Đã xảy ra lỗi trong quá trình xuất Excel: {ex.Message}", "Lỗi hệ thống");
                 }
             }
         }

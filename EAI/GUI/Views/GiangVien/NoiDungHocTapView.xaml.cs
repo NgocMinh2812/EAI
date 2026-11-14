@@ -1,9 +1,12 @@
-﻿using System;
+using System;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
 using Microsoft.Win32;
 using GUI.ViewModels.GiangVien;
 using GUI.Views.Common;
@@ -13,6 +16,7 @@ namespace GUI.Views.GiangVien
     public partial class NoiDungHocTapView : Page
     {
         private bool _isInternalChange = false;
+        private Window? _parentWindow = null;
 
         public NoiDungHocTapView()
         {
@@ -22,19 +26,41 @@ namespace GUI.Views.GiangVien
             DataContextChanged += Page_DataContextChanged;
         }
 
-        public NoiDungHocTapView(string? searchKeyword = null, string? kyNang = null, int? targetLessonId = null) : this()
+        public NoiDungHocTapView(string? searchKeyword = null, string? kyNang = null, int? targetLessonId = null, int? maChuDe = null) : this()
         {
             Loaded += (s, e) =>
             {
                 if (DataContext is NoiDungHocTapViewModel vm)
                 {
+                    if (maChuDe.HasValue && maChuDe.Value > 0)
+                    {
+                        var cd = vm.DanhSachChuDe.FirstOrDefault(c => c.MaChuDe == maChuDe.Value);
+                        if (cd != null)
+                        {
+                            vm.SelectedChuDeFilter = cd;
+                        }
+                    }
                     if (!string.IsNullOrWhiteSpace(searchKeyword))
                     {
                         vm.TuKhoaTimKiem = searchKeyword.Trim();
                     }
                     if (!string.IsNullOrWhiteSpace(kyNang))
                     {
-                        vm.SelectedKyNangFilter = kyNang.Trim();
+                        string kn = kyNang.Trim();
+                        if (kn.Equals("Ngữ pháp", StringComparison.OrdinalIgnoreCase) || kn.Equals("NguPhap", StringComparison.OrdinalIgnoreCase))
+                            vm.SelectedKyNangFilter = "NguPhap";
+                        else if (kn.Equals("Từ vựng", StringComparison.OrdinalIgnoreCase) || kn.Equals("TuVung", StringComparison.OrdinalIgnoreCase))
+                            vm.SelectedKyNangFilter = "TuVung";
+                        else if (kn.Equals("Đọc hiểu", StringComparison.OrdinalIgnoreCase) || kn.Equals("Doc", StringComparison.OrdinalIgnoreCase))
+                            vm.SelectedKyNangFilter = "Doc";
+                        else if (kn.Equals("Nghe hiểu", StringComparison.OrdinalIgnoreCase) || kn.Equals("Nghe", StringComparison.OrdinalIgnoreCase))
+                            vm.SelectedKyNangFilter = "Nghe";
+                        else if (kn.Equals("Viết luận", StringComparison.OrdinalIgnoreCase) || kn.Equals("Viet", StringComparison.OrdinalIgnoreCase))
+                            vm.SelectedKyNangFilter = "Viet";
+                        else if (kn.Equals("Luyện nói", StringComparison.OrdinalIgnoreCase) || kn.Equals("Noi", StringComparison.OrdinalIgnoreCase))
+                            vm.SelectedKyNangFilter = "Noi";
+                        else
+                            vm.SelectedKyNangFilter = kn;
                     }
                     if (targetLessonId.HasValue && targetLessonId.Value > 0)
                     {
@@ -50,6 +76,13 @@ namespace GUI.Views.GiangVien
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
+            if (_parentWindow != null)
+            {
+                _parentWindow.LocationChanged -= Window_LocationOrSizeChanged;
+                _parentWindow.SizeChanged -= Window_LocationOrSizeChanged;
+                _parentWindow = null;
+            }
+
             if (DataContext is NoiDungHocTapViewModel vm)
             {
                 vm.DungAudio();
@@ -74,6 +107,15 @@ namespace GUI.Views.GiangVien
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            _parentWindow = Window.GetWindow(this);
+            if (_parentWindow != null)
+            {
+                _parentWindow.LocationChanged -= Window_LocationOrSizeChanged;
+                _parentWindow.LocationChanged += Window_LocationOrSizeChanged;
+                _parentWindow.SizeChanged -= Window_LocationOrSizeChanged;
+                _parentWindow.SizeChanged += Window_LocationOrSizeChanged;
+            }
+
             if (DataContext is NoiDungHocTapViewModel vm)
             {
                 vm.PropertyChanged -= ViewModel_PropertyChanged;
@@ -142,6 +184,7 @@ namespace GUI.Views.GiangVien
             finally
             {
                 _isInternalChange = false;
+                UpdateToolbarStates();
             }
         }
 
@@ -323,6 +366,150 @@ namespace GUI.Views.GiangVien
         private void CloseInsertPopup()
         {
             if (popupInsertBlock != null) popupInsertBlock.IsOpen = false;
+            if (popupEmojiPalette != null) popupEmojiPalette.IsOpen = false;
+        }
+
+        // ==========================================
+        // RÀNG BUỘC CUỘN & NEO DÍNH POPUP NHƯ COMBOBOX
+        // ==========================================
+
+        private void EditorScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            UpdateEditorPopups();
+        }
+
+        private void Window_LocationOrSizeChanged(object? sender, EventArgs e)
+        {
+            UpdateEditorPopups();
+        }
+
+        private void UpdateEditorPopups()
+        {
+            UpdateSinglePopup(popupInsertBlock, btnInsertElement);
+            UpdateSinglePopup(popupEmojiPalette, btnInsertElement);
+        }
+
+        private void UpdateSinglePopup(Popup? popup, FrameworkElement? target)
+        {
+            if (popup == null || !popup.IsOpen || target == null || editorScrollViewer == null) return;
+
+            try
+            {
+                // 1. Kiểm tra vị trí target đối với khung nhìn viewport của ScrollViewer
+                GeneralTransform transform = target.TransformToAncestor(editorScrollViewer);
+                Point pt = transform.Transform(new Point(0, 0));
+                Rect targetBounds = new Rect(pt, target.RenderSize);
+                Rect viewport = new Rect(0, 0, editorScrollViewer.ActualWidth, editorScrollViewer.ActualHeight);
+
+                // Nếu nút '+' bị cuộn ra ngoài khung nhìn -> Tự động đóng popup để không bị lơ lửng
+                if (!viewport.IntersectsWith(targetBounds))
+                {
+                    popup.IsOpen = false;
+                    return;
+                }
+
+                // 2. Ép WPF Popup cập nhật lại vị trí screen tọa độ theo target (dính chặt vào button)
+                double h = popup.HorizontalOffset;
+                popup.HorizontalOffset = h + 0.0001;
+                popup.HorizontalOffset = h;
+            }
+            catch
+            {
+                popup.IsOpen = false;
+            }
+        }
+
+        private void NumberOnly_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            e.Handled = !System.Text.RegularExpressions.Regex.IsMatch(e.Text, @"^[0-9]+$");
+        }
+
+        // --- CẬP NHẬT TRẠNG THÁI ACTIVE TRỰC QUAN CHO CÁC NÚT ĐỊNH DẠNG (U, I, B, CĂN LỀ, LIST) ---
+
+        private void RtbEditorContent_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            UpdateToolbarStates();
+        }
+
+        private void UpdateToolbarStates()
+        {
+            if (rtbEditorContent == null) return;
+
+            try
+            {
+                // 1. In đậm (Bold)
+                object weight = rtbEditorContent.Selection.GetPropertyValue(TextElement.FontWeightProperty);
+                if (btnBold != null)
+                {
+                    btnBold.IsChecked = (weight != DependencyProperty.UnsetValue) && weight is FontWeight fw &&
+                                        (fw == FontWeights.Bold || fw == FontWeights.SemiBold || fw == FontWeights.ExtraBold || fw == FontWeights.Black);
+                }
+
+                // 2. In nghiêng (Italic)
+                object style = rtbEditorContent.Selection.GetPropertyValue(TextElement.FontStyleProperty);
+                if (btnItalic != null)
+                {
+                    btnItalic.IsChecked = (style != DependencyProperty.UnsetValue) && style is FontStyle fs &&
+                                          (fs == FontStyles.Italic || fs == FontStyles.Oblique);
+                }
+
+                // 3. Gạch chân (Underline)
+                object deco = rtbEditorContent.Selection.GetPropertyValue(Inline.TextDecorationsProperty);
+                if (btnUnderline != null)
+                {
+                    bool isUnderline = false;
+                    if (deco != DependencyProperty.UnsetValue && deco is TextDecorationCollection tdc)
+                    {
+                        foreach (var d in tdc)
+                        {
+                            if (d.Location == TextDecorationLocation.Underline)
+                            {
+                                isUnderline = true;
+                                break;
+                            }
+                        }
+                    }
+                    btnUnderline.IsChecked = isUnderline;
+                }
+
+                // 4. Căn lề (Left, Center, Right)
+                TextAlignment currentAlign = TextAlignment.Left;
+                object align = rtbEditorContent.Selection.GetPropertyValue(Block.TextAlignmentProperty);
+                if (align != DependencyProperty.UnsetValue && align is TextAlignment ta)
+                {
+                    currentAlign = ta;
+                }
+                else
+                {
+                    var para = rtbEditorContent.Selection?.Start?.Paragraph;
+                    if (para != null) currentAlign = para.TextAlignment;
+                }
+
+                if (btnAlignLeft != null) btnAlignLeft.IsChecked = (currentAlign == TextAlignment.Left);
+                if (btnAlignCenter != null) btnAlignCenter.IsChecked = (currentAlign == TextAlignment.Center);
+                if (btnAlignRight != null) btnAlignRight.IsChecked = (currentAlign == TextAlignment.Right);
+
+                // 5. Danh sách số và gạch đầu dòng (Lists)
+                bool isNumbered = false;
+                bool isBullet = false;
+                var start = rtbEditorContent.Selection?.Start;
+                var curPara = start?.Paragraph;
+                if (curPara?.Parent is ListItem listItem && listItem.List != null)
+                {
+                    var marker = listItem.List.MarkerStyle;
+                    isNumbered = (marker == TextMarkerStyle.Decimal || marker == TextMarkerStyle.LowerLatin ||
+                                  marker == TextMarkerStyle.UpperLatin || marker == TextMarkerStyle.LowerRoman ||
+                                  marker == TextMarkerStyle.UpperRoman);
+                    isBullet = (marker == TextMarkerStyle.Disc || marker == TextMarkerStyle.Circle ||
+                                marker == TextMarkerStyle.Square || marker == TextMarkerStyle.Box);
+                }
+                if (btnNumberedList != null) btnNumberedList.IsChecked = isNumbered;
+                if (btnBulletList != null) btnBulletList.IsChecked = isBullet;
+            }
+            catch
+            {
+                // Bỏ qua lỗi đánh giá thuộc tính tạm thời khi người dùng đang nhập nhanh
+            }
         }
 
         // --- DANH SÁCH SỐ & GẠCH ĐẦU DÒNG CHUẨN WORD ---
@@ -332,6 +519,7 @@ namespace GUI.Views.GiangVien
             if (rtbEditorContent == null) return;
             EditingCommands.ToggleNumbering.Execute(null, rtbEditorContent);
             rtbEditorContent.Focus();
+            UpdateToolbarStates();
         }
 
         private void BtnBulletList_Click(object sender, RoutedEventArgs e)
@@ -339,6 +527,7 @@ namespace GUI.Views.GiangVien
             if (rtbEditorContent == null) return;
             EditingCommands.ToggleBullets.Execute(null, rtbEditorContent);
             rtbEditorContent.Focus();
+            UpdateToolbarStates();
         }
 
         // --- CĂN LỀ CHỈ ÁP DỤNG RIÊNG CHO DÒNG/ĐOẠN CON TRỎ ĐỨNG HOẶC TEXT BÔI ĐEN ---
@@ -348,6 +537,7 @@ namespace GUI.Views.GiangVien
             if (rtbEditorContent == null) return;
             EditingCommands.AlignLeft.Execute(null, rtbEditorContent);
             rtbEditorContent.Focus();
+            UpdateToolbarStates();
         }
 
         private void BtnAlignCenter_Click(object sender, RoutedEventArgs e)
@@ -355,6 +545,7 @@ namespace GUI.Views.GiangVien
             if (rtbEditorContent == null) return;
             EditingCommands.AlignCenter.Execute(null, rtbEditorContent);
             rtbEditorContent.Focus();
+            UpdateToolbarStates();
         }
 
         private void BtnAlignRight_Click(object sender, RoutedEventArgs e)
@@ -362,6 +553,7 @@ namespace GUI.Views.GiangVien
             if (rtbEditorContent == null) return;
             EditingCommands.AlignRight.Execute(null, rtbEditorContent);
             rtbEditorContent.Focus();
+            UpdateToolbarStates();
         }
 
         // --- U, I, B TRỰC QUAN NHƯ WORD (KHÔNG HIỆN THẺ **, *, <u> THÔ) ---
@@ -371,6 +563,7 @@ namespace GUI.Views.GiangVien
             if (rtbEditorContent == null) return;
             EditingCommands.ToggleUnderline.Execute(null, rtbEditorContent);
             rtbEditorContent.Focus();
+            UpdateToolbarStates();
         }
 
         private void BtnItalic_Click(object sender, RoutedEventArgs e)
@@ -378,6 +571,7 @@ namespace GUI.Views.GiangVien
             if (rtbEditorContent == null) return;
             EditingCommands.ToggleItalic.Execute(null, rtbEditorContent);
             rtbEditorContent.Focus();
+            UpdateToolbarStates();
         }
 
         private void BtnBold_Click(object sender, RoutedEventArgs e)
@@ -385,6 +579,7 @@ namespace GUI.Views.GiangVien
             if (rtbEditorContent == null) return;
             EditingCommands.ToggleBold.Execute(null, rtbEditorContent);
             rtbEditorContent.Focus();
+            UpdateToolbarStates();
         }
 
         private void InsertTextAtCursor(string text)

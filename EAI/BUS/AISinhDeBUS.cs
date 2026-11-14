@@ -77,17 +77,26 @@ namespace BUS
                 return (new List<CauHoiDoAISinhItemDTO>(), "Mô hình AI không trả về câu hỏi hợp lệ. Vui lòng thử lại.");
             }
 
-            // 3. Ánh xạ Trình độ ID (1: A1, 2: A2, 3: B1, 4: B2, 5: C1, 6: C2)
+            // 3. Ánh xạ Trình độ ID (0: A1, 1: A2, 2: B1, 3: B2, 4: C1, 5: C2 chuẩn theo bảng TrinhDo trong DB)
             int? maTrinhDo = level.ToUpper() switch
             {
-                "A1" => 1,
-                "A2" => 2,
-                "B1" => 3,
-                "B2" => 4,
-                "C1" => 5,
-                "C2" => 6,
-                _ => 3
+                "A1" => 0,
+                "A2" => 1,
+                "B1" => 2,
+                "B2" => 3,
+                "C1" => 4,
+                "C2" => 5,
+                var s when s.Contains("IELTS") || s.Contains("TOEIC") => 3,
+                _ => 2
             };
+
+            // Nếu modelSelection trống, tự động lấy thông tin mô hình đang hoạt động
+            if (string.IsNullOrWhiteSpace(modelSelection))
+            {
+                string provider = AIServiceManager.Instance.ActiveProviderType.ToString();
+                string model = AIServiceManager.Instance.ActiveModel ?? "Mặc định";
+                modelSelection = $"{provider} ({model})";
+            }
 
             // 4. Lưu vào CSDL thật: YeuCauSinhDeAI & CauHoiDoAISinh
             long maYeuCau = AISinhDeDAL.Instance.LuuYeuCauSinhDe(userId, "ChuDe", prompt, maTrinhDo, questions.Count, modelSelection);
@@ -102,6 +111,7 @@ namespace BUS
             foreach (var q in questions)
             {
                 if (string.IsNullOrWhiteSpace(q.KyNang)) q.KyNang = skill;
+                if (string.IsNullOrWhiteSpace(q.TrinhDo)) q.TrinhDo = level;
                 if (string.IsNullOrWhiteSpace(q.DoKho)) q.DoKho = "TrungBinh";
                 if (string.IsNullOrWhiteSpace(q.LoaiCauHoi)) q.LoaiCauHoi = questionType ?? "TracNghiem";
 
@@ -133,6 +143,11 @@ namespace BUS
         public int DemSoCauChoDuyet()
         {
             return AISinhDeDAL.Instance.DemSoCauHoiChoDuyet();
+        }
+
+        public int DemTongCauHoiDoAISinh()
+        {
+            return AISinhDeDAL.Instance.DemTongCauHoiDoAISinh();
         }
 
         public bool CapNhatCauHoiChoDuyet(long maCauHoiAISinh, CauHoiDTO cauHoiDto)
@@ -277,7 +292,7 @@ namespace BUS
                 return false;
             }
 
-            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
+            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
             string nguonTao = item.LoaiDauVao == "TepTin" ? "NhapFile" : "AI";
 
             return PheDuyetCauHoi(maCauHoiAISinh, item.QuestionDetails, userId, nguonTao, out maCauHoiMoi, out errorMessage);
@@ -290,7 +305,7 @@ namespace BUS
 
         public bool TuChoiCauHoiAI(long maCauHoiAISinh, out string errorMessage)
         {
-            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
+            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
             return TuChoiCauHoi(maCauHoiAISinh, userId, out errorMessage);
         }
 
@@ -303,7 +318,7 @@ namespace BUS
             int success = 0;
             int fail = 0;
             string lastErr = "";
-            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
+            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
 
             foreach (var item in list)
             {
@@ -328,7 +343,7 @@ namespace BUS
             if (list == null || list.Count == 0) return (0, "Không có câu hỏi nào đang chờ duyệt.");
 
             int success = 0;
-            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 1;
+            int userId = SessionHelper.CurrentUser?.MaNguoiDung ?? 0;
             string lastErr = "";
 
             foreach (var item in list)
@@ -351,7 +366,11 @@ namespace BUS
             string? doanVan,
             string? giaiThich,
             string jsonLuaChon,
-            out string errorMessage)
+            out string errorMessage,
+            string? kyNang = null,
+            string? trinhDo = null,
+            string? loaiCauHoi = null,
+            string? doKho = null)
         {
             errorMessage = string.Empty;
             try
@@ -364,9 +383,10 @@ namespace BUS
                     GiaiThichChiTiet = giaiThich,
                     DanhSachLuaChon = options?.Select(o => o.NoiDungLuaChon).ToList() ?? new List<string>(),
                     DapAnDungIndex = options != null ? options.FindIndex(o => o.LaDapAnDung) : 0,
-                    KyNang = "Doc",
-                    DoKho = "TrungBinh",
-                    LoaiCauHoi = "TracNghiem"
+                    KyNang = string.IsNullOrWhiteSpace(kyNang) ? "Doc" : kyNang,
+                    TrinhDo = string.IsNullOrWhiteSpace(trinhDo) ? "B1" : trinhDo,
+                    DoKho = string.IsNullOrWhiteSpace(doKho) ? "TrungBinh" : doKho,
+                    LoaiCauHoi = string.IsNullOrWhiteSpace(loaiCauHoi) ? "TracNghiem" : loaiCauHoi
                 };
 
                 if (q.DapAnDungIndex < 0) q.DapAnDungIndex = 0;
@@ -392,7 +412,101 @@ namespace BUS
         {
         }
 
-        public async Task<KetQuaBocTachTepTinDTO> BocTachTepTinAsync(string filePath)
+        public const long MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB tối đa
+
+        public static string DoanKyNangTuPrompt(string prompt)
+        {
+            if (string.IsNullOrWhiteSpace(prompt)) return "Doc";
+            string p = prompt.ToLowerInvariant();
+
+            if (p.Contains("ngữ pháp") || p.Contains("ngu phap") || p.Contains("grammar") ||
+                p.Contains("thì ") || p.Contains("tense") || p.Contains("câu điều kiện") ||
+                p.Contains("lời khuyên") || p.Contains("advice") || p.Contains("modal") ||
+                p.Contains("mệnh đề") || p.Contains("bị động") || p.Contains("passive") ||
+                p.Contains("so sánh") || p.Contains("comparison") || p.Contains("preposition") || p.Contains("giới từ") ||
+                p.Contains("hoàn thành") || p.Contains("quá khứ") || p.Contains("tương lai") || p.Contains("hiện tại"))
+            {
+                return "NguPhap";
+            }
+
+            if (p.Contains("từ vựng") || p.Contains("tu vung") || p.Contains("vocabulary") || p.Contains("vocab") ||
+                p.Contains("từ đồng nghĩa") || p.Contains("antonym") || p.Contains("synonym") ||
+                p.Contains("chuyên ngành") || p.Contains("idiom") || p.Contains("phrasal verb") || p.Contains("collocation"))
+            {
+                return "TuVung";
+            }
+
+            if (p.Contains("nghe") || p.Contains("listening") || p.Contains("audio") ||
+                p.Contains("hội thoại") || p.Contains("dialogue") || p.Contains("conversation"))
+            {
+                return "Nghe";
+            }
+
+            if (p.Contains("đọc") || p.Contains("reading") || p.Contains("đoạn văn") ||
+                p.Contains("passage") || p.Contains("bài đọc") || p.Contains("toeic") || p.Contains("part 7") || p.Contains("ielts reading"))
+            {
+                return "Doc";
+            }
+
+            if (p.Contains("viết lại") || p.Contains("sửa lỗi") || p.Contains("writing") ||
+                p.Contains("essay") || p.Contains("viết đoạn") || p.Contains("viết thư") || p.Contains("viết email"))
+            {
+                return "Viet";
+            }
+
+            if (p.Contains("nói") || p.Contains("speaking") || p.Contains("phát âm") ||
+                p.Contains("pronunciation") || p.Contains("trọng âm") || p.Contains("stress") || p.Contains("ipa"))
+            {
+                return "Noi";
+            }
+
+            return "Doc";
+        }
+
+        public static string DoanTrinhDoTuNoiDung(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return "B1";
+            string t = text.ToUpperInvariant();
+            if (t.Contains("C2")) return "C2";
+            if (t.Contains("C1")) return "C1";
+            if (t.Contains("B2") || t.Contains("TOEIC") || t.Contains("IELTS") || t.Contains("VSTEP")) return "B2";
+            if (t.Contains("B1")) return "B1";
+            if (t.Contains("A2")) return "A2";
+            if (t.Contains("A1")) return "A1";
+            return "B1";
+        }
+
+        private static string DocVanBanThuanTuTep(string filePath, string ext)
+        {
+            try
+            {
+                if (ext == ".docx")
+                {
+                    var paragraphs = OfficeFileHelper.DocCacDoanVanDocx(filePath);
+                    return string.Join("\n\n", paragraphs);
+                }
+                else if (ext == ".txt")
+                {
+                    try { return File.ReadAllText(filePath, System.Text.Encoding.UTF8); }
+                    catch { return File.ReadAllText(filePath); }
+                }
+                else if (ext == ".pdf")
+                {
+                    return KhoHocLieuSyncHelper.DocNoiDungTep(filePath);
+                }
+                else if (ext == ".json")
+                {
+                    return File.ReadAllText(filePath, System.Text.Encoding.UTF8);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DocVanBanThuanTuTep] {ex.Message}");
+            }
+            return string.Empty;
+        }
+
+        public async Task<KetQuaBocTachTepTinDTO> BocTachTepTinAsync(string filePath, CancellationToken ct = default)
         {
             var res = new KetQuaBocTachTepTinDTO();
 
@@ -406,54 +520,148 @@ namespace BUS
             res.TenTep = fi.Name;
             res.KichThuocByte = fi.Length;
 
-            if (fi.Length > 25 * 1024 * 1024)
+            // Ràng buộc dung lượng tối đa 10MB theo yêu cầu của hệ thống để AI có thể đọc tốt
+            if (fi.Length > MAX_FILE_SIZE_BYTES)
             {
-                res.DanhSachLoi.Add("Dung lượng tệp vượt quá giới hạn cho phép (tối đa 25MB).");
+                res.DanhSachLoi.Add("Dung lượng tệp vượt quá giới hạn cho phép (tối đa 10MB) để đảm bảo mô hình AI có thể đọc và phân tích toàn diện.");
                 return res;
             }
 
             string ext = fi.Extension.ToLowerInvariant();
             res.DinhDang = ext switch
             {
-                ".xlsx" => "Excel",
                 ".docx" => "Word",
                 ".json" => "JSON",
                 ".txt" => "Text",
+                ".pdf" => "PDF",
                 _ => "Unknown"
             };
 
             if (res.DinhDang == "Unknown")
             {
-                res.DanhSachLoi.Add("Định dạng tệp không được hỗ trợ. Vui lòng chọn tệp .xlsx, .docx, .json hoặc .txt.");
+                res.DanhSachLoi.Add("Định dạng tệp không được hỗ trợ. Vui lòng chọn tệp .docx, .txt, .pdf hoặc .json (tối đa 10MB).");
                 return res;
             }
 
-            await Task.Run(() =>
+            bool daBocTachThanhCong = false;
+
+            // 1. Thử bóc tách trực tiếp nếu là tệp đề thi chuẩn hóa đã có sẵn câu hỏi và các lựa chọn đáp án (.docx / .txt / .json)
+            if (ext == ".json")
             {
                 try
                 {
-                    if (ext == ".json")
+                    BocTachFileJson(filePath, res);
+                    if (res.DanhSachCauHoi.Count > 0 && res.DanhSachCauHoi.Any(q => q.DanhSachLuaChon != null && q.DanhSachLuaChon.Count >= 2))
                     {
-                        BocTachFileJson(filePath, res);
+                        daBocTachThanhCong = true;
                     }
-                    else if (ext == ".xlsx")
+                    else
                     {
-                        BocTachFileExcel(filePath, res);
+                        res.DanhSachCauHoi.Clear();
+                        res.DanhSachLoi.Clear();
                     }
-                    else if (ext == ".docx")
+                }
+                catch { res.DanhSachCauHoi.Clear(); res.DanhSachLoi.Clear(); }
+            }
+            else if (ext == ".docx")
+            {
+                try
+                {
+                    BocTachFileWord(filePath, res);
+                    if (res.DanhSachCauHoi.Count > 0 && res.DanhSachCauHoi.Any(q => q.DanhSachLuaChon != null && q.DanhSachLuaChon.Count >= 2))
                     {
-                        BocTachFileWord(filePath, res);
+                        daBocTachThanhCong = true;
                     }
-                    else if (ext == ".txt")
+                    else
                     {
-                        BocTachFileTxt(filePath, res);
+                        res.DanhSachCauHoi.Clear();
+                        res.DanhSachLoi.Clear();
+                    }
+                }
+                catch { res.DanhSachCauHoi.Clear(); res.DanhSachLoi.Clear(); }
+            }
+            else if (ext == ".txt")
+            {
+                try
+                {
+                    BocTachFileTxt(filePath, res);
+                    if (res.DanhSachCauHoi.Count > 0 && res.DanhSachCauHoi.All(q => q.DanhSachLuaChon != null && q.DanhSachLuaChon.Count >= 2))
+                    {
+                        daBocTachThanhCong = true;
+                    }
+                    else
+                    {
+                        res.DanhSachCauHoi.Clear();
+                        res.DanhSachLoi.Clear();
+                    }
+                }
+                catch { res.DanhSachCauHoi.Clear(); res.DanhSachLoi.Clear(); }
+            }
+
+            // 2. NẾU LÀ FILE WORD / PDF, HOẶC TỆP NỘI DUNG CHƯA CÓ ĐÁP ÁN: SỬ DỤNG AI ĐỌC VÀ BIÊN SOẠN CÂU HỎI
+            if (!daBocTachThanhCong)
+            {
+                string rawText = DocVanBanThuanTuTep(filePath, ext);
+                if (string.IsNullOrWhiteSpace(rawText) || rawText.Trim().Length < 15)
+                {
+                    res.DanhSachLoi.Add("Tệp tin không có nội dung văn bản hợp lệ để AI đọc và bóc tách.");
+                    return res;
+                }
+
+                string safeContent = rawText.Trim();
+                if (safeContent.Length > 12000)
+                {
+                    safeContent = safeContent.Substring(0, 12000);
+                    res.DanhSachLoi.Add("Lưu ý: Tệp tin dài, AI đã ưu tiên đọc 12,000 ký tự trọng tâm đầu tiên để đảm bảo chất lượng ra đề cao nhất.");
+                }
+
+                string skill = DoanKyNangTuPrompt(fi.Name + " " + safeContent.Substring(0, Math.Min(safeContent.Length, 800)));
+                string level = DoanTrinhDoTuNoiDung(fi.Name + " " + safeContent.Substring(0, Math.Min(safeContent.Length, 800)));
+                int questionCount = safeContent.Length > 4000 ? 10 : 5;
+
+                // Đồng bộ mô hình AI hoạt động
+                AIServiceManager.Instance.SyncActiveConfigFromStorage();
+                string title = Path.GetFileNameWithoutExtension(fi.Name);
+
+                try
+                {
+                    var aiQuestions = await AIServiceManager.Instance.BocTachCauHoiAsync(
+                        tieuDe: title,
+                        noiDung: safeContent,
+                        trinhDo: level,
+                        soLuong: questionCount,
+                        loaiBaiHoc: skill,
+                        preferredProvider: null,
+                        preferredModel: null,
+                        yeuCauLoaiCauHoi: "TracNghiem",
+                        ct: ct
+                    );
+
+                    if (aiQuestions != null && aiQuestions.Count > 0)
+                    {
+                        res.DanhSachCauHoi.Clear();
+                        foreach (var q in aiQuestions)
+                        {
+                            q.KyNang = BoCauHoiBUS.ChuankHoaKyNang(string.IsNullOrWhiteSpace(q.KyNang) ? skill : q.KyNang);
+                            q.TrinhDo = string.IsNullOrWhiteSpace(q.TrinhDo) ? level : q.TrinhDo;
+                            q.LoaiCauHoi = string.IsNullOrWhiteSpace(q.LoaiCauHoi) ? "TracNghiem" : q.LoaiCauHoi;
+                            q.DoKho = string.IsNullOrWhiteSpace(q.DoKho) ? "TrungBinh" : q.DoKho;
+                            res.DanhSachCauHoi.Add(q);
+                        }
+
+                        res.TongSoCauDocDuoc = res.DanhSachCauHoi.Count;
+                        res.SoCauHopLe = res.DanhSachCauHoi.Count;
+                    }
+                    else
+                    {
+                        res.DanhSachLoi.Add("Mô hình AI không thể tạo câu hỏi từ tệp tin này. Vui lòng kiểm tra lại cấu hình AI hoặc thử lại.");
                     }
                 }
                 catch (Exception ex)
                 {
-                    res.DanhSachLoi.Add($"Lỗi khi đọc tệp: {ex.Message}");
+                    res.DanhSachLoi.Add($"Lỗi khi AI đọc tệp: {ex.Message}");
                 }
-            });
+            }
 
             return res;
         }
@@ -592,13 +800,15 @@ namespace BUS
                         res.SoCauHopLe++;
                     }
 
+                    string rawQ = matchQ.Groups[1].Value.Trim();
                     res.TongSoCauDocDuoc++;
                     currentQ = new CauHoiDTO
                     {
-                        NoiDungCauHoi = matchQ.Groups[1].Value.Trim(),
+                        NoiDungCauHoi = rawQ,
                         DanhSachLuaChon = new List<string>(),
                         DapAnDungIndex = 0,
-                        KyNang = "Doc",
+                        KyNang = DoanKyNangTuPrompt(rawQ),
+                        TrinhDo = DoanTrinhDoTuNoiDung(rawQ),
                         LoaiCauHoi = "TracNghiem",
                         DoKho = "TrungBinh"
                     };
@@ -612,7 +822,8 @@ namespace BUS
                 if (matchOpt.Success)
                 {
                     currentQ.DanhSachLuaChon ??= new List<string>();
-                    currentQ.DanhSachLuaChon.Add(matchOpt.Groups[2].Value.Trim());
+                    string opt = CauHoiDTO.StripOptionPrefix(matchOpt.Groups[2].Value.Trim());
+                    currentQ.DanhSachLuaChon.Add(opt);
                     continue;
                 }
 
@@ -683,13 +894,15 @@ namespace BUS
                         res.SoCauHopLe++;
                     }
 
+                    string rawQ = matchQ.Groups[1].Value.Trim();
                     res.TongSoCauDocDuoc++;
                     currentQ = new CauHoiDTO
                     {
-                        NoiDungCauHoi = matchQ.Groups[1].Value.Trim(),
+                        NoiDungCauHoi = rawQ,
                         DanhSachLuaChon = new List<string>(),
                         DapAnDungIndex = 0,
-                        KyNang = "Doc",
+                        KyNang = DoanKyNangTuPrompt(rawQ),
+                        TrinhDo = DoanTrinhDoTuNoiDung(rawQ),
                         LoaiCauHoi = "TracNghiem",
                         DoKho = "TrungBinh"
                     };
@@ -699,12 +912,14 @@ namespace BUS
                 if (currentQ == null)
                 {
                     // Nếu dòng đầu tiên không có tiền tố STT, khởi tạo làm câu hỏi mở đầu
+                    string rawLineClean = line.Trim();
                     currentQ = new CauHoiDTO
                     {
-                        NoiDungCauHoi = line,
+                        NoiDungCauHoi = rawLineClean,
                         DanhSachLuaChon = new List<string>(),
                         DapAnDungIndex = 0,
-                        KyNang = "Doc",
+                        KyNang = DoanKyNangTuPrompt(rawLineClean),
+                        TrinhDo = DoanTrinhDoTuNoiDung(rawLineClean),
                         LoaiCauHoi = "TracNghiem",
                         DoKho = "TrungBinh"
                     };
@@ -720,6 +935,7 @@ namespace BUS
                     string optText = matchOpt.Groups[2].Value.Trim();
                     bool isStarMarked = line.StartsWith("*") || optText.EndsWith("*");
                     if (optText.EndsWith("*")) optText = optText.TrimEnd('*').Trim();
+                    optText = CauHoiDTO.StripOptionPrefix(optText);
 
                     int currentOptIndex = currentQ.DanhSachLuaChon.Count;
                     currentQ.DanhSachLuaChon.Add(optText);
@@ -838,6 +1054,7 @@ namespace BUS
                     NoiDungCauHoi = q.NoiDungCauHoi,
                     DoanVanDoc = q.DoanVanDoc,
                     KyNang = string.IsNullOrWhiteSpace(q.KyNang) ? "Doc" : q.KyNang,
+                    MaTrinhDo = string.IsNullOrWhiteSpace(q.TrinhDo) ? "B1" : q.TrinhDo,
                     DoKho = string.IsNullOrWhiteSpace(q.DoKho) ? "TrungBinh" : q.DoKho,
                     LoaiCauHoi = string.IsNullOrWhiteSpace(q.LoaiCauHoi) ? "TracNghiem" : q.LoaiCauHoi,
                     GiaiThichDapAn = q.GiaiThichChiTiet,
@@ -939,16 +1156,18 @@ namespace BUS
                 {
                     NoiDungCauHoi = "She ______ to school by bus every morning.",
                     KyNang = "NguPhap",
+                    TrinhDo = "A2",
                     DoKho = "De",
                     LoaiCauHoi = "TracNghiem",
                     DanhSachLuaChon = new List<string> { "go", "goes", "going", "went" },
                     DapAnDungIndex = 1,
-                    GiaiThichChiTiet = "Thì hiện tại đơn với chủ ngữ ngôi thứ 3 số ít 'She' chia động từ 'goes'."
+                    GiaiThichChiTiet = "Thì hiện tại đơn diễn tả thói quen lặp lại, chủ ngữ ngôi thứ 3 số ít 'She' chia động từ 'goes'."
                 },
                 new CauHoiDTO
                 {
                     NoiDungCauHoi = "Which word is closest in meaning to 'enormous'?",
                     KyNang = "TuVung",
+                    TrinhDo = "B1",
                     DoKho = "TrungBinh",
                     LoaiCauHoi = "TracNghiem",
                     DanhSachLuaChon = new List<string> { "Tiny", "Huge", "Weak", "Fast" },
@@ -959,11 +1178,34 @@ namespace BUS
                 {
                     NoiDungCauHoi = "If I had known about the meeting, I ______ attended.",
                     KyNang = "NguPhap",
+                    TrinhDo = "B2",
                     DoKho = "Kho",
                     LoaiCauHoi = "TracNghiem",
                     DanhSachLuaChon = new List<string> { "would have", "will have", "had", "would" },
                     DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "Cấu trúc câu điều kiện loại 3: If + S + had + P2, S + would have + P2."
+                    GiaiThichChiTiet = "Cấu trúc câu điều kiện loại 3: If + S + had + V3/ed, S + would have + V3/ed."
+                },
+                new CauHoiDTO
+                {
+                    NoiDungCauHoi = "The company reported a substantial increase in quarterly revenue despite the economic downturn.",
+                    KyNang = "Doc",
+                    TrinhDo = "B2",
+                    DoKho = "TrungBinh",
+                    LoaiCauHoi = "TracNghiem",
+                    DanhSachLuaChon = new List<string> { "slight", "significant", "negligible", "temporary" },
+                    DapAnDungIndex = 1,
+                    GiaiThichChiTiet = "Trong ngữ cảnh kinh tế và thương mại, 'substantial' đồng nghĩa với 'significant' (đáng kể, vượt bậc)."
+                },
+                new CauHoiDTO
+                {
+                    NoiDungCauHoi = "Where will the international technology conference be hosted next month?",
+                    KyNang = "Nghe",
+                    TrinhDo = "B1",
+                    DoKho = "TrungBinh",
+                    LoaiCauHoi = "TracNghiem",
+                    DanhSachLuaChon = new List<string> { "At the central convention center", "Online via video conference", "In the main university hall", "At the city exhibition center" },
+                    DapAnDungIndex = 0,
+                    GiaiThichChiTiet = "Thông tin xác nhận sự kiện hội nghị công nghệ diễn ra tại Trung tâm hội nghị trung tâm."
                 }
             };
         }

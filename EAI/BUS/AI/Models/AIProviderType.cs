@@ -4,6 +4,7 @@ namespace BUS.AI.Models
     {
         Gemini,
         Groq,
-        Xkio
+        Xkio,
+        Ollama
     }
 }

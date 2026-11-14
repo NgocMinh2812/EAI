@@ -188,7 +188,7 @@
                             <local:LucideIcon Kind="BookOpen" Size="15" Foreground="#8B5CF6" Margin="0,0,6,0"/>
                             <TextBlock Text="HỆ THỐNG BỘ ĐỀ" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextGray}"/>
                         </StackPanel>
-                        <TextBlock Text="6 Bộ (A1 - C2)" FontSize="20" FontWeight="Bold" Foreground="#8B5CF6"/>
+                        <TextBlock x:Name="txtKpiTotalSets" Text="7 Bộ (A1 - C2 &amp; TH)" FontSize="20" FontWeight="Bold" Foreground="#8B5CF6"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -397,7 +397,7 @@
                                     <local:LucideIcon Kind="Search" Size="14" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                     <Grid Grid.Column="1">
                                         <TextBox x:Name="txtSearchStudent" BorderThickness="0" Background="Transparent" FontSize="12.5" 
-                                                 TextChanged="TxtSearchStudent_TextChanged" VerticalContentAlignment="Center"/>
+                                                 TextChanged="TxtSearchStudent_TextChanged" VerticalContentAlignment="Center" MaxLength="100"/>
                                         <TextBlock x:Name="txtSearchStudentPlaceholder" Text="Tìm kiếm sinh viên, email..." 
                                                    FontSize="12" Foreground="{StaticResource TextGray}" VerticalAlignment="Center" 
                                                    IsHitTestVisible="False" Margin="2,0,0,0"/>
@@ -458,14 +458,21 @@
 
                     <!-- Student Results Modern DataGrid -->
                     <Border Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="10">
-                        <DataGrid x:Name="dgSinhVienKhaoSat" AutoGenerateColumns="False" CanUserAddRows="False" 
-                                  CanUserDeleteRows="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="None"
-                                  Background="White" BorderThickness="0" MinHeight="220"
-                                  SelectionMode="Single" SelectionUnit="FullRow"
-                                  ColumnHeaderStyle="{StaticResource ModernDataGridHeaderStyle}"
-                                  RowStyle="{StaticResource ModernDataGridRowStyle}"
-                                  CellStyle="{StaticResource ModernDataGridCellStyle}">
-                            <DataGrid.Columns>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Grid Grid.Row="0">
+                                <DataGrid x:Name="dgSinhVienKhaoSat" AutoGenerateColumns="False" CanUserAddRows="False" 
+                                          CanUserDeleteRows="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="None"
+                                          Background="White" BorderThickness="0" MinHeight="220"
+                                          SelectionMode="Single" SelectionUnit="FullRow"
+                                          ColumnHeaderStyle="{StaticResource ModernDataGridHeaderStyle}"
+                                          RowStyle="{StaticResource ModernDataGridRowStyle}"
+                                          CellStyle="{StaticResource ModernDataGridCellStyle}">
+                                <DataGrid.Columns>
                                 <!-- Cột 1: Mã lượt -->
                                 <DataGridTextColumn Header="MÃ" Binding="{Binding MaLuotKhaoSat}" Width="55"/>
 
@@ -567,7 +574,76 @@
                                 </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
+
+                        <!-- Empty State khi không tìm thấy sinh viên -->
+                        <StackPanel x:Name="pnlEmptyStudents" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,35" Visibility="Collapsed">
+                            <TextBlock Text="🔍" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                            <TextBlock Text="Không tìm thấy lượt nộp bài khảo sát phù hợp" FontWeight="Bold" FontSize="13.5" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Hãy thử xóa từ khóa tìm kiếm hoặc chọn 'Tất cả cấp độ'." FontSize="12" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Table Footer: Pagination Controls (US-GV03 chuẩn hóa) -->
+                    <Border Grid.Row="1" x:Name="pnlStudentPagination" Background="#FAFBFB" Padding="20,12" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" x:Name="txtStudentCounter" Text="Hiển thị 1 - 10 / 10 lượt nộp" FontSize="12.5" Foreground="{StaticResource TextGray}" VerticalAlignment="Center"/>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button x:Name="btnPrevStudentPage" Content="◀ Trước" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
+                                        Foreground="{StaticResource TextDark}" FontSize="12" FontWeight="SemiBold" Padding="14,6" Margin="0,0,8,0" Cursor="Hand" Click="BtnPrevStudentPage_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bd" Property="Background" Value="#F1F5F9"/>
+                                                    <Setter TargetName="bd" Property="BorderBrush" Value="#94A3B8"/>
+                                                </Trigger>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter TargetName="bd" Property="Opacity" Value="0.45"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                
+                                <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="12,5" Margin="0,0,8,0">
+                                    <TextBlock x:Name="txtStudentPageInfo" Text="Trang 1 / 1" FontSize="12" FontWeight="Bold" Foreground="{StaticResource AdminDarkGreen}" VerticalAlignment="Center"/>
+                                </Border>
+
+                                <Button x:Name="btnNextStudentPage" Content="Sau ▶" Background="White" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" 
+                                        Foreground="{StaticResource TextDark}" FontSize="12" FontWeight="SemiBold" Padding="14,6" Cursor="Hand" Click="BtnNextStudentPage_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bd" Property="Background" Value="#F1F5F9"/>
+                                                    <Setter TargetName="bd" Property="BorderBrush" Value="#94A3B8"/>
+                                                </Trigger>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter TargetName="bd" Property="Opacity" Value="0.45"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
                     </Border>
+                </Grid>
+            </Border>
 
                 </StackPanel>
             </Border>

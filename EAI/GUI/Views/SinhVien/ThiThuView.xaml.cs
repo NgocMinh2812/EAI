@@ -31,12 +31,16 @@ namespace GUI.Views
             public bool ChoXemDapAn { get; set; } = true;
             public bool ChoXemLoiGiai { get; set; } = true;
             public int LuotDaLam { get; set; } = 0;
+            public bool HasInProgressAttempt { get; set; } = false;
+            public int RemainingSeconds { get; set; } = 0;
 
-            public bool CanTakeExam => SoLuotLamToiDa <= 0 || LuotDaLam < SoLuotLamToiDa;
-            public string ActionButtonText => CanTakeExam ? "Bắt đầu thi" : "Đã hết lượt thi";
+            public bool CanTakeExam => HasInProgressAttempt || SoLuotLamToiDa <= 0 || LuotDaLam < SoLuotLamToiDa;
+            public string ActionButtonText => HasInProgressAttempt ? "⚡ Tiếp tục thi" : (CanTakeExam ? "Bắt đầu thi" : "Đã hết lượt thi");
 
-            public Visibility MaxAttemptsVisibility => SoLuotLamToiDa > 0 ? Visibility.Visible : Visibility.Collapsed;
-            public string LuotLamBadgeText => $"Lượt làm: {LuotDaLam}/{SoLuotLamToiDa}";
+            public Visibility MaxAttemptsVisibility => (HasInProgressAttempt || SoLuotLamToiDa > 0) ? Visibility.Visible : Visibility.Collapsed;
+            public string LuotLamBadgeText => HasInProgressAttempt 
+                ? $"Đang làm dở (còn {Math.Max(1, RemainingSeconds / 60)}p)" 
+                : (SoLuotLamToiDa > 0 ? $"Lượt làm: {LuotDaLam}/{SoLuotLamToiDa}" : $"Đã làm: {LuotDaLam} lượt");
 
             public Visibility PassMarkVisibility => DiemDatYeuCau > 0 ? Visibility.Visible : Visibility.Collapsed;
             public string PassMarkBadgeText => $"Điểm đạt: {DiemDatYeuCau:F1} / {TongDiem:F1}đ";
@@ -184,6 +188,7 @@ namespace GUI.Views
         private int _totalExamSeconds = 1500;
         private DateTime _examStartTime;
         private bool _isSubmitting = false;
+        private int _currentMaLuotLamBai = 0;
 
         // Flagged Questions (TASK-206)
         private readonly HashSet<int> _flaggedQuestions = new HashSet<int>();
@@ -414,6 +419,24 @@ namespace GUI.Views
                     ? BaiTapDeThiBUS.Instance.DemSoLuotHocVienDaLam(e.MaBaiTapDeThi, currentUserId) 
                     : 0;
 
+                var inProgress = currentUserId > 0 
+                    ? BaiTapDeThiBUS.Instance.LayLuotLamBaiDangLam(currentUserId, e.MaBaiTapDeThi) 
+                    : null;
+
+                bool hasInProgress = false;
+                int remainingSec = 0;
+                if (inProgress != null)
+                {
+                    int totalSec = (e.ThoiGianLamBaiPhut > 0 ? e.ThoiGianLamBaiPhut : 25) * 60;
+                    int elapsed = (int)(DateTime.Now - inProgress.ThoiDiemBatDau).TotalSeconds;
+                    int rem = totalSec - elapsed;
+                    if (rem > 0)
+                    {
+                        hasInProgress = true;
+                        remainingSec = rem;
+                    }
+                }
+
                 return new ExamItemViewModel
                 {
                     MaBaiTapDeThi = e.MaBaiTapDeThi,
@@ -429,6 +452,8 @@ namespace GUI.Views
                     ChoXemDapAn = e.ChoXemDapAn,
                     ChoXemLoiGiai = e.ChoXemLoiGiai,
                     LuotDaLam = daLam,
+                    HasInProgressAttempt = hasInProgress,
+                    RemainingSeconds = remainingSec,
                     MaCauTrucDeThi = e.MaCauTrucDeThi,
                     TenCauTrucDeThi = e.TenCauTrucDeThi
                 };
@@ -597,6 +622,61 @@ namespace GUI.Views
                 return;
             }
 
+            // Feature 13: Kiểm tra nếu học viên đang có một lượt thi dở dang (DangLam) do gián đoạn mạng hoặc tắt app
+            var luotDangLam = currentUserId > 0 
+                ? BaiTapDeThiBUS.Instance.LayLuotLamBaiDangLam(currentUserId, maDeThi) 
+                : null;
+
+            if (luotDangLam != null)
+            {
+                int totalSec = (_currentExam.ThoiGianLamBaiPhut > 0 ? _currentExam.ThoiGianLamBaiPhut : 25) * 60;
+                int elapsed = (int)(DateTime.Now - luotDangLam.ThoiDiemBatDau).TotalSeconds;
+                int remaining = totalSec - elapsed;
+
+                if (remaining <= 0)
+                {
+                    Common.ThongBaoDialog.ThongTin(
+                        "⏱️ Lượt thi dở dang trước đó đã hết thời gian làm bài trong lúc gián đoạn.\n" +
+                        "Hệ thống tự động chấm điểm và thu bài dựa trên các câu trả lời đã lưu.", 
+                        "Hết giờ làm bài");
+                    TuDongNopBaiDuaTrenAutosave(luotDangLam);
+                    return;
+                }
+
+                bool tiepTuc = Common.ThongBaoDialog.XacNhan(
+                    Window.GetWindow(this),
+                    $"Hệ thống phát hiện bài thi '{_currentExam.TenBaiTapDeThi}' đang làm dở:\n" +
+                    $"- Bắt đầu: {luotDangLam.ThoiDiemBatDau:HH:mm dd/MM/yyyy}\n" +
+                    $"- Thời gian còn lại: {remaining / 60} phút {remaining % 60} giây\n\n" +
+                    "Bạn có muốn TIẾP TỤC bài thi này với các câu trả lời đã lưu không?",
+                    "Khôi phục bài thi dở dang",
+                    "Tiếp tục làm bài",
+                    "Hủy bài cũ");
+
+                if (tiepTuc)
+                {
+                    ResumeExamAttempt(luotDangLam, remaining, totalSec);
+                    return;
+                }
+                else
+                {
+                    BaiTapDeThiBUS.Instance.HuyLuotLamBai(luotDangLam.MaLuotLamBai);
+                }
+            }
+
+            // BẢO VỆ BỘ NHỚ CLIENT: Che giấu đáp án đúng và lời giải trong RAM client khi đang thi
+            foreach (var q in _questions)
+            {
+                q.GiaiThichDapAn = null;
+                if (q.DanhSachLuaChon != null)
+                {
+                    foreach (var opt in q.DanhSachLuaChon)
+                    {
+                        opt.LaDapAnDung = false;
+                    }
+                }
+            }
+
             // Reset trạng thái làm bài (TASK-206)
             StopExamAudio();
             _audioPlayCounts.Clear();
@@ -607,6 +687,30 @@ namespace GUI.Views
             _currentIndex = 0;
             _isSubmitting = false;
             _examStartTime = DateTime.Now;
+
+            // Khởi tạo lượt làm bài ở trạng thái 'DangLam' trong DB để giảng viên giám sát theo thời gian thực
+            try
+            {
+                int uid = currentUserId > 0 ? currentUserId : SessionHelper.CurrentMaNguoiDung;
+                if (uid > 0)
+                {
+                    _currentMaLuotLamBai = BaiTapDeThiBUS.Instance.KhoiTaoLuotLamBai(
+                        uid,
+                        _currentExam.MaBaiTapDeThi,
+                        _currentExam.LoaiHinh ?? "ThiThu",
+                        _questions.Count
+                    );
+                }
+                else
+                {
+                    _currentMaLuotLamBai = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                _currentMaLuotLamBai = 0;
+                System.Diagnostics.Debug.WriteLine($"[ThiThuView] Lỗi khởi tạo lượt thi: {ex.Message}");
+            }
 
             int examMinutes = _currentExam.ThoiGianLamBaiPhut > 0 ? _currentExam.ThoiGianLamBaiPhut : 25;
             _totalExamSeconds = examMinutes * 60;
@@ -671,6 +775,141 @@ namespace GUI.Views
                 }
             };
             _examTimer.Start();
+        }
+
+        private void ResumeExamAttempt(LuotLamBaiDTO luotDangLam, int remaining, int totalSec)
+        {
+            StopExamAudio();
+            _audioPlayCounts.Clear();
+            _userAnswers.Clear();
+            _userAnswerIndices.Clear();
+            _userTextAnswers.Clear();
+            _flaggedQuestions.Clear();
+            _isSubmitting = false;
+
+            _currentMaLuotLamBai = luotDangLam.MaLuotLamBai;
+            _examStartTime = luotDangLam.ThoiDiemBatDau;
+            _totalExamSeconds = totalSec;
+            _secondsRemaining = remaining;
+
+            // BẢO VỆ BỘ NHỚ CLIENT: Che giấu đáp án đúng và lời giải trong RAM client khi đang thi
+            foreach (var q in _questions)
+            {
+                q.GiaiThichDapAn = null;
+                if (q.DanhSachLuaChon != null)
+                {
+                    foreach (var opt in q.DanhSachLuaChon)
+                    {
+                        opt.LaDapAnDung = false;
+                    }
+                }
+            }
+
+            // Nạp lại các câu trả lời tạm thời đã lưu từ Database
+            try
+            {
+                var savedAnswers = BaiTapDeThiBUS.Instance.LayChiTietTraLoiCuaLuot(luotDangLam.MaLuotLamBai);
+                foreach (var item in savedAnswers)
+                {
+                    if (item.MaLuaChonDaChon.HasValue && item.MaLuaChonDaChon.Value > 0)
+                    {
+                        _userAnswers[item.MaCauHoi] = item.MaLuaChonDaChon.Value;
+                        var question = _questions.FirstOrDefault(x => x.MaCauHoi == item.MaCauHoi);
+                        if (question != null && question.DanhSachLuaChon != null)
+                        {
+                            int idx = question.DanhSachLuaChon.FindIndex(o => o.MaLuaChon == item.MaLuaChonDaChon.Value);
+                            if (idx >= 0) _userAnswerIndices[item.MaCauHoi] = idx;
+                        }
+                    }
+                    if (!string.IsNullOrWhiteSpace(item.CauTraLoiVanBan))
+                    {
+                        _userTextAnswers[item.MaCauHoi] = item.CauTraLoiVanBan;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ThiThuView.ResumeExamAttempt] Lỗi khôi phục đáp án: {ex.Message}");
+            }
+
+            // Cập nhật Header
+            txtExamTitle.Text = $"Đề thi: {_currentExam?.TenBaiTapDeThi ?? "Bài thi"} (Đã khôi phục)";
+            txtCountdownTimer.Text = $"{_secondsRemaining / 60:D2}:{_secondsRemaining % 60:D2}";
+            txtCountdownTimer.Foreground = new SolidColorBrush(Color.FromRgb(220, 38, 38));
+
+            // Sinh ma trận câu hỏi (Question Navigation Grid)
+            BuildQuestionNavMatrix();
+
+            // Chế độ tập trung (Focus Mode): Ẩn Header chung và Sidebar
+            rowHeader.Height = new GridLength(0);
+            pnlTopHeader.Visibility = Visibility.Collapsed;
+            MainWindow.Instance?.HideSidebar();
+
+            // Chuyển màn hình sang phòng thi
+            pnlDanhSachDeThi.Visibility = Visibility.Collapsed;
+            pnlXemLaiBaiThi.Visibility = Visibility.Collapsed;
+            pnlLamBaiThi.Visibility = Visibility.Visible;
+            txtHeaderBreadcrumb.Text = $"Đang làm bài (Khôi phục): {_currentExam?.TenBaiTapDeThi ?? "Bài thi"}";
+
+            // Khởi chạy đồng hồ đếm ngược với thời gian còn lại
+            StartCountdownTimer();
+
+            // Tìm câu hỏi đầu tiên chưa trả lời để hiển thị cho học viên
+            int firstUnanswered = 0;
+            for (int i = 0; i < _questions.Count; i++)
+            {
+                int qId = _questions[i].MaCauHoi;
+                if (!_userAnswers.ContainsKey(qId) && !_userTextAnswers.ContainsKey(qId))
+                {
+                    firstUnanswered = i;
+                    break;
+                }
+            }
+            _currentIndex = firstUnanswered;
+            LoadQuestion(_currentIndex);
+        }
+
+        private void TuDongNopBaiDuaTrenAutosave(LuotLamBaiDTO luotDangLam)
+        {
+            try
+            {
+                int totalSec = (_currentExam?.ThoiGianLamBaiPhut > 0 ? _currentExam.ThoiGianLamBaiPhut : 25) * 60;
+                var savedAnswers = BaiTapDeThiBUS.Instance.LayChiTietTraLoiCuaLuot(luotDangLam.MaLuotLamBai);
+                var userAnswers = new Dictionary<int, int>();
+                var userTextAnswers = new Dictionary<int, string>();
+
+                foreach (var item in savedAnswers)
+                {
+                    if (item.MaLuaChonDaChon.HasValue && item.MaLuaChonDaChon.Value > 0)
+                    {
+                        userAnswers[item.MaCauHoi] = item.MaLuaChonDaChon.Value;
+                    }
+                    if (!string.IsNullOrWhiteSpace(item.CauTraLoiVanBan))
+                    {
+                        userTextAnswers[item.MaCauHoi] = item.CauTraLoiVanBan;
+                    }
+                }
+
+                BaiTapDeThiBUS.Instance.ChamVaLuuKetQuaThi(
+                    maDeThi: luotDangLam.MaBaiTapDeThi,
+                    hinhThucLam: luotDangLam.HinhThucLam ?? "ThiThu",
+                    thoiDiemBatDau: luotDangLam.ThoiDiemBatDau,
+                    thoiGianGiay: totalSec,
+                    questions: _questions,
+                    userAnswers: userAnswers,
+                    userTextAnswers: userTextAnswers,
+                    maNguoiDung: luotDangLam.MaNguoiDung,
+                    maLuotLamBaiHienTai: luotDangLam.MaLuotLamBai
+                );
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ThiThuView.TuDongNopBaiDuaTrenAutosave] {ex.Message}");
+            }
+            finally
+            {
+                LoadExamList();
+            }
         }
 
         private void BuildQuestionNavMatrix()
@@ -1267,8 +1506,20 @@ namespace GUI.Views
         {
             if (_currentIndex < 0 || _currentIndex >= _questions.Count) return;
             var q = _questions[_currentIndex];
-            _userTextAnswers[q.MaCauHoi] = txtStudentTextAnswer.Text;
+            string text = txtStudentTextAnswer.Text;
+            _userTextAnswers[q.MaCauHoi] = text;
             UpdateNavProgress();
+
+            if (_currentMaLuotLamBai > 0)
+            {
+                int currentElapsed = Math.Max(0, _totalExamSeconds - _secondsRemaining);
+                int maLuot = _currentMaLuotLamBai;
+                int maCH = q.MaCauHoi;
+                Task.Run(() =>
+                {
+                    BaiTapDeThiBUS.Instance.LuuCauTraLoiTamThoi(maLuot, maCH, null, text, currentElapsed);
+                });
+            }
         }
 
         private void TxtStudentEssayAnswer_TextChanged(object sender, TextChangedEventArgs e)
@@ -1283,6 +1534,17 @@ namespace GUI.Views
                 : text.Split(new[] { ' ', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
             txtEssayWordCount.Text = $"Số từ: {wordCount} từ";
             UpdateNavProgress();
+
+            if (_currentMaLuotLamBai > 0)
+            {
+                int currentElapsed = Math.Max(0, _totalExamSeconds - _secondsRemaining);
+                int maLuot = _currentMaLuotLamBai;
+                int maCH = q.MaCauHoi;
+                Task.Run(() =>
+                {
+                    BaiTapDeThiBUS.Instance.LuuCauTraLoiTamThoi(maLuot, maCH, null, text, currentElapsed);
+                });
+            }
         }
 
         private void BtnFlagQuestion_Click(object sender, RoutedEventArgs e)
@@ -1332,8 +1594,21 @@ namespace GUI.Views
 
             if (optIdx >= 0 && optIdx < q.DanhSachLuaChon.Count)
             {
+                int optId = q.DanhSachLuaChon[optIdx].MaLuaChon;
                 _userAnswerIndices[q.MaCauHoi] = optIdx;
-                _userAnswers[q.MaCauHoi] = q.DanhSachLuaChon[optIdx].MaLuaChon;
+                _userAnswers[q.MaCauHoi] = optId;
+
+                // Feature 13: Tự động lưu đáp án câu trắc nghiệm theo thời gian thực (Autosave)
+                if (_currentMaLuotLamBai > 0)
+                {
+                    int currentElapsed = Math.Max(0, _totalExamSeconds - _secondsRemaining);
+                    int maLuot = _currentMaLuotLamBai;
+                    int maCH = q.MaCauHoi;
+                    Task.Run(() =>
+                    {
+                        BaiTapDeThiBUS.Instance.LuuCauTraLoiTamThoi(maLuot, maCH, optId, null, currentElapsed);
+                    });
+                }
             }
 
             UpdateNavProgress();
@@ -1389,7 +1664,7 @@ namespace GUI.Views
 
             int timeSpentSeconds = Math.Max(5, _totalExamSeconds - _secondsRemaining);
 
-            // Chấm điểm và lưu kết quả thông qua BUS & DAL vào LuotLamBai, ChiTietTraLoi, LichSuHocTap
+            // Chấm điểm và lưu kết quả thông qua BUS & DAL vào LuotLamBai (cập nhật từ DangLam -> DaNop), ChiTietTraLoi, LichSuHocTap
             var result = BaiTapDeThiBUS.Instance.ChamVaLuuKetQuaThi(
                 _currentExam.MaBaiTapDeThi,
                 _currentExam.LoaiHinh ?? "ThiThu",
@@ -1397,8 +1672,12 @@ namespace GUI.Views
                 timeSpentSeconds,
                 _questions,
                 _userAnswers,
-                _userTextAnswers
+                _userTextAnswers,
+                maNguoiDung: null,
+                maLuotLamBaiHienTai: _currentMaLuotLamBai
             );
+
+            _currentMaLuotLamBai = 0; // Đã nộp bài thành công
 
             // Cập nhật thống kê người dùng trên header
             UpdateUserExamStats();
@@ -1637,6 +1916,20 @@ namespace GUI.Views
         {
             _examTimer?.Stop();
             StopExamAudio();
+
+            // Nếu người dùng hủy thi giữa chừng, đánh dấu lượt làm bài là DaHuy
+            if (_currentMaLuotLamBai > 0)
+            {
+                try
+                {
+                    BaiTapDeThiBUS.Instance.HuyLuotLamBai(_currentMaLuotLamBai);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ThiThuView] Lỗi hủy lượt thi: {ex.Message}");
+                }
+                _currentMaLuotLamBai = 0;
+            }
 
             pnlLamBaiThi.Visibility = Visibility.Collapsed;
             pnlXemLaiBaiThi.Visibility = Visibility.Collapsed;

@@ -248,6 +248,69 @@ namespace DAL
         /// <summary>
         /// Lưu một Bộ câu hỏi và danh sách câu hỏi thành viên bằng 1 SqlTransaction nguyên tử an toàn
         /// </summary>
+        /// <summary>
+        /// Tạo một bộ câu hỏi mới từ danh sách các mã câu hỏi đã tồn tại sẵn trong CSDL
+        /// Bảo toàn 100% nội dung câu hỏi và danh sách đáp án, chỉ tạo liên kết vào BoCauHoi_CauHoi.
+        /// </summary>
+        public bool TaoBoCauHoiTuDanhSachMaCauHoi(BoCauHoiDTO bo, List<int> maCauHois, int nguoiTaoId, out int maBoMoi, out string errorMessage)
+        {
+            maBoMoi = 0;
+            errorMessage = string.Empty;
+            if (bo == null || string.IsNullOrWhiteSpace(bo.TenBoCauHoi))
+            {
+                errorMessage = "Vui lòng nhập tên bộ câu hỏi.";
+                return false;
+            }
+
+            using var conn = SqlDataProvider.Instance.GetConnection();
+            conn.Open();
+            using var trans = conn.BeginTransaction(IsolationLevel.ReadCommitted);
+            try
+            {
+                string insertBoSql = @"
+                    INSERT INTO BoCauHoi (TenBoCauHoi, MoTa, NguonTao, TenNguon, MaBaiHoc, MaChuDe, MaTrinhDo, NguoiTao, NgayTao)
+                    VALUES (@Ten, @MoTa, @NguonTao, @TenNguon, @MaBaiHoc, @MaChuDe, @MaTrinhDo, @NguoiTao, SYSDATETIME());
+                    SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+                using var cmdBo = new SqlCommand(insertBoSql, conn, trans);
+                cmdBo.Parameters.AddWithValue("@Ten", bo.TenBoCauHoi.Trim());
+                cmdBo.Parameters.AddWithValue("@MoTa", (object?)bo.MoTa ?? DBNull.Value);
+                cmdBo.Parameters.AddWithValue("@NguonTao", string.IsNullOrWhiteSpace(bo.NguonTao) ? "AI" : bo.NguonTao);
+                cmdBo.Parameters.AddWithValue("@TenNguon", (object?)bo.TenNguon ?? DBNull.Value);
+                cmdBo.Parameters.AddWithValue("@MaBaiHoc", (object?)bo.MaBaiHoc ?? DBNull.Value);
+                cmdBo.Parameters.AddWithValue("@MaChuDe", (object?)bo.MaChuDe ?? DBNull.Value);
+                cmdBo.Parameters.AddWithValue("@MaTrinhDo", (object?)bo.MaTrinhDo ?? DBNull.Value);
+                cmdBo.Parameters.AddWithValue("@NguoiTao", nguoiTaoId >= 0 ? (object)nguoiTaoId : DBNull.Value);
+
+                maBoMoi = (int)cmdBo.ExecuteScalar();
+                bo.MaBoCauHoi = maBoMoi;
+
+                // Thêm các liên kết vào BoCauHoi_CauHoi
+                string insertLinkSql = @"
+                    INSERT INTO BoCauHoi_CauHoi (MaBoCauHoi, MaCauHoi, ThuTu)
+                    VALUES (@MaBo, @MaCH, @ThuTu);";
+
+                int thuTu = 1;
+                foreach (int maCH in maCauHois)
+                {
+                    using var cmdLink = new SqlCommand(insertLinkSql, conn, trans);
+                    cmdLink.Parameters.AddWithValue("@MaBo", maBoMoi);
+                    cmdLink.Parameters.AddWithValue("@MaCH", maCH);
+                    cmdLink.Parameters.AddWithValue("@ThuTu", thuTu++);
+                    cmdLink.ExecuteNonQuery();
+                }
+
+                trans.Commit();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                trans.Rollback();
+                errorMessage = ex.Message;
+                return false;
+            }
+        }
+
         public bool LuuBoCauHoi(BoCauHoiDTO bo, List<CauHoiKhaoSatDTO> dsCauHoi, int nguoiTaoId, out string errorMessage)
         {
             errorMessage = string.Empty;

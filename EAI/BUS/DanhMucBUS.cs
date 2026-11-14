@@ -167,6 +167,15 @@ namespace BUS
             if (string.IsNullOrWhiteSpace(cd.TenChuDe))
                 return (false, "Tên chủ đề không được để trống.");
 
+            if (cd.TenChuDe.Trim().Length > 150)
+                return (false, "Tên chủ đề không được vượt quá 150 ký tự.");
+
+            var allTopics = _dal.GetAllChuDe();
+            if (allTopics.Any(c => c.MaChuDeCha == cd.MaChuDeCha && string.Equals(c.TenChuDe?.Trim(), cd.TenChuDe.Trim(), StringComparison.OrdinalIgnoreCase)))
+            {
+                return (false, $"Đã có một chủ đề tên '{cd.TenChuDe.Trim()}' trong cùng thư mục này.");
+            }
+
             bool ok = _dal.InsertChuDe(cd);
             if (ok)
             {
@@ -183,12 +192,20 @@ namespace BUS
             if (string.IsNullOrWhiteSpace(cd.TenChuDe))
                 return (false, "Tên chủ đề không được để trống.");
 
+            if (cd.TenChuDe.Trim().Length > 150)
+                return (false, "Tên chủ đề không được vượt quá 150 ký tự.");
+
+            var allTopics = _dal.GetAllChuDe();
+            if (allTopics.Any(c => c.MaChuDe != cd.MaChuDe && c.MaChuDeCha == cd.MaChuDeCha && string.Equals(c.TenChuDe?.Trim(), cd.TenChuDe.Trim(), StringComparison.OrdinalIgnoreCase)))
+            {
+                return (false, $"Đã có một chủ đề khác tên '{cd.TenChuDe.Trim()}' trong cùng thư mục này.");
+            }
+
             if (cd.MaChuDeCha.HasValue)
             {
                 if (cd.MaChuDeCha.Value == cd.MaChuDe)
                     return (false, "Chủ đề cha không thể là chính chủ đề này.");
 
-                var allTopics = _dal.GetAllChuDe();
                 var descendantIds = new HashSet<int>();
                 ThuThapCacChuDeConChau(cd.MaChuDe, allTopics, descendantIds);
                 if (descendantIds.Contains(cd.MaChuDeCha.Value))

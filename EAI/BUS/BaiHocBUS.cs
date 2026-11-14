@@ -11,6 +11,51 @@ namespace BUS
         private static List<BaiHocDTO>? _cacheBaiHoc;
         private static readonly DAL.BaiHocDAL _baiHocDAL = new DAL.BaiHocDAL();
 
+        static BaiHocBUS()
+        {
+            AudioTranscriptDAL.RoleCheckGiangVien = () => SessionHelper.IsGiangVien;
+        }
+
+        public static AudioTranscriptDTO? LayAudioTranscriptChoBaiHoc(int maBaiHoc, string? audioPath = null)
+        {
+            bool isTeacher = SessionHelper.IsGiangVien;
+            var transcript = AudioTranscriptDAL.Instance.LayAudioChinhCuaBaiHoc(maBaiHoc, isTeacher);
+            if (transcript == null && !string.IsNullOrWhiteSpace(audioPath))
+            {
+                transcript = AudioTranscriptDAL.Instance.LayTheoDuongDanAudio(audioPath, isTeacher);
+            }
+
+            if (!isTeacher && transcript != null && !transcript.ChoPhepSinhVienXem)
+            {
+                transcript.TranscriptText = string.Empty;
+                transcript.ScriptGoc = string.Empty;
+                transcript.TranscriptSegmentsJson = null;
+                transcript.Segments = new List<TranscriptSegmentItemDTO>();
+            }
+
+            return transcript;
+        }
+
+        public static List<AudioTranscriptDTO> LayDanhSachAudioTranscript(int maBaiHoc)
+        {
+            bool isTeacher = SessionHelper.IsGiangVien;
+            var list = AudioTranscriptDAL.Instance.LayTheoMaBaiHoc(maBaiHoc, isTeacher);
+            if (!isTeacher)
+            {
+                foreach (var item in list)
+                {
+                    if (!item.ChoPhepSinhVienXem)
+                    {
+                        item.TranscriptText = string.Empty;
+                        item.ScriptGoc = string.Empty;
+                        item.TranscriptSegmentsJson = null;
+                        item.Segments = new List<TranscriptSegmentItemDTO>();
+                    }
+                }
+            }
+            return list;
+        }
+
         public static List<BaiHocDTO> LayDanhSachTuDatabase(int? maChuDe = null, string? search = null)
         {
             try

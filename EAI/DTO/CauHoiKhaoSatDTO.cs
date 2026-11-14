@@ -125,21 +125,39 @@ namespace DTO
             }
         }
 
+        public static string LayTenKyNang(string? kyNang) => (kyNang?.Trim()) switch
+        {
+            "Doc" or "DocHieu" or "Reading" => "Đọc hiểu",
+            "Nghe" or "NgheHieu" or "Listening" => "Nghe hiểu",
+            "NguPhap" or "Grammar" => "Ngữ pháp",
+            "TuVung" or "Vocabulary" => "Từ vựng",
+            "Viet" or "Writing" => "Viết",
+            "Noi" or "Speaking" => "Nói",
+            _ => string.IsNullOrWhiteSpace(kyNang) ? "Đọc hiểu" : kyNang
+        };
+
+        public static string LayTenLoaiCauHoi(string? loai)
+        {
+            string norm = ChuanHoaLoaiCauHoi(loai);
+            return norm switch
+            {
+                "TracNghiem" => "Trắc nghiệm",
+                "DungSai" => "Đúng / Sai",
+                "TrueFalseNotGiven" => "True / False",
+                "DienKhuyet" => "Điền khuyết",
+                "TraLoiNgan" => "Trả lời ngắn",
+                "NoiCap" => "Nối cặp",
+                "SapXep" => "Sắp xếp",
+                "SuaLoiSai" => "Sửa lỗi sai",
+                "VietLaiCau" => "Viết lại câu",
+                "TuLuan" => "Tự luận",
+                _ => "Trắc nghiệm"
+            };
+        }
+
         public string KyNangHienThi
         {
-            get
-            {
-                return KyNang switch
-                {
-                    "Doc" or "DocHieu" or "Reading" => "Đọc hiểu",
-                    "Nghe" or "NgheHieu" or "Listening" => "Nghe hiểu",
-                    "NguPhap" or "Grammar" => "Ngữ pháp",
-                    "TuVung" or "Vocabulary" => "Từ vựng",
-                    "Viet" or "Writing" => "Viết",
-                    "Noi" or "Speaking" => "Nói",
-                    _ => string.IsNullOrWhiteSpace(KyNang) ? "Đọc hiểu" : KyNang
-                };
-            }
+            get => LayTenKyNang(KyNang);
         }
 
         public bool IsKyNangNghe =>
@@ -162,12 +180,12 @@ namespace DTO
                     _maTrinhDo = value;
                     _maTrinhDoId = value switch
                     {
-                        "A1" => 1,
-                        "A2" => 2,
-                        "B1" => 3,
-                        "B2" => 4,
-                        "C1" => 5,
-                        "C2" => 6,
+                        "A1" => 0,
+                        "A2" => 1,
+                        "B1" => 2,
+                        "B2" => 3,
+                        "C1" => 4,
+                        "C2" => 5,
                         _ => _maTrinhDoId
                     };
                     OnPropertyChanged();

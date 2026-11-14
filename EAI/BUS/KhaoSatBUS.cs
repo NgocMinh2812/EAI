@@ -163,7 +163,20 @@ namespace BUS
 
                     // 1. Cập nhật Hồ sơ học tập
                     string ghiChu = $"Đánh giá năng lực: {diem10}/10 ({soCauDung}/{tongSoCau} câu đúng) • Xếp loại {trinhDoPhuHop} ({tenTrinhDo}) • {ielts} • {toeic}";
-                    HoSoHocTapDAL.Instance.LuuKetQuaDanhGiaBanDau(maNguoiDung, trinhDoPhuHop, "CEFR", targetIelts, diem10, ghiChu, trinhDoDauVao: trinhDoPhuHop);
+                    var hoSoHienTai = HoSoHocTapDAL.Instance.LayTheoMaNguoiDung(maNguoiDung);
+                    bool daCoMucTieu = hoSoHienTai != null && (!string.IsNullOrEmpty(hoSoHienTai.KhungNangLucMucTieu) || hoSoHienTai.DiemMucTieu.HasValue);
+
+                    if (daCoMucTieu)
+                    {
+                        // Giữ nguyên mục tiêu cá nhân đã thiết lập của học viên, chỉ cập nhật kết quả khảo sát đầu vào
+                        HoSoHocTapDAL.Instance.CapNhatTrinhDoDauVao(maNguoiDung, trinhDoPhuHop);
+                        HoSoHocTapDAL.Instance.CapNhatDiemDanhGiaDauVao(maNguoiDung, diem10, ghiChu);
+                    }
+                    else
+                    {
+                        // Học viên mới: Khởi tạo mục tiêu mặc định tương ứng với trình độ đầu vào
+                        HoSoHocTapDAL.Instance.LuuKetQuaDanhGiaBanDau(maNguoiDung, trinhDoPhuHop, "CEFR", targetIelts, diem10, ghiChu, trinhDoDauVao: trinhDoPhuHop);
+                    }
 
                     // 2. Cập nhật cờ lần đầu đăng nhập
                     NguoiDungDAL.Instance.CapNhatTrangThaiLanDauDangNhap(maNguoiDung, false);
@@ -253,6 +266,20 @@ namespace BUS
 
         public List<ChiTietTraLoiKhaoSatItemDTO> LayChiTietKhaoSatHocVien(int maLuotKhaoSat)
         {
+            // Anti-IDOR Ownership Guard:
+            // Non-admin / non-lecturer (student) can only view their own survey responses
+            if (SessionHelper.CurrentUser != null && !SessionHelper.IsGiangVien && !SessionHelper.IsAdmin)
+            {
+                int currentUserId = SessionHelper.CurrentMaNguoiDung;
+                if (currentUserId <= 0) return new List<ChiTietTraLoiKhaoSatItemDTO>();
+
+                int ownerId = KhaoSatDAL.Instance.LayMaNguoiDungCuaLuotKhaoSat(maLuotKhaoSat);
+                if (ownerId != currentUserId)
+                {
+                    return new List<ChiTietTraLoiKhaoSatItemDTO>(); // Deny unauthorized access
+                }
+            }
+
             return KhaoSatDAL.Instance.LayChiTietKhaoSatHocVien(maLuotKhaoSat);
         }
 
@@ -265,6 +292,13 @@ namespace BUS
 
         public KetQuaKhaoSatDTO? LayKetQuaKhaoSatGanNhat(int maNguoiDung)
         {
+            if (SessionHelper.CurrentUser != null && !SessionHelper.IsGiangVien && !SessionHelper.IsAdmin)
+            {
+                int currentUserId = SessionHelper.CurrentMaNguoiDung;
+                if (currentUserId <= 0) return null;
+                maNguoiDung = currentUserId;
+            }
+
             var ketQua = CauHoiDAL.Instance.LayKetQuaKhaoSatGanNhat(maNguoiDung);
             if (ketQua != null)
             {
