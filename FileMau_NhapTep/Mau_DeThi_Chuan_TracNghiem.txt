@@ -1,0 +1,45 @@
+﻿# ================================================================
+# TỆP ĐỀ THI MẪU TIẾNG ANH CHUẨN ĐỊNH DẠNG TEXT (.TXT) - ENGLISHEAI
+# Quy tắc: Question 1 / Câu 1, các đáp án A/B/C/D, Answer / Đáp án, Explanation / Giải thích
+# ================================================================
+
+Question 1: She ______ to school by bus every morning.
+A. go
+B. goes
+C. going
+D. went
+Answer: B
+Explanation: Thì hiện tại đơn diễn tả thói quen lặp lại, chủ ngữ ngôi thứ 3 số ít 'She' chia động từ 'goes'.
+
+Question 2: Which word is closest in meaning to 'enormous'?
+A. Tiny
+B. Huge
+C. Weak
+D. Fast
+Answer: B
+Explanation: 'Enormous' và 'Huge' đều mang nghĩa là to lớn, khổng lồ.
+
+Question 3: If I had known about the meeting, I ______ attended.
+A. would have
+B. will have
+C. had
+D. would
+Answer: A
+Explanation: Cấu trúc câu điều kiện loại 3: If + S + had + V3/ed, S + would have + V3/ed.
+
+Question 4: The company reported a substantial increase in quarterly revenue despite the economic downturn.
+A. slight
+B. significant
+C. negligible
+D. temporary
+Answer: B
+Explanation: Trong ngữ cảnh kinh tế và thương mại, 'substantial' đồng nghĩa với 'significant' (đáng kể, vượt bậc).
+
+Question 5: Where will the international technology conference be hosted next month?
+A. At the central convention center
+B. Online via video conference
+C. In the main university hall
+D. At the city exhibition center
+Answer: A
+Explanation: Thông tin xác nhận sự kiện hội nghị công nghệ diễn ra tại Trung tâm hội nghị trung tâm.
+

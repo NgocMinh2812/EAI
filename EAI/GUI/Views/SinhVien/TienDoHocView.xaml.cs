@@ -102,7 +102,10 @@ namespace GUI.Views
 
         private void HienThiKpi()
         {
-            if (_currentTongKet == null || txtTongGioHoc == null || txtTongBaiThi == null || txtDiemTB == null || txtPhanTramMucTieu == null) return;
+            if (_currentTongKet == null || txtTongGioHoc == null || txtSubGioHoc == null ||
+                txtTongBaiThi == null || txtBadgeTyLeDat == null || txtSubBaiThi == null || 
+                txtDiemTB == null || txtXepLoaiBadge == null || txtSubDiemTB == null || 
+                txtPhanTramMucTieu == null || txtMucTieuTitle == null || pbTienDoMucTieu == null || txtMoTaMucTieu == null) return;
 
             // Card 1: Tổng thời gian học
             txtTongGioHoc.Text = _currentTongKet.TongGioHocText;

@@ -32,6 +32,32 @@ namespace GUI.Views.Common.Assistant
 
             // Tự động cuộn xuống tin nhắn mới nhất
             ViewModel.ScrollToBottomRequested += OnScrollToBottomRequested;
+
+            // Nạp dữ liệu mới nhất khi hiển thị
+            Loaded += async (s, e) =>
+            {
+                await LamMoiDuLieuAsync();
+            };
+        }
+
+        /// <summary>
+        /// Làm mới danh sách hội thoại và tin nhắn theo phiên đăng nhập hiện tại
+        /// </summary>
+        public async Task LamMoiDuLieuAsync()
+        {
+            try
+            {
+                ViewModel.CapNhatTenModelHienThi();
+                await ViewModel.NapDanhSachCuocTroChuyenAsync();
+                if (ViewModel.CuocTroChuyenHienTai != null)
+                {
+                    await ViewModel.ChonCuocTroChuyenAsync(ViewModel.CuocTroChuyenHienTai);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LamMoiDuLieuAsync] {ex.Message}");
+            }
         }
 
         private void OnScrollToBottomRequested()

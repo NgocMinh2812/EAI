@@ -40,5 +40,19 @@ namespace DTO.Assistant
         public bool IsActive => string.Equals(TrangThai, "Active", StringComparison.OrdinalIgnoreCase);
         public bool IsArchived => string.Equals(TrangThai, "Archived", StringComparison.OrdinalIgnoreCase);
         public bool IsDeleted => string.Equals(TrangThai, "Deleted", StringComparison.OrdinalIgnoreCase);
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is AIAssistantConversationDTO other)
+            {
+                return MaHoiThoai == other.MaHoiThoai;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return MaHoiThoai.GetHashCode();
+        }
     }
 }

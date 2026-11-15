@@ -6,31 +6,41 @@
              xmlns:local="clr-namespace:GUI"
              xmlns:vm="clr-namespace:GUI.ViewModels.Assistant"
              mc:Ignorable="d" 
-             d:DesignHeight="700" d:DesignWidth="720"
+             d:DesignHeight="720" d:DesignWidth="720"
              FontFamily="Segoe UI">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
 
-        <!-- Màu sắc chủ đạo kết hợp tông Slate Dark thanh lịch và Emerald Mint của EAI -->
-        <SolidColorBrush x:Key="DarkBg" Color="#0B0F19"/>
-        <SolidColorBrush x:Key="PanelChatBg" Color="#0F172A"/>
-        <SolidColorBrush x:Key="PanelHistoryBg" Color="#0B1120"/>
-        <SolidColorBrush x:Key="CardDarkBg" Color="#1E293B"/>
-        <SolidColorBrush x:Key="BorderDark" Color="#1E293B"/>
-        <SolidColorBrush x:Key="BorderMedium" Color="#334155"/>
-        <SolidColorBrush x:Key="TextLight" Color="#F8FAFC"/>
-        <SolidColorBrush x:Key="TextMuted" Color="#94A3B8"/>
-        <SolidColorBrush x:Key="TextDim" Color="#64748B"/>
-        <SolidColorBrush x:Key="EmeraldPrimary" Color="#10B981"/>
-        <SolidColorBrush x:Key="EmeraldDark" Color="#059669"/>
-        <SolidColorBrush x:Key="EmeraldLight" Color="#D1FAE5"/>
-        <SolidColorBrush x:Key="EmeraldGlow" Color="#34D399"/>
+        <!-- BẢNG MÀU HIỆN ĐẠI ĐỒNG BỘ TOÀN DIỆN VỚI HỆ THỐNG GIAO DIỆN EAI (LIGHT THEME & EMERALD) -->
+        <SolidColorBrush x:Key="AppBg" Color="#F8FAFC"/>
+        <SolidColorBrush x:Key="CardWhite" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="HistoryPanelBg" Color="#F8FAFC"/>
+        <SolidColorBrush x:Key="BorderLight" Color="#E2E8F0"/>
+        <SolidColorBrush x:Key="BorderSubtle" Color="#CBD5E1"/>
+        <SolidColorBrush x:Key="TextMain" Color="#0F172A"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#475569"/>
+        <SolidColorBrush x:Key="TextDim" Color="#94A3B8"/>
 
-        <!-- Custom ScrollBar Styling -->
+        <!-- Màu thương hiệu EAI: Forest Teal & Vibrant Mint -->
+        <SolidColorBrush x:Key="BrandTeal" Color="#0F766E"/>
+        <SolidColorBrush x:Key="BrandTealDark" Color="#044E45"/>
+        <SolidColorBrush x:Key="BrandTealHover" Color="#115E59"/>
+        <SolidColorBrush x:Key="BrandTealSoft" Color="#ECFDF5"/>
+        <SolidColorBrush x:Key="BrandTealBorder" Color="#A7F3D0"/>
+        <SolidColorBrush x:Key="BrandMint" Color="#10B981"/>
+        <SolidColorBrush x:Key="BrandMintHover" Color="#059669"/>
+
+        <!-- Bong bóng tin nhắn người dùng: Gradient Teal thanh lịch -->
+        <LinearGradientBrush x:Key="UserBubbleGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#0F766E" Offset="0"/>
+            <GradientStop Color="#0D9488" Offset="1"/>
+        </LinearGradientBrush>
+
+        <!-- Custom ScrollBar Styling for Light Mode -->
         <Style TargetType="{x:Type ScrollBar}">
             <Setter Property="Stylus.IsFlicksEnabled" Value="false"/>
-            <Setter Property="Foreground" Value="#334155"/>
+            <Setter Property="Foreground" Value="#CBD5E1"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Width" Value="6"/>
             <Setter Property="Template">
@@ -39,10 +49,10 @@
                         <Grid x:Name="GridRoot" Width="6" Background="Transparent">
                             <Track x:Name="PART_Track" IsDirectionReversed="true">
                                 <Track.Thumb>
-                                    <Thumb Background="#334155" BorderThickness="0">
+                                    <Thumb Background="#CBD5E1" BorderThickness="0">
                                         <Thumb.Template>
                                             <ControlTemplate TargetType="{x:Type Thumb}">
-                                                <Border Background="#334155" CornerRadius="3"/>
+                                                <Border Background="#CBD5E1" CornerRadius="3"/>
                                             </ControlTemplate>
                                         </Thumb.Template>
                                     </Thumb>
@@ -55,10 +65,11 @@
         </Style>
     </UserControl.Resources>
 
-    <Border Background="{StaticResource PanelChatBg}" BorderBrush="{StaticResource BorderDark}" BorderThickness="1,0,0,0">
+    <Border Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BorderLight}" BorderThickness="1,0,0,0">
         <!-- BỐ CỤC 2 PANEL ĐẢO NGƯỢC: 
              - CỘT 0 (BÊN TRÁI): Khu vực chat chính (hướng vào vùng làm việc chính của ứng dụng)
-             - CỘT 1 (BÊN PHẢI): Panel lịch sử trò chuyện & công cụ nhanh (nằm ở mép ngoài cùng bên phải) -->
+             - CỘT 1 (GIỮA): GridSplitter
+             - CỘT 2 (BÊN PHẢI): Panel lịch sử trò chuyện & công cụ nhanh (nằm ở mép ngoài cùng bên phải) -->
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" MinWidth="340"/>
@@ -67,7 +78,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- ================= CỘT 0 (BÊN TRÁI): KHU VỰC CHAT CHÍNH ================= -->
-            <Grid Grid.Column="0" Background="{StaticResource PanelChatBg}">
+            <Grid Grid.Column="0" Background="{StaticResource AppBg}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/> <!-- Top Bar Header -->
                     <RowDefinition Height="*"/>    <!-- Messages Area -->
@@ -75,7 +86,7 @@
                 </Grid.RowDefinitions>
 
                 <!-- 1. Top Bar Header của Chat -->
-                <Border Grid.Row="0" Background="{StaticResource PanelHistoryBg}" BorderBrush="{StaticResource BorderDark}" BorderThickness="0,0,0,1" Padding="14,10">
+                <Border Grid.Row="0" Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1" Padding="14,10">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -84,21 +95,21 @@
 
                         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                             <!-- Model Indicator Pill -->
-                            <Border Background="#064E3B" BorderBrush="#059669" BorderThickness="1" CornerRadius="12" Padding="8,3" Margin="0,0,10,0">
+                            <Border Background="{StaticResource BrandTealSoft}" BorderBrush="{StaticResource BrandTealBorder}" BorderThickness="1" CornerRadius="12" Padding="8,4" Margin="0,0,10,0">
                                 <StackPanel Orientation="Horizontal">
-                                    <Ellipse Width="6" Height="6" Fill="#34D399" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding TenModelHienThi}" FontSize="11" FontWeight="SemiBold" Foreground="#A7F3D0" VerticalAlignment="Center"/>
+                                    <Ellipse Width="7" Height="7" Fill="{StaticResource BrandMint}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding TenModelHienThi}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrandTealDark}" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
 
                             <!-- Current Conversation Title -->
-                            <TextBlock Text="{Binding TieuDeCuocTroChuyenHienTai}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextLight}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="240"/>
+                            <TextBlock Text="{Binding TieuDeCuocTroChuyenHienTai}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource TextMain}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="240"/>
                         </StackPanel>
 
                         <!-- Status Badge -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Background="#1E293B" CornerRadius="10" Padding="8,3">
-                                <TextBlock Text="{Binding TrangThaiText}" FontSize="11" Foreground="{StaticResource TextMuted}"/>
+                            <Border Background="#F1F5F9" CornerRadius="10" Padding="8,4">
+                                <TextBlock Text="{Binding TrangThaiText}" FontSize="11" FontWeight="Medium" Foreground="{StaticResource TextMuted}"/>
                             </Border>
                         </StackPanel>
                     </Grid>
@@ -110,79 +121,103 @@
                         <!-- Màn hình chào mừng (Hiện khi chưa có tin nhắn nào) -->
                         <Border x:Name="pnlWelcomeScreen" Margin="10,20,10,20" Visibility="{Binding KhongCoTinNhan, Converter={StaticResource BoolToVisConverter}}">
                             <StackPanel HorizontalAlignment="Center" MaxWidth="380">
-                                <Border Background="#064E3B" BorderBrush="#059669" BorderThickness="1.5" Width="52" Height="52" CornerRadius="26" HorizontalAlignment="Center" Margin="0,0,0,14">
-                                    <local:LucideIcon Kind="Sparkles" Size="26" Foreground="#34D399" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border Background="{StaticResource BrandTealSoft}" BorderBrush="{StaticResource BrandTealBorder}" BorderThickness="1.5" Width="56" Height="56" CornerRadius="28" HorizontalAlignment="Center" Margin="0,0,0,14">
+                                    <local:LucideIcon Kind="Sparkles" Size="28" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
 
-                                <TextBlock Text="Xin chào! 👋" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextLight}" HorizontalAlignment="Center" Margin="0,0,0,6"/>
-                                <TextBlock Text="Tôi là Trợ lý AI EAI, có thể giúp bạn khai thác dữ liệu, thống kê học tập và tạo câu hỏi trực tiếp từ CSDL." FontSize="12.5" Foreground="{StaticResource TextMuted}" TextAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,20"/>
+                                <TextBlock Text="Xin chào! 👋" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextMain}" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                                <TextBlock Text="Tôi là Trợ lý AI EAI, có thể giúp bạn khai thác dữ liệu, thống kê học tập, phân tích người dùng và tạo câu hỏi trực tiếp từ hệ thống." FontSize="12.5" Foreground="{StaticResource TextMuted}" TextAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,20"/>
 
-                                <TextBlock Text="GỢI Ý CÂU HỎI NHANH" FontSize="11" FontWeight="Bold" Foreground="{StaticResource EmeraldPrimary}" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                                <TextBlock Text="GỢI Ý CÂU HỎI NHANH" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center" Margin="0,0,0,10"/>
 
-                                <Button Style="{x:Null}" Background="{StaticResource CardDarkBg}" BorderBrush="{StaticResource BorderDark}" BorderThickness="1" Margin="0,0,0,8" Padding="12,10" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Hôm nay có bao nhiêu học viên đang hoạt động trong hệ thống?">
+                                <Button Style="{x:Null}" Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Margin="0,0,0,8" Padding="12,10" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Hôm nay có bao nhiêu học viên đang hoạt động trong hệ thống?">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                            <Border x:Name="bPrompt" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="📊 Hôm nay có bao nhiêu học viên đang hoạt động?" FontSize="12" Foreground="{StaticResource TextLight}"/>
-                                                    <TextBlock Grid.Column="1" Text="→" FontSize="12" FontWeight="Bold" Foreground="{StaticResource EmeraldPrimary}"/>
+                                                    <TextBlock Grid.Column="0" Text="📊 Hôm nay có bao nhiêu học viên đang hoạt động?" FontSize="12" Foreground="{StaticResource TextMain}"/>
+                                                    <TextBlock Grid.Column="1" Text="→" FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
                                                 </Grid>
                                             </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bPrompt" Property="Background" Value="{StaticResource BrandTealSoft}"/>
+                                                    <Setter TargetName="bPrompt" Property="BorderBrush" Value="{StaticResource BrandTealBorder}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Button.Template>
                                 </Button>
 
-                                <Button Style="{x:Null}" Background="{StaticResource CardDarkBg}" BorderBrush="{StaticResource BorderDark}" BorderThickness="1" Margin="0,0,0,8" Padding="12,10" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Tạo 5 câu hỏi trắc nghiệm tiếng Anh về thì hiện tại đơn trình độ A2">
+                                <Button Style="{x:Null}" Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Margin="0,0,0,8" Padding="12,10" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Tạo 5 câu hỏi trắc nghiệm tiếng Anh về thì hiện tại đơn trình độ A2">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                            <Border x:Name="bPrompt" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="📝 Tạo 5 câu hỏi trắc nghiệm tiếng Anh trình độ A2" FontSize="12" Foreground="{StaticResource TextLight}"/>
-                                                    <TextBlock Grid.Column="1" Text="→" FontSize="12" FontWeight="Bold" Foreground="{StaticResource EmeraldPrimary}"/>
+                                                    <TextBlock Grid.Column="0" Text="📝 Tạo 5 câu hỏi trắc nghiệm tiếng Anh trình độ A2" FontSize="12" Foreground="{StaticResource TextMain}"/>
+                                                    <TextBlock Grid.Column="1" Text="→" FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
                                                 </Grid>
                                             </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bPrompt" Property="Background" Value="{StaticResource BrandTealSoft}"/>
+                                                    <Setter TargetName="bPrompt" Property="BorderBrush" Value="{StaticResource BrandTealBorder}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Button.Template>
                                 </Button>
 
-                                <Button Style="{x:Null}" Background="{StaticResource CardDarkBg}" BorderBrush="{StaticResource BorderDark}" BorderThickness="1" Margin="0,0,0,8" Padding="12,10" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Tìm kiếm các bài học mới nhất về kỹ năng đọc hiểu">
+                                <Button Style="{x:Null}" Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Margin="0,0,0,8" Padding="12,10" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Tìm kiếm các bài học mới nhất về kỹ năng đọc hiểu">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                            <Border x:Name="bPrompt" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="🔍 Tìm kiếm các bài học đọc hiểu mới nhất" FontSize="12" Foreground="{StaticResource TextLight}"/>
-                                                    <TextBlock Grid.Column="1" Text="→" FontSize="12" FontWeight="Bold" Foreground="{StaticResource EmeraldPrimary}"/>
+                                                    <TextBlock Grid.Column="0" Text="🔍 Tìm kiếm các bài học đọc hiểu mới nhất" FontSize="12" Foreground="{StaticResource TextMain}"/>
+                                                    <TextBlock Grid.Column="1" Text="→" FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
                                                 </Grid>
                                             </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bPrompt" Property="Background" Value="{StaticResource BrandTealSoft}"/>
+                                                    <Setter TargetName="bPrompt" Property="BorderBrush" Value="{StaticResource BrandTealBorder}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Button.Template>
                                 </Button>
 
-                                <Button Style="{x:Null}" Background="{StaticResource CardDarkBg}" BorderBrush="{StaticResource BorderDark}" BorderThickness="1" Margin="0,0,0,8" Padding="12,10" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Kiểm tra trạng thái kết nối CSDL và các mô hình AI">
+                                <Button Style="{x:Null}" Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Margin="0,0,0,8" Padding="12,10" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Kiểm tra trạng thái kết nối CSDL và các mô hình AI">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                            <Border x:Name="bPrompt" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="⚡ Giám sát sức khỏe hệ thống &amp; AI Provider" FontSize="12" Foreground="{StaticResource TextLight}"/>
-                                                    <TextBlock Grid.Column="1" Text="→" FontSize="12" FontWeight="Bold" Foreground="{StaticResource EmeraldPrimary}"/>
+                                                    <TextBlock Grid.Column="0" Text="⚡ Giám sát sức khỏe hệ thống &amp; AI Provider" FontSize="12" Foreground="{StaticResource TextMain}"/>
+                                                    <TextBlock Grid.Column="1" Text="→" FontSize="12" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
                                                 </Grid>
                                             </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bPrompt" Property="Background" Value="{StaticResource BrandTealSoft}"/>
+                                                    <Setter TargetName="bPrompt" Property="BorderBrush" Value="{StaticResource BrandTealBorder}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Button.Template>
                                 </Button>
@@ -207,10 +242,13 @@
                                                 </Style>
                                             </StackPanel.Style>
 
-                                            <Border Background="#065F46" BorderBrush="#059669" BorderThickness="1" CornerRadius="14,14,2,14" Padding="12,9">
-                                                <TextBlock Text="{Binding Content}" Foreground="White" FontSize="12.5" TextWrapping="Wrap"/>
+                                            <Border Background="{StaticResource UserBubbleGradient}" CornerRadius="16,16,4,16" Padding="13,10">
+                                                <Border.Effect>
+                                                    <DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.12" Color="#0F766E"/>
+                                                </Border.Effect>
+                                                <TextBlock Text="{Binding Content}" Foreground="White" FontSize="13" TextWrapping="Wrap" LineHeight="19"/>
                                             </Border>
-                                            <TextBlock Text="{Binding CreatedAtHienThi}" FontSize="10" Foreground="{StaticResource TextDim}" HorizontalAlignment="Right" Margin="0,3,4,0"/>
+                                            <TextBlock Text="{Binding CreatedAtHienThi}" FontSize="10.5" Foreground="{StaticResource TextDim}" HorizontalAlignment="Right" Margin="0,3,4,0"/>
                                         </StackPanel>
 
                                         <!-- Khối tin nhắn Trợ lý AI (Assistant Message) -->
@@ -231,19 +269,22 @@
                                             </Grid.ColumnDefinitions>
 
                                             <!-- AI Avatar -->
-                                            <Border Grid.Column="0" Background="#064E3B" BorderBrush="#059669" BorderThickness="1" Width="26" Height="26" CornerRadius="13" VerticalAlignment="Top" Margin="0,2,8,0">
-                                                <local:LucideIcon Kind="Sparkles" Size="13" Foreground="#34D399" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <Border Grid.Column="0" Background="{StaticResource BrandTealSoft}" BorderBrush="{StaticResource BrandTealBorder}" BorderThickness="1.2" Width="28" Height="28" CornerRadius="14" VerticalAlignment="Top" Margin="0,2,8,0">
+                                                <local:LucideIcon Kind="Sparkles" Size="14" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
 
                                             <StackPanel Grid.Column="1">
                                                 <!-- AI Text Response -->
-                                                <Border Background="{StaticResource CardDarkBg}" BorderBrush="{StaticResource BorderDark}" BorderThickness="1" CornerRadius="2,14,14,14" Padding="12,10">
+                                                <Border Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="4,16,16,16" Padding="14,11">
+                                                    <Border.Effect>
+                                                        <DropShadowEffect BlurRadius="6" ShadowDepth="1" Opacity="0.04" Color="#000000"/>
+                                                    </Border.Effect>
                                                     <StackPanel>
-                                                        <TextBlock Text="{Binding Content}" Foreground="{StaticResource TextLight}" FontSize="12.5" TextWrapping="Wrap" LineHeight="19"/>
+                                                        <TextBlock Text="{Binding Content}" Foreground="{StaticResource TextMain}" FontSize="13" TextWrapping="Wrap" LineHeight="20"/>
 
                                                         <!-- Structured Card Result Area (Nếu có thẻ kết quả) -->
-                                                        <Border Margin="0,10,0,0" Background="#0F172A" BorderBrush="{StaticResource BorderMedium}" BorderThickness="1" CornerRadius="10" Padding="12,10"
-                                                                Visibility="{Binding HasCard, Converter={StaticResource BoolToVisConverter}}">
+                                                        <Border Margin="0,10,0,0" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="10" Padding="12,10"
+                                                                Visibility="{Binding HasVisibleCardContent, Converter={StaticResource BoolToVisConverter}}">
                                                             <StackPanel>
                                                                 <!-- Card Header -->
                                                                 <Grid Margin="0,0,0,8">
@@ -252,28 +293,28 @@
                                                                         <ColumnDefinition Width="Auto"/>
                                                                     </Grid.ColumnDefinitions>
                                                                     <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                                                        <TextBlock Text="KẾT QUẢ TỪ HỆ THỐNG" FontSize="11" FontWeight="Bold" Foreground="{StaticResource EmeraldPrimary}"/>
+                                                                        <TextBlock Text="KẾT QUẢ TỪ HỆ THỐNG" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
                                                                     </StackPanel>
-                                                                    <TextBlock Grid.Column="1" Text="{Binding ExecutedToolName}" FontSize="10" Foreground="{StaticResource TextDim}"/>
+                                                                    <TextBlock Grid.Column="1" Text="{Binding ExecutedToolName}" FontSize="10.5" Foreground="{StaticResource TextDim}"/>
                                                                 </Grid>
 
                                                                 <!-- Preview Questions Card Content (nếu là thẻ tạo câu hỏi) -->
-                                                                <StackPanel Visibility="{Binding QuestionPreview, Converter={StaticResource BoolToVisConverter}}">
-                                                                    <TextBlock Text="{Binding QuestionPreview.Topic, StringFormat='Chủ đề: {0}'}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextLight}" Margin="0,0,0,4"/>
+                                                                <StackPanel Visibility="{Binding HasQuestionPreview, Converter={StaticResource BoolToVisConverter}}">
+                                                                    <TextBlock Text="{Binding QuestionPreview.Topic, StringFormat='Chủ đề: {0}'}" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextMain}" Margin="0,0,0,4"/>
                                                                     <TextBlock Text="{Binding QuestionPreview.Level, StringFormat='Trình độ: {0}'}" FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,0,0,8"/>
 
                                                                     <ItemsControl ItemsSource="{Binding QuestionPreview.Questions}">
                                                                         <ItemsControl.ItemTemplate>
                                                                             <DataTemplate>
-                                                                                <Border Background="#1E293B" CornerRadius="6" Padding="8,6" Margin="0,0,0,6">
+                                                                                <Border Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,6">
                                                                                     <StackPanel>
-                                                                                        <TextBlock Text="{Binding Content, StringFormat='Câu {0}: {1}'}" FontSize="11.5" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap"/>
-                                                                                        <ItemsControl ItemsSource="{Binding Options}" Margin="8,4,0,0">
+                                                                                        <TextBlock Text="{Binding Content, StringFormat='Câu {0}: {1}'}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMain}" TextWrapping="Wrap"/>
+                                                                                        <ItemsControl ItemsSource="{Binding Options}" Margin="8,6,0,0">
                                                                                             <ItemsControl.ItemTemplate>
                                                                                                 <DataTemplate>
-                                                                                                    <TextBlock FontSize="11" TextWrapping="Wrap" Margin="0,1">
-                                                                                                        <Run Text="{Binding Symbol, StringFormat='{}{0}) '}" FontWeight="Bold" Foreground="#34D399"/>
-                                                                                                        <Run Text="{Binding Text}" Foreground="#CBD5E1"/>
+                                                                                                    <TextBlock FontSize="11.5" TextWrapping="Wrap" Margin="0,2">
+                                                                                                        <Run Text="{Binding Symbol, StringFormat='{}{0}) '}" FontWeight="Bold" Foreground="{StaticResource BrandTeal}"/>
+                                                                                                        <Run Text="{Binding Text}" Foreground="{StaticResource TextMuted}"/>
                                                                                                     </TextBlock>
                                                                                                 </DataTemplate>
                                                                                             </ItemsControl.ItemTemplate>
@@ -285,47 +326,156 @@
                                                                     </ItemsControl>
                                                                 </StackPanel>
 
-                                                                <!-- Generic JSON / Preview Payload Display if not questions -->
-                                                                <TextBlock Text="{Binding CardPayloadJson}" FontSize="11" Foreground="{StaticResource TextMuted}" TextWrapping="Wrap" MaxHeight="140"
-                                                                           FontFamily="Consolas" Margin="0,4,0,0">
-                                                                    <TextBlock.Style>
-                                                                        <Style TargetType="TextBlock">
-                                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                                            <Style.Triggers>
-                                                                                <DataTrigger Binding="{Binding QuestionPreview}" Value="{x:Null}">
-                                                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                                                </DataTrigger>
-                                                                            </Style.Triggers>
-                                                                        </Style>
-                                                                    </TextBlock.Style>
-                                                                </TextBlock>
+                                                                <!-- Preview Users Card Content (nếu là kết quả tìm kiếm người dùng / học viên) -->
+                                                                <StackPanel Visibility="{Binding HasUserListPreview, Converter={StaticResource BoolToVisConverter}}">
+                                                                    <ItemsControl ItemsSource="{Binding UserListPreview.Users}">
+                                                                        <ItemsControl.ItemTemplate>
+                                                                            <DataTemplate>
+                                                                                <Border Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,6">
+                                                                                    <Grid>
+                                                                                        <Grid.ColumnDefinitions>
+                                                                                            <ColumnDefinition Width="Auto"/>
+                                                                                            <ColumnDefinition Width="*"/>
+                                                                                            <ColumnDefinition Width="Auto"/>
+                                                                                        </Grid.ColumnDefinitions>
+
+                                                                                        <Border Grid.Column="0" Width="34" Height="34" CornerRadius="17" Background="#E0F2FE" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                                                            <TextBlock Text="{Binding AvatarInitials}" FontWeight="Bold" FontSize="11.5" Foreground="#0284C7" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                                        </Border>
+
+                                                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                                                            <StackPanel Orientation="Horizontal">
+                                                                                                <TextBlock Text="{Binding FullName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMain}" TextTrimming="CharacterEllipsis" MaxWidth="190"/>
+                                                                                                <TextBlock Text="{Binding Username, StringFormat=' (@{0})'}" FontSize="11" Foreground="{StaticResource TextDim}" VerticalAlignment="Center"/>
+                                                                                            </StackPanel>
+                                                                                            <TextBlock Text="{Binding Email}" FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,1,0,0" TextTrimming="CharacterEllipsis" MaxWidth="230"/>
+                                                                                            <TextBlock Text="{Binding LastLogin, StringFormat='Đăng nhập gần nhất: {0}'}" FontSize="10" Foreground="{StaticResource TextDim}" Margin="0,2,0,0"/>
+                                                                                        </StackPanel>
+
+                                                                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="6,0,0,0">
+                                                                                            <Border Background="#F0FDF4" BorderBrush="#DCFCE7" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,0,3" HorizontalAlignment="Right">
+                                                                                                <TextBlock Text="{Binding RoleDisplay}" FontSize="10" FontWeight="SemiBold" Foreground="#15803D"/>
+                                                                                            </Border>
+                                                                                            <Border Background="#F1F5F9" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
+                                                                                                <TextBlock Text="{Binding TargetLevel, StringFormat='Mục tiêu: {0}'}" FontSize="10" Foreground="{StaticResource TextDim}"/>
+                                                                                            </Border>
+                                                                                        </StackPanel>
+                                                                                    </Grid>
+                                                                                </Border>
+                                                                            </DataTemplate>
+                                                                        </ItemsControl.ItemTemplate>
+                                                                    </ItemsControl>
+                                                                </StackPanel>
+
+                                                                <!-- Preview Lessons Card Content (nếu là kết quả tìm kiếm bài học) -->
+                                                                <StackPanel Visibility="{Binding HasLessonListPreview, Converter={StaticResource BoolToVisConverter}}">
+                                                                    <ItemsControl ItemsSource="{Binding LessonListPreview.Lessons}">
+                                                                        <ItemsControl.ItemTemplate>
+                                                                            <DataTemplate>
+                                                                                <Border Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,6">
+                                                                                    <Grid>
+                                                                                        <Grid.ColumnDefinitions>
+                                                                                            <ColumnDefinition Width="*"/>
+                                                                                            <ColumnDefinition Width="Auto"/>
+                                                                                        </Grid.ColumnDefinitions>
+
+                                                                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                                                            <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMain}" TextTrimming="CharacterEllipsis"/>
+                                                                                            <TextBlock Text="{Binding TopicName, StringFormat='Chủ đề: {0}'}" FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,2,0,0"/>
+                                                                                            <TextBlock Text="{Binding Summary}" FontSize="10.5" Foreground="{StaticResource TextDim}" TextTrimming="CharacterEllipsis" MaxWidth="280" Margin="0,2,0,0"/>
+                                                                                        </StackPanel>
+
+                                                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="8,0,0,0">
+                                                                                            <Border Background="#EFF6FF" BorderBrush="#DBEAFE" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,0,3" HorizontalAlignment="Right">
+                                                                                                <TextBlock Text="{Binding SkillDisplay}" FontSize="10" FontWeight="SemiBold" Foreground="#1D4ED8"/>
+                                                                                            </Border>
+                                                                                            <Border Background="#F8FAFC" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
+                                                                                                <TextBlock FontSize="10" Foreground="{StaticResource TextDim}">
+                                                                                                    <Run Text="{Binding Level}"/>
+                                                                                                    <Run Text=" • "/>
+                                                                                                    <Run Text="{Binding DurationMinutes, StringFormat='{}{0}p'}"/>
+                                                                                                </TextBlock>
+                                                                                            </Border>
+                                                                                        </StackPanel>
+                                                                                    </Grid>
+                                                                                </Border>
+                                                                            </DataTemplate>
+                                                                        </ItemsControl.ItemTemplate>
+                                                                    </ItemsControl>
+                                                                </StackPanel>
+
+                                                                <!-- Preview Exams Card Content (nếu là kết quả tìm kiếm đề thi) -->
+                                                                <StackPanel Visibility="{Binding HasExamListPreview, Converter={StaticResource BoolToVisConverter}}">
+                                                                    <ItemsControl ItemsSource="{Binding ExamListPreview.Exams}">
+                                                                        <ItemsControl.ItemTemplate>
+                                                                            <DataTemplate>
+                                                                                <Border Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,6">
+                                                                                    <Grid>
+                                                                                        <Grid.ColumnDefinitions>
+                                                                                            <ColumnDefinition Width="*"/>
+                                                                                            <ColumnDefinition Width="Auto"/>
+                                                                                        </Grid.ColumnDefinitions>
+
+                                                                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                                                            <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMain}" TextTrimming="CharacterEllipsis"/>
+                                                                                            <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                                                                <TextBlock Text="{Binding ExamTypeDisplay}" FontSize="11" Foreground="{StaticResource TextMuted}"/>
+                                                                                                <TextBlock Text=" • " FontSize="11" Foreground="{StaticResource TextDim}"/>
+                                                                                                <TextBlock Text="{Binding Level}" FontSize="11" Foreground="{StaticResource TextMuted}"/>
+                                                                                                <TextBlock Text=" • " FontSize="11" Foreground="{StaticResource TextDim}"/>
+                                                                                                <TextBlock Text="{Binding DurationMinutes, StringFormat='{}{0} phút'}" FontSize="11" Foreground="{StaticResource TextMuted}"/>
+                                                                                            </StackPanel>
+                                                                                        </StackPanel>
+
+                                                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="8,0,0,0">
+                                                                                            <Border Background="#FEF3C7" BorderBrush="#FDE68A" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,0,3" HorizontalAlignment="Right">
+                                                                                                <TextBlock Text="{Binding TotalQuestions, StringFormat='{}{0} câu'}" FontSize="10" FontWeight="SemiBold" Foreground="#B45309"/>
+                                                                                            </Border>
+                                                                                            <TextBlock Text="{Binding AttemptCount, StringFormat='{}{0} lượt thi'}" FontSize="10" Foreground="{StaticResource TextDim}" HorizontalAlignment="Right"/>
+                                                                                        </StackPanel>
+                                                                                    </Grid>
+                                                                                </Border>
+                                                                            </DataTemplate>
+                                                                        </ItemsControl.ItemTemplate>
+                                                                    </ItemsControl>
+                                                                </StackPanel>
 
                                                                 <!-- Interactive Staged Confirmation Buttons (Bắt buộc xác nhận trước khi lưu) -->
                                                                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal" HorizontalAlignment="Right"
                                                                             Visibility="{Binding CanConfirm, Converter={StaticResource BoolToVisConverter}}">
-                                                                    <Button Content="✕ Bỏ qua" Background="#334155" Foreground="{StaticResource TextMuted}" BorderThickness="0" Padding="12,5" Margin="0,0,8,0" Cursor="Hand" Click="BtnRejectAction_Click">
+                                                                    <Button Content="✕ Bỏ qua" Background="#F1F5F9" Foreground="{StaticResource TextMuted}" BorderThickness="0" Padding="12,6" Margin="0,0,8,0" Cursor="Hand" Click="BtnRejectAction_Click">
                                                                         <Button.Template>
                                                                             <ControlTemplate TargetType="Button">
-                                                                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                                                <Border x:Name="bRej" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
                                                                                     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                                 </Border>
+                                                                                <ControlTemplate.Triggers>
+                                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                                        <Setter TargetName="bRej" Property="Background" Value="#E2E8F0"/>
+                                                                                    </Trigger>
+                                                                                </ControlTemplate.Triggers>
                                                                             </ControlTemplate>
                                                                         </Button.Template>
                                                                     </Button>
 
-                                                                    <Button Content="✓ Lưu trực tiếp vào CSDL" Background="{StaticResource EmeraldDark}" Foreground="White" FontWeight="Bold" BorderThickness="0" Padding="14,5" Cursor="Hand" Click="BtnConfirmAction_Click">
+                                                                    <Button Content="✓ Lưu trực tiếp vào CSDL" Background="{StaticResource BrandTeal}" Foreground="White" FontWeight="Bold" BorderThickness="0" Padding="14,6" Cursor="Hand" Click="BtnConfirmAction_Click">
                                                                         <Button.Template>
                                                                             <ControlTemplate TargetType="Button">
-                                                                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                                                <Border x:Name="bConf" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
                                                                                     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                                 </Border>
+                                                                                <ControlTemplate.Triggers>
+                                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                                        <Setter TargetName="bConf" Property="Background" Value="{StaticResource BrandTealHover}"/>
+                                                                                    </Trigger>
+                                                                                </ControlTemplate.Triggers>
                                                                             </ControlTemplate>
                                                                         </Button.Template>
                                                                     </Button>
                                                                 </StackPanel>
 
                                                                 <!-- Status Message if Action was Done -->
-                                                                <TextBlock Text="{Binding ActionStatusMessage}" FontSize="11" Foreground="{StaticResource EmeraldGlow}" Margin="0,8,0,0" TextWrapping="Wrap"
+                                                                <TextBlock Text="{Binding ActionStatusMessage}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrandMintHover}" Margin="0,8,0,0" TextWrapping="Wrap"
                                                                            Visibility="{Binding IsActionDone, Converter={StaticResource BoolToVisConverter}}"/>
                                                             </StackPanel>
                                                         </Border>
@@ -333,9 +483,9 @@
                                                 </Border>
 
                                                 <!-- Message Footer: Timestamp & Latency -->
-                                                <StackPanel Orientation="Horizontal" Margin="4,3,0,0">
-                                                    <TextBlock Text="{Binding CreatedAtHienThi}" FontSize="10" Foreground="{StaticResource TextDim}" Margin="0,0,8,0"/>
-                                                    <TextBlock Text="{Binding ModelUsed, StringFormat='Model: {0}'}" FontSize="10" Foreground="{StaticResource TextDim}"/>
+                                                <StackPanel Orientation="Horizontal" Margin="4,4,0,0">
+                                                    <TextBlock Text="{Binding CreatedAtHienThi}" FontSize="10.5" Foreground="{StaticResource TextDim}" Margin="0,0,8,0"/>
+                                                    <TextBlock Text="{Binding ModelUsed, StringFormat='Model: {0}'}" FontSize="10.5" Foreground="{StaticResource TextDim}"/>
                                                 </StackPanel>
                                             </StackPanel>
                                         </Grid>
@@ -345,23 +495,31 @@
                         </ItemsControl>
 
                         <!-- Thinking / Processing Indicator -->
-                        <Border Background="{StaticResource CardDarkBg}" BorderBrush="{StaticResource BorderDark}" BorderThickness="1" CornerRadius="10" Padding="12,8" Margin="0,4,0,10"
+                        <Border Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BrandTealBorder}" BorderThickness="1" CornerRadius="10" Padding="12,8" Margin="0,4,0,10"
                                 Visibility="{Binding DangXuLy, Converter={StaticResource BoolToVisConverter}}">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.05" Color="#000000"/>
+                            </Border.Effect>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <ProgressBar IsIndeterminate="True" Width="18" Height="18" Margin="0,0,8,0" Foreground="{StaticResource EmeraldPrimary}"/>
-                                    <TextBlock Text="AI đang suy nghĩ và điều phối công cụ..." FontSize="12" Foreground="{StaticResource EmeraldLight}" VerticalAlignment="Center"/>
+                                    <ProgressBar IsIndeterminate="True" Width="18" Height="18" Margin="0,0,8,0" Foreground="{StaticResource BrandTeal}"/>
+                                    <TextBlock Text="AI đang suy nghĩ và điều phối công cụ..." FontSize="12" Foreground="{StaticResource BrandTealDark}" FontWeight="Medium" VerticalAlignment="Center"/>
                                 </StackPanel>
-                                <Button Grid.Column="1" Content="Dừng phản hồi ⏹" Background="#334155" Foreground="White" FontSize="11" BorderThickness="0" Padding="10,4" Cursor="Hand" Click="BtnStopResponse_Click">
+                                <Button Grid.Column="1" Content="Dừng phản hồi ⏹" Background="#F1F5F9" Foreground="{StaticResource TextMuted}" FontSize="11" BorderThickness="0" Padding="10,4" Cursor="Hand" Click="BtnStopResponse_Click">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <Border x:Name="bStop" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
                                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bStop" Property="Background" Value="#E2E8F0"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Button.Template>
                                 </Button>
@@ -371,7 +529,7 @@
                 </ScrollViewer>
 
                 <!-- 3. Khu vực nhập tin nhắn (Input Area) -->
-                <Border Grid.Row="2" Background="{StaticResource PanelHistoryBg}" BorderBrush="{StaticResource BorderDark}" BorderThickness="0,1,0,0" Padding="12,10">
+                <Border Grid.Row="2" Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0" Padding="12,10">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -381,42 +539,70 @@
                         <!-- Quick suggestion pills above input -->
                         <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,0,0,8">
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="🔍 Tìm học viên" Style="{x:Null}" Background="#1E293B" Foreground="{StaticResource TextMuted}" BorderThickness="0" Padding="8,4" Margin="0,0,6,0" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Tìm học viên có điểm cao gần đây">
+                                <Button Content="🔍 Tìm học viên" Style="{x:Null}" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Foreground="{StaticResource TextMuted}" Padding="9,4" Margin="0,0,6,0" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Tìm học viên có điểm cao gần đây">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" CornerRadius="12" Padding="{TemplateBinding Padding}">
+                                            <Border x:Name="bChip" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12" Padding="{TemplateBinding Padding}">
                                                 <ContentPresenter/>
                                             </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bChip" Property="Background" Value="{StaticResource BrandTealSoft}"/>
+                                                    <Setter TargetName="bChip" Property="BorderBrush" Value="{StaticResource BrandTealBorder}"/>
+                                                    <Setter Property="Foreground" Value="{StaticResource BrandTeal}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Button.Template>
                                 </Button>
 
-                                <Button Content="📊 Thống kê câu hỏi" Style="{x:Null}" Background="#1E293B" Foreground="{StaticResource TextMuted}" BorderThickness="0" Padding="8,4" Margin="0,0,6,0" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Thống kê tổng số câu hỏi theo kỹ năng">
+                                <Button Content="📊 Thống kê câu hỏi" Style="{x:Null}" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Foreground="{StaticResource TextMuted}" Padding="9,4" Margin="0,0,6,0" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Thống kê tổng số câu hỏi theo kỹ năng">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" CornerRadius="12" Padding="{TemplateBinding Padding}">
+                                            <Border x:Name="bChip" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12" Padding="{TemplateBinding Padding}">
                                                 <ContentPresenter/>
                                             </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bChip" Property="Background" Value="{StaticResource BrandTealSoft}"/>
+                                                    <Setter TargetName="bChip" Property="BorderBrush" Value="{StaticResource BrandTealBorder}"/>
+                                                    <Setter Property="Foreground" Value="{StaticResource BrandTeal}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Button.Template>
                                 </Button>
 
-                                <Button Content="📝 Tạo bài tập" Style="{x:Null}" Background="#1E293B" Foreground="{StaticResource TextMuted}" BorderThickness="0" Padding="8,4" Margin="0,0,6,0" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Tạo 5 câu hỏi trắc nghiệm tiếng Anh B1">
+                                <Button Content="📝 Tạo bài tập" Style="{x:Null}" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Foreground="{StaticResource TextMuted}" Padding="9,4" Margin="0,0,6,0" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Tạo 5 câu hỏi trắc nghiệm tiếng Anh B1">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" CornerRadius="12" Padding="{TemplateBinding Padding}">
+                                            <Border x:Name="bChip" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12" Padding="{TemplateBinding Padding}">
                                                 <ContentPresenter/>
                                             </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bChip" Property="Background" Value="{StaticResource BrandTealSoft}"/>
+                                                    <Setter TargetName="bChip" Property="BorderBrush" Value="{StaticResource BrandTealBorder}"/>
+                                                    <Setter Property="Foreground" Value="{StaticResource BrandTeal}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Button.Template>
                                 </Button>
 
-                                <Button Content="⚡ Kiểm tra kết nối" Style="{x:Null}" Background="#1E293B" Foreground="{StaticResource TextMuted}" BorderThickness="0" Padding="8,4" Margin="0,0,6,0" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Kiểm tra trạng thái kết nối CSDL và AI">
+                                <Button Content="⚡ Kiểm tra kết nối" Style="{x:Null}" Background="#F8FAFC" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Foreground="{StaticResource TextMuted}" Padding="9,4" Margin="0,0,6,0" Cursor="Hand" Click="QuickPromptButton_Click" Tag="Kiểm tra trạng thái kết nối CSDL và AI">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" CornerRadius="12" Padding="{TemplateBinding Padding}">
+                                            <Border x:Name="bChip" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12" Padding="{TemplateBinding Padding}">
                                                 <ContentPresenter/>
                                             </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bChip" Property="Background" Value="{StaticResource BrandTealSoft}"/>
+                                                    <Setter TargetName="bChip" Property="BorderBrush" Value="{StaticResource BrandTealBorder}"/>
+                                                    <Setter Property="Foreground" Value="{StaticResource BrandTeal}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Button.Template>
                                 </Button>
@@ -424,7 +610,7 @@
                         </ScrollViewer>
 
                         <!-- Input Box Container -->
-                        <Border Grid.Row="1" Background="{StaticResource CardDarkBg}" BorderBrush="{StaticResource BorderDark}" BorderThickness="1" CornerRadius="12" Padding="8,4">
+                        <Border Grid.Row="1" Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BorderSubtle}" BorderThickness="1.5" CornerRadius="12" Padding="8,4">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -433,13 +619,14 @@
 
                                 <!-- Text Box đa dòng -->
                                 <TextBox x:Name="txtUserInput" Grid.Column="0" Text="{Binding NoiDungNhap, UpdateSourceTrigger=PropertyChanged}"
-                                         Background="Transparent" Foreground="White" BorderThickness="0"
-                                         FontSize="12.5" TextWrapping="Wrap" AcceptsReturn="True" MaxHeight="90" MinHeight="32"
+                                         Background="Transparent" Foreground="{StaticResource TextMain}" BorderThickness="0"
+                                         CaretBrush="{StaticResource BrandTeal}"
+                                         FontSize="13" TextWrapping="Wrap" AcceptsReturn="True" MaxHeight="90" MinHeight="34"
                                          VerticalContentAlignment="Center" VerticalScrollBarVisibility="Auto"
                                          PreviewKeyDown="TxtUserInput_PreviewKeyDown"/>
 
                                 <!-- Placeholder text khi ô trống -->
-                                <TextBlock Grid.Column="0" Text="Nhập yêu cầu của bạn... (Enter gửi, Shift+Enter xuống dòng)" FontSize="12" Foreground="{StaticResource TextDim}"
+                                <TextBlock Grid.Column="0" Text="Nhập câu hỏi hoặc yêu cầu... (Enter gửi, Shift+Enter xuống dòng)" FontSize="12.5" Foreground="{StaticResource TextDim}"
                                            VerticalAlignment="Center" Margin="4,0,0,0" IsHitTestVisible="False">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
@@ -457,16 +644,16 @@
                                 </TextBlock>
 
                                 <!-- Send Button -->
-                                <Button Grid.Column="1" Background="{StaticResource EmeraldDark}" BorderThickness="0" Width="34" Height="34" Cursor="Hand" Margin="4,0,0,0"
+                                <Button Grid.Column="1" Background="{StaticResource BrandTeal}" BorderThickness="0" Width="36" Height="36" Cursor="Hand" Margin="4,0,0,0"
                                         Click="BtnSend_Click" IsEnabled="{Binding CoTheGui}">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border x:Name="bdSend" Background="{TemplateBinding Background}" CornerRadius="8">
-                                                <local:LucideIcon Kind="Send" Size="15" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <Border x:Name="bdSend" Background="{TemplateBinding Background}" CornerRadius="9">
+                                                <local:LucideIcon Kind="Send" Size="16" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="bdSend" Property="Background" Value="{StaticResource EmeraldPrimary}"/>
+                                                    <Setter TargetName="bdSend" Property="Background" Value="{StaticResource BrandTealHover}"/>
                                                 </Trigger>
                                                 <Trigger Property="IsEnabled" Value="False">
                                                     <Setter TargetName="bdSend" Property="Opacity" Value="0.4"/>
@@ -482,10 +669,10 @@
             </Grid>
 
             <!-- GridSplitter phân cách giữa Chat Panel và History Panel -->
-            <GridSplitter Grid.Column="1" Width="1" Background="{StaticResource BorderDark}" HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
+            <GridSplitter Grid.Column="1" Width="1" Background="{StaticResource BorderLight}" HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
 
             <!-- ================= CỘT 2 (BÊN PHẢI): LỊCH SỬ HỘI THOẠI & CÔNG CỤ NHANH ================= -->
-            <Grid Grid.Column="2" Background="{StaticResource PanelHistoryBg}">
+            <Grid Grid.Column="2" Background="{StaticResource HistoryPanelBg}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/> <!-- Header + Close Button -->
                     <RowDefinition Height="Auto"/> <!-- New Chat Button -->
@@ -495,7 +682,7 @@
                 </Grid.RowDefinitions>
 
                 <!-- 1. Header: Tiêu đề Trợ lý EAI & Nút Đóng Sidebar [✕] -->
-                <Border Grid.Row="0" Padding="12,10" BorderBrush="{StaticResource BorderDark}" BorderThickness="0,0,0,1">
+                <Border Grid.Row="0" Background="{StaticResource CardWhite}" Padding="12,10" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,0,0,1">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -504,22 +691,22 @@
                         </Grid.ColumnDefinitions>
 
                         <!-- Icon Bot -->
-                        <Border Grid.Column="0" Background="#064E3B" BorderBrush="#059669" BorderThickness="1" Width="26" Height="26" CornerRadius="7" Margin="0,0,8,0">
-                            <local:LucideIcon Kind="Bot" Size="14" Foreground="#34D399" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border Grid.Column="0" Background="{StaticResource BrandTealSoft}" BorderBrush="{StaticResource BrandTealBorder}" BorderThickness="1" Width="28" Height="28" CornerRadius="8" Margin="0,0,8,0">
+                            <local:LucideIcon Kind="Bot" Size="15" Foreground="{StaticResource BrandTeal}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
 
-                        <TextBlock Grid.Column="1" Text="Trợ lý EAI" FontWeight="Bold" FontSize="13.5" Foreground="{StaticResource TextLight}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="Trợ lý EAI" FontWeight="Bold" FontSize="13.5" Foreground="{StaticResource TextMain}" VerticalAlignment="Center"/>
 
                         <!-- Nút Đóng Sidebar [✕] -->
-                        <Button Grid.Column="2" Width="24" Height="24" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Đóng thanh Trợ lý AI" Click="BtnCloseSidebar_Click">
+                        <Button Grid.Column="2" Width="26" Height="26" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Đóng thanh Trợ lý AI" Click="BtnCloseSidebar_Click">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border x:Name="bClose" Background="Transparent" CornerRadius="5">
-                                        <TextBlock Text="✕" FontSize="12" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border x:Name="bClose" Background="Transparent" CornerRadius="6">
+                                        <TextBlock Text="✕" FontSize="12.5" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="bClose" Property="Background" Value="#1E293B"/>
+                                            <Setter TargetName="bClose" Property="Background" Value="#F1F5F9"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -530,18 +717,19 @@
 
                 <!-- 2. Nút Cuộc trò chuyện mới -->
                 <Border Grid.Row="1" Padding="10,8">
-                    <Button Background="{StaticResource CardDarkBg}" BorderBrush="{StaticResource BorderDark}" BorderThickness="1" Height="36" Cursor="Hand" Click="BtnNewChat_Click">
+                    <Button Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BrandTealBorder}" BorderThickness="1" Height="36" Cursor="Hand" Click="BtnNewChat_Click">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border x:Name="bdNew" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <TextBlock Text="+" FontSize="16" FontWeight="Bold" Foreground="{StaticResource EmeraldPrimary}" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Cuộc trò chuyện mới" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextLight}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="+" FontSize="16" FontWeight="Bold" Foreground="{StaticResource BrandTeal}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Cuộc trò chuyện mới" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrandTeal}" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="bdNew" Property="Background" Value="#334155"/>
+                                        <Setter TargetName="bdNew" Property="Background" Value="{StaticResource BrandTealSoft}"/>
+                                        <Setter TargetName="bdNew" Property="BorderBrush" Value="{StaticResource BrandTeal}"/>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
@@ -560,19 +748,19 @@
                     <TextBlock Grid.Row="0" Text="GẦN ĐÂY" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource TextDim}" Margin="4,4,0,6"/>
 
                     <!-- Ô tìm kiếm cuộc trò chuyện -->
-                    <Border Grid.Row="1" Background="{StaticResource CardDarkBg}" BorderBrush="{StaticResource BorderDark}" BorderThickness="1" CornerRadius="6" Padding="6,3" Margin="0,0,0,6">
+                    <Border Grid.Row="1" Background="{StaticResource CardWhite}" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" CornerRadius="6" Padding="6,3" Margin="0,0,0,6">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <local:LucideIcon Grid.Column="0" Kind="Search" Size="12" Foreground="{StaticResource TextDim}" Margin="0,0,4,0" VerticalAlignment="Center"/>
-                            <TextBox Grid.Column="1" Text="{Binding TuKhoaTimKiem, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" Foreground="White" BorderThickness="0" FontSize="11" VerticalContentAlignment="Center"/>
+                            <TextBox Grid.Column="1" Text="{Binding TuKhoaTimKiem, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" Foreground="{StaticResource TextMain}" BorderThickness="0" FontSize="11.5" VerticalContentAlignment="Center"/>
                         </Grid>
                     </Border>
 
                     <!-- ListBox các cuộc trò chuyện -->
-                    <ListBox Grid.Row="2" ItemsSource="{Binding DanhSachCuocTroChuyenHienThi}" SelectedItem="{Binding CuocTroChuyenHienTai, Mode=TwoWay}"
+                    <ListBox Grid.Row="2" ItemsSource="{Binding DanhSachCuocTroChuyenHienThi}" SelectedItem="{Binding CuocTroChuyenHienTai, Mode=OneWay}"
                              Background="Transparent" BorderThickness="0" SelectionChanged="LstConversations_SelectionChanged">
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
@@ -588,25 +776,25 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <StackPanel Grid.Column="0">
-                                                        <TextBlock Text="{Binding TieuDe}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextLight}" TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding TieuDe}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextMain}" TextTrimming="CharacterEllipsis"/>
                                                         <TextBlock Text="{Binding ThoiGianCapNhatHienThi}" FontSize="10" Foreground="{StaticResource TextDim}" Margin="0,2,0,0"/>
                                                     </StackPanel>
 
                                                     <!-- Delete conversation button on item -->
                                                     <Button Grid.Column="1" x:Name="btnDelConv" Width="20" Height="20" Background="Transparent" BorderThickness="0" Visibility="Collapsed"
                                                             Click="BtnDeleteConversation_Click" Tag="{Binding}">
-                                                        <TextBlock Text="🗑" FontSize="10" Foreground="#EF4444"/>
+                                                        <TextBlock Text="🗑" FontSize="10.5" Foreground="#EF4444"/>
                                                     </Button>
                                                 </Grid>
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="bdConv" Property="Background" Value="#1E293B"/>
+                                                    <Setter TargetName="bdConv" Property="Background" Value="#F1F5F9"/>
                                                     <Setter TargetName="btnDelConv" Property="Visibility" Value="Visible"/>
                                                 </Trigger>
                                                 <Trigger Property="IsSelected" Value="True">
-                                                    <Setter TargetName="bdConv" Property="Background" Value="#1E293B"/>
-                                                    <Setter TargetName="bdConv" Property="BorderBrush" Value="{StaticResource EmeraldPrimary}"/>
+                                                    <Setter TargetName="bdConv" Property="Background" Value="{StaticResource BrandTealSoft}"/>
+                                                    <Setter TargetName="bdConv" Property="BorderBrush" Value="{StaticResource BrandTealBorder}"/>
                                                     <Setter TargetName="bdConv" Property="BorderThickness" Value="1"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
@@ -619,7 +807,7 @@
                 </Grid>
 
                 <!-- 4. CÔNG CỤ NHANH (QUICK TOOLS) -->
-                <Border Grid.Row="3" Padding="10,8" BorderBrush="{StaticResource BorderDark}" BorderThickness="0,1,0,0">
+                <Border Grid.Row="3" Padding="10,8" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0">
                     <StackPanel>
                         <TextBlock Text="CÔNG CỤ NHANH" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource TextDim}" Margin="4,0,0,6"/>
 
@@ -629,13 +817,13 @@
                                 <ControlTemplate TargetType="Button">
                                     <Border x:Name="bTool" Background="{TemplateBinding Background}" CornerRadius="6" Padding="8,5">
                                         <StackPanel Orientation="Horizontal">
-                                            <local:LucideIcon Kind="Search" Size="13" Foreground="{StaticResource EmeraldPrimary}" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Tra cứu dữ liệu" FontSize="11.5" Foreground="{StaticResource TextLight}" VerticalAlignment="Center"/>
+                                            <local:LucideIcon Kind="Search" Size="13" Foreground="{StaticResource BrandTeal}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Tra cứu dữ liệu" FontSize="11.5" Foreground="{StaticResource TextMain}" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="bTool" Property="Background" Value="#1E293B"/>
+                                            <Setter TargetName="bTool" Property="Background" Value="{StaticResource CardWhite}"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -648,13 +836,13 @@
                                 <ControlTemplate TargetType="Button">
                                     <Border x:Name="bTool" Background="{TemplateBinding Background}" CornerRadius="6" Padding="8,5">
                                         <StackPanel Orientation="Horizontal">
-                                            <local:LucideIcon Kind="BarChart" Size="13" Foreground="{StaticResource EmeraldPrimary}" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Phân tích học tập" FontSize="11.5" Foreground="{StaticResource TextLight}" VerticalAlignment="Center"/>
+                                            <local:LucideIcon Kind="BarChart" Size="13" Foreground="{StaticResource BrandTeal}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Phân tích học tập" FontSize="11.5" Foreground="{StaticResource TextMain}" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="bTool" Property="Background" Value="#1E293B"/>
+                                            <Setter TargetName="bTool" Property="Background" Value="{StaticResource CardWhite}"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -667,13 +855,13 @@
                                 <ControlTemplate TargetType="Button">
                                     <Border x:Name="bTool" Background="{TemplateBinding Background}" CornerRadius="6" Padding="8,5">
                                         <StackPanel Orientation="Horizontal">
-                                            <local:LucideIcon Kind="Sparkles" Size="13" Foreground="{StaticResource EmeraldPrimary}" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Tạo câu hỏi AI" FontSize="11.5" Foreground="{StaticResource TextLight}" VerticalAlignment="Center"/>
+                                            <local:LucideIcon Kind="Sparkles" Size="13" Foreground="{StaticResource BrandTeal}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Tạo câu hỏi AI" FontSize="11.5" Foreground="{StaticResource TextMain}" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="bTool" Property="Background" Value="#1E293B"/>
+                                            <Setter TargetName="bTool" Property="Background" Value="{StaticResource CardWhite}"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -686,13 +874,13 @@
                                 <ControlTemplate TargetType="Button">
                                     <Border x:Name="bTool" Background="{TemplateBinding Background}" CornerRadius="6" Padding="8,5">
                                         <StackPanel Orientation="Horizontal">
-                                            <local:LucideIcon Kind="BookOpen" Size="13" Foreground="{StaticResource EmeraldPrimary}" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Hướng dẫn EAI" FontSize="11.5" Foreground="{StaticResource TextLight}" VerticalAlignment="Center"/>
+                                            <local:LucideIcon Kind="BookOpen" Size="13" Foreground="{StaticResource BrandTeal}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Hướng dẫn EAI" FontSize="11.5" Foreground="{StaticResource TextMain}" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="bTool" Property="Background" Value="#1E293B"/>
+                                            <Setter TargetName="bTool" Property="Background" Value="{StaticResource CardWhite}"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -702,11 +890,11 @@
                 </Border>
 
                 <!-- 5. Footer: Trạng thái kết nối & phiên người dùng -->
-                <Border Grid.Row="4" Background="#090E17" Padding="12,8" BorderBrush="{StaticResource BorderDark}" BorderThickness="0,1,0,0">
+                <Border Grid.Row="4" Background="{StaticResource CardWhite}" Padding="12,8" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0">
                     <Grid>
                         <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="6" Height="6" Fill="{StaticResource EmeraldGlow}" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Đang sẵn sàng" FontSize="11" Foreground="{StaticResource EmeraldPrimary}" VerticalAlignment="Center"/>
+                            <Ellipse Width="6" Height="6" Fill="{StaticResource BrandMint}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Đang sẵn sàng" FontSize="11" FontWeight="Medium" Foreground="{StaticResource BrandTeal}" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Grid>
                 </Border>

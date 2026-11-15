@@ -27,7 +27,7 @@ namespace BUS.Assistant
         /// <summary>
         /// Tạo mới một cuộc hội thoại cho người dùng.
         /// </summary>
-        public async Task<AIAssistantConversationDTO> CreateConversationAsync(int userId, string? title = null)
+        public async Task<AIAssistantConversationDTO> CreateConversationAsync(int userId = -1, string? title = null)
         {
             return await Task.Run(() => CreateConversation(userId, title));
         }
@@ -61,7 +61,7 @@ namespace BUS.Assistant
         /// </summary>
         public async Task<List<AIAssistantMessageDTO>> GetMessagesAsync(int conversationId)
         {
-            return await Task.Run(() => GetMessages(conversationId, 0));
+            return await Task.Run(() => GetMessages(conversationId, -1));
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace BUS.Assistant
         /// <summary>
         /// Lấy chi tiết cuộc hội thoại theo ID.
         /// </summary>
-        public async Task<AIAssistantConversationDTO?> GetConversationByIdAsync(int conversationId, int userId = 0)
+        public async Task<AIAssistantConversationDTO?> GetConversationByIdAsync(int conversationId, int userId = -1)
         {
             return await Task.Run(() => GetConversationById(conversationId, userId));
         }
@@ -98,7 +98,7 @@ namespace BUS.Assistant
         /// <summary>
         /// Xóa toàn bộ tin nhắn trong cuộc hội thoại (clear history).
         /// </summary>
-        public async Task<bool> ClearMessagesAsync(int conversationId, int userId = 0)
+        public async Task<bool> ClearMessagesAsync(int conversationId, int userId = -1)
         {
             return await Task.Run(() => ClearMessages(conversationId, userId));
         }
@@ -107,9 +107,14 @@ namespace BUS.Assistant
 
         #region Synchronous Business Methods
 
-        public AIAssistantConversationDTO CreateConversation(int userId, string? title = null, string? activeModel = null, string? customSystemPrompt = null)
+        public AIAssistantConversationDTO CreateConversation(int userId = -1, string? title = null, string? activeModel = null, string? customSystemPrompt = null)
         {
-            int resolvedUserId = userId > 0 ? userId : SessionHelper.CurrentMaNguoiDung;
+            int resolvedUserId = userId > 0 
+                ? userId 
+                : (userId == -1 && SessionHelper.CurrentUser != null && SessionHelper.CurrentMaNguoiDung > 0 
+                    ? SessionHelper.CurrentMaNguoiDung 
+                    : -1);
+
             if (resolvedUserId <= 0)
             {
                 throw new ArgumentException("Mã người dùng không hợp lệ hoặc người dùng chưa đăng nhập.", nameof(userId));
@@ -141,10 +146,11 @@ namespace BUS.Assistant
             return conv;
         }
 
-        public List<AIAssistantConversationDTO> GetConversations(int userId, string? keyword = null, int top = 50)
+        public List<AIAssistantConversationDTO> GetConversations(int userId = -1, string? keyword = null, int top = 50)
         {
-            int resolvedUserId = userId > 0 ? userId : SessionHelper.CurrentMaNguoiDung;
-            if (resolvedUserId <= 0)
+            int resolvedUserId = userId >= 0 ? userId : (userId == -1 ? SessionHelper.CurrentMaNguoiDung : -1);
+
+            if (resolvedUserId < 0)
             {
                 return new List<AIAssistantConversationDTO>();
             }
@@ -156,11 +162,12 @@ namespace BUS.Assistant
             return _dal.LayDanhSachHoiThoai(resolvedUserId, safeKeyword, top);
         }
 
-        public AIAssistantConversationDTO? GetConversationById(int conversationId, int userId = 0)
+        public AIAssistantConversationDTO? GetConversationById(int conversationId, int userId = -1)
         {
             if (conversationId <= 0) return null;
-            int resolvedUserId = userId > 0 ? userId : SessionHelper.CurrentMaNguoiDung;
-            if (resolvedUserId <= 0) return null;
+            int resolvedUserId = userId >= 0 ? userId : (userId == -1 ? SessionHelper.CurrentMaNguoiDung : -1);
+
+            if (resolvedUserId < 0) return null;
             return _dal.LayHoiThoaiTheoId(conversationId, resolvedUserId);
         }
 
@@ -169,8 +176,9 @@ namespace BUS.Assistant
             if (conversationId <= 0) return false;
             if (string.IsNullOrWhiteSpace(newTitle)) return false;
 
-            int resolvedUserId = userId > 0 ? userId : SessionHelper.CurrentMaNguoiDung;
-            if (resolvedUserId <= 0) return false;
+            int resolvedUserId = userId >= 0 ? userId : (userId == -1 ? SessionHelper.CurrentMaNguoiDung : -1);
+
+            if (resolvedUserId < 0) return false;
             string normalized = NormalizeTitle(newTitle);
             return _dal.CapNhatTieuDeHoiThoai(conversationId, resolvedUserId, normalized);
         }
@@ -178,16 +186,18 @@ namespace BUS.Assistant
         public bool DeleteConversation(int conversationId, int userId, bool hardDelete = false)
         {
             if (conversationId <= 0) return false;
-            int resolvedUserId = userId > 0 ? userId : SessionHelper.CurrentMaNguoiDung;
-            if (resolvedUserId <= 0) return false;
+            int resolvedUserId = userId >= 0 ? userId : (userId == -1 ? SessionHelper.CurrentMaNguoiDung : -1);
+
+            if (resolvedUserId < 0) return false;
             return _dal.XoaHoiThoai(conversationId, resolvedUserId, hardDelete);
         }
 
-        public List<AIAssistantMessageDTO> GetMessages(int conversationId, int userId = 0)
+        public List<AIAssistantMessageDTO> GetMessages(int conversationId, int userId = -1)
         {
             if (conversationId <= 0) return new List<AIAssistantMessageDTO>();
-            int resolvedUserId = userId > 0 ? userId : SessionHelper.CurrentMaNguoiDung;
-            if (resolvedUserId <= 0) return new List<AIAssistantMessageDTO>();
+            int resolvedUserId = userId >= 0 ? userId : (userId == -1 ? SessionHelper.CurrentMaNguoiDung : -1);
+
+            if (resolvedUserId < 0) return new List<AIAssistantMessageDTO>();
             return _dal.LayDanhSachTinNhan(conversationId, resolvedUserId);
         }
 
@@ -236,11 +246,12 @@ namespace BUS.Assistant
             return msg;
         }
 
-        public bool ClearMessages(int conversationId, int userId = 0)
+        public bool ClearMessages(int conversationId, int userId = -1)
         {
             if (conversationId <= 0) return false;
-            int resolvedUserId = userId > 0 ? userId : SessionHelper.CurrentMaNguoiDung;
-            if (resolvedUserId <= 0) return false;
+            int resolvedUserId = userId >= 0 ? userId : SessionHelper.CurrentMaNguoiDung;
+
+            if (resolvedUserId < 0) return false;
             return _dal.XoaTatCaTinNhan(conversationId, resolvedUserId);
         }
 

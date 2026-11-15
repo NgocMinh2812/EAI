@@ -433,6 +433,7 @@ namespace GUI.Views.GiangVien
             aiAssistantSidebar.Visibility = Visibility.Visible;
             colRightAssistant.Width = new GridLength(680);
             aiAssistantSidebar.UpdateCurrentPage(AdminMainFrame.Content?.GetType().Name);
+            _ = aiAssistantSidebar.LamMoiDuLieuAsync();
         }
 
         public void DongAIAssistantSidebar()

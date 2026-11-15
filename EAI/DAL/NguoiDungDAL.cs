@@ -13,6 +13,7 @@ namespace DAL
 
         public NguoiDungDTO? DangNhap(string usernameOrEmail, string matKhauMaHoa, string rawPassword = "")
         {
+            string rawPwd = string.IsNullOrEmpty(rawPassword) ? matKhauMaHoa : rawPassword;
             string query = @"
                 SELECT nd.MaNguoiDung, nd.MaVaiTro, vt.TenVaiTro, nd.TenDangNhap, nd.MatKhauMaHoa, 
                        nd.Email, nd.HoTen, nd.NgaySinh, nd.SoDienThoai, nd.DuongDanAnhDaiDien, 
@@ -30,12 +31,13 @@ namespace DAL
                 INNER JOIN VaiTro vt ON nd.MaVaiTro = vt.MaVaiTro
                 LEFT JOIN HoSoHocTap hs ON nd.MaNguoiDung = hs.MaNguoiDung
                 WHERE (nd.TenDangNhap = @Identifier OR nd.Email = @Identifier)
-                  AND nd.MatKhauMaHoa = @Password;";
+                  AND (nd.MatKhauMaHoa = @Password OR nd.MatKhauMaHoa = @RawPassword);";
 
             SqlParameter[] parameters = new[]
             {
                 new SqlParameter("@Identifier", usernameOrEmail),
-                new SqlParameter("@Password", matKhauMaHoa)
+                new SqlParameter("@Password", matKhauMaHoa),
+                new SqlParameter("@RawPassword", rawPwd)
             };
 
             DataTable table = SqlDataProvider.Instance.ExecuteQuery(query, parameters);
@@ -43,16 +45,25 @@ namespace DAL
             {
                 var user = FromDataRow(table.Rows[0]);
 
-                // Cập nhật lần đăng nhập cuối
-                string updateLastLogin = @"
-                    UPDATE NguoiDung 
-                    SET LanDangNhapCuoi = SYSDATETIME()
-                    WHERE MaNguoiDung = @MaND";
-                SqlDataProvider.Instance.ExecuteNonQuery(updateLastLogin, new[] 
+                // Tự động nâng cấp mật khẩu từ plain-text sang SHA-256 hash nếu tài khoản dùng mật khẩu cũ
+                bool needsPasswordHashUpgrade = !string.Equals(user.MatKhauMaHoa, matKhauMaHoa, StringComparison.OrdinalIgnoreCase);
+
+                string updateSql = needsPasswordHashUpgrade
+                    ? @"UPDATE NguoiDung 
+                        SET LanDangNhapCuoi = SYSDATETIME(),
+                            MatKhauMaHoa = @Password
+                        WHERE MaNguoiDung = @MaND"
+                    : @"UPDATE NguoiDung 
+                        SET LanDangNhapCuoi = SYSDATETIME()
+                        WHERE MaNguoiDung = @MaND";
+
+                SqlDataProvider.Instance.ExecuteNonQuery(updateSql, new[] 
                 { 
-                    new SqlParameter("@MaND", user.MaNguoiDung)
+                    new SqlParameter("@MaND", user.MaNguoiDung),
+                    new SqlParameter("@Password", matKhauMaHoa)
                 });
 
+                user.MatKhauMaHoa = matKhauMaHoa;
                 user.LanDangNhapCuoi = DateTime.Now;
                 return user;
             }

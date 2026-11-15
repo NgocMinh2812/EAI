@@ -12,7 +12,12 @@ namespace BUS.Assistant
     /// </summary>
     public class AssistantToolRegistry
     {
-        private static readonly Lazy<AssistantToolRegistry> _instance = new(() => new AssistantToolRegistry());
+        private static readonly Lazy<AssistantToolRegistry> _instance = new(() =>
+        {
+            var registry = new AssistantToolRegistry();
+            registry.RegisterDefaultTools(false);
+            return registry;
+        });
         public static AssistantToolRegistry Instance => _instance.Value;
 
         private readonly Dictionary<string, IAssistantTool> _tools = new(StringComparer.OrdinalIgnoreCase);
@@ -102,9 +107,6 @@ namespace BUS.Assistant
             {
                 name = t.Name,
                 description = t.Description,
-                category = t.Category,
-                is_write = t.IsWriteOperation,
-                requires_confirmation = t.RequiresConfirmation,
                 parameters = t.Parameters.Select(p => new
                 {
                     name = p.Name,
@@ -118,7 +120,7 @@ namespace BUS.Assistant
 
             var options = new JsonSerializerOptions
             {
-                WriteIndented = true,
+                WriteIndented = false,
                 DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
             };
 

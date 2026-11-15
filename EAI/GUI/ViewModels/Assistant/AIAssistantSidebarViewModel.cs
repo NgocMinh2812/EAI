@@ -104,6 +104,154 @@ namespace GUI.ViewModels.Assistant
                 return _questionPreview;
             }
         }
+
+        private UserListCardPayload? _userListPreview;
+        public UserListCardPayload? UserListPreview
+        {
+            get
+            {
+                if (_userListPreview == null && !string.IsNullOrWhiteSpace(CardPayloadJson) &&
+                    (CardType == "UserListCard" || (CardPayloadJson.Contains("\"users\"") && CardPayloadJson.Contains("\"totalCount\""))))
+                {
+                    try
+                    {
+                        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                        _userListPreview = JsonSerializer.Deserialize<UserListCardPayload>(CardPayloadJson, options);
+                    }
+                    catch
+                    {
+                        _userListPreview = null;
+                    }
+                }
+                return _userListPreview;
+            }
+        }
+
+        private LessonListCardPayload? _lessonListPreview;
+        public LessonListCardPayload? LessonListPreview
+        {
+            get
+            {
+                if (_lessonListPreview == null && !string.IsNullOrWhiteSpace(CardPayloadJson) &&
+                    (CardType == "LessonListCard" || CardPayloadJson.Contains("\"lessons\"")))
+                {
+                    try
+                    {
+                        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                        _lessonListPreview = JsonSerializer.Deserialize<LessonListCardPayload>(CardPayloadJson, options);
+                    }
+                    catch
+                    {
+                        _lessonListPreview = null;
+                    }
+                }
+                return _lessonListPreview;
+            }
+        }
+
+        private ExamListCardPayload? _examListPreview;
+        public ExamListCardPayload? ExamListPreview
+        {
+            get
+            {
+                if (_examListPreview == null && !string.IsNullOrWhiteSpace(CardPayloadJson) &&
+                    (CardType == "ExamListCard" || CardPayloadJson.Contains("\"exams\"")))
+                {
+                    try
+                    {
+                        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                        _examListPreview = JsonSerializer.Deserialize<ExamListCardPayload>(CardPayloadJson, options);
+                    }
+                    catch
+                    {
+                        _examListPreview = null;
+                    }
+                }
+                return _examListPreview;
+            }
+        }
+
+        public bool HasQuestionPreview => QuestionPreview != null;
+        public bool HasUserListPreview => UserListPreview != null;
+        public bool HasLessonListPreview => LessonListPreview != null;
+        public bool HasExamListPreview => ExamListPreview != null;
+        public bool HasVisualCard => HasQuestionPreview || HasUserListPreview || HasLessonListPreview || HasExamListPreview;
+        public bool HasVisibleCardContent => HasVisualCard || CanConfirm;
+    }
+
+    public class UserCardItem
+    {
+        public int UserId { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public string RoleDisplay { get; set; } = "Học viên";
+        public bool IsActive { get; set; } = true;
+        public string? TargetLevel { get; set; }
+        public string? LastLogin { get; set; }
+
+        public string AvatarInitials
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(FullName)) return "U";
+                var parts = FullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length == 1) return parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpper();
+                return $"{parts[0][0]}{parts[^1][0]}".ToUpper();
+            }
+        }
+
+        public string StatusColor => IsActive ? "#10B981" : "#EF4444";
+        public string StatusText => IsActive ? "Hoạt động" : "Đã khóa";
+    }
+
+    public class UserListCardPayload
+    {
+        public int TotalCount { get; set; }
+        public int DisplayedCount { get; set; }
+        public string? Keyword { get; set; }
+        public string? Role { get; set; }
+        public List<UserCardItem> Users { get; set; } = new();
+    }
+
+    public class LessonCardItem
+    {
+        public int LessonId { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Skill { get; set; } = string.Empty;
+        public string SkillDisplay { get; set; } = string.Empty;
+        public string Level { get; set; } = string.Empty;
+        public string TopicName { get; set; } = string.Empty;
+        public int DurationMinutes { get; set; }
+        public string Summary { get; set; } = string.Empty;
+        public bool IsPublished { get; set; }
+    }
+
+    public class LessonListCardPayload
+    {
+        public int TotalCount { get; set; }
+        public int DisplayedCount { get; set; }
+        public List<LessonCardItem> Lessons { get; set; } = new();
+    }
+
+    public class ExamCardItem
+    {
+        public int ExamId { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string ExamTypeDisplay { get; set; } = string.Empty;
+        public string Level { get; set; } = string.Empty;
+        public int DurationMinutes { get; set; }
+        public int TotalQuestions { get; set; }
+        public string StatusDisplay { get; set; } = string.Empty;
+        public int AttemptCount { get; set; }
+    }
+
+    public class ExamListCardPayload
+    {
+        public int TotalCount { get; set; }
+        public int DisplayedCount { get; set; }
+        public List<ExamCardItem> Exams { get; set; } = new();
     }
 
     public class AIAssistantSidebarViewModel : ViewModelBase
@@ -122,6 +270,7 @@ namespace GUI.ViewModels.Assistant
         private string _trangThaiText = "Đang sẵn sàng";
         private string _tenModelHienThi = "AI Assistant";
         private CancellationTokenSource? _cts;
+        private bool _isRefreshingConversations = false;
 
         public ObservableCollection<AIAssistantConversationDTO> DanhSachCuocTroChuyen { get; } = new();
         public ObservableCollection<AIAssistantConversationDTO> DanhSachCuocTroChuyenHienThi { get; } = new();
@@ -132,10 +281,17 @@ namespace GUI.ViewModels.Assistant
             get => _cuocTroChuyenHienTai;
             set
             {
+                // Khi đang đồng bộ/làm mới danh sách hội thoại trong nền, không cho phép gán null làm mất cuộc hội thoại đang chat
+                if (_isRefreshingConversations && value == null) return;
+
                 if (SetProperty(ref _cuocTroChuyenHienTai, value))
                 {
                     OnPropertyChanged(nameof(TieuDeCuocTroChuyenHienTai));
                     OnPropertyChanged(nameof(CoCuocTroChuyenHienTai));
+                    if (value != null)
+                    {
+                        _ = LoadMessagesForCurrentSessionAsync(value.MaHoiThoai);
+                    }
                 }
             }
         }
@@ -240,18 +396,38 @@ namespace GUI.ViewModels.Assistant
         {
             try
             {
+                int currentId = CuocTroChuyenHienTai?.MaHoiThoai ?? -1;
+                var currentConv = CuocTroChuyenHienTai;
+
                 int userId = SessionHelper.CurrentMaNguoiDung;
-                if (userId <= 0) userId = 1; // Khách mặc định
+                if (userId <= 0) userId = 1; // Khách mặc định (chưa đăng nhập)
 
                 var list = await _conversationService.GetConversationsAsync(userId, null);
                 
-                DanhSachCuocTroChuyen.Clear();
-                foreach (var item in list)
+                _isRefreshingConversations = true;
+                try
                 {
-                    DanhSachCuocTroChuyen.Add(item);
+                    DanhSachCuocTroChuyen.Clear();
+                    foreach (var item in list)
+                    {
+                        DanhSachCuocTroChuyen.Add(item);
+                    }
+
+                    LocDanhSachCuocTroChuyen();
+                }
+                finally
+                {
+                    _isRefreshingConversations = false;
                 }
 
-                LocDanhSachCuocTroChuyen();
+                if (currentId > 0)
+                {
+                    var matched = DanhSachCuocTroChuyen.FirstOrDefault(c => c.MaHoiThoai == currentId);
+                    _cuocTroChuyenHienTai = matched ?? currentConv;
+                    OnPropertyChanged(nameof(CuocTroChuyenHienTai));
+                    OnPropertyChanged(nameof(TieuDeCuocTroChuyenHienTai));
+                    OnPropertyChanged(nameof(CoCuocTroChuyenHienTai));
+                }
             }
             catch (Exception ex)
             {
@@ -295,15 +471,14 @@ namespace GUI.ViewModels.Assistant
             }
         }
 
-        public async Task ChonCuocTroChuyenAsync(AIAssistantConversationDTO? conv)
+        public async Task LoadMessagesForCurrentSessionAsync(int conversationId)
         {
-            if (conv == null) return;
-            CuocTroChuyenHienTai = conv;
-            DanhSachTinNhan.Clear();
-
+            if (conversationId <= 0) return;
             try
             {
-                var messages = await _conversationService.GetMessagesAsync(conv.MaHoiThoai);
+                int uid = SessionHelper.CurrentMaNguoiDung > 0 ? SessionHelper.CurrentMaNguoiDung : (_cuocTroChuyenHienTai?.MaNguoiDung > 0 ? _cuocTroChuyenHienTai.MaNguoiDung : 1);
+                var messages = await _conversationService.GetMessagesAsync(conversationId, uid);
+                DanhSachTinNhan.Clear();
                 foreach (var m in messages)
                 {
                     var item = new AssistantChatMessageItem
@@ -325,8 +500,18 @@ namespace GUI.ViewModels.Assistant
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ChonCuocTroChuyenAsync] {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[LoadMessagesForCurrentSessionAsync] {ex.Message}");
             }
+        }
+
+        public async Task ChonCuocTroChuyenAsync(AIAssistantConversationDTO? conv)
+        {
+            if (conv == null) return;
+            _cuocTroChuyenHienTai = conv;
+            OnPropertyChanged(nameof(CuocTroChuyenHienTai));
+            OnPropertyChanged(nameof(TieuDeCuocTroChuyenHienTai));
+            OnPropertyChanged(nameof(CoCuocTroChuyenHienTai));
+            await LoadMessagesForCurrentSessionAsync(conv.MaHoiThoai);
         }
 
         public async Task GuiTinNhanAsync(string? tinNhanTuyChon = null)

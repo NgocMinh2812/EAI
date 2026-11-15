@@ -26,11 +26,11 @@ namespace BUS.Assistant
             if (string.IsNullOrWhiteSpace(role)) return RoleGuest;
 
             string r = role.Trim().ToLowerInvariant();
-            if (r.Contains("admin") || r.Contains("quantri") || r == "1")
+            if (r.Contains("admin") || r.Contains("quantri") || r == "1" || r == "3")
             {
                 return RoleAdmin;
             }
-            if (r.Contains("giangvien") || r.Contains("giang vien") || r.Contains("teacher") || r.Contains("lecturer"))
+            if (r.Contains("giangvien") || r.Contains("giang vien") || r.Contains("teacher") || r.Contains("lecturer") || r == "0")
             {
                 return RoleLecturer;
             }

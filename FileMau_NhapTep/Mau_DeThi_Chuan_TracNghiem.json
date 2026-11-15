@@ -1,0 +1,117 @@
+﻿[
+  {
+    "MaCauHoi": 0,
+    "NoiDungCauHoi": "She ______ to school by bus every morning.",
+    "DanhSachLuaChon": [
+      "go",
+      "goes",
+      "going",
+      "went"
+    ],
+    "DapAnDungIndex": 1,
+    "GiaiThichChiTiet": "Thì hiện tại đơn diễn tả thói quen lặp lại, chủ ngữ ngôi thứ 3 số ít 'She' chia động từ 'goes'.",
+    "LuaChonCuaNguoiDung": -1,
+    "DaTraLoiDung": null,
+    "IsSelected": true,
+    "KyNang": "NguPhap",
+    "DoKho": "De",
+    "TrinhDo": "A2",
+    "LoaiCauHoi": "TracNghiem",
+    "DoanVanDoc": null,
+    "DapAnVanBan": null,
+    "TieuChiCham": null,
+    "AudioScript": null
+  },
+  {
+    "MaCauHoi": 0,
+    "NoiDungCauHoi": "Which word is closest in meaning to 'enormous'?",
+    "DanhSachLuaChon": [
+      "Tiny",
+      "Huge",
+      "Weak",
+      "Fast"
+    ],
+    "DapAnDungIndex": 1,
+    "GiaiThichChiTiet": "'Enormous' và 'Huge' đều mang nghĩa là to lớn, khổng lồ.",
+    "LuaChonCuaNguoiDung": -1,
+    "DaTraLoiDung": null,
+    "IsSelected": true,
+    "KyNang": "TuVung",
+    "DoKho": "TrungBinh",
+    "TrinhDo": "B1",
+    "LoaiCauHoi": "TracNghiem",
+    "DoanVanDoc": null,
+    "DapAnVanBan": null,
+    "TieuChiCham": null,
+    "AudioScript": null
+  },
+  {
+    "MaCauHoi": 0,
+    "NoiDungCauHoi": "If I had known about the meeting, I ______ attended.",
+    "DanhSachLuaChon": [
+      "would have",
+      "will have",
+      "had",
+      "would"
+    ],
+    "DapAnDungIndex": 0,
+    "GiaiThichChiTiet": "Cấu trúc câu điều kiện loại 3: If + S + had + V3/ed, S + would have + V3/ed.",
+    "LuaChonCuaNguoiDung": -1,
+    "DaTraLoiDung": null,
+    "IsSelected": true,
+    "KyNang": "NguPhap",
+    "DoKho": "Kho",
+    "TrinhDo": "B2",
+    "LoaiCauHoi": "TracNghiem",
+    "DoanVanDoc": null,
+    "DapAnVanBan": null,
+    "TieuChiCham": null,
+    "AudioScript": null
+  },
+  {
+    "MaCauHoi": 0,
+    "NoiDungCauHoi": "The company reported a substantial increase in quarterly revenue despite the economic downturn.",
+    "DanhSachLuaChon": [
+      "slight",
+      "significant",
+      "negligible",
+      "temporary"
+    ],
+    "DapAnDungIndex": 1,
+    "GiaiThichChiTiet": "Trong ngữ cảnh kinh tế và thương mại, 'substantial' đồng nghĩa với 'significant' (đáng kể, vượt bậc).",
+    "LuaChonCuaNguoiDung": -1,
+    "DaTraLoiDung": null,
+    "IsSelected": true,
+    "KyNang": "Doc",
+    "DoKho": "TrungBinh",
+    "TrinhDo": "B2",
+    "LoaiCauHoi": "TracNghiem",
+    "DoanVanDoc": null,
+    "DapAnVanBan": null,
+    "TieuChiCham": null,
+    "AudioScript": null
+  },
+  {
+    "MaCauHoi": 0,
+    "NoiDungCauHoi": "Where will the international technology conference be hosted next month?",
+    "DanhSachLuaChon": [
+      "At the central convention center",
+      "Online via video conference",
+      "In the main university hall",
+      "At the city exhibition center"
+    ],
+    "DapAnDungIndex": 0,
+    "GiaiThichChiTiet": "Thông tin xác nhận sự kiện hội nghị công nghệ diễn ra tại Trung tâm hội nghị trung tâm.",
+    "LuaChonCuaNguoiDung": -1,
+    "DaTraLoiDung": null,
+    "IsSelected": true,
+    "KyNang": "Nghe",
+    "DoKho": "TrungBinh",
+    "TrinhDo": "B1",
+    "LoaiCauHoi": "TracNghiem",
+    "DoanVanDoc": null,
+    "DapAnVanBan": null,
+    "TieuChiCham": null,
+    "AudioScript": null
+  }
+]

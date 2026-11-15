@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -107,6 +108,12 @@ namespace BUS.Assistant
             };
         }
 
+        private static readonly JsonSerializerOptions _defaultJsonOptions = new()
+        {
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            WriteIndented = false
+        };
+
         public static AssistantToolResult OkWithJsonPayload<T>(string message, T payload, string cardType)
         {
             return new AssistantToolResult
@@ -115,7 +122,7 @@ namespace BUS.Assistant
                 Message = message,
                 Data = payload,
                 CardType = cardType,
-                CardPayloadJson = JsonSerializer.Serialize(payload)
+                CardPayloadJson = JsonSerializer.Serialize(payload, _defaultJsonOptions)
             };
         }
 

@@ -28,10 +28,18 @@ namespace BUS.Assistant
         {
             var user = SessionHelper.CurrentUser;
             int userId = SessionHelper.CurrentMaNguoiDung;
-            int guestOrUserId = userId > 0 ? userId : 0;
-            string username = user?.TenDangNhap ?? (userId > 0 ? $"user_{userId}" : "khach");
-            string fullName = user?.HoTen ?? (userId > 0 ? username : "Khách vãng lai");
+            int guestOrUserId = userId >= 0 ? userId : 0;
+            string username = user?.TenDangNhap ?? (userId >= 0 ? $"user_{userId}" : "khach");
+            string fullName = user?.HoTen ?? (userId >= 0 ? username : "Khách vãng lai");
             string userRole = SessionHelper.CurrentRole;
+            if (SessionHelper.IsAdmin && (string.Equals(userRole, "Khach", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(userRole)))
+            {
+                userRole = "QuanTriVien";
+            }
+            else if (SessionHelper.IsGiangVien && (string.Equals(userRole, "Khach", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(userRole)))
+            {
+                userRole = "GiangVien";
+            }
 
             var (pageCode, pageTitle, targetId, targetType) = DetectActivePage();
 

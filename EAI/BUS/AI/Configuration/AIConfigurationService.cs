@@ -328,11 +328,12 @@ namespace BUS.AI.Configuration
                 {
                     new() { Id = "gemini-2.0-flash", DisplayName = "Gemini 2.0 Flash (Khuyên dùng - Tốc độ cao)", ProviderType = AIProviderType.Gemini, ProviderName = "Google Gemini", OwnedBy = "Google", AccessTier = "free" },
                     new() { Id = "gemini-1.5-flash", DisplayName = "Gemini 1.5 Flash (Tiêu chuẩn)", ProviderType = AIProviderType.Gemini, ProviderName = "Google Gemini", OwnedBy = "Google", AccessTier = "free" },
-                    new() { Id = "gemini-1.5-pro", DisplayName = "Gemini 1.5 Pro (Học thuật chuyên sâu)", ProviderType = AIProviderType.Gemini, ProviderName = "Google Gemini", OwnedBy = "Google", AccessTier = "paid" },
-                    new() { Id = "gemini-flash-latest", DisplayName = "Gemini Flash Latest", ProviderType = AIProviderType.Gemini, ProviderName = "Google Gemini", OwnedBy = "Google", AccessTier = "free" }
+                    new() { Id = "gemini-1.5-flash-8b", DisplayName = "Gemini 1.5 Flash-8B (Tối ưu độ trễ & Tiết kiệm)", ProviderType = AIProviderType.Gemini, ProviderName = "Google Gemini", OwnedBy = "Google", AccessTier = "free" },
+                    new() { Id = "gemini-1.5-pro", DisplayName = "Gemini 1.5 Pro (Học thuật chuyên sâu)", ProviderType = AIProviderType.Gemini, ProviderName = "Google Gemini", OwnedBy = "Google", AccessTier = "paid" }
                 },
                 AIProviderType.Groq => new List<AIModelInfo>
                 {
+                    new() { Id = "llama-3.1-8b-instant", DisplayName = "Llama 3.1 8B Instant (Siêu tốc & Quota 30k TPM cao nhất)", ProviderType = AIProviderType.Groq, ProviderName = "Groq Cloud", OwnedBy = "Meta", AccessTier = "free" },
                     new() { Id = "llama-3.3-70b-versatile", DisplayName = "Llama 3.3 70B Versatile (Mạnh mẽ)", ProviderType = AIProviderType.Groq, ProviderName = "Groq Cloud", OwnedBy = "Meta", AccessTier = "free" },
                     new() { Id = "qwen/qwen3.8-27b", DisplayName = "Qwen 3.8 27B (Đa ngôn ngữ tốt)", ProviderType = AIProviderType.Groq, ProviderName = "Groq Cloud", OwnedBy = "Alibaba", AccessTier = "free" },
                     new() { Id = "openai/gpt-oss-120b", DisplayName = "GPT OSS 120B", ProviderType = AIProviderType.Groq, ProviderName = "Groq Cloud", OwnedBy = "OpenAI", AccessTier = "free" },

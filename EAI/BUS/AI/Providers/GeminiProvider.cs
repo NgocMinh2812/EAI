@@ -13,7 +13,7 @@ namespace BUS.AI.Providers
 {
     public class GeminiProvider : IAIProvider
     {
-        private static readonly HttpClient _httpClient = new() { Timeout = TimeSpan.FromSeconds(25) };
+        private static readonly HttpClient _httpClient = new() { Timeout = TimeSpan.FromSeconds(60) };
 
         public string ProviderName => "Google Gemini";
         public AIProviderType ProviderType => AIProviderType.Gemini;
@@ -25,8 +25,7 @@ namespace BUS.AI.Providers
             "gemini-2.0-flash",
             "gemini-1.5-flash",
             "gemini-1.5-flash-8b",
-            "gemini-1.5-pro",
-            "gemini-flash-latest"
+            "gemini-1.5-pro"
         };
 
         public string DefaultModel => "gemini-2.0-flash";
@@ -65,7 +64,7 @@ namespace BUS.AI.Providers
                 generationConfig = new
                 {
                     temperature = 0.4,
-                    maxOutputTokens = 8192
+                    maxOutputTokens = 2048
                 }
             };
 
@@ -81,7 +80,7 @@ namespace BUS.AI.Providers
                     string endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{currentModel}:generateContent?key={apiKey}";
                     using var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
-                    using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+                    using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
                     using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
 
                     var response = await _httpClient.PostAsync(endpoint, content, linkedCts.Token);
@@ -136,8 +135,13 @@ namespace BUS.AI.Providers
                 }
                 catch (OperationCanceledException)
                 {
-                    lastError = $"Timeout khi gọi mô hình {currentModel}";
+                    if (ct.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    lastError = $"Gemini: Quá trình phản hồi bị quá thời gian chờ (Timeout sau 45 giây). Vui lòng thử lại hoặc chuyển sang mô hình Groq / Ollama.";
                     lastCode = 408;
+                    break;
                 }
                 catch (Exception ex)
                 {

@@ -244,27 +244,39 @@ namespace DAL.Assistant
                 
                 DECLARE @NewMsgId BIGINT = SCOPE_IDENTITY();
 
-                UPDATE AIAssistantConversation
+                UPDATE AIAssistantConversation WITH (ROWLOCK)
                 SET TongSoTinNhan = ISNULL(TongSoTinNhan, 0) + 1,
                     NgayCapNhat = SYSDATETIME()
                 WHERE MaHoiThoai = @MaHoiThoai;
 
                 SELECT @NewMsgId;";
 
-            SqlParameter[] parameters = {
-                new SqlParameter("@MaHoiThoai", msg.MaHoiThoai),
-                new SqlParameter("@VaiTro", string.IsNullOrWhiteSpace(msg.VaiTro) ? "user" : msg.VaiTro.Trim()),
-                new SqlParameter("@NoiDung", msg.NoiDung ?? string.Empty),
-                new SqlParameter("@ToolCallsJson", (object?)msg.ToolCallsJson ?? DBNull.Value),
-                new SqlParameter("@ToolResultJson", (object?)msg.ToolResultJson ?? DBNull.Value),
-                new SqlParameter("@CardPayloadJson", (object?)msg.CardPayloadJson ?? DBNull.Value),
-                new SqlParameter("@TrangThai", string.IsNullOrWhiteSpace(msg.TrangThai) ? "Sent" : msg.TrangThai.Trim())
-            };
+            for (int attempt = 0; attempt < 5; attempt++)
+            {
+                try
+                {
+                    SqlParameter[] parameters = {
+                        new SqlParameter("@MaHoiThoai", msg.MaHoiThoai),
+                        new SqlParameter("@VaiTro", string.IsNullOrWhiteSpace(msg.VaiTro) ? "user" : msg.VaiTro.Trim()),
+                        new SqlParameter("@NoiDung", msg.NoiDung ?? string.Empty),
+                        new SqlParameter("@ToolCallsJson", (object?)msg.ToolCallsJson ?? DBNull.Value),
+                        new SqlParameter("@ToolResultJson", (object?)msg.ToolResultJson ?? DBNull.Value),
+                        new SqlParameter("@CardPayloadJson", (object?)msg.CardPayloadJson ?? DBNull.Value),
+                        new SqlParameter("@TrangThai", string.IsNullOrWhiteSpace(msg.TrangThai) ? "Sent" : msg.TrangThai.Trim())
+                    };
 
-            object? result = SqlDataProvider.Instance.ExecuteScalar(query, parameters);
-            long newMsgId = result != null && result != DBNull.Value ? Convert.ToInt64(result) : 0;
-            msg.MaTinNhan = newMsgId;
-            return newMsgId;
+                    object? result = SqlDataProvider.Instance.ExecuteScalar(query, parameters);
+                    long newMsgId = result != null && result != DBNull.Value ? Convert.ToInt64(result) : 0;
+                    msg.MaTinNhan = newMsgId;
+                    return newMsgId;
+                }
+                catch (SqlException ex) when (ex.Number == 1205 && attempt < 4)
+                {
+                    System.Threading.Thread.Sleep(50 * (attempt + 1));
+                }
+            }
+
+            return 0;
         }
 
         /// <summary>
@@ -342,7 +354,7 @@ namespace DAL.Assistant
         /// </summary>
         public bool CapNhatMoHinhUuTien(int maHoiThoai, int maNguoiDung, string moHinh)
         {
-            if (maHoiThoai <= 0 || maNguoiDung <= 0) return false;
+            if (maHoiThoai <= 0 || maNguoiDung < 0) return false;
 
             string query = @"
                 UPDATE AIAssistantConversation

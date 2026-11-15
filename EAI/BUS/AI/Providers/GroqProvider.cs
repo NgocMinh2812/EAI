@@ -14,7 +14,7 @@ namespace BUS.AI.Providers
 {
     public class GroqProvider : IAIProvider
     {
-        private static readonly HttpClient _httpClient = new() { Timeout = TimeSpan.FromSeconds(25) };
+        private static readonly HttpClient _httpClient = new() { Timeout = TimeSpan.FromSeconds(50) };
         private const string GroqBaseUrl = "https://api.groq.com/openai/v1";
 
         public string ProviderName => "Groq Cloud";
@@ -24,11 +24,11 @@ namespace BUS.AI.Providers
 
         public IReadOnlyList<string> SupportedModels => new[]
         {
+            "llama-3.1-8b-instant",
+            "llama-3.3-70b-versatile",
             "qwen/qwen3.8-27b",
             "openai/gpt-oss-120b",
-            "openai/gpt-oss-20b",
-            "allam-2-7b",
-            "llama-3.3-70b-versatile"
+            "openai/gpt-oss-20b"
         };
 
         public string DefaultModel => "qwen/qwen3.8-27b";
@@ -44,33 +44,17 @@ namespace BUS.AI.Providers
             string targetModel = string.IsNullOrWhiteSpace(model) ? DefaultModel : model;
             string endpoint = $"{GroqBaseUrl}/chat/completions";
 
-            object requestObj;
-            if (targetModel.Contains("qwen", StringComparison.OrdinalIgnoreCase))
+            int maxTokens = targetModel.Contains("8b", StringComparison.OrdinalIgnoreCase) ? 2048 : 1024;
+            var requestObj = new
             {
-                requestObj = new
+                model = targetModel,
+                messages = new[]
                 {
-                    model = targetModel,
-                    messages = new[]
-                    {
-                        new { role = "user", content = prompt }
-                    },
-                    temperature = 0.4,
-                    max_tokens = 3500
-                };
-            }
-            else
-            {
-                requestObj = new
-                {
-                    model = targetModel,
-                    messages = new[]
-                    {
-                        new { role = "user", content = prompt }
-                    },
-                    temperature = 0.4,
-                    max_tokens = 3500
-                };
-            }
+                    new { role = "user", content = prompt }
+                },
+                temperature = 0.4,
+                max_tokens = maxTokens
+            };
 
             string requestJson = JsonSerializer.Serialize(requestObj);
             var sw = Stopwatch.StartNew();
@@ -117,7 +101,11 @@ namespace BUS.AI.Providers
             catch (OperationCanceledException)
             {
                 sw.Stop();
-                return AIResponse.Fail(ProviderName, "Yêu cầu tới Groq API bị timeout (quá 15s).", 408, sw.ElapsedMilliseconds);
+                if (ct.IsCancellationRequested)
+                {
+                    throw;
+                }
+                return AIResponse.Fail(ProviderName, "Yêu cầu tới Groq API bị quá thời gian chờ (Timeout 45s).", 408, sw.ElapsedMilliseconds);
             }
             catch (Exception ex)
             {

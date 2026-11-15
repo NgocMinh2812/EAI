@@ -518,7 +518,7 @@ Mục tiêu của bạn là đồng hành, giải đáp thắc mắc, hỗ trợ
 
 [QUY TẮC PHẢN HỒI]:
 1. Luôn phản hồi lịch sự, tôn trọng, giải thích rõ ràng và tự nhiên bằng tiếng Việt chuẩn (trừ khi hướng dẫn ngữ pháp, từ vựng hoặc phát âm tiếng Anh).
-2. TUYỆT ĐỐI TUÂN THỦ PHÂN QUYỀN: Người dùng chỉ được phép truy cập các công cụ được liệt kê trong danh mục bên dưới. Đừng bao giờ bịa đặt công cụ hoặc gợi ý hành động vượt thẩm quyền.
+2. TUYỆT ĐỐI TUÂN THỦ PHÂN QUYỀN: Người dùng chỉ được phép truy cập các công cụ được liệt kê trong danh mục bên dưới. Khi người dùng là Quản trị viên (QuanTriVien/Admin) hoặc Giảng viên (GiangVien), họ có đầy đủ quyền hạn quản lý, tra cứu người dùng, tạo nội dung/câu hỏi, xem báo cáo thống kê và kiểm tra hệ thống; hãy hỗ trợ tối đa bằng các công cụ khả dụng bên dưới hoặc trả lời trực tiếp câu hỏi, tuyệt đối KHÔNG từ chối hoặc báo 'không có quyền' khi họ thực hiện các tác vụ học tập hoặc quản trị.
 3. TUYỆT ĐỐI KHÔNG SINH HOẶC THỰC THI LỆNH SQL THÔ (Raw SQL), không sinh script PowerShell, cmd hoặc mã thực thi C# tùy ý. Mọi truy vấn dữ liệu chỉ được thông qua danh mục công cụ an toàn đã đăng ký.
 4. KHI CẦN GỌI CÔNG CỤ (FUNCTION CALLING):
    - Bạn CHỈ ĐƯỢC CHỌN từ danh mục công cụ khả dụng bên dưới.
@@ -699,7 +699,11 @@ Mục tiêu của bạn là đồng hành, giải đáp thắc mắc, hỗ trợ
                 staged_at = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             };
 
-            return JsonSerializer.Serialize(previewObj, new JsonSerializerOptions { WriteIndented = true });
+            return JsonSerializer.Serialize(previewObj, new JsonSerializerOptions 
+            { 
+                WriteIndented = true, 
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping 
+            });
         }
 
         #endregion

@@ -322,6 +322,7 @@ namespace GUI
             aiAssistantSidebar.Visibility = Visibility.Visible;
             colRightAssistant.Width = new GridLength(680);
             aiAssistantSidebar.UpdateCurrentPage(MainFrame.Content?.GetType().Name);
+            _ = aiAssistantSidebar.LamMoiDuLieuAsync();
         }
 
         public void DongAIAssistantSidebar()

@@ -93,7 +93,7 @@ namespace BUS.AI
             var sw = Stopwatch.StartNew();
 
             // 1. ƯU TIÊN SỐ 1: GỌI QUA CENTRALIZED BACKEND EAI.AIBackend.API (http://localhost:5281)
-            if (Configuration.AIConfigHelper.IsUseCentralizedBackend())
+            if (Configuration.AIConfigHelper.IsUseCentralizedBackend() && await EAIBackendClient.IsBackendAvailableAsync(ct))
             {
                 try
                 {

@@ -11,7 +11,7 @@ namespace BUS
         public static int CurrentMaNguoiDung => CurrentUser?.MaNguoiDung ?? -1;
         public static string CurrentRole => CurrentUser?.TenVaiTro ?? "Khach";
 
-        public static bool IsLoggedIn => CurrentUser != null && CurrentUser.MaNguoiDung > 0;
+        public static bool IsLoggedIn => CurrentUser != null && CurrentUser.MaNguoiDung >= 0;
 
         public static bool IsGiangVien => 
             CurrentUser != null && 
