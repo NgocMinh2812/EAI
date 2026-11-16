@@ -420,10 +420,12 @@ Ultimately, harmonizing state-level infrastructure enhancement with widespread c
                 {
                     TrinhDo = _currentLevel,
                     DoDai = $"{_targetMinWords}-{_targetMaxWords} từ",
+                    MinWords = _targetMinWords,
+                    MaxWords = _targetMaxWords,
                     ChuDe = topic
                 };
 
-                var (success, deBai, err) = await BaiVietAIBUS.Instance.TaoDeBaiVietAIAsync(req);
+                var (success, deBai, err) = await BaiVietAIBUS.Instance.TaoDeBaiVietAIAsync(req, previousPrompt: txtEssayTopic.Text);
 
                 if (success && deBai != null)
                 {

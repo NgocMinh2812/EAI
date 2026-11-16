@@ -124,291 +124,37 @@ namespace BUS
         /// Tạo đề bài luyện viết và hướng dẫn bố cục 3 phần chi tiết bằng AI
         /// </summary>
         public async Task<(bool Success, DeBaiVietAIDTO? DeBai, string? ErrorMessage)> TaoDeBaiVietAIAsync(
-            DeBaiYeuCauDTO req, 
-            CancellationToken ct = default)
+            DeBaiYeuCauDTO req,
+            CancellationToken ct = default,
+            string? previousPrompt = null)
         {
-            string activeModel = AIConfigurationService.Instance.ActiveModel;
-            var activeProvider = AIConfigurationService.Instance.ActiveProvider;
+            if (req == null || string.IsNullOrWhiteSpace(req.ChuDe))
+                return (false, null, "Bạn hãy nhập chủ đề muốn luyện viết.");
 
-            string prompt = $@"
-Bạn là Chuyên gia thiết kế bài tập Viết tiếng Anh (English Writing Coach).
-Nhiệm vụ: Hãy tạo 1 đề bài luyện viết đoạn văn phù hợp với các tiêu chí của người học và cung cấp HƯỚNG DẪN BỐ CỤC ĐOẠN VĂN chi tiết:
-
-TIÊU CHÍ YÊU CẦU:
-- Trình độ người học: {req.TrinhDo} (CEFR Level)
-- Chủ đề: {req.ChuDe}
-- BẮT BUỘC: Đề bài, dàn ý, từ vựng và câu hỏi gợi ý phải bám sát chủ đề người học nhập ở trên. Các nội dung trong JSON mẫu bên dưới chỉ minh họa cấu trúc; không sao chép đề mẫu hoặc tự đổi chủ đề.
-- Dạng bài: {req.DangBai}
-- Độ dài yêu cầu: {req.DoDai}
-
-YÊU CẦU ĐỊNH DẠNG TRẢ VỀ:
-Trả về DUY NHẤT một chuỗi JSON hợp lệ (không kèm theo giải thích ngoài khối JSON) với cấu trúc:
-{{
-  ""TieuDe"": ""My Favorite Learning Experience"",
-  ""MoTaYeuCau"": ""Viết một đoạn văn ({req.DoDai}) miêu tả về trải nghiệm học tập mà bạn yêu thích nhất và lý do bạn thấy nó hữu ích."",
-  ""TrinhDo"": ""{req.TrinhDo}"",
-  ""ChuDe"": ""{req.ChuDe}"",
-  ""DangBai"": ""{req.DangBai}"",
-  ""SoTuYeuCau"": ""{req.DoDai}"",
-  ""MinWords"": {req.MinWords},
-  ""MaxWords"": {req.MaxWords},
-  ""CauHoiDinhHuong"": [
-    ""What was the learning experience and when did it take place?"",
-    ""Who did you study with or what tools did you use?"",
-    ""Why was it memorable and what knowledge or skills did you acquire?""
-  ],
-  ""TuVungGoiY"": [
-    ""fascinating (adj): hấp dẫn, lôi cuốn"",
-    ""broaden knowledge (v phr): mở rộng hiểu biết"",
-    ""hands-on experience (n phr): trải nghiệm thực tế"",
-    ""collaborative learning (n phr): học tập hợp tác""
-  ],
-  ""NguPhapGoiY"": [
-    ""Thì Quá khứ đơn (Past Simple) để kể lại trải nghiệm"",
-    ""Cấu trúc 'Not only... but also' để bổ sung thông tin"",
-    ""Mệnh đề quan hệ rút gọn (Relative clauses)""
-  ],
-  ""HuongDanBoCuc"": {{
-    ""MoDoan"": {{
-      ""HuongDan"": ""Giới thiệu trực tiếp trải nghiệm hoặc chủ đề của đoạn văn trong 1 câu duy nhất."",
-      ""CauHoiDinhHuong"": ""Chủ đề chính của đề bài là gì? Đâu là ý kiến hoặc góc nhìn cốt lõi của bạn?"",
-      ""CauMoDauGoiY"": ""Among all my academic activities, studying English online has been the most rewarding experience for me."",
-      ""GiaiThichCauTruc"": ""Chủ ngữ là danh từ/cụm V-ing, sử dụng thì Hiện tại hoàn thành để nhấn mạnh giá trị đến hiện tại.""
-    }},
-    ""ThanDoan"": {{
-      ""CauHoiDinhHuong"": ""Vì sao bạn nhận định như vậy? Có ví dụ thực tế nào chứng minh cho ý kiến của bạn không?"",
-      ""DanhSachYChinh"": [
-        {{
-          ""YChinh"": ""Ý 1: Nêu bối cảnh hoặc thời điểm bắt đầu trải nghiệm"",
-          ""CauHoiDinhHuong"": ""When and why did you decide to start?"",
-          ""TuNoiGoiY"": ""First and foremost"",
-          ""TuVungNguPhap"": ""take up, initially, embark on""
-        }},
-        {{
-          ""YChinh"": ""Ý 2: Nêu phương pháp hoặc hoạt động chính bạn đã làm"",
-          ""CauHoiDinhHuong"": ""What specific methods or tools helped you learn effectively?"",
-          ""TuNoiGoiY"": ""Moreover / In addition"",
-          ""TuVungNguPhap"": ""interactive apps, daily practice, expand vocabulary""
-        }},
-        {{
-          ""YChinh"": ""Ý 3: Kết quả và bài học hữu ích bạn đạt được"",
-          ""CauHoiDinhHuong"": ""How has this experience improved your skills or mindset?"",
-          ""TuNoiGoiY"": ""As a result / Because of this"",
-          ""TuVungNguPhap"": ""significant progress, self-confidence, achieve goals""
-        }}
-      ],
-      ""ViDuMinhHoaSatDe"": ""For example, learners can practice speaking with AI chatbots and review recorded grammar lectures at midnight without commuting."",
-      ""TuNoiKhuyenDung"": [""First"", ""Moreover"", ""Because"", ""For example"", ""Finally"", ""In addition""]
-    }},
-    ""KetDoan"": {{
-      ""HuongDan"": ""Khẳng định lại tầm quan trọng của trải nghiệm hoặc cảm nghĩ cá nhân của bạn."",
-      ""CauHoiDinhHuong"": ""Tóm lại, thông điệp hoặc lời khuyên quan trọng nhất bạn muốn để lại cho người đọc là gì?"",
-      ""CauKetLuanGoiY"": ""In conclusion, this meaningful learning journey has not only enriched my knowledge but also motivated me to keep learning every day.""
-    }}
-  }}
-}}
-";
-
+            bool useBackend = AIConfigHelper.IsUseCentralizedBackend();
+            string? model = useBackend ? null : AIConfigurationService.Instance.ActiveModel;
+            string? provider = useBackend ? null : AIConfigurationService.Instance.ActiveProvider.ToString();
+            string prompt = WritingTopicContent.BuildPrompt(req, previousPrompt);
             try
             {
-                var resp = await AIServiceManager.Instance.ExecutePromptAsync(
-                    prompt: prompt,
-                    preferredProvider: activeProvider.ToString(),
-                    preferredModel: activeModel,
-                    actionName: "Tao De Bai Viet AI",
-                    ct: ct);
-
-                if (resp != null && resp.Success && !string.IsNullOrWhiteSpace(resp.Text))
+                for (int attempt = 0; attempt < 2; attempt++)
                 {
-                    var parsed = ParseDeBaiViet(resp.Text, req);
-                    if (parsed != null)
-                    {
-                        return (true, parsed, null);
-                    }
+                    var response = await AIServiceManager.Instance.ExecutePromptAsync(
+                        prompt, provider, model, "GenerateWritingTopic", ct);
+                    if (!response.Success)
+                        return (false, null, response.ErrorMessage ?? "Dịch vụ AI chưa tạo được đề. Vui lòng thử lại.");
+                    var topic = WritingTopicContent.Parse(response.Text, req);
+                    if (topic != null) return (true, topic, null);
+                    prompt += "\nThe previous response was incomplete or invalid JSON. Return a complete JSON object matching every required field, including all three outline sections. No markdown or extra text.";
                 }
+                return (false, null, "AI chưa trả về đề bài và dàn ý hợp lệ. Vui lòng thử lại; ứng dụng không thay thế bằng đề mẫu.");
             }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[BaiVietAIBUS] Lỗi gọi AI tạo đề: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[BaiVietAIBUS] Tạo đề thất bại: {ex.Message}");
+                return (false, null, "Chưa tạo được đề bằng AI. Vui lòng kiểm tra kết nối và thử lại.");
             }
-
-            // Fallback thông minh tạo đề chuẩn CEFR nếu API offline hoặc lỗi
-            var fallbackDe = CreateSmartFallbackDeBai(req);
-            return (true, fallbackDe, null);
-        }
-
-        private DeBaiVietAIDTO? ParseDeBaiViet(string rawText, DeBaiYeuCauDTO req)
-        {
-            string cleanJson = ExtractJsonBlock(rawText);
-            try
-            {
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    AllowTrailingCommas = true,
-                    ReadCommentHandling = JsonCommentHandling.Skip
-                };
-
-                var de = JsonSerializer.Deserialize<DeBaiVietAIDTO>(cleanJson, options);
-                if (de != null && !string.IsNullOrWhiteSpace(de.TieuDe))
-                {
-                    de.TrinhDo = req.TrinhDo;
-                    de.ChuDe = req.ChuDe;
-                    de.DangBai = req.DangBai;
-                    de.SoTuYeuCau = req.DoDai;
-                    de.MinWords = req.MinWords;
-                    de.MaxWords = req.MaxWords;
-                    EnsureBoCucValid(de, req);
-                    return de;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[BaiVietAIBUS] Lỗi parse JSON đề bài: {ex.Message}");
-            }
-
-            return null;
-        }
-
-        private void EnsureBoCucValid(DeBaiVietAIDTO de, DeBaiYeuCauDTO req)
-        {
-            de.HuongDanBoCuc ??= new HuongDanBoCucDTO();
-            de.HuongDanBoCuc.MoDoan ??= new HuongDanMoDoanDTO();
-            de.HuongDanBoCuc.ThanDoan ??= new HuongDanThanDoanDTO();
-            de.HuongDanBoCuc.KetDoan ??= new HuongDanKetDoanDTO();
-
-            if (string.IsNullOrWhiteSpace(de.HuongDanBoCuc.MoDoan.HuongDan))
-            {
-                de.HuongDanBoCuc.MoDoan.HuongDan = "Giới thiệu ý tưởng chính của đoạn văn (Topic Sentence).";
-                de.HuongDanBoCuc.MoDoan.CauMoDauGoiY = $"When it comes to {req.ChuDe.ToLower()}, there are several important aspects to consider.";
-            }
-            if (string.IsNullOrWhiteSpace(de.HuongDanBoCuc.MoDoan.CauHoiDinhHuong))
-            {
-                de.HuongDanBoCuc.MoDoan.CauHoiDinhHuong = $"Chủ đề chính của bài là gì? Đâu là ý kiến hoặc góc nhìn cốt lõi của bạn về {req.ChuDe.ToLower()}?";
-            }
-
-            if (de.HuongDanBoCuc.ThanDoan.DanhSachYChinh == null || de.HuongDanBoCuc.ThanDoan.DanhSachYChinh.Count == 0)
-            {
-                de.HuongDanBoCuc.ThanDoan.DanhSachYChinh = new List<YChinhThanDoanDTO>
-                {
-                    new YChinhThanDoanDTO { YChinh = "Ý chính 1: Nêu quan điểm/lý do đầu tiên", CauHoiDinhHuong = "Why is this point significant?", TuNoiGoiY = "First and foremost", TuVungNguPhap = "essential, plays an important role" },
-                    new YChinhThanDoanDTO { YChinh = "Ý chính 2: Đưa ra ví dụ hoặc lời giải thích minh họa", CauHoiDinhHuong = "Can you give a specific example?", TuNoiGoiY = "For example / In fact", TuVungNguPhap = "demonstrate, notably" },
-                    new YChinhThanDoanDTO { YChinh = "Ý chính 3: Tác động hoặc kết quả nhận được", CauHoiDinhHuong = "What is the consequence or benefit?", TuNoiGoiY = "Consequently / Therefore", TuVungNguPhap = "lead to, achieve positive outcomes" }
-                };
-            }
-            if (string.IsNullOrWhiteSpace(de.HuongDanBoCuc.ThanDoan.CauHoiDinhHuong))
-            {
-                de.HuongDanBoCuc.ThanDoan.CauHoiDinhHuong = "Vì sao bạn nhận định như vậy? Có ví dụ thực tế nào chứng minh cho ý kiến của bạn không?";
-            }
-            if (string.IsNullOrWhiteSpace(de.HuongDanBoCuc.ThanDoan.ViDuMinhHoaSatDe))
-            {
-                de.HuongDanBoCuc.ThanDoan.ViDuMinhHoaSatDe = "For example, real-world practical instances demonstrate these direct outcomes in daily life.";
-            }
-
-            if (string.IsNullOrWhiteSpace(de.HuongDanBoCuc.KetDoan.HuongDan))
-            {
-                de.HuongDanBoCuc.KetDoan.HuongDan = "Tổng kết lại ý chính và đưa ra cảm nghĩ cá nhân (Concluding Sentence).";
-                de.HuongDanBoCuc.KetDoan.CauKetLuanGoiY = "In conclusion, maintaining a proactive attitude towards this matter will bring about substantial advantages.";
-            }
-            if (string.IsNullOrWhiteSpace(de.HuongDanBoCuc.KetDoan.CauHoiDinhHuong))
-            {
-                de.HuongDanBoCuc.KetDoan.CauHoiDinhHuong = "Tóm lại, thông điệp hoặc lời khuyên quan trọng nhất bạn muốn nhấn mạnh là gì?";
-            }
-        }
-
-        private DeBaiVietAIDTO CreateSmartFallbackDeBai(DeBaiYeuCauDTO req)
-        {
-            string topicTitle;
-            string desc;
-            string topicSentence;
-            string concludingSentence;
-            List<string> vocabList;
-            List<string> grammarList;
-
-            switch (req.ChuDe)
-            {
-                case "Công nghệ":
-                    topicTitle = "The Role of Technology in Everyday Life";
-                    desc = $"Viết một đoạn văn ({req.DoDai}) {req.DangBai.ToLower()} về việc công nghệ số đang thay đổi đời sống hoặc học tập của bạn như thế nào.";
-                    topicSentence = "Technological innovation has fundamentally transformed the way modern individuals communicate and acquire knowledge.";
-                    concludingSentence = "In conclusion, embracing digital tools responsibly is indispensable for personal and academic development.";
-                    vocabList = new List<string> { "indispensable (adj): không thể thiếu", "streamline (v): tinh gọn, tối ưu", "cutting-edge (adj): tiên tiến", "autonomous learning (n): học tự chủ" };
-                    grammarList = new List<string> { "Hiện tại hoàn thành (Present Perfect)", "Mệnh đề trạng ngữ nguyên nhân (Because / As)", "Câu điều kiện loại 1 (Conditional Type 1)" };
-                    break;
-
-                case "Môi trường":
-                    topicTitle = "Protecting the Environment in Our Community";
-                    desc = $"Viết một đoạn văn ({req.DoDai}) {req.DangBai.ToLower()} về các hành động thiết thực mà mỗi cá nhân có thể làm để bảo vệ môi trường sống xung quanh.";
-                    topicSentence = "Protecting the local environment requires conscious efforts and collective actions from every community member.";
-                    concludingSentence = "In brief, even minor green habits can make a profound difference in preserving our planet.";
-                    vocabList = new List<string> { "sustainable (adj): bền vững", "carbon footprint (n): dấu chân carbon", "recycle and reuse (v): tái chế và tái sử dụng", "eco-friendly (adj): thân thiện môi trường" };
-                    grammarList = new List<string> { "Động từ khuyết thiếu (Should / Must / Ought to)", "Cấu trúc 'By + V-ing' chỉ cách thức", "Liên từ kết quả (Consequently / Therefore)" };
-                    break;
-
-                case "Sức khỏe":
-                    topicTitle = "Maintaining a Healthy Lifestyle for Students";
-                    desc = $"Viết một đoạn văn ({req.DoDai}) {req.DangBai.ToLower()} về thói quen ăn uống và rèn luyện thể chất để duy trì sức khỏe tốt khi học tập căng thẳng.";
-                    topicSentence = "Adopting a balanced routine of physical activity and nutritious eating is paramount for student well-being.";
-                    concludingSentence = "Ultimately, prioritizing one's health empowers students to excel both academically and mentally.";
-                    vocabList = new List<string> { "paramount (adj): tối quan trọng", "balanced diet (n): chế độ ăn cân bằng", "sedentary lifestyle (n): lối sống ít vận động", "boost immunity (v): tăng đề kháng" };
-                    grammarList = new List<string> { "Danh động từ làm chủ ngữ (Gerund as Subject)", "Cấu trúc 'Not only... but also'", "Thì Hiện tại đơn (Present Simple)" };
-                    break;
-
-                default: // Học tập, Bản thân, v.v.
-                    topicTitle = $"The Importance of {req.ChuDe} in Modern Life";
-                    desc = $"Viết một đoạn văn ({req.DoDai}) {req.DangBai.ToLower()} về vai trò và những trải nghiệm thực tế của bạn liên quan đến chủ đề {req.ChuDe}.";
-                    topicSentence = $"Understanding and dedicating effort to {req.ChuDe.ToLower()} is a cornerstone of personal growth.";
-                    concludingSentence = "To sum up, investing time in this area yields long-lasting rewards for the future.";
-                    vocabList = new List<string> { "cornerstone (n): nền tảng vững chắc", "persevere (v): kiên trì", "valuable asset (n): tài sản quý giá", "enhance capability (v): nâng cao năng lực" };
-                    grammarList = new List<string> { "Cấu trúc so sánh hơn/nhất (Comparative / Superlative)", "Mệnh đề quan hệ (Relative Clauses)", "Liên từ nối ý (Moreover / However)" };
-                    break;
-            }
-
-            var de = new DeBaiVietAIDTO
-            {
-                TieuDe = topicTitle,
-                MoTaYeuCau = desc,
-                TrinhDo = req.TrinhDo,
-                ChuDe = req.ChuDe,
-                DangBai = req.DangBai,
-                SoTuYeuCau = req.DoDai,
-                MinWords = req.MinWords,
-                MaxWords = req.MaxWords,
-                CauHoiDinhHuong = new List<string>
-                {
-                    $"Why is {req.ChuDe.ToLower()} significant to you?",
-                    "What specific examples or experiences illustrate this point?",
-                    "What advice or conclusion would you share with others?"
-                },
-                TuVungGoiY = vocabList,
-                NguPhapGoiY = grammarList,
-                HuongDanBoCuc = new HuongDanBoCucDTO
-                {
-                    MoDoan = new HuongDanMoDoanDTO
-                    {
-                        HuongDan = "Viết câu chủ đề (Topic Sentence) giới thiệu trực tiếp nội dung đoạn văn.",
-                        CauMoDauGoiY = topicSentence,
-                        GiaiThichCauTruc = "Sử dụng chủ ngữ rõ ràng và động từ khẳng định mang tính tổng quát."
-                    },
-                    ThanDoan = new HuongDanThanDoanDTO
-                    {
-                        DanhSachYChinh = new List<YChinhThanDoanDTO>
-                        {
-                            new YChinhThanDoanDTO { YChinh = "Luận điểm 1: Lợi ích hoặc thực trạng nổi bật", CauHoiDinhHuong = "What is the most evident advantage?", TuNoiGoiY = "To begin with", TuVungNguPhap = "crucial factor, notably" },
-                            new YChinhThanDoanDTO { YChinh = "Luận điểm 2: Dẫn chứng hoặc ví dụ cụ thể", CauHoiDinhHuong = "How does this manifest in daily life?", TuNoiGoiY = "For instance / Furthermore", TuVungNguPhap = "illustrate, daily routine" },
-                            new YChinhThanDoanDTO { YChinh = "Luận điểm 3: Giải pháp hoặc bài học rút ra", CauHoiDinhHuong = "What action should be taken?", TuNoiGoiY = "Therefore / Consequently", TuVungNguPhap = "take proactive steps" }
-                        },
-                        TuNoiKhuyenDung = new List<string> { "To begin with", "Furthermore", "For instance", "Consequently", "In addition" }
-                    },
-                    KetDoan = new HuongDanKetDoanDTO
-                    {
-                        HuongDan = "Viết câu kết luận (Concluding Sentence) đúc kết thông điệp chính.",
-                        CauKetLuanGoiY = concludingSentence
-                    }
-                }
-            };
-
-            return de;
         }
         #endregion
 

@@ -97,7 +97,7 @@ namespace BUS.AI
             if (Configuration.AIConfigHelper.IsUseCentralizedBackend())
             {
                 // Bộ 10 câu kèm lời giải cần nhiều nội dung hơn một tin nhắn chat.
-                var maxTokens = actionName.StartsWith("SinhCauHoiQuiz_", StringComparison.Ordinal) || actionName == "GenerateQuestionBank" ? 8192 : 2048;
+                var maxTokens = actionName.StartsWith("SinhCauHoiQuiz_", StringComparison.Ordinal) || (actionName == "GenerateQuestionBank" || actionName == "GenerateWritingTopic") ? 8192 : 2048;
                 var beResponse = await EAIBackendClient.GenerateContentAsync(prompt, preferredProvider, preferredModel, ct, maxTokens);
                 Metrics.Record(new AIRequestLog
                 {
