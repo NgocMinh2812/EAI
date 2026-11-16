@@ -78,7 +78,7 @@ namespace BUS
             }
 
             // 1. Trắc nghiệm / Lựa chọn
-            if (q.IsDangLuaChon || (q.DanhSachLuaChon != null && q.DanhSachLuaChon.Count > 1))
+            if (q.IsDangLuaChon)
             {
                 if (maLuaChon.HasValue && correctOpt != null && maLuaChon.Value == correctOpt.MaLuaChon)
                 {
@@ -107,7 +107,7 @@ namespace BUS
                     foreach (var sub in subTargets)
                     {
                         string targetClean = ChuankHoaChuoiTraLoi(sub);
-                        if (userClean.Equals(targetClean, StringComparison.OrdinalIgnoreCase))
+                        if (userClean.Length > 0 && userClean.Equals(targetClean, StringComparison.OrdinalIgnoreCase))
                         {
                             isCorrect = true;
                             break;
@@ -127,11 +127,10 @@ namespace BUS
         private static string ChuankHoaChuoiTraLoi(string raw)
         {
             if (string.IsNullOrWhiteSpace(raw)) return "";
-            string s = raw.Trim().ToLowerInvariant();
-            s = s.TrimEnd('.', '?', '!', ',', ';');
-            while (s.Contains("  "))
-                s = s.Replace("  ", " ");
-            return s;
+            string s = System.Net.WebUtility.HtmlDecode(raw).Normalize(System.Text.NormalizationForm.FormKC)
+                .Replace('\u2019', '\'').Replace('\u2018', '\'').Replace('\u201c', '"').Replace('\u201d', '"');
+            s = System.Text.RegularExpressions.Regex.Replace(s, @"\s+", " ").Trim();
+            return s.TrimEnd('.', '?', '!', ',', ';').Trim().ToLowerInvariant();
         }
 
         /// <summary>

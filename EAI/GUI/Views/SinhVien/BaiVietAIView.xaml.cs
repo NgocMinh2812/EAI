@@ -402,6 +402,14 @@ Ultimately, harmonizing state-level infrastructure enhancement with widespread c
 
         private async void BtnCustomAITopic_Click(object sender, RoutedEventArgs e)
         {
+            string topic = txtCustomWritingTopic.Text.Trim();
+            if (string.IsNullOrWhiteSpace(topic))
+            {
+                ThongBaoDialog.CanhBao("Bạn hãy nhập chủ đề muốn luyện viết trước khi tạo đề nhé.", "Chưa có chủ đề");
+                txtCustomWritingTopic.Focus();
+                return;
+            }
+            txtCustomWritingTopic.IsEnabled = false;
             btnCustomAITopic.IsEnabled = false;
             var originalContent = btnCustomAITopic.Content;
             btnCustomAITopic.Content = "⏳ Đang tạo đề...";
@@ -412,7 +420,7 @@ Ultimately, harmonizing state-level infrastructure enhancement with widespread c
                 {
                     TrinhDo = _currentLevel,
                     DoDai = $"{_targetMinWords}-{_targetMaxWords} từ",
-                    ChuDe = "Đời sống, Học tập hoặc Công nghệ"
+                    ChuDe = topic
                 };
 
                 var (success, deBai, err) = await BaiVietAIBUS.Instance.TaoDeBaiVietAIAsync(req);
@@ -484,6 +492,7 @@ Ultimately, harmonizing state-level infrastructure enhancement with widespread c
             }
             finally
             {
+                txtCustomWritingTopic.IsEnabled = true;
                 btnCustomAITopic.IsEnabled = true;
                 btnCustomAITopic.Content = originalContent;
             }

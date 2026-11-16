@@ -137,6 +137,7 @@ Nhiệm vụ: Hãy tạo 1 đề bài luyện viết đoạn văn phù hợp v�
 TIÊU CHÍ YÊU CẦU:
 - Trình độ người học: {req.TrinhDo} (CEFR Level)
 - Chủ đề: {req.ChuDe}
+- BẮT BUỘC: Đề bài, dàn ý, từ vựng và câu hỏi gợi ý phải bám sát chủ đề người học nhập ở trên. Các nội dung trong JSON mẫu bên dưới chỉ minh họa cấu trúc; không sao chép đề mẫu hoặc tự đổi chủ đề.
 - Dạng bài: {req.DangBai}
 - Độ dài yêu cầu: {req.DoDai}
 

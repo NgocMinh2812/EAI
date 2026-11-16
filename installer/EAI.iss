@@ -35,7 +35,7 @@
 #define MyAppName "EnglishAI"
 
 ; Phiên bản của bộ cài; đồng thời dùng để so sánh với bản đã cài trên máy.
-#define MyAppVersion "1.0.3"
+#define MyAppVersion "1.0.5"
 
 ; SourcePath là thư mục chứa file .iss này (installer).
 ; Bản publish nằm ở EAI\publish\win-x64 trong project; không dùng bin\Debug.

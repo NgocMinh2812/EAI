@@ -203,10 +203,23 @@
                             </WrapPanel>
 
                             <!-- Nút AI tạo đề -->
-                            <Button Grid.Column="1" x:Name="btnCustomAITopic" Content="✨ AI tạo đề" Style="{StaticResource SecondaryButton}" VerticalAlignment="Center" Margin="6,0,0,0" Click="BtnCustomAITopic_Click"/>
                         </Grid>
                     </Border>
 
+                    <Border Style="{StaticResource CardStyle}" Padding="14" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Chủ đề muốn luyện viết" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextDark}" Margin="0,0,0,8"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="txtCustomWritingTopic" MaxLength="300" MinHeight="40" Padding="10,8" VerticalContentAlignment="Center" ToolTip="Nhập chủ đề hoặc yêu cầu viết của bạn (tối đa 300 ký tự)"/>
+                                <Button Grid.Column="1" x:Name="btnCustomAITopic" Content="AI tạo đề" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0" VerticalAlignment="Center" Click="BtnCustomAITopic_Click"/>
+                            </Grid>
+                            <TextBlock Text="Ví dụ: Du lịch Đà Lạt, lợi ích của việc nuôi mèo, hoặc công việc IT mơ ước." TextWrapping="Wrap" FontSize="11.5" Foreground="{StaticResource TextGray}" Margin="0,7,0,0"/>
+                        </StackPanel>
+                    </Border>
                     <!-- 2. KHUNG ĐỀ BÀI HIỆN TẠI -->
                     <Border Background="#F8FAFC" CornerRadius="10" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="14" Margin="0,0,0,12">
                         <StackPanel>

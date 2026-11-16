@@ -377,13 +377,6 @@ namespace GUI.Views
             LoadFlashcards();
         }
 
-        private void TabDictation_Click(object sender, RoutedEventArgs e)
-        {
-            if (IsPracticeInProgress && !RequestExitPractice()) return;
-            _practiceMediaPlayer.Stop();
-            SetActiveTab(tabDictation, pnlDictation);
-        }
-
         private void SetActiveTab(Button activeBtn, StackPanel activePnl)
         {
             if (!_isInitialized) return;
@@ -394,7 +387,6 @@ namespace GUI.Views
             tabWrongQuestions.BorderBrush = Brushes.Transparent; tabWrongQuestions.Foreground = textGray; tabWrongQuestions.FontWeight = FontWeights.Medium;
             tabHistory.BorderBrush = Brushes.Transparent; tabHistory.Foreground = textGray; tabHistory.FontWeight = FontWeights.Medium;
             tabFlashcard.BorderBrush = Brushes.Transparent; tabFlashcard.Foreground = textGray; tabFlashcard.FontWeight = FontWeights.Medium;
-            tabDictation.BorderBrush = Brushes.Transparent; tabDictation.Foreground = textGray; tabDictation.FontWeight = FontWeights.Medium;
 
             activeBtn.BorderBrush = brandTeal;
             activeBtn.Foreground = brandTeal;
@@ -404,7 +396,6 @@ namespace GUI.Views
             pnlWrongQuestions.Visibility = Visibility.Collapsed;
             pnlHistory.Visibility = Visibility.Collapsed;
             pnlFlashcard.Visibility = Visibility.Collapsed;
-            pnlDictation.Visibility = Visibility.Collapsed;
 
             activePnl.Visibility = Visibility.Visible;
         }

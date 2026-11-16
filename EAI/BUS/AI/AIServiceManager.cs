@@ -97,7 +97,7 @@ namespace BUS.AI
             if (Configuration.AIConfigHelper.IsUseCentralizedBackend())
             {
                 // Bộ 10 câu kèm lời giải cần nhiều nội dung hơn một tin nhắn chat.
-                var maxTokens = actionName.StartsWith("SinhCauHoiQuiz_", StringComparison.Ordinal) ? 8192 : 2048;
+                var maxTokens = actionName.StartsWith("SinhCauHoiQuiz_", StringComparison.Ordinal) || actionName == "GenerateQuestionBank" ? 8192 : 2048;
                 var beResponse = await EAIBackendClient.GenerateContentAsync(prompt, preferredProvider, preferredModel, ct, maxTokens);
                 Metrics.Record(new AIRequestLog
                 {
@@ -282,6 +282,8 @@ namespace BUS.AI
                     };
                 }
 
+                // Nghe hiểu phải có ngữ liệu thật, kể cả khi chỉ nhập chủ đề.
+                if (normSkill == "Nghe") laSoanTuDo = false;
                 string prompt;
                 if (laSoanTuDo)
                 {
@@ -387,7 +389,9 @@ Trả về DUY NHẤT một mảng JSON thuần túy (không kèm markdown văn 
 ]";
                 }
 
-                var response = await ExecutePromptAsync(prompt, preferredProvider, preferredModel, "Tạo câu hỏi bằng AI", ct);
+                if (normSkill == "Nghe")
+                    prompt += "\nLISTENING REQUIREMENT: First compose an original complete English listening script about the requested topic. Put the complete shared script in DoanVanDoc on the first question; leave DoanVanDoc empty on the remaining questions that use the same script. Do not duplicate it in AudioScript. All answers must be supported by that script. Never return a sample audio URL, placeholder script or empty script. If the provided content is only a topic, write the script yourself.";
+                var response = await ExecutePromptAsync(prompt, preferredProvider, preferredModel, "GenerateQuestionBank", ct);
                 if (response.Success && !string.IsNullOrWhiteSpace(response.Text))
                 {
                     string cleanJson = response.Text.Trim();
@@ -413,10 +417,12 @@ Trả về DUY NHẤT một mảng JSON thuần túy (không kèm markdown văn 
 
                     if (questions != null && questions.Count > 0)
                     {
+                        if (normSkill == "Nghe") ListeningQuestionContent.PrepareSet(questions);
                         string passage = laSoanTuDo ? "" : BoCauHoiBUS.TrichXuatDoanVanDocHieu(cleanContent);
                         for (int i = 0; i < questions.Count; i++)
                         {
                             var q = questions[i];
+
                             q.DanhSachLuaChon ??= new List<string>();
                             if (string.IsNullOrWhiteSpace(q.KyNang)) q.KyNang = normSkill;
                             if (string.IsNullOrWhiteSpace(q.DoKho)) q.DoKho = i < 2 ? "De" : (i >= 8 ? "Kho" : "TrungBinh");
@@ -452,6 +458,8 @@ Trả về DUY NHẤT một mảng JSON thuần túy (không kèm markdown văn 
                 System.Diagnostics.Debug.WriteLine($"[AIServiceManager.BocTachCauHoiAsync] Lỗi: {ex.Message}");
             }
 
+            if (BoCauHoiBUS.ChuankHoaKyNang(loaiBaiHoc) == "Nghe")
+                throw new InvalidOperationException("Chưa tạo được câu hỏi nghe kèm lời thoại từ AI. Vui lòng kiểm tra dịch vụ AI và thử lại.");
             // Fallback thông minh nội bộ
             return GeminiAIService.TaoCauHoiThongMinhTheoNoiDung(tieuDe, cleanContent, trinhDo, loaiBaiHoc, soLuong);
         }

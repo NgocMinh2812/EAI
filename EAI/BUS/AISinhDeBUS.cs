@@ -185,7 +185,7 @@ namespace BUS
             };
 
             var dsDapAn = new List<LuaChonDapAnDTO>();
-            if (q.DanhSachLuaChon != null && q.DanhSachLuaChon.Count > 0)
+            if (!cauHoiDto.IsDangNhapVanBan && q.DanhSachLuaChon != null && q.DanhSachLuaChon.Count > 0)
             {
                 for (int i = 0; i < q.DanhSachLuaChon.Count; i++)
                 {
@@ -245,7 +245,7 @@ namespace BUS
             };
 
             var dsDapAn = new List<LuaChonDapAnDTO>();
-            if (q.DanhSachLuaChon != null && q.DanhSachLuaChon.Count > 0)
+            if (!cauHoiDto.IsDangNhapVanBan && q.DanhSachLuaChon != null && q.DanhSachLuaChon.Count > 0)
             {
                 for (int i = 0; i < q.DanhSachLuaChon.Count; i++)
                 {
@@ -1062,7 +1062,7 @@ namespace BUS
                 };
 
                 var dsDapAn = new List<LuaChonDapAnDTO>();
-                if (q.DanhSachLuaChon != null && q.DanhSachLuaChon.Count > 0)
+                if (!ch.IsDangNhapVanBan && q.DanhSachLuaChon != null && q.DanhSachLuaChon.Count > 0)
                 {
                     for (int i = 0; i < q.DanhSachLuaChon.Count; i++)
                     {

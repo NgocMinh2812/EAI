@@ -254,7 +254,6 @@
                     <Button x:Name="tabWrongQuestions" Content="Ôn tập câu đã sai" Style="{StaticResource TabHeaderButton}" Margin="15,0,0,0" Click="TabWrongQuestions_Click"/>
                     <Button x:Name="tabHistory" Content="Lịch sử luyện tập" Style="{StaticResource TabHeaderButton}" Margin="15,0,0,0" Click="TabHistory_Click"/>
                     <Button x:Name="tabFlashcard" Content="Flashcard từ vựng" Style="{StaticResource TabHeaderButton}" Margin="15,0,0,0" Click="TabFlashcard_Click"/>
-                    <Button x:Name="tabDictation" Content="Nghe chép chính tả (Sắp ra mắt)" Style="{StaticResource TabHeaderButton}" Margin="15,0,0,0" Click="TabDictation_Click"/>
                 </StackPanel>
             </Border>
 
@@ -1147,7 +1146,7 @@
                                 <StackPanel>
                                     <Grid Margin="0,0,0,16">
                                         <TextBlock x:Name="txtFcListHeader" Text="Tất cả từ vựng trong kho học tập (13 từ)" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
-                                        
+
                                         <!-- Khung tìm kiếm từ vựng -->
                                         <Border Width="260" Height="34" CornerRadius="8" BorderBrush="#CBD5E1" BorderThickness="1" Background="White" Padding="10,0" HorizontalAlignment="Right">
                                             <Grid>
@@ -1179,7 +1178,7 @@
                                                             <RowDefinition Height="Auto"/>
                                                             <RowDefinition Height="Auto"/>
                                                         </Grid.RowDefinitions>
-                                                        
+
                                                         <!-- Header: Cấp độ, chủ đề & Badge đã thuộc -->
                                                         <Grid Grid.Row="0" Margin="0,0,0,8">
                                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -1239,21 +1238,8 @@
                     </StackPanel>
 
                     <!-- ========================================================================= -->
-                    <!-- TAB 5: DICTATION - NGHE CHÉP CHÍNH TẢ (ĐANG PHÁT TRIỂN) -->
                     <!-- ========================================================================= -->
-                    <StackPanel x:Name="pnlDictation" Visibility="Collapsed">
-                        <Border Background="White" CornerRadius="16" BorderBrush="{StaticResource BorderLight}" BorderThickness="1" Padding="45,40" Margin="0,10,0,20">
-                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Border Background="{StaticResource BrandMintSoft}" Width="72" Height="72" CornerRadius="36" HorizontalAlignment="Center" Margin="0,0,0,18">
-                                    <TextBlock Text="🎧" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <TextBlock Text="Tính Năng Nghe Chép Chính Tả Đang Phát Triển" FontSize="19" FontWeight="Bold" Foreground="{StaticResource TextDark}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                                <TextBlock Text="Module luyện phản xạ nhận diện âm vị bản xứ và gõ câu chính tả tự động chấm điểm với AI đang được tối ưu hóa chất lượng." 
-                                           FontSize="13.5" Foreground="{StaticResource TextGray}" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="540" TextAlignment="Center" Margin="0,0,0,22" LineHeight="22"/>
-                                <Button Content="🎯 Quay lại Luyện tập kỹ năng &amp; chủ đề" Style="{StaticResource TealActionButton}" Padding="22,11" HorizontalAlignment="Center" Click="TabHub_Click"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
+
 
                 </StackPanel>
             </ScrollViewer>

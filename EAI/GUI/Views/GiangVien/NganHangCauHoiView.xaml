@@ -735,6 +735,7 @@
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <Button Content="Âm thanh &amp; lời thoại" Click="MoAmThanhLoiThoai_Click" Padding="10,4" Margin="0,0,6,0" Cursor="Hand" ToolTip="Chuyển lời thoại thành âm thanh hoặc nhận diện lời thoại từ âm thanh"/>
                                             <Button Command="{Binding ChonAudioCommand}" Background="White" BorderBrush="#86EFAC" BorderThickness="1" Padding="10,4" Cursor="Hand" ToolTip="Tải tệp âm thanh lên">
                                                 <Button.Template>
                                                     <ControlTemplate TargetType="Button">

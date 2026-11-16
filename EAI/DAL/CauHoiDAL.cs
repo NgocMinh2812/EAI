@@ -12,6 +12,18 @@ namespace DAL
         private static CauHoiDAL? _instance;
         public static CauHoiDAL Instance => _instance ??= new CauHoiDAL();
 
+        // Chỉ cập nhật nội dung nghe, giữ nguyên các đáp án.
+        public bool CapNhatAmThanhLoiThoai(int maCauHoi, string? audioPath, string? script)
+        {
+            const string sql = "UPDATE CauHoi SET DuongDanAudio = @Audio, DoanVanDoc = @Script WHERE MaCauHoi = @Id";
+            return SqlDataProvider.Instance.ExecuteNonQuery(sql, new[]
+            {
+                new SqlParameter("@Audio", (object?)audioPath ?? DBNull.Value),
+                new SqlParameter("@Script", (object?)script ?? DBNull.Value),
+                new SqlParameter("@Id", maCauHoi)
+            }) == 1;
+        }
+
         /// <summary>
         /// Nạp toàn bộ các lựa chọn (A, B, C, D) cho danh sách câu hỏi trong 1 truy vấn duy nhất (Tránh lỗi N+1 Query)
         /// </summary>

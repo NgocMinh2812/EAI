@@ -18,6 +18,44 @@ namespace GUI.Views.GiangVien
     public partial class QuanLyAudioTranscriptDialog : Window
     {
         private readonly BaiHocDTO _baiHoc;
+        private readonly CauHoiKhaoSatDTO? _cauHoi;
+        private int? LessonId => _cauHoi == null ? _baiHoc.MaBaiHoc : null;
+
+        public QuanLyAudioTranscriptDialog(CauHoiKhaoSatDTO cauHoi) : this(new BaiHocDTO
+        {
+            TieuDe = $"Câu hỏi #{cauHoi.MaCauHoi}",
+            MaTrinhDo = cauHoi.MaTrinhDo,
+            NoiDung = cauHoi.DoanVanDoc ?? "",
+            AudioPath = cauHoi.AudioPath
+        })
+        {
+            _cauHoi = cauHoi;
+            Title = "Âm thanh & lời thoại câu hỏi";
+            txtLessonTitle.Text = $"Câu hỏi nghe #{cauHoi.MaCauHoi}";
+            btnSaveTtsToLesson.Content = "Lưu âm thanh & lời thoại vào câu hỏi";
+        }
+
+        private bool LuuNoiDungCauHoi(string? path, string? script)
+        {
+            if (_cauHoi == null) return false;
+            try
+            {
+                if (_cauHoi.MaCauHoi > 0 && !CauHoiDAL.Instance.CapNhatAmThanhLoiThoai(_cauHoi.MaCauHoi, path, script))
+                    throw new InvalidOperationException("Không cập nhật được câu hỏi trong cơ sở dữ liệu.");
+                _cauHoi.AudioPath = path;
+                _cauHoi.DoanVanDoc = script;
+                _baiHoc.AudioPath = path;
+                _baiHoc.NoiDung = script ?? "";
+                CapNhatThongTinAudioNguon();
+                txtGlobalMessage.Text = _cauHoi.MaCauHoi > 0 ? "Đã lưu âm thanh và lời thoại vào câu hỏi." : "Đã cập nhật bản nháp. Hãy lưu câu hỏi để hoàn tất.";
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ThongBaoDialog.Loi(this, ex.Message, "Chưa lưu được câu hỏi");
+                return false;
+            }
+        }
         private readonly MediaPlayer _sttPlayer = new();
         private readonly MediaPlayer _ttsPlayer = new();
         private readonly DispatcherTimer _sttTimer = new();
@@ -99,15 +137,16 @@ namespace GUI.Views.GiangVien
         {
             NapTranscriptDaLuu();
             NapScriptMacDinhTuBaiHoc();
+            if (_cauHoi != null && !string.IsNullOrWhiteSpace(_cauHoi.DoanVanDoc)) txtFullTranscript.Text = _cauHoi.DoanVanDoc;
             CapNhatGiaoDienTheoCheDo();
         }
 
         private void NapTranscriptDaLuu()
         {
-            if (_baiHoc.MaBaiHoc <= 0) return;
+            if (_cauHoi == null && _baiHoc.MaBaiHoc <= 0) return;
 
             // Kiểm tra trong DB theo mã bài học
-            _currentTranscriptDto = AudioTranscriptDAL.Instance.LayAudioChinhCuaBaiHoc(_baiHoc.MaBaiHoc, laGiangVien: true);
+            _currentTranscriptDto = _cauHoi == null ? AudioTranscriptDAL.Instance.LayAudioChinhCuaBaiHoc(_baiHoc.MaBaiHoc, laGiangVien: true) : null;
 
             // Hoặc kiểm tra theo AudioPath nếu chưa có
             if (_currentTranscriptDto == null && !string.IsNullOrEmpty(_baiHoc.AudioPath))
@@ -257,7 +296,7 @@ namespace GUI.Views.GiangVien
             {
                 var (success, result, err) = await GroqAudioService.Instance.TranscribeAudioAsync(
                     audioPath, 
-                    _baiHoc.MaBaiHoc, 
+                    LessonId,
                     GroqAudioService.DefaultSttModel, 
                     "en", 
                     forceRefresh);
@@ -322,11 +361,21 @@ namespace GUI.Views.GiangVien
 
             string audioPath = !string.IsNullOrEmpty(_baiHoc.AudioPath) ? _baiHoc.AudioPath : (_baiHoc.DuongDanAudio ?? string.Empty);
 
+            if (_cauHoi != null)
+            {
+                if (LuuNoiDungCauHoi(audioPath, txtFullTranscript.Text.Trim()))
+                {
+                    txtTtsScript.Text = txtFullTranscript.Text.Trim();
+                    CapNhatBadgeTrangThai("DaDuyet");
+                }
+                return;
+            }
+
             if (_currentTranscriptDto == null)
             {
                 _currentTranscriptDto = new AudioTranscriptDTO
                 {
-                    MaBaiHoc = _baiHoc.MaBaiHoc,
+                    MaBaiHoc = LessonId,
                     AudioPath = audioPath,
                     LoaiAudio = "Uploaded",
                     TieuDeAudio = Path.GetFileName(audioPath),
@@ -469,7 +518,7 @@ namespace GUI.Views.GiangVien
                     var (success, result, err) = await GroqAudioService.Instance.GenerateSpeechAsync(
                         script, 
                         voice, 
-                        _baiHoc.MaBaiHoc, 
+                        LessonId,
                         GroqAudioService.DefaultTtsModel);
 
                     XuLyKetQuaTts(success, result, err);
@@ -608,7 +657,7 @@ namespace GUI.Views.GiangVien
 
                     var (success, result, err) = await GroqAudioService.Instance.GenerateDialogueSpeechAsync(
                         lines, 
-                        _baiHoc.MaBaiHoc, 
+                        LessonId,
                         GroqAudioService.DefaultTtsModel);
 
                     XuLyKetQuaTts(success, result, err);
@@ -697,6 +746,11 @@ namespace GUI.Views.GiangVien
             }
 
             // Gán tệp âm thanh vào bài học
+            if (_cauHoi != null)
+            {
+                LuuNoiDungCauHoi(_generatedTtsDto.AudioPath, _generatedTtsDto.ScriptGoc ?? _generatedTtsDto.TranscriptText);
+                return;
+            }
             _baiHoc.AudioPath = _generatedTtsDto.AudioPath;
             _baiHoc.DuongDanAudio = _generatedTtsDto.AudioPath;
 

@@ -31,6 +31,14 @@ namespace GUI.Views.GiangVien
             }
         }
 
+        private void MoAmThanhLoiThoai_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is not NganHangCauHoiViewModel vm || vm.CurrentCauHoi == null || !vm.CurrentCauHoi.IsKyNangNghe) return;
+            vm.DungAudio();
+            var dialog = new QuanLyAudioTranscriptDialog(vm.CurrentCauHoi) { Owner = Window.GetWindow(this) };
+            dialog.ShowDialog();
+        }
+
         private void NganHangCauHoiView_Unloaded(object sender, RoutedEventArgs e)
         {
             if (DataContext is NganHangCauHoiViewModel vm)
