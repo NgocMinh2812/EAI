@@ -166,6 +166,7 @@ namespace GUI.ViewModels.GiangVien
         {
             get
             {
+                if (AIConfigHelper.IsUseCentralizedBackend()) return "Backend Azure";
                 if (!string.IsNullOrEmpty(AIConfigurationService.Instance.ResolvedConfigFilePath) && System.IO.File.Exists(AIConfigurationService.Instance.ResolvedConfigFilePath))
                 {
                     return "apiminh.json (Hệ thống tập trung)";
@@ -178,6 +179,7 @@ namespace GUI.ViewModels.GiangVien
         {
             get
             {
+                if (AIConfigHelper.IsUseCentralizedBackend()) return AIConfigHelper.BackendBaseUrl;
                 if (!string.IsNullOrEmpty(AIConfigurationService.Instance.ResolvedConfigFilePath) && System.IO.File.Exists(AIConfigurationService.Instance.ResolvedConfigFilePath))
                 {
                     return AIConfigurationService.Instance.ResolvedConfigFilePath;

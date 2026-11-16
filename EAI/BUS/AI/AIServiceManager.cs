@@ -92,33 +92,25 @@ namespace BUS.AI
         {
             var sw = Stopwatch.StartNew();
 
-            // 1. ƯU TIÊN SỐ 1: GỌI QUA CENTRALIZED BACKEND EAI.AIBackend.API (http://localhost:5281)
-            if (Configuration.AIConfigHelper.IsUseCentralizedBackend() && await EAIBackendClient.IsBackendAvailableAsync(ct))
+            // Chế độ Backend không yêu cầu key trên máy người dùng. Gửi thẳng request,
+            // không bỏ qua Azure chỉ vì health check ngắn hơn thời gian khởi động dịch vụ.
+            if (Configuration.AIConfigHelper.IsUseCentralizedBackend())
             {
-                try
+                // Bộ 10 câu kèm lời giải cần nhiều nội dung hơn một tin nhắn chat.
+                var maxTokens = actionName.StartsWith("SinhCauHoiQuiz_", StringComparison.Ordinal) ? 8192 : 2048;
+                var beResponse = await EAIBackendClient.GenerateContentAsync(prompt, preferredProvider, preferredModel, ct, maxTokens);
+                Metrics.Record(new AIRequestLog
                 {
-                    string? beReply = await EAIBackendClient.ChatAsync(prompt, preferredProvider, preferredModel, ct);
-                    sw.Stop();
-                    if (!string.IsNullOrWhiteSpace(beReply))
-                    {
-                        var beResponse = AIResponse.Ok(beReply, "EAI.AIBackend Gateway", preferredModel ?? "Auto", sw.ElapsedMilliseconds, 200);
-                        Metrics.Record(new AIRequestLog
-                        {
-                            ActionName = actionName,
-                            Provider = "EAI.AIBackend",
-                            Model = preferredModel ?? "Auto",
-                            LatencyMs = sw.ElapsedMilliseconds,
-                            Success = true,
-                            StatusCode = 200,
-                            PromptPreview = prompt.Length > 120 ? prompt.Substring(0, 120) + "..." : prompt
-                        });
-                        return beResponse;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[AIServiceManager] Centralized Backend gặp lỗi hoặc chưa khởi chạy: {ex.Message}. Thử fallback về cấu hình Provider nội bộ...");
-                }
+                    ActionName = actionName,
+                    Provider = beResponse.ProviderName,
+                    Model = beResponse.ModelUsed,
+                    LatencyMs = beResponse.LatencyMs,
+                    Success = beResponse.Success,
+                    StatusCode = beResponse.StatusCode,
+                    ErrorMessage = beResponse.ErrorMessage,
+                    PromptPreview = prompt.Length > 120 ? prompt.Substring(0, 120) + "..." : prompt
+                });
+                return beResponse;
             }
 
             // 2. FALLBACK NỘI BỘ (Khi Centralized Backend offline hoặc cấu hình tắt)

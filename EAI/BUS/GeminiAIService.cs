@@ -88,18 +88,8 @@ namespace BUS
             // ƯU TIÊN SỐ 1: GỌI QUA CENTRALIZED BACKEND EAI.AIBackend.API
             if (AI.Configuration.AIConfigHelper.IsUseCentralizedBackend())
             {
-                try
-                {
-                    string? beReply = await AI.EAIBackendClient.ChatAsync(prompt);
-                    if (!string.IsNullOrWhiteSpace(beReply))
-                    {
-                        return beReply;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[GeminiAIService.GoiGeminiApiAsync] Centralized Backend gặp lỗi hoặc offline: {ex.Message}. Fallback về Gemini nội bộ...");
-                }
+                // Để nơi gọi báo lỗi Backend thay vì âm thầm đòi key cục bộ.
+                return await AI.EAIBackendClient.ChatAsync(prompt);
             }
 
             var keys = LayDanhSachApiKeyKhaDung(module);

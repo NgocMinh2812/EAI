@@ -325,7 +325,7 @@ namespace BUS.AI.Configuration
         }
 
         /// <summary>
-        /// Địa chỉ dịch vụ Centralized Backend EAI.AIBackend.API (Mặc định: http://localhost:5281)
+        /// Địa chỉ dịch vụ AI tập trung, mặc định dùng Backend Azure cho bản cài đặt.
         /// </summary>
         public static string BackendBaseUrl
         {
@@ -333,7 +333,7 @@ namespace BUS.AI.Configuration
             {
                 var config = Configuration;
                 string? url = config["AIBackend:BaseUrl"] ?? GetEnvVar("AI_BACKEND_URL");
-                return !string.IsNullOrWhiteSpace(url) ? url.TrimEnd('/') : "http://localhost:5281";
+                return !string.IsNullOrWhiteSpace(url) ? url.TrimEnd('/') : "https://eai-backend-quy-gwfqhch7f6hrfehv.malaysiawest-01.azurewebsites.net";
             }
         }
 

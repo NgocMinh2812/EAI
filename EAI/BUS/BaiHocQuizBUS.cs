@@ -77,6 +77,7 @@ namespace BUS
                             return (polled, true, null);
                         }
                     }
+                    return (null, false, "Bộ câu hỏi đang được tạo trên một phiên khác. Vui lòng chờ rồi nhấn Thử lại.");
                 }
             }
 
@@ -104,39 +105,23 @@ namespace BUS
                 var aiResp = await AI.AIServiceManager.Instance.ExecutePromptAsync(prompt, actionName: $"SinhCauHoiQuiz_{loaiBo}");
                 string? response = (aiResp != null && aiResp.Success && !string.IsNullOrWhiteSpace(aiResp.Text)) ? aiResp.Text : null;
 
-                // Nếu mô hình được chọn gặp sự cố, thử fallback sang GeminiAIService làm phương án dự phòng
+                // Không tự bù câu mẫu khi dịch vụ lỗi hoặc trả thiếu câu.
                 if (string.IsNullOrWhiteSpace(response))
-                {
-                    response = await GeminiAIService.GoiGeminiApiAsync(prompt, "NoiDungHocTap");
-                }
+                    throw new InvalidOperationException(aiResp?.ErrorMessage ?? "Dịch vụ AI chưa trả về câu hỏi. Vui lòng thử lại.");
 
-                List<CauHoiDTO> questions;
-                if (!string.IsNullOrWhiteSpace(response))
+                var questions = ParseAndValidateQuestions(response, skill, trinhDo);
+                if (!LessonQuizQuality.IsValidSet(questions))
                 {
-                    // BƯỚC 6: BÓC TÁCH VÀ KIỂM ĐỊNH CHẤT LƯỢNG 10 CÂU HỎI
-                    questions = ParseAndValidateQuestions(response, skill, trinhDo);
-
-                    if (questions.Count < 10)
-                    {
-                        // Thử biên soạn bổ sung nếu thiếu 1-2 câu để đảm bảo ĐỦ ĐÚNG 10 CÂU
-                        questions = ThuBoSungCauHoiChoDu10(questions, baiHoc, loaiBo, skill, trinhDo);
-                    }
+                    onStatusUpdate?.Invoke("Đang yêu cầu AI biên soạn lại bộ câu hỏi chưa đạt yêu cầu...");
+                    var retry = await AI.AIServiceManager.Instance.ExecutePromptAsync(
+                        prompt + "\nIMPORTANT: Return exactly 10 DISTINCT complete questions with four distinct options, correct answer index and specific explanation. Never use placeholders or generic sample questions.",
+                        actionName: $"SinhCauHoiQuiz_{loaiBo}_Retry");
+                    if (retry == null || !retry.Success || string.IsNullOrWhiteSpace(retry.Text))
+                        throw new InvalidOperationException(retry?.ErrorMessage ?? "Không nhận được câu hỏi khi thử lại. Vui lòng thử lại sau.");
+                    questions = ParseAndValidateQuestions(retry.Text, skill, trinhDo);
                 }
-                else
-                {
-                    // Kích hoạt bộ sinh câu hỏi sư phạm thông minh fallback chuyên biệt bám sát nội dung bài học
-                    onStatusUpdate?.Invoke("Đang khởi tạo 10 câu hỏi trắc nghiệm chuẩn hóa...");
-                    questions = TaoBoCauHoiThongMinhFallback(baiHoc, loaiBo, skill, trinhDo, cauHoiBoACu);
-                }
-
-                if (questions.Count != 10)
-                {
-                    string err = $"Dữ liệu từ bài học chưa đủ để biên soạn hoàn chỉnh 10 câu chất lượng (chỉ đạt {questions.Count}/10).";
-                    BaiHocQuizDAL.Instance.DanhDauThatBai(baiHoc.MaBaiHoc, contentHash, loaiBo, err);
-                    return (null, false, err);
-                }
-
-                // BƯỚC 7: LƯU VÀO DATABASE BẰNG TRANSACTION
+                if (!LessonQuizQuality.IsValidSet(questions))
+                    throw new InvalidOperationException("AI chưa tạo đủ 10 câu hỏi khác nhau với đáp án và lời giải hợp lệ. Vui lòng nhấn Thử lại; bộ câu hỏi lỗi chưa được lưu.");
                 onStatusUpdate?.Invoke("Đang lưu trữ 10 câu hỏi vào CSDL hệ thống...");
                 string moTa = loaiBo == "VanDung"
                     ? $"Bộ câu hỏi vận dụng tình huống mới (Bộ B) bám sát kỹ năng {skill} - Trình độ {trinhDo}."
@@ -161,7 +146,9 @@ namespace BUS
 
                 // Tải lại đối tượng hoàn chỉnh từ CSDL để đảm bảo có đầy đủ MaBoCauHoi và MaCauHoi thật
                 var finalQuiz = BaiHocQuizDAL.Instance.LayBoCauHoi(baiHoc.MaBaiHoc, contentHash, loaiBo);
-                return (finalQuiz, false, null);
+                return finalQuiz != null
+                    ? (finalQuiz, false, null)
+                    : (null, false, "Đã gửi lưu câu hỏi nhưng chưa tải lại được bộ hoàn chỉnh. Vui lòng thử lại.");
             }
             catch (Exception ex)
             {
@@ -201,7 +188,7 @@ namespace BUS
                 if (cauHoiBoACu != null && cauHoiBoACu.Count > 0)
                 {
                     negativeList = "\nCÁC CÂU HỎI CỦA BỘ A (CỦNG CỐ) ĐÃ CÓ (TUYỆT ĐỐI KHÔNG LẶP LẠI HOẶC SAO CHÉP):\n" +
-                                   string.Join("\n", cauHoiBoACu.Take(5).Select((q, idx) => $"- Câu {idx + 1}: {q}"));
+                                   string.Join("\n", cauHoiBoACu.Select((q, idx) => $"- Câu {idx + 1}: {q}"));
                 }
 
                 moTaLoaiBo = $@"★ ĐÂY LÀ BỘ B — 10 CÂU HỎI VẬN DỤNG KIẾN THỨC VÀO TÌNH HUỐNG MỚI (APPLICATION QUIZ):
@@ -278,418 +265,74 @@ QUY TẮC BẮT BUỘC VỀ CẤU TRÚC (CRITICAL):
         /// </summary>
         public static List<CauHoiDTO> ParseAndValidateQuestions(string rawJson, string skill, string trinhDo)
         {
-            var list = new List<CauHoiDTO>();
-            if (string.IsNullOrWhiteSpace(rawJson)) return list;
-
+            if (string.IsNullOrWhiteSpace(rawJson)) return new();
             try
             {
-                string cleanJson = rawJson.Trim();
-                if (cleanJson.StartsWith("```json", StringComparison.OrdinalIgnoreCase)) cleanJson = cleanJson.Substring(7);
-                else if (cleanJson.StartsWith("```", StringComparison.OrdinalIgnoreCase)) cleanJson = cleanJson.Substring(3);
-                if (cleanJson.EndsWith("```")) cleanJson = cleanJson.Substring(0, cleanJson.Length - 3);
-                cleanJson = cleanJson.Trim();
-
-                int startArray = cleanJson.IndexOf('[');
-                int endArray = cleanJson.LastIndexOf(']');
-                if (startArray >= 0 && endArray > startArray)
+                var json = rawJson.Trim();
+                if (json.StartsWith("```"))
                 {
-                    cleanJson = cleanJson.Substring(startArray, endArray - startArray + 1);
+                    int newline = json.IndexOf('\n');
+                    if (newline < 0) return new();
+                    json = json.Substring(newline + 1).Trim();
+                    if (json.EndsWith("```")) json = json.Substring(0, json.Length - 3).Trim();
                 }
-
-                using var doc = JsonDocument.Parse(cleanJson);
-                JsonElement arrayEl = doc.RootElement;
-                if (arrayEl.ValueKind == JsonValueKind.Object)
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+                if (root.ValueKind == JsonValueKind.Object)
                 {
-                    if (arrayEl.TryGetProperty("questions", out var p1) && p1.ValueKind == JsonValueKind.Array) arrayEl = p1;
-                    else if (arrayEl.TryGetProperty("Questions", out var p2) && p2.ValueKind == JsonValueKind.Array) arrayEl = p2;
-                    else if (arrayEl.TryGetProperty("danhSachCauHoi", out var p3) && p3.ValueKind == JsonValueKind.Array) arrayEl = p3;
-                    else if (arrayEl.TryGetProperty("DanhSachCauHoi", out var p4) && p4.ValueKind == JsonValueKind.Array) arrayEl = p4;
-                    else if (arrayEl.TryGetProperty("items", out var p5) && p5.ValueKind == JsonValueKind.Array) arrayEl = p5;
-                }
-
-                if (arrayEl.ValueKind != JsonValueKind.Array) return list;
-
-                int index = 1;
-                foreach (var el in arrayEl.EnumerateArray())
-                {
-                    string noiDung = el.TryGetProperty("NoiDungCauHoi", out var pQ) ? (pQ.GetString() ?? "").Trim() : "";
-                    if (string.IsNullOrWhiteSpace(noiDung))
+                    foreach (var property in root.EnumerateObject())
                     {
-                        if (el.TryGetProperty("Question", out var pQ2)) noiDung = (pQ2.GetString() ?? "").Trim();
+                        if (new[] { "questions", "danhsachcauhoi", "items" }.Contains(property.Name.ToLowerInvariant()) && property.Value.ValueKind == JsonValueKind.Array)
+                        { root = property.Value; break; }
                     }
-
-                    if (string.IsNullOrWhiteSpace(noiDung) || noiDung.Length < 8) continue;
-
-                    var options = new List<string>();
-                    if (el.TryGetProperty("DanhSachLuaChon", out var pOpts) && pOpts.ValueKind == JsonValueKind.Array)
+                }
+                if (root.ValueKind != JsonValueKind.Array) return new();
+                var result = new List<CauHoiDTO>();
+                foreach (var item in root.EnumerateArray())
+                {
+                    if (item.ValueKind != JsonValueKind.Object) continue;
+                    try
                     {
-                        foreach (var optEl in pOpts.EnumerateArray())
+                        var q = JsonSerializer.Deserialize<CauHoiDTO>(item.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        if (q == null) continue;
+                        // Chấp nhận tên thuộc tính tiếng Anh của một số model.
+                        foreach (var p in item.EnumerateObject())
                         {
-                            string optStr = (optEl.GetString() ?? "").Trim();
-                            if (!string.IsNullOrWhiteSpace(optStr))
+                            if (p.Name.Equals("Question", StringComparison.OrdinalIgnoreCase) && p.Value.ValueKind == JsonValueKind.String) q.NoiDungCauHoi = p.Value.GetString() ?? "";
+                            if (p.Name.Equals("Options", StringComparison.OrdinalIgnoreCase) && p.Value.ValueKind == JsonValueKind.Array) q.DanhSachLuaChon = JsonSerializer.Deserialize<List<string>>(p.Value.GetRawText()) ?? new();
+                            if (p.Name.Equals("CorrectIndex", StringComparison.OrdinalIgnoreCase) && p.Value.TryGetInt32(out var answer)) q.DapAnDungIndex = answer;
+                            if (p.Name.Equals("Explanation", StringComparison.OrdinalIgnoreCase) && p.Value.ValueKind == JsonValueKind.String) q.GiaiThichChiTiet = p.Value.GetString() ?? "";
+                            if (p.Name.Equals("DapAnDung", StringComparison.OrdinalIgnoreCase) && p.Value.ValueKind == JsonValueKind.String)
                             {
-                                string clean = StripOptionPrefix(optStr);
-                                options.Add(string.IsNullOrWhiteSpace(clean) ? optStr : clean);
+                                var letter = (p.Value.GetString() ?? "").Trim().ToUpperInvariant();
+                                if (letter.Length == 1 && letter[0] >= 'A' && letter[0] <= 'D') q.DapAnDungIndex = letter[0] - 'A';
                             }
                         }
+                        if (!LessonQuizQuality.IsValidQuestion(q)) continue;
+                        q.DanhSachLuaChon = q.DanhSachLuaChon.Select(StripOptionPrefix).ToList();
+                        q.KyNang = skill;
+                        q.LoaiCauHoi = "TracNghiem";
+                        if (string.IsNullOrWhiteSpace(q.DoKho)) q.DoKho = "TrungBinh";
+                        result.Add(q);
                     }
-                    else if (el.TryGetProperty("Options", out var pOpts2) && pOpts2.ValueKind == JsonValueKind.Array)
-                    {
-                        foreach (var optEl in pOpts2.EnumerateArray())
-                        {
-                            string optStr = (optEl.GetString() ?? "").Trim();
-                            if (!string.IsNullOrWhiteSpace(optStr))
-                            {
-                                string clean = StripOptionPrefix(optStr);
-                                options.Add(string.IsNullOrWhiteSpace(clean) ? optStr : clean);
-                            }
-                        }
-                    }
-
-                    // Bắt buộc phải có đúng 4 phương án
-                    if (options.Count != 4) continue;
-
-                    int? dapAnIndex = null;
-                    if (el.TryGetProperty("DapAnDungIndex", out var pAns) && pAns.ValueKind == JsonValueKind.Number)
-                    {
-                        dapAnIndex = pAns.GetInt32();
-                    }
-                    else if (el.TryGetProperty("CorrectIndex", out var pAns2) && pAns2.ValueKind == JsonValueKind.Number)
-                    {
-                        dapAnIndex = pAns2.GetInt32();
-                    }
-                    else if (el.TryGetProperty("DapAnDung", out var pAnsLetter))
-                    {
-                        string letter = (pAnsLetter.GetString() ?? "").Trim().ToUpperInvariant();
-                        if (letter.StartsWith("A")) dapAnIndex = 0;
-                        else if (letter.StartsWith("B")) dapAnIndex = 1;
-                        else if (letter.StartsWith("C")) dapAnIndex = 2;
-                        else if (letter.StartsWith("D")) dapAnIndex = 3;
-                    }
-
-                    if (!dapAnIndex.HasValue || dapAnIndex.Value < 0 || dapAnIndex.Value >= 4)
-                    {
-                        dapAnIndex = 0; // Mặc định A nếu thiếu
-                    }
-
-                    string giaiThich = el.TryGetProperty("GiaiThichChiTiet", out var pExp) ? (pExp.GetString() ?? "").Trim() : "";
-                    if (string.IsNullOrWhiteSpace(giaiThich))
-                    {
-                        if (el.TryGetProperty("Explanation", out var pExp2)) giaiThich = (pExp2.GetString() ?? "").Trim();
-                    }
-                    if (string.IsNullOrWhiteSpace(giaiThich))
-                    {
-                        char correctChar = (char)('A' + dapAnIndex.Value);
-                        giaiThich = $"Phương án {correctChar} là đáp án chính xác theo quy tắc và văn cảnh bài học.";
-                    }
-
-                    string doKho = index <= 3 ? "De" : (index >= 8 ? "Kho" : "TrungBinh");
-
-                    var dto = new CauHoiDTO
-                    {
-                        MaCauHoi = 0,
-                        NoiDungCauHoi = noiDung,
-                        DanhSachLuaChon = options,
-                        DapAnDungIndex = dapAnIndex.Value,
-                        GiaiThichChiTiet = giaiThich,
-                        KyNang = skill,
-                        DoKho = doKho,
-                        LoaiCauHoi = "TracNghiem"
-                    };
-
-                    list.Add(dto);
-                    index++;
-                    if (list.Count >= 10) break; // Chỉ lấy tối đa đúng 10 câu
+                    catch (Exception ex) when (ex is JsonException || ex is InvalidOperationException || ex is FormatException) { }
                 }
+                return result;
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[BaiHocQuizBUS.ParseAndValidateQuestions] Lỗi parse: {ex.Message}");
-            }
-
-            return list;
+            catch (JsonException) { return new(); }
         }
-
-        /// <summary>
-        /// Bổ sung các câu hỏi dự phòng chuẩn xác nếu AI chỉ trả về 8-9 câu, bảo đảm luôn đạt đúng 10 câu
-        /// </summary>
-        private static List<CauHoiDTO> ThuBoSungCauHoiChoDu10(
-            List<CauHoiDTO> current, 
-            BaiHocDTO baiHoc, 
-            string loaiBo, 
-            string skill, 
-            string trinhDo)
+        public static bool KetQuaThuocBoCauHoi(BaiHocQuizDTO quiz, KetQuaLamBaiBoCauHoiDTO ketQua)
         {
-            if (current == null) current = new List<CauHoiDTO>();
-            int needed = 10 - current.Count;
-            if (needed <= 0) return current.Take(10).ToList();
-
-            // Nếu thiếu ít, tạo các câu hỏi trắc nghiệm kiểm tra cấu trúc & ngữ cảnh
-            for (int i = 0; i < needed; i++)
+            if (string.IsNullOrWhiteSpace(ketQua.ChiTietTraLoiJson)) return false;
+            try
             {
-                int stt = current.Count + 1;
-                string qText = loaiBo == "VanDung"
-                    ? $"[Application #{stt}] In a practical scenario regarding '{baiHoc.TieuDe}', which statement is grammatically and contextually most appropriate?"
-                    : $"[Practice #{stt}] According to the lesson '{baiHoc.TieuDe}', which of the following rules is correct?";
-
-                current.Add(new CauHoiDTO
-                {
-                    MaCauHoi = 0,
-                    NoiDungCauHoi = qText,
-                    DanhSachLuaChon = new List<string>
-                    {
-                        "It accurately reflects the primary rule and standard form.",
-                        "It ignores subject-verb agreement or tense consistency.",
-                        "It uses an incorrect preposition or inappropriate collocation.",
-                        "It reverses the condition and intended meaning."
-                    },
-                    DapAnDungIndex = 0,
-                    GiaiThichChiTiet = "Phương án A là đáp án chuẩn xác nhất phản ánh đúng bản chất quy tắc ngữ pháp và ngữ cảnh ứng dụng của bài học.",
-                    KyNang = skill,
-                    DoKho = "TrungBinh",
-                    LoaiCauHoi = "TracNghiem"
-                });
+                var choices = JsonSerializer.Deserialize<List<ChiTietLuaChonQuizDTO>>(ketQua.ChiTietTraLoiJson);
+                return choices != null && choices.Count == quiz.DanhSachCauHoi.Count &&
+                    choices.Select(c => c.MaCauHoi).ToHashSet().SetEquals(quiz.DanhSachCauHoi.Select(q => q.MaCauHoi));
             }
-
-            return current;
+            catch (JsonException) { return false; }
         }
 
-        /// <summary>
-        /// Tạo bộ 10 câu hỏi sư phạm thông minh fallback chuẩn mực theo nội dung bài học khi AI offline hoặc hết quota
-        /// Đảm bảo luôn sinh đúng 10 câu hỏi phân biệt rõ rệt giữa Bộ A (Củng cố) và Bộ B (Vận dụng ngữ cảnh mới)
-        /// </summary>
-        private static List<CauHoiDTO> TaoBoCauHoiThongMinhFallback(
-            BaiHocDTO baiHoc, 
-            string loaiBo, 
-            string skill, 
-            string trinhDo, 
-            List<string>? cauHoiBoACu)
-        {
-            var list = new List<CauHoiDTO>();
-            string titleLower = (baiHoc.TieuDe ?? "").ToLowerInvariant();
-            bool isPastTense = titleLower.Contains("quá khứ") || titleLower.Contains("past");
-
-            if (loaiBo == "VanDung")
-            {
-                if (isPastTense)
-                {
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "[Workplace Scenario] Yesterday at 10 AM, while the project manager _______ the quarterly financial report, the projector suddenly broke down.",
-                        DanhSachLuaChon = new List<string> { "presented", "was presenting", "is presenting", "has presented" },
-                        DapAnDungIndex = 1,
-                        GiaiThichChiTiet = "Phương án B (was presenting) chính xác: Diễn tả một hành động dài đang diễn ra trong quá khứ tại văn phòng thì bị hành động ngắn (broke down) xen vào.",
-                        KyNang = skill, DoKho = "TrungBinh", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "[Customer Service Call] When the client phoned to complain about their shipment, our support representative _______ another critical ticket.",
-                        DanhSachLuaChon = new List<string> { "handled", "handles", "was handling", "has been handling" },
-                        DapAnDungIndex = 2,
-                        GiaiThichChiTiet = "Phương án C (was handling) chính xác: Tình huống nhân viên chăm sóc khách hàng đang xử lý một yêu cầu khác khi nhận được cuộc gọi.",
-                        KyNang = skill, DoKho = "TrungBinh", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "[Accident & Incident Report] The security auditor asked: 'What _______ you doing when the server room alarm was triggered last night?'",
-                        DanhSachLuaChon = new List<string> { "were", "was", "did", "are" },
-                        DapAnDungIndex = 0,
-                        GiaiThichChiTiet = "Phương án A (were) chính xác: Cấu trúc câu hỏi quá khứ tiếp diễn với chủ ngữ 'you' là: What + were + you + doing?",
-                        KyNang = skill, DoKho = "De", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "[Business Travel Context] While Mr. David _______ for his boarding pass at Gate 14, he realized he had left his notebook in the taxi.",
-                        DanhSachLuaChon = new List<string> { "waited", "is waiting", "has waited", "was waiting" },
-                        DapAnDungIndex = 3,
-                        GiaiThichChiTiet = "Phương án D (was waiting) chính xác: Sau liên từ 'While' diễn tả hành động đang diễn ra trong quá khứ.",
-                        KyNang = skill, DoKho = "TrungBinh", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "[Job Interview Context] During the interview, candidate Sarah stated that she _______ valuable negotiation skills while she was leading the logistics team.",
-                        DanhSachLuaChon = new List<string> { "was acquiring", "acquired", "has acquired", "acquires" },
-                        DapAnDungIndex = 1,
-                        GiaiThichChiTiet = "Phương án B (acquired) chính xác: Hành động đạt được kỹ năng (kết quả trọn vẹn trong quá khứ) trong khoảng thời gian đang dẫn dắt đội ngũ.",
-                        KyNang = skill, DoKho = "Kho", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "[Daily Workplace Chat] 'Why didn't you join the conference call at 3 PM yesterday?' - 'I am sorry, I _______ with an overseas partner at that time.'",
-                        DanhSachLuaChon = new List<string> { "conferred", "have conferred", "was conferring", "confer" },
-                        DapAnDungIndex = 2,
-                        GiaiThichChiTiet = "Phương án C (was conferring) chính xác: Diễn tả một hành động đang xảy ra tại một thời điểm xác định trong quá khứ ('at that time' / 'at 3 PM yesterday').",
-                        KyNang = skill, DoKho = "TrungBinh", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "[Urban Commuting Scenario] While hundreds of commuters _______ home during evening rush hour, heavy downpour caused severe transit delays.",
-                        DanhSachLuaChon = new List<string> { "were traveling", "traveled", "are traveling", "travel" },
-                        DapAnDungIndex = 0,
-                        GiaiThichChiTiet = "Phương án A (were traveling) chính xác: Chủ ngữ số nhiều 'commuters' kết hợp với 'While' cần dùng 'were + V-ing'.",
-                        KyNang = skill, DoKho = "TrungBinh", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "[Software Deployment Situation] Did the quality assurance team detect the critical bug before the software application _______ live to users?",
-                        DanhSachLuaChon = new List<string> { "was going", "goes", "has gone", "went" },
-                        DapAnDungIndex = 3,
-                        GiaiThichChiTiet = "Phương án D (went) chính xác: Mệnh đề trạng ngữ chỉ thời gian với 'before' trong quá khứ dùng thì Quá khứ đơn (went live).",
-                        KyNang = skill, DoKho = "Kho", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "[Hospital Emergency Ward] While Dr. Wilson was performing an emergency procedure, the backup power generator _______ on without interruption.",
-                        DanhSachLuaChon = new List<string> { "was switching", "switched", "switches", "has switched" },
-                        DapAnDungIndex = 1,
-                        GiaiThichChiTiet = "Phương án B (switched) chính xác: Hành động máy phát điện bật lên là hành động ngắn, dứt khoát xen vào hành động dài của bác sĩ.",
-                        KyNang = skill, DoKho = "Kho", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "[Academic Seminar Context] All participants were taking meticulous notes while the keynote speaker _______ his groundbreaking research data.",
-                        DanhSachLuaChon = new List<string> { "shares", "shared", "was sharing", "has shared" },
-                        DapAnDungIndex = 2,
-                        GiaiThichChiTiet = "Phương án C (was sharing) chính xác: Hai hành động diễn ra song song cùng lúc trong quá khứ (were taking notes - was sharing data).",
-                        KyNang = skill, DoKho = "TrungBinh", LoaiCauHoi = "TracNghiem"
-                    });
-                }
-                else
-                {
-                    for (int i = 1; i <= 10; i++)
-                    {
-                        int correctIdx = (i % 4);
-                        list.Add(new CauHoiDTO
-                        {
-                            NoiDungCauHoi = $"[Practical Case #{i}] In a practical situation involving '{baiHoc.TieuDe}', which approach or expression best demonstrates mastery of {skill}?",
-                            DanhSachLuaChon = new List<string>
-                            {
-                                "Applying the concept flexibly in professional communication.",
-                                "Translating word-for-word without adjusting to social nuance.",
-                                "Ignoring context and using overly casual slang in formal contexts.",
-                                "Using incorrect collocations and inconsistent tone."
-                            },
-                            DapAnDungIndex = correctIdx,
-                            GiaiThichChiTiet = $"Phương án {(char)('A' + correctIdx)} thể hiện việc vận dụng chính xác và linh hoạt kiến thức vào tình huống giao tiếp thực tế.",
-                            KyNang = skill, DoKho = i <= 3 ? "De" : (i >= 8 ? "Kho" : "TrungBinh"), LoaiCauHoi = "TracNghiem"
-                        });
-                    }
-                }
-            }
-            else // LoaiBo == "CungCo" (Bộ A)
-            {
-                if (isPastTense)
-                {
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "What is the affirmative grammatical formula for the Past Continuous tense with singular subjects (He, She, It)?",
-                        DanhSachLuaChon = new List<string> { "S + were + V-ing", "S + was + V-ing", "S + was + V2/ed", "S + had + V3/ed" },
-                        DapAnDungIndex = 1,
-                        GiaiThichChiTiet = "Phương án B chính xác: Cấu trúc khẳng định của thì Quá khứ tiếp diễn với chủ ngữ số ít là S + was + V-ing.",
-                        KyNang = skill, DoKho = "De", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "While I _______ for the bus, it suddenly began to rain heavily.",
-                        DanhSachLuaChon = new List<string> { "was waiting", "waited", "am waiting", "wait" },
-                        DapAnDungIndex = 0,
-                        GiaiThichChiTiet = "Phương án A (was waiting) chính xác: Hành động đang chờ xe bus là hành động kéo dài trong quá khứ bị trời mưa xen vào.",
-                        KyNang = skill, DoKho = "De", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "Which of the following time adverbials is specifically used with the Past Simple tense?",
-                        DanhSachLuaChon = new List<string> { "Since last week", "Right now", "Three days ago", "At this moment" },
-                        DapAnDungIndex = 2,
-                        GiaiThichChiTiet = "Phương án C (Three days ago) chính xác: '... ago' là trạng từ chỉ thời gian đặc trưng của thì Quá khứ đơn.",
-                        KyNang = skill, DoKho = "De", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "What is the correct Past Simple form (V2) of the irregular verb 'begin'?",
-                        DanhSachLuaChon = new List<string> { "begun", "began", "beginned", "begins" },
-                        DapAnDungIndex = 1,
-                        GiaiThichChiTiet = "Phương án B (began) chính xác: Động từ bất quy tắc 'begin' có quá khứ đơn là 'began', quá khứ phân từ là 'begun'.",
-                        KyNang = skill, DoKho = "De", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "When the telephone rang, they _______ dinner in the dining room.",
-                        DanhSachLuaChon = new List<string> { "had", "are having", "have had", "were having" },
-                        DapAnDungIndex = 3,
-                        GiaiThichChiTiet = "Phương án D (were having) chính xác: Chủ ngữ số nhiều 'they' đi với 'were having' để diễn tả hành động đang ăn tối thì điện thoại reo.",
-                        KyNang = skill, DoKho = "TrungBinh", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "How is a negative statement correctly formed in the Past Simple tense?",
-                        DanhSachLuaChon = new List<string> { "S + did not (didn't) + bare infinitive", "S + did not + V2/ed", "S + was not + bare infinitive", "S + not + V2/ed" },
-                        DapAnDungIndex = 0,
-                        GiaiThichChiTiet = "Phương án A chính xác: Khi đã mượn trợ động từ 'did not / didn't' trong quá khứ đơn, động từ chính trở về dạng nguyên thể (bare infinitive).",
-                        KyNang = skill, DoKho = "TrungBinh", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "Which of the following sentences correctly expresses two simultaneous actions in the past?",
-                        DanhSachLuaChon = new List<string> { "While Anna cooked, Mark was washed the dishes.", "Anna was cooking when Mark washed the dishes.", "While Anna was cooking, Mark was washing the dishes.", "Anna cooked while Mark washes the dishes." },
-                        DapAnDungIndex = 2,
-                        GiaiThichChiTiet = "Phương án C chính xác: Hai hành động diễn ra song song cùng lúc trong quá khứ dùng thì Quá khứ tiếp diễn ở cả hai vế nối bằng 'While'.",
-                        KyNang = skill, DoKho = "TrungBinh", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "Why is the sentence 'I was knowing the answer' grammatically unacceptable in standard English?",
-                        DanhSachLuaChon = new List<string> { "It lacks a direct object.", "'Know' is a stative verb and is generally not used in continuous tenses.", "The past form of 'know' must always be followed by 'that'.", "The pronoun 'I' cannot take 'was'." },
-                        DapAnDungIndex = 1,
-                        GiaiThichChiTiet = "Phương án B chính xác: 'Know' là động từ chỉ trạng thái/nhận thức (stative verb), theo quy tắc ngữ pháp không dùng ở các thì tiếp diễn.",
-                        KyNang = skill, DoKho = "Kho", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "Did you _______ the live English documentary broadcast on TV yesterday evening?",
-                        DanhSachLuaChon = new List<string> { "watch", "watched", "was watching", "watching" },
-                        DapAnDungIndex = 0,
-                        GiaiThichChiTiet = "Phương án A (watch) chính xác: Trong câu hỏi quá khứ đơn bắt đầu bằng 'Did + S', động từ chính giữ nguyên mẫu không 'to'.",
-                        KyNang = skill, DoKho = "TrungBinh", LoaiCauHoi = "TracNghiem"
-                    });
-                    list.Add(new CauHoiDTO
-                    {
-                        NoiDungCauHoi = "In 'When the bell rang, the students left the classroom', why is the Past Simple tense used in both clauses?",
-                        DanhSachLuaChon = new List<string> { "One action interrupted the other.", "Both actions were taking place continuously at that moment.", "One action happened in the past and continues to the present.", "Both actions occurred consecutively in immediate chronological sequence." },
-                        DapAnDungIndex = 3,
-                        GiaiThichChiTiet = "Phương án D chính xác: Khi diễn tả chuỗi các hành động ngắn xảy ra liên tiếp nhau trong quá khứ, ta dùng thì Quá khứ đơn cho tất cả các mệnh đề.",
-                        KyNang = skill, DoKho = "Kho", LoaiCauHoi = "TracNghiem"
-                    });
-                }
-                else
-                {
-                    for (int i = 1; i <= 10; i++)
-                    {
-                        int correctIdx = (i - 1) % 4;
-                        list.Add(new CauHoiDTO
-                        {
-                            NoiDungCauHoi = $"[Consolidation #{i}] According to the lesson '{baiHoc.TieuDe}', which statement is grammatically and conceptually accurate?",
-                            DanhSachLuaChon = new List<string>
-                            {
-                                "The rule should be followed strictly according to lesson instructions.",
-                                "Exceptions always override the primary rule in basic sentences.",
-                                "Pronunciation markers have no relationship with stress patterns.",
-                                "Passive voice can be formed without any auxiliary verb."
-                            },
-                            DapAnDungIndex = correctIdx,
-                            GiaiThichChiTiet = $"Phương án {(char)('A' + correctIdx)} phản ánh chính xác quy tắc trọng tâm và kiến thức lý thuyết được trình bày trong bài học.",
-                            KyNang = skill, DoKho = i <= 3 ? "De" : (i >= 8 ? "Kho" : "TrungBinh"), LoaiCauHoi = "TracNghiem"
-                        });
-                    }
-                }
-            }
-
-            return list;
-        }
-
-        /// <summary>
-        /// Lấy kết quả làm bài tập gần nhất của sinh viên đối với bộ câu hỏi cụ thể
-        /// </summary>
         public KetQuaLamBaiBoCauHoiDTO? LayKetQuaSinhVien(
             int maNguoiDung, 
             int maBaiHoc, 

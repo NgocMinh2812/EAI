@@ -133,7 +133,7 @@ namespace DAL
                     quizDto.DanhSachCauHoi.Add(chDto);
                 }
 
-                return quizDto;
+                return LessonQuizQuality.IsValidSet(quizDto.DanhSachCauHoi) ? quizDto : null;
             }
             catch (Exception ex)
             {
@@ -186,7 +186,7 @@ namespace DAL
                     int seconds = row["SecondsSinceStart"] == DBNull.Value ? 999 : Convert.ToInt32(row["SecondsSinceStart"]);
 
                     // Nếu tiến trình khác đang tạo câu hỏi trong vòng 45 giây
-                    if (string.Equals(trangThai, "DangXuLy", StringComparison.OrdinalIgnoreCase) && seconds < 45)
+                    if (string.Equals(trangThai, "DangXuLy", StringComparison.OrdinalIgnoreCase) && seconds < 180)
                     {
                         return (AILeaseStatus.CurrentlyProcessing, null);
                     }
@@ -242,7 +242,7 @@ namespace DAL
             string? trinhDo = "B1",
             int? nguoiTaoId = null)
         {
-            if (maBaiHoc < 0 || questions == null || questions.Count < 10)
+            if (maBaiHoc < 0 || !LessonQuizQuality.IsValidSet(questions))
                 return false;
 
             using var conn = SqlDataProvider.Instance.GetConnection();

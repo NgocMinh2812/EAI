@@ -278,6 +278,8 @@ namespace BUS.AI.Configuration
         /// </summary>
         public string GetMaskedApiKey(AIProviderType provider)
         {
+            if (provider != AIProviderType.Ollama && AIConfigHelper.IsUseCentralizedBackend())
+                return "Quản lý trên Backend Azure";
             if (provider == AIProviderType.Ollama)
             {
                 return "Không cần API Key (Localhost)";
@@ -489,6 +491,9 @@ namespace BUS.AI.Configuration
         /// </summary>
         public async Task<AIResponse> TestConnectionAsync(AIProviderType providerType, string? model = null, CancellationToken ct = default)
         {
+            if (providerType != AIProviderType.Ollama && AIConfigHelper.IsUseCentralizedBackend())
+                return await AIServiceManager.Instance.GetProvider(providerType)
+                    .GenerateContentAsync("Hello, respond in one word: OK.", model, ct);
             string apiKey = GetApiKey(providerType);
             if (string.IsNullOrWhiteSpace(apiKey))
             {

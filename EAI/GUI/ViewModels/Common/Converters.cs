@@ -117,6 +117,8 @@ namespace GUI.ViewModels.Common
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            if (BUS.AI.Configuration.AIConfigHelper.IsUseCentralizedBackend())
+                return "API key do Backend quản lý";
             return (value is bool b && b) ? "✓ Đã cấu hình API key" : "✗ Chưa cấu hình API key";
         }
 

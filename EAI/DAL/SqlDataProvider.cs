@@ -10,12 +10,17 @@ namespace DAL
         public static SqlDataProvider Instance => _instance ??= new SqlDataProvider();
 
         // Chuỗi kết nối mặc định - có thể thay đổi linh hoạt hoặc nạp từ biến môi trường
-        private string _connectionString = "Server=.\\SQLEXPRESS;Database=TiengAnhAI;Trusted_Connection=True;TrustServerCertificate=True;";
+        private string _connectionString = @"Server=tcp:eai-sql.database.windows.net,1433;Initial Catalog=TiengAnhAI;Persist Security Info=False;User ID=admineai;Password=123456A@;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
+        private bool _hasExplicitConnectionString = true;
 
         public string ConnectionString
         {
             get => _connectionString;
-            set => _connectionString = value;
+            set
+            {
+                _connectionString = value;
+                _hasExplicitConnectionString = !string.IsNullOrWhiteSpace(value);
+            }
         }
 
         public SqlDataProvider()
@@ -24,6 +29,7 @@ namespace DAL
             if (!string.IsNullOrWhiteSpace(envConn))
             {
                 _connectionString = envConn;
+                _hasExplicitConnectionString = true;
             }
             TestConnection();
         }
@@ -44,6 +50,12 @@ namespace DAL
             }
             catch
             {
+                // Không tự chuyển sang database cục bộ nếu người dùng đã cấu hình chuỗi kết nối riêng (ví dụ Azure SQL).
+                if (_hasExplicitConnectionString)
+                {
+                    return false;
+                }
+
                 // Thử fallback sang các instance SQL thông dụng
                 string[] fallbackStrings = new[]
                 {

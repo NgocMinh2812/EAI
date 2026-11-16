@@ -18,7 +18,7 @@ namespace BUS.AI.Providers
         public string ProviderName => "Google Gemini";
         public AIProviderType ProviderType => AIProviderType.Gemini;
 
-        public bool IsConfigured => !string.IsNullOrWhiteSpace(AIConfigHelper.GetGeminiKey());
+        public bool IsConfigured => AIConfigHelper.IsUseCentralizedBackend() || !string.IsNullOrWhiteSpace(AIConfigHelper.GetGeminiKey());
 
         public IReadOnlyList<string> SupportedModels => new[]
         {
@@ -32,6 +32,8 @@ namespace BUS.AI.Providers
 
         public async Task<AIResponse> GenerateContentAsync(string prompt, string? model = null, CancellationToken ct = default)
         {
+            if (AIConfigHelper.IsUseCentralizedBackend())
+                return await EAIBackendClient.GenerateContentAsync(prompt, "Gemini", model, ct);
             string apiKey = AIConfigHelper.GetGeminiKey();
             if (string.IsNullOrWhiteSpace(apiKey))
             {
@@ -156,6 +158,8 @@ namespace BUS.AI.Providers
 
         public async Task<AIHealthStatus> CheckHealthAsync(CancellationToken ct = default)
         {
+            if (AIConfigHelper.IsUseCentralizedBackend())
+                return await EAIBackendClient.CheckProviderHealthAsync(ProviderType, ProviderName, ct);
             string apiKey = AIConfigHelper.GetGeminiKey();
             if (string.IsNullOrWhiteSpace(apiKey))
             {

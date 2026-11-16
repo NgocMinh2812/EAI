@@ -127,10 +127,13 @@ namespace BUS.AI
 
                         return (true, beTranscript, string.Empty);
                     }
+                    return (false, null, string.IsNullOrWhiteSpace(beErr) ? "Dịch vụ AI chưa trả về bản chép lời. Vui lòng thử lại." : beErr);
                 }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[GroqAudioService.STT] Centralized Backend gặp lỗi hoặc offline: {ex.Message}. Fallback về Groq trực tiếp...");
+                    System.Diagnostics.Debug.WriteLine($"[GroqAudioService.STT] Backend: {ex.Message}");
+                    return (false, null, "Không kết nối được dịch vụ chuyển giọng nói thành văn bản. Vui lòng thử lại sau.");
                 }
             }
 
@@ -302,10 +305,13 @@ namespace BUS.AI
 
                         return (true, resultDto, string.Empty);
                     }
+                    return (false, null, string.IsNullOrWhiteSpace(beErr) ? "Dịch vụ AI chưa trả về âm thanh. Vui lòng thử lại." : beErr);
                 }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[GroqAudioService.TTS] Centralized Backend gặp lỗi hoặc offline: {ex.Message}. Fallback về Groq trực tiếp...");
+                    System.Diagnostics.Debug.WriteLine($"[GroqAudioService.TTS] Backend: {ex.Message}");
+                    return (false, null, "Không kết nối được dịch vụ tạo giọng đọc. Vui lòng thử lại sau.");
                 }
             }
 
@@ -424,8 +430,9 @@ namespace BUS.AI
             }
 
             string targetModel = string.IsNullOrWhiteSpace(model) ? DefaultTtsModel : model;
-            string apiKey = AIConfigHelper.GetGroqKey();
-            if (string.IsNullOrWhiteSpace(apiKey))
+            bool useBackend = AIConfigHelper.IsUseCentralizedBackend();
+            string apiKey = useBackend ? string.Empty : AIConfigHelper.GetGroqKey();
+            if (!useBackend && string.IsNullOrWhiteSpace(apiKey))
             {
                 return (false, null, "Chưa cấu hình Groq API Key.");
             }
@@ -450,6 +457,22 @@ namespace BUS.AI
                     var chunks = WavAudioHelper.TachScriptThanhChunks(line.Text, 175);
                     foreach (var chunkText in chunks)
                     {
+                        if (useBackend)
+                        {
+                            // Xin WAV để ghép các giọng và khoảng lặng bằng WavAudioHelper.
+                            var (ok, audioPath, error) = await EAIBackendClient.GenerateSpeechAsync(chunkText, voice, ct, "wav");
+                            if (!ok)
+                                return (false, null, $"Lỗi lượt thoại {lineIndex + 1}: {error}");
+                            try
+                            {
+                                combinedWavChunks.Add(await File.ReadAllBytesAsync(audioPath, ct));
+                            }
+                            finally
+                            {
+                                try { File.Delete(audioPath); } catch { }
+                            }
+                            continue;
+                        }
                         var payload = new
                         {
                             model = targetModel,

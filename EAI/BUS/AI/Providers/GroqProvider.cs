@@ -20,7 +20,7 @@ namespace BUS.AI.Providers
         public string ProviderName => "Groq Cloud";
         public AIProviderType ProviderType => AIProviderType.Groq;
 
-        public bool IsConfigured => !string.IsNullOrWhiteSpace(AIConfigHelper.GetGroqKey());
+        public bool IsConfigured => AIConfigHelper.IsUseCentralizedBackend() || !string.IsNullOrWhiteSpace(AIConfigHelper.GetGroqKey());
 
         public IReadOnlyList<string> SupportedModels => new[]
         {
@@ -35,6 +35,8 @@ namespace BUS.AI.Providers
 
         public async Task<AIResponse> GenerateContentAsync(string prompt, string? model = null, CancellationToken ct = default)
         {
+            if (AIConfigHelper.IsUseCentralizedBackend())
+                return await EAIBackendClient.GenerateContentAsync(prompt, "Groq", model, ct);
             string apiKey = AIConfigHelper.GetGroqKey();
             if (string.IsNullOrWhiteSpace(apiKey))
             {
@@ -116,6 +118,8 @@ namespace BUS.AI.Providers
 
         public async Task<AIHealthStatus> CheckHealthAsync(CancellationToken ct = default)
         {
+            if (AIConfigHelper.IsUseCentralizedBackend())
+                return await EAIBackendClient.CheckProviderHealthAsync(ProviderType, ProviderName, ct);
             string apiKey = AIConfigHelper.GetGroqKey();
             if (string.IsNullOrWhiteSpace(apiKey))
             {
@@ -292,7 +296,9 @@ namespace BUS.AI.Providers
             _cachedModels = fallback;
             _lastCacheTime = DateTime.Now;
             IsCatalogDynamic = false;
-            CatalogStatusMessage = string.IsNullOrWhiteSpace(apiKey)
+            CatalogStatusMessage = AIConfigHelper.IsUseCentralizedBackend()
+                ? "Danh mục tham khảo; yêu cầu AI được xử lý qua Backend Azure."
+                : string.IsNullOrWhiteSpace(apiKey)
                 ? "Chưa có API Key — Dùng danh mục cấu hình sẵn đã xác minh từ Groq Docs"
                 : "Không thể kết nối API catalog — Dùng danh mục cấu hình sẵn đã xác minh từ Groq Docs";
             return fallback;

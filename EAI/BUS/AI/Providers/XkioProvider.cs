@@ -27,6 +27,7 @@ namespace BUS.AI.Providers
         {
             get
             {
+                if (AIConfigHelper.IsUseCentralizedBackend()) return true;
                 var (apiKey, _) = AIConfigHelper.GetXkioConfig();
                 return !string.IsNullOrWhiteSpace(apiKey);
             }
@@ -49,6 +50,8 @@ namespace BUS.AI.Providers
 
         public async Task<AIResponse> GenerateContentAsync(string prompt, string? model = null, CancellationToken ct = default)
         {
+            if (AIConfigHelper.IsUseCentralizedBackend())
+                return await EAIBackendClient.GenerateContentAsync(prompt, "XKiro", model, ct);
             var (apiKey, baseUrl) = AIConfigHelper.GetXkioConfig();
             if (string.IsNullOrWhiteSpace(apiKey))
             {
@@ -131,6 +134,8 @@ namespace BUS.AI.Providers
 
         public async Task<AIHealthStatus> CheckHealthAsync(CancellationToken ct = default)
         {
+            if (AIConfigHelper.IsUseCentralizedBackend())
+                return await EAIBackendClient.CheckProviderHealthAsync(ProviderType, ProviderName, ct);
             var (apiKey, baseUrl) = AIConfigHelper.GetXkioConfig();
             if (string.IsNullOrWhiteSpace(apiKey))
             {
@@ -311,7 +316,9 @@ namespace BUS.AI.Providers
             _cachedModels = fallback;
             _lastCacheTime = DateTime.Now;
             IsCatalogDynamic = false;
-            CatalogStatusMessage = "Không thể kết nối API catalog — Dùng danh mục dự phòng đã xác minh từ xKiro Docs";
+            CatalogStatusMessage = AIConfigHelper.IsUseCentralizedBackend()
+                ? "Danh mục tham khảo; yêu cầu AI được xử lý qua Backend Azure."
+                : "Không thể kết nối API catalog — Dùng danh mục dự phòng đã xác minh từ xKiro Docs";
             return fallback;
         }
 

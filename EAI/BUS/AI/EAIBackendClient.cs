@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -8,6 +9,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using BUS.AI.Configuration;
+using BUS.AI.Models;
 using DTO;
 
 namespace BUS.AI
@@ -40,14 +42,88 @@ namespace BUS.AI
             try
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                cts.CancelAfter(TimeSpan.FromSeconds(2));
-                var res = await _httpClient.GetAsync($"{BaseUrl}/api/health", cts.Token);
+                cts.CancelAfter(TimeSpan.FromSeconds(20));
+                using var res = await _httpClient.GetAsync($"{BaseUrl}/api/health", cts.Token);
                 return res.IsSuccessStatusCode;
             }
             catch
             {
                 return false;
             }
+        }
+
+        // Chỉ trả lỗi của Backend; không rơi xuống provider cục bộ và đòi key trên máy mới.
+        public static async Task<AIResponse> GenerateContentAsync(string prompt,
+            string? provider = null, string? model = null, CancellationToken ct = default, int maxTokens = 2048)
+        {
+            var sw = Stopwatch.StartNew();
+            try
+            {
+                var reply = await ChatAsync(prompt, provider, model, ct, maxTokens);
+                if (string.IsNullOrWhiteSpace(reply))
+                    return AIResponse.Fail("EAI.AIBackend", "Dịch vụ AI trả về nội dung trống. Vui lòng thử lại.", 502, sw.ElapsedMilliseconds);
+                return AIResponse.Ok(reply, "EAI.AIBackend", model ?? "Auto", sw.ElapsedMilliseconds);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+            catch (OperationCanceledException)
+            {
+                return AIResponse.Fail("EAI.AIBackend", "Dịch vụ AI phản hồi quá lâu. Vui lòng thử lại.", 504, sw.ElapsedMilliseconds);
+            }
+            catch (HttpRequestException ex)
+            {
+                return AIResponse.Fail("EAI.AIBackend",
+                    ex.StatusCode.HasValue ? ex.Message : "Không kết nối được dịch vụ AI. Hãy kiểm tra Internet hoặc thử lại sau.",
+                    (int?)ex.StatusCode ?? 503, sw.ElapsedMilliseconds);
+            }
+            catch (JsonException)
+            {
+                return AIResponse.Fail("EAI.AIBackend", "Dịch vụ AI trả về dữ liệu không hợp lệ. Vui lòng thử lại.", 502, sw.ElapsedMilliseconds);
+            }
+        }
+
+        // /system/status phản ánh key và khả năng phục vụ trên SERVER, không phải máy cài app.
+        // Đây là trạng thái Backend báo cáo, không phải một lần gọi thử sinh nội dung.
+        public static async Task<AIHealthStatus> CheckProviderHealthAsync(
+            AIProviderType provider, string providerName, CancellationToken ct = default)
+        {
+            var sw = Stopwatch.StartNew();
+            var result = new AIHealthStatus
+            {
+                ProviderType = provider, ProviderName = providerName,
+                LastChecked = DateTime.Now, ActiveModel = "Backend tự chọn"
+            };
+            try
+            {
+                using var statusTimeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                statusTimeout.CancelAfter(TimeSpan.FromSeconds(20));
+                using var response = await _httpClient.GetAsync($"{BaseUrl}/api/system/status", statusTimeout.Token);
+                response.EnsureSuccessStatusCode();
+                var body = await response.Content.ReadAsStringAsync(ct);
+                using var doc = JsonDocument.Parse(body);
+                var providers = doc.RootElement.GetProperty("data").GetProperty("providers");
+                var backendName = provider == AIProviderType.Xkio ? "XKiro" : provider.ToString();
+                foreach (var item in providers.EnumerateArray())
+                {
+                    if (!string.Equals(item.GetProperty("providerName").GetString(), backendName, StringComparison.OrdinalIgnoreCase)) continue;
+                    result.IsConfigured = item.GetProperty("totalKeys").GetInt32() > 0;
+                    var available = item.GetProperty("isAvailable").GetBoolean();
+                    result.Health = available ? "Healthy" : "Unavailable";
+                    result.Message = available
+                        ? $"Backend báo sẵn sàng ({item.GetProperty("activeKeys").GetInt32()} key khả dụng)."
+                        : result.IsConfigured ? "Nhà cung cấp đang tạm không khả dụng trên Backend."
+                        : "Nhà cung cấp chưa được cấu hình trên Backend; máy người dùng không cần nhập key.";
+                    result.LatencyMs = sw.ElapsedMilliseconds;
+                    return result;
+                }
+                result.Message = "Backend chưa công bố trạng thái của nhà cung cấp này.";
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+            catch (Exception)
+            {
+                result.Message = "Không đọc được trạng thái dịch vụ AI từ Backend. Hãy kiểm tra Internet hoặc thử lại sau.";
+            }
+            result.LatencyMs = sw.ElapsedMilliseconds;
+            return result;
         }
 
         /// <summary>
@@ -57,19 +133,21 @@ namespace BUS.AI
             string prompt, 
             string? preferredProvider = null, 
             string? preferredModel = null, 
-            CancellationToken ct = default)
+            CancellationToken ct = default,
+            int maxTokens = 2048)
         {
             var req = new
             {
                 prompt = prompt,
                 preferredProvider = preferredProvider,
-                preferredModel = preferredModel
+                preferredModel = preferredModel,
+                maxTokens = maxTokens
             };
 
             var json = JsonSerializer.Serialize(req);
             using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync($"{BaseUrl}/api/ai/chat", content, ct);
+            using var response = await _httpClient.PostAsync($"{BaseUrl}/api/ai/chat", content, ct);
             var resBody = await response.Content.ReadAsStringAsync(ct);
 
             if (response.IsSuccessStatusCode)
@@ -82,7 +160,9 @@ namespace BUS.AI
                 }
             }
 
-            throw new Exception($"[EAIBackendClient] Chat thất bại ({response.StatusCode}): {resBody}");
+            if (response.IsSuccessStatusCode)
+                throw new JsonException("Backend không trả về nội dung chat.");
+            throw new HttpRequestException($"Dịch vụ AI trả về lỗi HTTP {(int)response.StatusCode}. Vui lòng thử lại sau.", null, response.StatusCode);
         }
 
         /// <summary>
@@ -242,7 +322,8 @@ namespace BUS.AI
         public static async Task<(bool Success, string AudioPath, string ErrorMessage)> GenerateSpeechAsync(
             string text, 
             string voice = "troy", 
-            CancellationToken ct = default)
+            CancellationToken ct = default,
+            string audioFormat = "mp3")
         {
             try
             {
@@ -250,7 +331,7 @@ namespace BUS.AI
                 {
                     text = text,
                     voice = voice,
-                    audioFormat = "mp3"
+                    audioFormat = audioFormat
                 };
 
                 var json = JsonSerializer.Serialize(req);
@@ -261,7 +342,7 @@ namespace BUS.AI
                 {
                     byte[] audioBytes = await response.Content.ReadAsByteArrayAsync(ct);
                     string targetDir = GroqAudioService.GetAudioStorageDirectory();
-                    string fileName = $"BE_TTS_{Guid.NewGuid().ToString("N").Substring(0, 8)}.mp3";
+                    string fileName = $"BE_TTS_{Guid.NewGuid():N}.{(audioFormat == "wav" ? "wav" : "mp3")}";
                     string filePath = Path.Combine(targetDir, fileName);
 
                     await File.WriteAllBytesAsync(filePath, audioBytes, ct);

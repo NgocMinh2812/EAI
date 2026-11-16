@@ -1293,6 +1293,10 @@ namespace GUI.Views
             // Kiểm tra xem sinh viên này đã có lịch sử làm bài tập cho bộ này chưa
             var previousResult = BaiHocQuizBUS.Instance.LayKetQuaSinhVien(currentUserId, _currentBaiHoc.MaBaiHoc, contentHash, quiz.LoaiBoCauHoi);
 
+            // Bộ câu mẫu cũ có thể vừa được thay bằng câu thật: không phục hồi điểm/lựa chọn theo số thứ tự.
+            if (previousResult != null && !BaiHocQuizBUS.KetQuaThuocBoCauHoi(quiz, previousResult))
+                previousResult = null;
+
             if (previousResult != null && !string.IsNullOrWhiteSpace(previousResult.ChiTietTraLoiJson))
             {
                 // Phục hồi lựa chọn của sinh viên
